@@ -10,13 +10,13 @@ part of 'assistant_session_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(AssistantSessionController)
-const assistantSessionControllerProvider =
+final assistantSessionControllerProvider =
     AssistantSessionControllerProvider._();
 
 final class AssistantSessionControllerProvider
     extends
         $NotifierProvider<AssistantSessionController, AssistantSessionState> {
-  const AssistantSessionControllerProvider._()
+  AssistantSessionControllerProvider._()
     : super(
         from: null,
         argument: null,
@@ -52,7 +52,6 @@ abstract class _$AssistantSessionController
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<AssistantSessionState, AssistantSessionState>;
     final element =
         ref.element
@@ -62,6 +61,6 @@ abstract class _$AssistantSessionController
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

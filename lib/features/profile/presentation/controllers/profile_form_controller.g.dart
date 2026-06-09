@@ -10,11 +10,11 @@ part of 'profile_form_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(ProfileFormController)
-const profileFormControllerProvider = ProfileFormControllerFamily._();
+final profileFormControllerProvider = ProfileFormControllerFamily._();
 
 final class ProfileFormControllerProvider
     extends $NotifierProvider<ProfileFormController, ProfileFormState> {
-  const ProfileFormControllerProvider._({
+  ProfileFormControllerProvider._({
     required ProfileFormControllerFamily super.from,
     required ProfileFormParams super.argument,
   }) : super(
@@ -70,7 +70,7 @@ final class ProfileFormControllerFamily extends $Family
           ProfileFormState,
           ProfileFormParams
         > {
-  const ProfileFormControllerFamily._()
+  ProfileFormControllerFamily._()
     : super(
         retry: null,
         name: r'profileFormControllerProvider',
@@ -94,7 +94,6 @@ abstract class _$ProfileFormController extends $Notifier<ProfileFormState> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build(_$args);
     final ref = this.ref as $Ref<ProfileFormState, ProfileFormState>;
     final element =
         ref.element
@@ -104,6 +103,6 @@ abstract class _$ProfileFormController extends $Notifier<ProfileFormState> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, () => build(_$args));
   }
 }

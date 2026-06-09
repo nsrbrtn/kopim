@@ -712,10 +712,12 @@ class _TransactionListTile extends ConsumerWidget {
     final String? accountName = account?.name;
     final String? transferAccountName = transferAccount?.name;
     final List<String> subtitleParts = <String>[
-      if (isTransfer && accountName != null && transferAccountName != null)
-        strings.transactionTransferAccountPair(accountName, transferAccountName)
-      else if (accountName != null)
-        accountName,
+      ?(isTransfer && accountName != null && transferAccountName != null
+          ? strings.transactionTransferAccountPair(
+              accountName,
+              transferAccountName,
+            )
+          : accountName),
       dateFormat.format(transaction.date),
     ];
     final String subtitle = subtitleParts.join(' • ');

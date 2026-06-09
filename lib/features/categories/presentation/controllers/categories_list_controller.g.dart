@@ -10,7 +10,7 @@ part of 'categories_list_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(manageCategoryTree)
-const manageCategoryTreeProvider = ManageCategoryTreeProvider._();
+final manageCategoryTreeProvider = ManageCategoryTreeProvider._();
 
 final class ManageCategoryTreeProvider
     extends
@@ -22,7 +22,7 @@ final class ManageCategoryTreeProvider
     with
         $FutureModifier<List<CategoryTreeNode>>,
         $StreamProvider<List<CategoryTreeNode>> {
-  const ManageCategoryTreeProvider._()
+  ManageCategoryTreeProvider._()
     : super(
         from: null,
         argument: null,

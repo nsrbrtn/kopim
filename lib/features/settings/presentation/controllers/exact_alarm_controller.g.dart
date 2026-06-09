@@ -10,11 +10,11 @@ part of 'exact_alarm_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(ExactAlarmController)
-const exactAlarmControllerProvider = ExactAlarmControllerProvider._();
+final exactAlarmControllerProvider = ExactAlarmControllerProvider._();
 
 final class ExactAlarmControllerProvider
     extends $AsyncNotifierProvider<ExactAlarmController, bool> {
-  const ExactAlarmControllerProvider._()
+  ExactAlarmControllerProvider._()
     : super(
         from: null,
         argument: null,
@@ -41,7 +41,6 @@ abstract class _$ExactAlarmController extends $AsyncNotifier<bool> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<AsyncValue<bool>, bool>;
     final element =
         ref.element
@@ -51,6 +50,6 @@ abstract class _$ExactAlarmController extends $AsyncNotifier<bool> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

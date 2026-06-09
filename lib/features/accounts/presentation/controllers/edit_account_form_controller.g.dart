@@ -10,11 +10,11 @@ part of 'edit_account_form_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(EditAccountFormController)
-const editAccountFormControllerProvider = EditAccountFormControllerFamily._();
+final editAccountFormControllerProvider = EditAccountFormControllerFamily._();
 
 final class EditAccountFormControllerProvider
     extends $NotifierProvider<EditAccountFormController, EditAccountFormState> {
-  const EditAccountFormControllerProvider._({
+  EditAccountFormControllerProvider._({
     required EditAccountFormControllerFamily super.from,
     required AccountEntity super.argument,
   }) : super(
@@ -71,7 +71,7 @@ final class EditAccountFormControllerFamily extends $Family
           EditAccountFormState,
           AccountEntity
         > {
-  const EditAccountFormControllerFamily._()
+  EditAccountFormControllerFamily._()
     : super(
         retry: null,
         name: r'editAccountFormControllerProvider',
@@ -96,7 +96,6 @@ abstract class _$EditAccountFormController
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build(_$args);
     final ref = this.ref as $Ref<EditAccountFormState, EditAccountFormState>;
     final element =
         ref.element
@@ -106,6 +105,6 @@ abstract class _$EditAccountFormController
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, () => build(_$args));
   }
 }

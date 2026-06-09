@@ -10,7 +10,7 @@ part of 'home_dashboard_preferences_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(HomeDashboardPreferencesController)
-const homeDashboardPreferencesControllerProvider =
+final homeDashboardPreferencesControllerProvider =
     HomeDashboardPreferencesControllerProvider._();
 
 final class HomeDashboardPreferencesControllerProvider
@@ -19,7 +19,7 @@ final class HomeDashboardPreferencesControllerProvider
           HomeDashboardPreferencesController,
           HomeDashboardPreferences
         > {
-  const HomeDashboardPreferencesControllerProvider._()
+  HomeDashboardPreferencesControllerProvider._()
     : super(
         from: null,
         argument: null,
@@ -49,7 +49,6 @@ abstract class _$HomeDashboardPreferencesController
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref =
         this.ref
             as $Ref<
@@ -67,6 +66,6 @@ abstract class _$HomeDashboardPreferencesController
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

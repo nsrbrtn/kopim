@@ -10,11 +10,11 @@ part of 'analytics_filter_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(AnalyticsFilterController)
-const analyticsFilterControllerProvider = AnalyticsFilterControllerProvider._();
+final analyticsFilterControllerProvider = AnalyticsFilterControllerProvider._();
 
 final class AnalyticsFilterControllerProvider
     extends $NotifierProvider<AnalyticsFilterController, AnalyticsFilterState> {
-  const AnalyticsFilterControllerProvider._()
+  AnalyticsFilterControllerProvider._()
     : super(
         from: null,
         argument: null,
@@ -50,7 +50,6 @@ abstract class _$AnalyticsFilterController
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<AnalyticsFilterState, AnalyticsFilterState>;
     final element =
         ref.element
@@ -60,6 +59,6 @@ abstract class _$AnalyticsFilterController
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

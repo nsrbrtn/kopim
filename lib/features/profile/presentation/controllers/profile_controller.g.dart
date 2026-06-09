@@ -10,11 +10,11 @@ part of 'profile_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(ProfileController)
-const profileControllerProvider = ProfileControllerFamily._();
+final profileControllerProvider = ProfileControllerFamily._();
 
 final class ProfileControllerProvider
     extends $AsyncNotifierProvider<ProfileController, Profile?> {
-  const ProfileControllerProvider._({
+  ProfileControllerProvider._({
     required ProfileControllerFamily super.from,
     required String super.argument,
   }) : super(
@@ -61,7 +61,7 @@ final class ProfileControllerFamily extends $Family
           FutureOr<Profile?>,
           String
         > {
-  const ProfileControllerFamily._()
+  ProfileControllerFamily._()
     : super(
         retry: null,
         name: r'profileControllerProvider',
@@ -85,7 +85,6 @@ abstract class _$ProfileController extends $AsyncNotifier<Profile?> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build(_$args);
     final ref = this.ref as $Ref<AsyncValue<Profile?>, Profile?>;
     final element =
         ref.element
@@ -95,6 +94,6 @@ abstract class _$ProfileController extends $AsyncNotifier<Profile?> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, () => build(_$args));
   }
 }

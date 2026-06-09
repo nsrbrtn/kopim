@@ -10,7 +10,7 @@ part of 'budgets_providers.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(budgetsStream)
-const budgetsStreamProvider = BudgetsStreamProvider._();
+final budgetsStreamProvider = BudgetsStreamProvider._();
 
 final class BudgetsStreamProvider
     extends
@@ -20,7 +20,7 @@ final class BudgetsStreamProvider
           Stream<List<Budget>>
         >
     with $FutureModifier<List<Budget>>, $StreamProvider<List<Budget>> {
-  const BudgetsStreamProvider._()
+  BudgetsStreamProvider._()
     : super(
         from: null,
         argument: null,
@@ -49,7 +49,7 @@ final class BudgetsStreamProvider
 String _$budgetsStreamHash() => r'797212de1c19f0af950b15b3bbbdc429ac1d445d';
 
 @ProviderFor(budgetTransactionsStream)
-const budgetTransactionsStreamProvider = BudgetTransactionsStreamProvider._();
+final budgetTransactionsStreamProvider = BudgetTransactionsStreamProvider._();
 
 final class BudgetTransactionsStreamProvider
     extends
@@ -61,7 +61,7 @@ final class BudgetTransactionsStreamProvider
     with
         $FutureModifier<List<TransactionEntity>>,
         $StreamProvider<List<TransactionEntity>> {
-  const BudgetTransactionsStreamProvider._()
+  BudgetTransactionsStreamProvider._()
     : super(
         from: null,
         argument: null,
@@ -91,7 +91,7 @@ String _$budgetTransactionsStreamHash() =>
     r'689adbc8b0d77aa1a6ef79d389160357a47b1ccd';
 
 @ProviderFor(budgetAccountsStream)
-const budgetAccountsStreamProvider = BudgetAccountsStreamProvider._();
+final budgetAccountsStreamProvider = BudgetAccountsStreamProvider._();
 
 final class BudgetAccountsStreamProvider
     extends
@@ -103,7 +103,7 @@ final class BudgetAccountsStreamProvider
     with
         $FutureModifier<List<AccountEntity>>,
         $StreamProvider<List<AccountEntity>> {
-  const BudgetAccountsStreamProvider._()
+  BudgetAccountsStreamProvider._()
     : super(
         from: null,
         argument: null,
@@ -133,7 +133,7 @@ String _$budgetAccountsStreamHash() =>
     r'8884a5a979807f7ffc5021082793f15a1dced0ed';
 
 @ProviderFor(budgetCategoriesStream)
-const budgetCategoriesStreamProvider = BudgetCategoriesStreamProvider._();
+final budgetCategoriesStreamProvider = BudgetCategoriesStreamProvider._();
 
 final class BudgetCategoriesStreamProvider
     extends
@@ -143,7 +143,7 @@ final class BudgetCategoriesStreamProvider
           Stream<List<Category>>
         >
     with $FutureModifier<List<Category>>, $StreamProvider<List<Category>> {
-  const BudgetCategoriesStreamProvider._()
+  BudgetCategoriesStreamProvider._()
     : super(
         from: null,
         argument: null,
@@ -173,7 +173,7 @@ String _$budgetCategoriesStreamHash() =>
     r'8389a92c1fdadf6a6f7e7820229683ca037a6dfb';
 
 @ProviderFor(budgetExpenseTotals)
-const budgetExpenseTotalsProvider = BudgetExpenseTotalsProvider._();
+final budgetExpenseTotalsProvider = BudgetExpenseTotalsProvider._();
 
 final class BudgetExpenseTotalsProvider
     extends
@@ -185,7 +185,7 @@ final class BudgetExpenseTotalsProvider
     with
         $FutureModifier<Map<BudgetPeriodKey, List<BudgetExpenseTotals>>>,
         $StreamProvider<Map<BudgetPeriodKey, List<BudgetExpenseTotals>>> {
-  const BudgetExpenseTotalsProvider._()
+  BudgetExpenseTotalsProvider._()
     : super(
         from: null,
         argument: null,
@@ -214,7 +214,7 @@ String _$budgetExpenseTotalsHash() =>
     r'7c4ad6e4fb179336e94c8a642533edbfaf148de4';
 
 @ProviderFor(budgetsWithProgress)
-const budgetsWithProgressProvider = BudgetsWithProgressProvider._();
+final budgetsWithProgressProvider = BudgetsWithProgressProvider._();
 
 final class BudgetsWithProgressProvider
     extends
@@ -224,7 +224,7 @@ final class BudgetsWithProgressProvider
           AsyncValue<List<BudgetProgress>>
         >
     with $Provider<AsyncValue<List<BudgetProgress>>> {
-  const BudgetsWithProgressProvider._()
+  BudgetsWithProgressProvider._()
     : super(
         from: null,
         argument: null,
@@ -264,7 +264,7 @@ String _$budgetsWithProgressHash() =>
     r'5f7c5397b6561aeae1d2abaf7f26f08c76ea9d86';
 
 @ProviderFor(budgetCategorySpend)
-const budgetCategorySpendProvider = BudgetCategorySpendProvider._();
+final budgetCategorySpendProvider = BudgetCategorySpendProvider._();
 
 final class BudgetCategorySpendProvider
     extends
@@ -274,7 +274,7 @@ final class BudgetCategorySpendProvider
           AsyncValue<List<BudgetCategorySpend>>
         >
     with $Provider<AsyncValue<List<BudgetCategorySpend>>> {
-  const BudgetCategorySpendProvider._()
+  BudgetCategorySpendProvider._()
     : super(
         from: null,
         argument: null,
@@ -313,7 +313,7 @@ String _$budgetCategorySpendHash() =>
     r'16a0284e8b9ff9fef53e277391a99ff182fda7c8';
 
 @ProviderFor(budgetProgressById)
-const budgetProgressByIdProvider = BudgetProgressByIdFamily._();
+final budgetProgressByIdProvider = BudgetProgressByIdFamily._();
 
 final class BudgetProgressByIdProvider
     extends
@@ -323,7 +323,7 @@ final class BudgetProgressByIdProvider
           AsyncValue<BudgetProgress>
         >
     with $Provider<AsyncValue<BudgetProgress>> {
-  const BudgetProgressByIdProvider._({
+  BudgetProgressByIdProvider._({
     required BudgetProgressByIdFamily super.from,
     required String super.argument,
   }) : super(
@@ -380,7 +380,7 @@ String _$budgetProgressByIdHash() =>
 
 final class BudgetProgressByIdFamily extends $Family
     with $FunctionalFamilyOverride<AsyncValue<BudgetProgress>, String> {
-  const BudgetProgressByIdFamily._()
+  BudgetProgressByIdFamily._()
     : super(
         retry: null,
         name: r'budgetProgressByIdProvider',
@@ -397,7 +397,7 @@ final class BudgetProgressByIdFamily extends $Family
 }
 
 @ProviderFor(budgetTransactionsById)
-const budgetTransactionsByIdProvider = BudgetTransactionsByIdFamily._();
+final budgetTransactionsByIdProvider = BudgetTransactionsByIdFamily._();
 
 final class BudgetTransactionsByIdProvider
     extends
@@ -407,7 +407,7 @@ final class BudgetTransactionsByIdProvider
           AsyncValue<List<TransactionEntity>>
         >
     with $Provider<AsyncValue<List<TransactionEntity>>> {
-  const BudgetTransactionsByIdProvider._({
+  BudgetTransactionsByIdProvider._({
     required BudgetTransactionsByIdFamily super.from,
     required String super.argument,
   }) : super(
@@ -468,7 +468,7 @@ String _$budgetTransactionsByIdHash() =>
 final class BudgetTransactionsByIdFamily extends $Family
     with
         $FunctionalFamilyOverride<AsyncValue<List<TransactionEntity>>, String> {
-  const BudgetTransactionsByIdFamily._()
+  BudgetTransactionsByIdFamily._()
     : super(
         retry: null,
         name: r'budgetTransactionsByIdProvider',
@@ -485,7 +485,7 @@ final class BudgetTransactionsByIdFamily extends $Family
 }
 
 @ProviderFor(budgetInstancesByBudget)
-const budgetInstancesByBudgetProvider = BudgetInstancesByBudgetFamily._();
+final budgetInstancesByBudgetProvider = BudgetInstancesByBudgetFamily._();
 
 final class BudgetInstancesByBudgetProvider
     extends
@@ -497,7 +497,7 @@ final class BudgetInstancesByBudgetProvider
     with
         $FutureModifier<List<BudgetInstance>>,
         $FutureProvider<List<BudgetInstance>> {
-  const BudgetInstancesByBudgetProvider._({
+  BudgetInstancesByBudgetProvider._({
     required BudgetInstancesByBudgetFamily super.from,
     required String super.argument,
   }) : super(
@@ -547,7 +547,7 @@ String _$budgetInstancesByBudgetHash() =>
 
 final class BudgetInstancesByBudgetFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<BudgetInstance>>, String> {
-  const BudgetInstancesByBudgetFamily._()
+  BudgetInstancesByBudgetFamily._()
     : super(
         retry: null,
         name: r'budgetInstancesByBudgetProvider',

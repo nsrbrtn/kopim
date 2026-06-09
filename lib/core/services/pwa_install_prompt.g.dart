@@ -10,13 +10,13 @@ part of 'pwa_install_prompt.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(PwaInstallPromptController)
-const pwaInstallPromptControllerProvider =
+final pwaInstallPromptControllerProvider =
     PwaInstallPromptControllerProvider._();
 
 final class PwaInstallPromptControllerProvider
     extends
         $NotifierProvider<PwaInstallPromptController, PwaInstallPromptState> {
-  const PwaInstallPromptControllerProvider._()
+  PwaInstallPromptControllerProvider._()
     : super(
         from: null,
         argument: null,
@@ -52,7 +52,6 @@ abstract class _$PwaInstallPromptController
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<PwaInstallPromptState, PwaInstallPromptState>;
     final element =
         ref.element
@@ -62,6 +61,6 @@ abstract class _$PwaInstallPromptController
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

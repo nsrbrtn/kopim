@@ -10,11 +10,11 @@ part of 'auth_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(AuthController)
-const authControllerProvider = AuthControllerProvider._();
+final authControllerProvider = AuthControllerProvider._();
 
 final class AuthControllerProvider
     extends $AsyncNotifierProvider<AuthController, AuthUser?> {
-  const AuthControllerProvider._()
+  AuthControllerProvider._()
     : super(
         from: null,
         argument: null,
@@ -40,7 +40,6 @@ abstract class _$AuthController extends $AsyncNotifier<AuthUser?> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<AsyncValue<AuthUser?>, AuthUser?>;
     final element =
         ref.element
@@ -50,6 +49,6 @@ abstract class _$AuthController extends $AsyncNotifier<AuthUser?> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

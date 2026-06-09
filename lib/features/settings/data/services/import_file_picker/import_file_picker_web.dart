@@ -11,21 +11,16 @@ ImportFilePicker buildImportFilePicker() => _ImportFilePickerWeb();
 class _ImportFilePickerWeb implements ImportFilePicker {
   @override
   Future<PickedImportFile?> pickFile(DataTransferFormat format) async {
-    final FilePickerResult? result = await FilePicker.platform.pickFiles(
+    final PlatformFile? file = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: <String>[format.fileExtension],
-      withData: true,
     );
 
-    if (result == null || result.files.isEmpty) {
+    if (file == null) {
       return null;
     }
 
-    final PlatformFile file = result.files.first;
-    final Uint8List? bytes = file.bytes;
-    if (bytes == null) {
-      return null;
-    }
+    final Uint8List bytes = await file.readAsBytes();
 
     return PickedImportFile(fileName: file.name, bytes: bytes);
   }

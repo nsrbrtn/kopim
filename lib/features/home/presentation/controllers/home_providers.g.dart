@@ -10,7 +10,7 @@ part of 'home_providers.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(homeAccounts)
-const homeAccountsProvider = HomeAccountsProvider._();
+final homeAccountsProvider = HomeAccountsProvider._();
 
 final class HomeAccountsProvider
     extends
@@ -22,7 +22,7 @@ final class HomeAccountsProvider
     with
         $FutureModifier<List<AccountEntity>>,
         $StreamProvider<List<AccountEntity>> {
-  const HomeAccountsProvider._()
+  HomeAccountsProvider._()
     : super(
         from: null,
         argument: null,
@@ -51,7 +51,7 @@ final class HomeAccountsProvider
 String _$homeAccountsHash() => r'a85f66c60020e2b209097f652725045c53455a8e';
 
 @ProviderFor(homeRecentTransactions)
-const homeRecentTransactionsProvider = HomeRecentTransactionsFamily._();
+final homeRecentTransactionsProvider = HomeRecentTransactionsFamily._();
 
 final class HomeRecentTransactionsProvider
     extends
@@ -63,7 +63,7 @@ final class HomeRecentTransactionsProvider
     with
         $FutureModifier<List<TransactionEntity>>,
         $StreamProvider<List<TransactionEntity>> {
-  const HomeRecentTransactionsProvider._({
+  HomeRecentTransactionsProvider._({
     required HomeRecentTransactionsFamily super.from,
     required int super.argument,
   }) : super(
@@ -113,7 +113,7 @@ String _$homeRecentTransactionsHash() =>
 
 final class HomeRecentTransactionsFamily extends $Family
     with $FunctionalFamilyOverride<Stream<List<TransactionEntity>>, int> {
-  const HomeRecentTransactionsFamily._()
+  HomeRecentTransactionsFamily._()
     : super(
         retry: null,
         name: r'homeRecentTransactionsProvider',
@@ -131,7 +131,7 @@ final class HomeRecentTransactionsFamily extends $Family
 }
 
 @ProviderFor(homeCategories)
-const homeCategoriesProvider = HomeCategoriesProvider._();
+final homeCategoriesProvider = HomeCategoriesProvider._();
 
 final class HomeCategoriesProvider
     extends
@@ -141,7 +141,7 @@ final class HomeCategoriesProvider
           Stream<List<Category>>
         >
     with $FutureModifier<List<Category>>, $StreamProvider<List<Category>> {
-  const HomeCategoriesProvider._()
+  HomeCategoriesProvider._()
     : super(
         from: null,
         argument: null,
@@ -170,7 +170,7 @@ final class HomeCategoriesProvider
 String _$homeCategoriesHash() => r'8489f218304563096d7997f846877f8ab2a5c725';
 
 @ProviderFor(homeTransactionById)
-const homeTransactionByIdProvider = HomeTransactionByIdFamily._();
+final homeTransactionByIdProvider = HomeTransactionByIdFamily._();
 
 final class HomeTransactionByIdProvider
     extends
@@ -180,7 +180,7 @@ final class HomeTransactionByIdProvider
           TransactionEntity?
         >
     with $Provider<TransactionEntity?> {
-  const HomeTransactionByIdProvider._({
+  HomeTransactionByIdProvider._({
     required HomeTransactionByIdFamily super.from,
     required String super.argument,
   }) : super(
@@ -237,7 +237,7 @@ String _$homeTransactionByIdHash() =>
 
 final class HomeTransactionByIdFamily extends $Family
     with $FunctionalFamilyOverride<TransactionEntity?, String> {
-  const HomeTransactionByIdFamily._()
+  HomeTransactionByIdFamily._()
     : super(
         retry: null,
         name: r'homeTransactionByIdProvider',
@@ -254,12 +254,12 @@ final class HomeTransactionByIdFamily extends $Family
 }
 
 @ProviderFor(homeAccountById)
-const homeAccountByIdProvider = HomeAccountByIdFamily._();
+final homeAccountByIdProvider = HomeAccountByIdFamily._();
 
 final class HomeAccountByIdProvider
     extends $FunctionalProvider<AccountEntity?, AccountEntity?, AccountEntity?>
     with $Provider<AccountEntity?> {
-  const HomeAccountByIdProvider._({
+  HomeAccountByIdProvider._({
     required HomeAccountByIdFamily super.from,
     required String super.argument,
   }) : super(
@@ -314,7 +314,7 @@ String _$homeAccountByIdHash() => r'66dfb92d476fa8869ebbfadfbca272c3b8d7695d';
 
 final class HomeAccountByIdFamily extends $Family
     with $FunctionalFamilyOverride<AccountEntity?, String> {
-  const HomeAccountByIdFamily._()
+  HomeAccountByIdFamily._()
     : super(
         retry: null,
         name: r'homeAccountByIdProvider',
@@ -331,12 +331,12 @@ final class HomeAccountByIdFamily extends $Family
 }
 
 @ProviderFor(homeCategoryById)
-const homeCategoryByIdProvider = HomeCategoryByIdFamily._();
+final homeCategoryByIdProvider = HomeCategoryByIdFamily._();
 
 final class HomeCategoryByIdProvider
     extends $FunctionalProvider<Category?, Category?, Category?>
     with $Provider<Category?> {
-  const HomeCategoryByIdProvider._({
+  HomeCategoryByIdProvider._({
     required HomeCategoryByIdFamily super.from,
     required String super.argument,
   }) : super(
@@ -391,7 +391,7 @@ String _$homeCategoryByIdHash() => r'e6df1590b2cce5e948b66cec8bee0c9fcbdc5036';
 
 final class HomeCategoryByIdFamily extends $Family
     with $FunctionalFamilyOverride<Category?, String> {
-  const HomeCategoryByIdFamily._()
+  HomeCategoryByIdFamily._()
     : super(
         retry: null,
         name: r'homeCategoryByIdProvider',
@@ -408,7 +408,7 @@ final class HomeCategoryByIdFamily extends $Family
 }
 
 @ProviderFor(homeSavingGoals)
-const homeSavingGoalsProvider = HomeSavingGoalsProvider._();
+final homeSavingGoalsProvider = HomeSavingGoalsProvider._();
 
 final class HomeSavingGoalsProvider
     extends
@@ -418,7 +418,7 @@ final class HomeSavingGoalsProvider
           Stream<List<SavingGoal>>
         >
     with $FutureModifier<List<SavingGoal>>, $StreamProvider<List<SavingGoal>> {
-  const HomeSavingGoalsProvider._()
+  HomeSavingGoalsProvider._()
     : super(
         from: null,
         argument: null,
@@ -447,7 +447,7 @@ final class HomeSavingGoalsProvider
 String _$homeSavingGoalsHash() => r'4030a8cc0b315618bd1f7976e56dbb3820a1cbc7';
 
 @ProviderFor(homeSavingGoalProgress)
-const homeSavingGoalProgressProvider = HomeSavingGoalProgressProvider._();
+final homeSavingGoalProgressProvider = HomeSavingGoalProgressProvider._();
 
 final class HomeSavingGoalProgressProvider
     extends
@@ -457,7 +457,7 @@ final class HomeSavingGoalProgressProvider
           AsyncValue<List<GoalProgress>>
         >
     with $Provider<AsyncValue<List<GoalProgress>>> {
-  const HomeSavingGoalProgressProvider._()
+  HomeSavingGoalProgressProvider._()
     : super(
         from: null,
         argument: null,
@@ -497,7 +497,7 @@ String _$homeSavingGoalProgressHash() =>
     r'0ef1a4b8be63e03602f70f6fe70f7af1b5a76849';
 
 @ProviderFor(homeGroupedTransactions)
-const homeGroupedTransactionsProvider = HomeGroupedTransactionsProvider._();
+final homeGroupedTransactionsProvider = HomeGroupedTransactionsProvider._();
 
 final class HomeGroupedTransactionsProvider
     extends
@@ -507,7 +507,7 @@ final class HomeGroupedTransactionsProvider
           AsyncValue<List<DaySection>>
         >
     with $Provider<AsyncValue<List<DaySection>>> {
-  const HomeGroupedTransactionsProvider._()
+  HomeGroupedTransactionsProvider._()
     : super(
         from: null,
         argument: null,
@@ -545,7 +545,7 @@ String _$homeGroupedTransactionsHash() =>
     r'7f246cf20b77a3442fdced6c14a81c95cf54f9b6';
 
 @ProviderFor(homeAccountMonthlySummaries)
-const homeAccountMonthlySummariesProvider =
+final homeAccountMonthlySummariesProvider =
     HomeAccountMonthlySummariesProvider._();
 
 final class HomeAccountMonthlySummariesProvider
@@ -558,7 +558,7 @@ final class HomeAccountMonthlySummariesProvider
     with
         $FutureModifier<Map<String, HomeAccountMonthlySummary>>,
         $StreamProvider<Map<String, HomeAccountMonthlySummary>> {
-  const HomeAccountMonthlySummariesProvider._()
+  HomeAccountMonthlySummariesProvider._()
     : super(
         from: null,
         argument: null,
@@ -588,7 +588,7 @@ String _$homeAccountMonthlySummariesHash() =>
     r'246f0197a9ea556d55ae637f052a7b25991561da';
 
 @ProviderFor(homeOverviewSummary)
-const homeOverviewSummaryProvider = HomeOverviewSummaryProvider._();
+final homeOverviewSummaryProvider = HomeOverviewSummaryProvider._();
 
 final class HomeOverviewSummaryProvider
     extends
@@ -600,7 +600,7 @@ final class HomeOverviewSummaryProvider
     with
         $FutureModifier<HomeOverviewSummary>,
         $StreamProvider<HomeOverviewSummary> {
-  const HomeOverviewSummaryProvider._()
+  HomeOverviewSummaryProvider._()
     : super(
         from: null,
         argument: null,

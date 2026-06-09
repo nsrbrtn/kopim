@@ -10,13 +10,13 @@ part of 'app_theme_factory.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(appThemeFactory)
-const appThemeFactoryProvider = AppThemeFactoryProvider._();
+final appThemeFactoryProvider = AppThemeFactoryProvider._();
 
 final class AppThemeFactoryProvider
     extends
         $FunctionalProvider<AppThemeFactory, AppThemeFactory, AppThemeFactory>
     with $Provider<AppThemeFactory> {
-  const AppThemeFactoryProvider._()
+  AppThemeFactoryProvider._()
     : super(
         from: null,
         argument: null,
@@ -52,7 +52,7 @@ final class AppThemeFactoryProvider
 String _$appThemeFactoryHash() => r'87ca06ef0e9463caf8fdefb430c17a7982e371cc';
 
 @ProviderFor(appThemeTokens)
-const appThemeTokensProvider = AppThemeTokensProvider._();
+final appThemeTokensProvider = AppThemeTokensProvider._();
 
 final class AppThemeTokensProvider
     extends
@@ -64,7 +64,7 @@ final class AppThemeTokensProvider
     with
         $FutureModifier<KopimThemeTokenBundle>,
         $FutureProvider<KopimThemeTokenBundle> {
-  const AppThemeTokensProvider._()
+  AppThemeTokensProvider._()
     : super(
         from: null,
         argument: null,

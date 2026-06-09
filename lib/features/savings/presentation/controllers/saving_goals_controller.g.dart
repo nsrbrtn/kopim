@@ -10,11 +10,11 @@ part of 'saving_goals_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(SavingGoalsController)
-const savingGoalsControllerProvider = SavingGoalsControllerProvider._();
+final savingGoalsControllerProvider = SavingGoalsControllerProvider._();
 
 final class SavingGoalsControllerProvider
     extends $NotifierProvider<SavingGoalsController, SavingGoalsState> {
-  const SavingGoalsControllerProvider._()
+  SavingGoalsControllerProvider._()
     : super(
         from: null,
         argument: null,
@@ -49,7 +49,6 @@ abstract class _$SavingGoalsController extends $Notifier<SavingGoalsState> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<SavingGoalsState, SavingGoalsState>;
     final element =
         ref.element
@@ -59,6 +58,6 @@ abstract class _$SavingGoalsController extends $Notifier<SavingGoalsState> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

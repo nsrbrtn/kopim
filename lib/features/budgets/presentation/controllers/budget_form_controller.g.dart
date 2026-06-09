@@ -10,11 +10,11 @@ part of 'budget_form_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(BudgetFormController)
-const budgetFormControllerProvider = BudgetFormControllerFamily._();
+final budgetFormControllerProvider = BudgetFormControllerFamily._();
 
 final class BudgetFormControllerProvider
     extends $NotifierProvider<BudgetFormController, BudgetFormState> {
-  const BudgetFormControllerProvider._({
+  BudgetFormControllerProvider._({
     required BudgetFormControllerFamily super.from,
     required BudgetFormParams super.argument,
   }) : super(
@@ -70,7 +70,7 @@ final class BudgetFormControllerFamily extends $Family
           BudgetFormState,
           BudgetFormParams
         > {
-  const BudgetFormControllerFamily._()
+  BudgetFormControllerFamily._()
     : super(
         retry: null,
         name: r'budgetFormControllerProvider',
@@ -95,7 +95,6 @@ abstract class _$BudgetFormController extends $Notifier<BudgetFormState> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build(params: _$args);
     final ref = this.ref as $Ref<BudgetFormState, BudgetFormState>;
     final element =
         ref.element
@@ -105,6 +104,6 @@ abstract class _$BudgetFormController extends $Notifier<BudgetFormState> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, () => build(params: _$args));
   }
 }

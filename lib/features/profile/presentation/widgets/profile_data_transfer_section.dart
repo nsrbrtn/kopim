@@ -255,7 +255,7 @@ class _ProfileDataTransferSectionState
     setState(() => _isPickingDirectory = true);
     try {
       final AppLocalizations strings = AppLocalizations.of(context)!;
-      final String? selected = await FilePicker.platform.getDirectoryPath(
+      final String? selected = await FilePicker.getDirectoryPath(
         dialogTitle: strings.profileExportDataDirectoryPickerTitle,
       );
       if (!mounted) {

@@ -10,11 +10,11 @@ part of 'add_account_form_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(AddAccountFormController)
-const addAccountFormControllerProvider = AddAccountFormControllerProvider._();
+final addAccountFormControllerProvider = AddAccountFormControllerProvider._();
 
 final class AddAccountFormControllerProvider
     extends $NotifierProvider<AddAccountFormController, AddAccountFormState> {
-  const AddAccountFormControllerProvider._()
+  AddAccountFormControllerProvider._()
     : super(
         from: null,
         argument: null,
@@ -50,7 +50,6 @@ abstract class _$AddAccountFormController
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<AddAccountFormState, AddAccountFormState>;
     final element =
         ref.element
@@ -60,6 +59,6 @@ abstract class _$AddAccountFormController
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

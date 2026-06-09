@@ -10,7 +10,7 @@ part of 'import_user_data_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(ImportUserDataController)
-const importUserDataControllerProvider = ImportUserDataControllerProvider._();
+final importUserDataControllerProvider = ImportUserDataControllerProvider._();
 
 final class ImportUserDataControllerProvider
     extends
@@ -18,7 +18,7 @@ final class ImportUserDataControllerProvider
           ImportUserDataController,
           AsyncValue<ImportUserDataResult?>
         > {
-  const ImportUserDataControllerProvider._()
+  ImportUserDataControllerProvider._()
     : super(
         from: null,
         argument: null,
@@ -56,7 +56,6 @@ abstract class _$ImportUserDataController
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref =
         this.ref
             as $Ref<
@@ -74,6 +73,6 @@ abstract class _$ImportUserDataController
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

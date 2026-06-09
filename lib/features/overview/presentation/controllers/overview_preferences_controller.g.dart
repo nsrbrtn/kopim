@@ -10,7 +10,7 @@ part of 'overview_preferences_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(OverviewPreferencesController)
-const overviewPreferencesControllerProvider =
+final overviewPreferencesControllerProvider =
     OverviewPreferencesControllerProvider._();
 
 final class OverviewPreferencesControllerProvider
@@ -19,7 +19,7 @@ final class OverviewPreferencesControllerProvider
           OverviewPreferencesController,
           OverviewPreferences
         > {
-  const OverviewPreferencesControllerProvider._()
+  OverviewPreferencesControllerProvider._()
     : super(
         from: null,
         argument: null,
@@ -47,7 +47,6 @@ abstract class _$OverviewPreferencesController
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref =
         this.ref as $Ref<AsyncValue<OverviewPreferences>, OverviewPreferences>;
     final element =
@@ -58,6 +57,6 @@ abstract class _$OverviewPreferencesController
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

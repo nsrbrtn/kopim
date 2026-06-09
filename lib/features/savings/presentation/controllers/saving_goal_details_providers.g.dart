@@ -10,12 +10,12 @@ part of 'saving_goal_details_providers.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(savingGoalById)
-const savingGoalByIdProvider = SavingGoalByIdFamily._();
+final savingGoalByIdProvider = SavingGoalByIdFamily._();
 
 final class SavingGoalByIdProvider
     extends $FunctionalProvider<SavingGoal?, SavingGoal?, SavingGoal?>
     with $Provider<SavingGoal?> {
-  const SavingGoalByIdProvider._({
+  SavingGoalByIdProvider._({
     required SavingGoalByIdFamily super.from,
     required String super.argument,
   }) : super(
@@ -70,7 +70,7 @@ String _$savingGoalByIdHash() => r'fec465f46ffa66c0862b125b34f4c97eb4536c6f';
 
 final class SavingGoalByIdFamily extends $Family
     with $FunctionalFamilyOverride<SavingGoal?, String> {
-  const SavingGoalByIdFamily._()
+  SavingGoalByIdFamily._()
     : super(
         retry: null,
         name: r'savingGoalByIdProvider',
@@ -87,7 +87,7 @@ final class SavingGoalByIdFamily extends $Family
 }
 
 @ProviderFor(savingGoalAnalytics)
-const savingGoalAnalyticsProvider = SavingGoalAnalyticsFamily._();
+final savingGoalAnalyticsProvider = SavingGoalAnalyticsFamily._();
 
 final class SavingGoalAnalyticsProvider
     extends
@@ -99,7 +99,7 @@ final class SavingGoalAnalyticsProvider
     with
         $FutureModifier<SavingGoalAnalytics>,
         $StreamProvider<SavingGoalAnalytics> {
-  const SavingGoalAnalyticsProvider._({
+  SavingGoalAnalyticsProvider._({
     required SavingGoalAnalyticsFamily super.from,
     required String super.argument,
   }) : super(
@@ -148,7 +148,7 @@ String _$savingGoalAnalyticsHash() =>
 
 final class SavingGoalAnalyticsFamily extends $Family
     with $FunctionalFamilyOverride<Stream<SavingGoalAnalytics>, String> {
-  const SavingGoalAnalyticsFamily._()
+  SavingGoalAnalyticsFamily._()
     : super(
         retry: null,
         name: r'savingGoalAnalyticsProvider',
@@ -165,7 +165,7 @@ final class SavingGoalAnalyticsFamily extends $Family
 }
 
 @ProviderFor(savingGoalCategories)
-const savingGoalCategoriesProvider = SavingGoalCategoriesProvider._();
+final savingGoalCategoriesProvider = SavingGoalCategoriesProvider._();
 
 final class SavingGoalCategoriesProvider
     extends
@@ -175,7 +175,7 @@ final class SavingGoalCategoriesProvider
           Stream<List<Category>>
         >
     with $FutureModifier<List<Category>>, $StreamProvider<List<Category>> {
-  const SavingGoalCategoriesProvider._()
+  SavingGoalCategoriesProvider._()
     : super(
         from: null,
         argument: null,

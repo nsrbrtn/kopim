@@ -10,7 +10,7 @@ part of 'all_transactions_filter_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(AllTransactionsFilterController)
-const allTransactionsFilterControllerProvider =
+final allTransactionsFilterControllerProvider =
     AllTransactionsFilterControllerProvider._();
 
 final class AllTransactionsFilterControllerProvider
@@ -19,7 +19,7 @@ final class AllTransactionsFilterControllerProvider
           AllTransactionsFilterController,
           AllTransactionsFilterState
         > {
-  const AllTransactionsFilterControllerProvider._()
+  AllTransactionsFilterControllerProvider._()
     : super(
         from: null,
         argument: null,
@@ -55,7 +55,6 @@ abstract class _$AllTransactionsFilterController
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref =
         this.ref
             as $Ref<AllTransactionsFilterState, AllTransactionsFilterState>;
@@ -70,6 +69,6 @@ abstract class _$AllTransactionsFilterController
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

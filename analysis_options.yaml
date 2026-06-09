@@ -7,6 +7,7 @@ include: package:flutter_lints/flutter.yaml
 analyzer:
   exclude:
     - '**/*.g.dart'
+    - 'third_party/**'
   # Stricter analysis for better code quality.
   errors:
     # Treat missing required parameters as errors.

@@ -10,7 +10,7 @@ part of 'saving_goals_providers.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(goalsStream)
-const goalsStreamProvider = GoalsStreamProvider._();
+final goalsStreamProvider = GoalsStreamProvider._();
 
 final class GoalsStreamProvider
     extends
@@ -20,7 +20,7 @@ final class GoalsStreamProvider
           List<SavingGoal>
         >
     with $Provider<List<SavingGoal>> {
-  const GoalsStreamProvider._()
+  GoalsStreamProvider._()
     : super(
         from: null,
         argument: null,

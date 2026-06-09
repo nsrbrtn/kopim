@@ -146,9 +146,7 @@ void main() {
 
     expect(find.text('Лимит для Food'), findsOneWidget);
     expect(
-      find.text(
-        'Общий лимит включает саму категорию и все подкатегории.',
-      ),
+      find.text('Общий лимит включает саму категорию и все подкатегории.'),
       findsOneWidget,
     );
   });

@@ -10,11 +10,11 @@ part of 'app_startup_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(AppStartupController)
-const appStartupControllerProvider = AppStartupControllerProvider._();
+final appStartupControllerProvider = AppStartupControllerProvider._();
 
 final class AppStartupControllerProvider
     extends $NotifierProvider<AppStartupController, AppStartupResult> {
-  const AppStartupControllerProvider._()
+  AppStartupControllerProvider._()
     : super(
         from: null,
         argument: null,
@@ -49,7 +49,6 @@ abstract class _$AppStartupController extends $Notifier<AppStartupResult> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<AppStartupResult, AppStartupResult>;
     final element =
         ref.element
@@ -59,6 +58,6 @@ abstract class _$AppStartupController extends $Notifier<AppStartupResult> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

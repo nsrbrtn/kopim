@@ -10,7 +10,7 @@ part of 'all_transactions_providers.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(allTransactionsStream)
-const allTransactionsStreamProvider = AllTransactionsStreamProvider._();
+final allTransactionsStreamProvider = AllTransactionsStreamProvider._();
 
 final class AllTransactionsStreamProvider
     extends
@@ -22,7 +22,7 @@ final class AllTransactionsStreamProvider
     with
         $FutureModifier<List<TransactionEntity>>,
         $StreamProvider<List<TransactionEntity>> {
-  const AllTransactionsStreamProvider._()
+  AllTransactionsStreamProvider._()
     : super(
         from: null,
         argument: null,
@@ -52,7 +52,7 @@ String _$allTransactionsStreamHash() =>
     r'40d34963e6d37b9bcf09198a1443256a8b34a2a7';
 
 @ProviderFor(filteredTransactions)
-const filteredTransactionsProvider = FilteredTransactionsProvider._();
+final filteredTransactionsProvider = FilteredTransactionsProvider._();
 
 final class FilteredTransactionsProvider
     extends
@@ -62,7 +62,7 @@ final class FilteredTransactionsProvider
           AsyncValue<List<TransactionEntity>>
         >
     with $Provider<AsyncValue<List<TransactionEntity>>> {
-  const FilteredTransactionsProvider._()
+  FilteredTransactionsProvider._()
     : super(
         from: null,
         argument: null,
@@ -102,7 +102,7 @@ String _$filteredTransactionsHash() =>
     r'5c8c432acc5112635da78e972a38da70a44cbd71';
 
 @ProviderFor(allTransactionsAccounts)
-const allTransactionsAccountsProvider = AllTransactionsAccountsProvider._();
+final allTransactionsAccountsProvider = AllTransactionsAccountsProvider._();
 
 final class AllTransactionsAccountsProvider
     extends
@@ -114,7 +114,7 @@ final class AllTransactionsAccountsProvider
     with
         $FutureModifier<List<AccountEntity>>,
         $StreamProvider<List<AccountEntity>> {
-  const AllTransactionsAccountsProvider._()
+  AllTransactionsAccountsProvider._()
     : super(
         from: null,
         argument: null,
@@ -144,7 +144,7 @@ String _$allTransactionsAccountsHash() =>
     r'8ef685e924219321d2fe549cc7c345a8cfc08579';
 
 @ProviderFor(allTransactionsCategories)
-const allTransactionsCategoriesProvider = AllTransactionsCategoriesProvider._();
+final allTransactionsCategoriesProvider = AllTransactionsCategoriesProvider._();
 
 final class AllTransactionsCategoriesProvider
     extends
@@ -154,7 +154,7 @@ final class AllTransactionsCategoriesProvider
           Stream<List<Category>>
         >
     with $FutureModifier<List<Category>>, $StreamProvider<List<Category>> {
-  const AllTransactionsCategoriesProvider._()
+  AllTransactionsCategoriesProvider._()
     : super(
         from: null,
         argument: null,

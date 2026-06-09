@@ -36,7 +36,7 @@ void main() {
       return TransactionCommandResult<void>(value: null);
     });
 
-    const TransactionActionsControllerProvider provider =
+    final TransactionActionsControllerProvider provider =
         transactionActionsControllerProvider;
     container.read(provider);
     final TransactionActionsController controller = container.read(
@@ -55,7 +55,7 @@ void main() {
   test('deleteTransaction captures errors', () async {
     when(() => deleteUseCase('tx-2')).thenThrow(Exception('failure'));
 
-    const TransactionActionsControllerProvider provider =
+    final TransactionActionsControllerProvider provider =
         transactionActionsControllerProvider;
     container.read(provider);
     final TransactionActionsController controller = container.read(

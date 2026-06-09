@@ -10,7 +10,7 @@ part of 'export_user_data_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(ExportUserDataController)
-const exportUserDataControllerProvider = ExportUserDataControllerProvider._();
+final exportUserDataControllerProvider = ExportUserDataControllerProvider._();
 
 final class ExportUserDataControllerProvider
     extends
@@ -18,7 +18,7 @@ final class ExportUserDataControllerProvider
           ExportUserDataController,
           AsyncValue<ExportFileSaveResult?>
         > {
-  const ExportUserDataControllerProvider._()
+  ExportUserDataControllerProvider._()
     : super(
         from: null,
         argument: null,
@@ -56,7 +56,6 @@ abstract class _$ExportUserDataController
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref =
         this.ref
             as $Ref<
@@ -74,6 +73,6 @@ abstract class _$ExportUserDataController
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

@@ -10,11 +10,11 @@ part of 'avatar_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(AvatarController)
-const avatarControllerProvider = AvatarControllerProvider._();
+final avatarControllerProvider = AvatarControllerProvider._();
 
 final class AvatarControllerProvider
     extends $NotifierProvider<AvatarController, AsyncValue<void>> {
-  const AvatarControllerProvider._()
+  AvatarControllerProvider._()
     : super(
         from: null,
         argument: null,
@@ -48,7 +48,6 @@ abstract class _$AvatarController extends $Notifier<AsyncValue<void>> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<AsyncValue<void>, AsyncValue<void>>;
     final element =
         ref.element
@@ -58,6 +57,6 @@ abstract class _$AvatarController extends $Notifier<AsyncValue<void>> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

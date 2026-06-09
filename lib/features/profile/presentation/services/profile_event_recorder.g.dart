@@ -10,7 +10,7 @@ part of 'profile_event_recorder.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(profileEventRecorder)
-const profileEventRecorderProvider = ProfileEventRecorderProvider._();
+final profileEventRecorderProvider = ProfileEventRecorderProvider._();
 
 final class ProfileEventRecorderProvider
     extends
@@ -20,7 +20,7 @@ final class ProfileEventRecorderProvider
           ProfileEventRecorder
         >
     with $Provider<ProfileEventRecorder> {
-  const ProfileEventRecorderProvider._()
+  ProfileEventRecorderProvider._()
     : super(
         from: null,
         argument: null,

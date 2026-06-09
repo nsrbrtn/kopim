@@ -10,7 +10,7 @@ part of 'home_transactions_filter_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(HomeTransactionsFilterController)
-const homeTransactionsFilterControllerProvider =
+final homeTransactionsFilterControllerProvider =
     HomeTransactionsFilterControllerProvider._();
 
 final class HomeTransactionsFilterControllerProvider
@@ -19,7 +19,7 @@ final class HomeTransactionsFilterControllerProvider
           HomeTransactionsFilterController,
           HomeTransactionsFilter
         > {
-  const HomeTransactionsFilterControllerProvider._()
+  HomeTransactionsFilterControllerProvider._()
     : super(
         from: null,
         argument: null,
@@ -56,7 +56,6 @@ abstract class _$HomeTransactionsFilterController
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref =
         this.ref as $Ref<HomeTransactionsFilter, HomeTransactionsFilter>;
     final element =
@@ -67,6 +66,6 @@ abstract class _$HomeTransactionsFilterController
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

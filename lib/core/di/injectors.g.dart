@@ -10,12 +10,12 @@ part of 'injectors.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(loggerService)
-const loggerServiceProvider = LoggerServiceProvider._();
+final loggerServiceProvider = LoggerServiceProvider._();
 
 final class LoggerServiceProvider
     extends $FunctionalProvider<LoggerService, LoggerService, LoggerService>
     with $Provider<LoggerService> {
-  const LoggerServiceProvider._()
+  LoggerServiceProvider._()
     : super(
         from: null,
         argument: null,
@@ -51,7 +51,7 @@ final class LoggerServiceProvider
 String _$loggerServiceHash() => r'2c6dbe326747f3ecf81511ea71202cb7c7a10dfd';
 
 @ProviderFor(analyticsService)
-const analyticsServiceProvider = AnalyticsServiceProvider._();
+final analyticsServiceProvider = AnalyticsServiceProvider._();
 
 final class AnalyticsServiceProvider
     extends
@@ -61,7 +61,7 @@ final class AnalyticsServiceProvider
           AnalyticsService
         >
     with $Provider<AnalyticsService> {
-  const AnalyticsServiceProvider._()
+  AnalyticsServiceProvider._()
     : super(
         from: null,
         argument: null,
@@ -97,12 +97,12 @@ final class AnalyticsServiceProvider
 String _$analyticsServiceHash() => r'cab7dcfcbbca6fdfa25059607282e5f33e92576a';
 
 @ProviderFor(firebaseInitialization)
-const firebaseInitializationProvider = FirebaseInitializationProvider._();
+final firebaseInitializationProvider = FirebaseInitializationProvider._();
 
 final class FirebaseInitializationProvider
     extends $FunctionalProvider<rp.AsyncValue<void>, void, FutureOr<void>>
     with $FutureModifier<void>, $FutureProvider<void> {
-  const FirebaseInitializationProvider._()
+  FirebaseInitializationProvider._()
     : super(
         from: null,
         argument: null,
@@ -131,7 +131,7 @@ String _$firebaseInitializationHash() =>
     r'37f9a987779803ae2694b8ddaa8032d14bfe0e5c';
 
 @ProviderFor(firestore)
-const firestoreProvider = FirestoreProvider._();
+final firestoreProvider = FirestoreProvider._();
 
 final class FirestoreProvider
     extends
@@ -141,7 +141,7 @@ final class FirestoreProvider
           FirebaseFirestore
         >
     with $Provider<FirebaseFirestore> {
-  const FirestoreProvider._()
+  FirestoreProvider._()
     : super(
         from: null,
         argument: null,
@@ -178,12 +178,12 @@ final class FirestoreProvider
 String _$firestoreHash() => r'9ef8deb736db55c3deab318b7e89442a4bd8436a';
 
 @ProviderFor(firebaseAuth)
-const firebaseAuthProvider = FirebaseAuthProvider._();
+final firebaseAuthProvider = FirebaseAuthProvider._();
 
 final class FirebaseAuthProvider
     extends $FunctionalProvider<FirebaseAuth, FirebaseAuth, FirebaseAuth>
     with $Provider<FirebaseAuth> {
-  const FirebaseAuthProvider._()
+  FirebaseAuthProvider._()
     : super(
         from: null,
         argument: null,
@@ -219,13 +219,13 @@ final class FirebaseAuthProvider
 String _$firebaseAuthHash() => r'9ad8c1992b4a4063c6908db71c687bd826c2ad42';
 
 @ProviderFor(firebaseStorage)
-const firebaseStorageProvider = FirebaseStorageProvider._();
+final firebaseStorageProvider = FirebaseStorageProvider._();
 
 final class FirebaseStorageProvider
     extends
         $FunctionalProvider<FirebaseStorage, FirebaseStorage, FirebaseStorage>
     with $Provider<FirebaseStorage> {
-  const FirebaseStorageProvider._()
+  FirebaseStorageProvider._()
     : super(
         from: null,
         argument: null,
@@ -261,7 +261,7 @@ final class FirebaseStorageProvider
 String _$firebaseStorageHash() => r'226a6c09079a168220f78a90e520446bb11a8e4f';
 
 @ProviderFor(firebaseRemoteConfig)
-const firebaseRemoteConfigProvider = FirebaseRemoteConfigProvider._();
+final firebaseRemoteConfigProvider = FirebaseRemoteConfigProvider._();
 
 final class FirebaseRemoteConfigProvider
     extends
@@ -271,7 +271,7 @@ final class FirebaseRemoteConfigProvider
           FirebaseRemoteConfig
         >
     with $Provider<FirebaseRemoteConfig> {
-  const FirebaseRemoteConfigProvider._()
+  FirebaseRemoteConfigProvider._()
     : super(
         from: null,
         argument: null,
@@ -309,12 +309,12 @@ String _$firebaseRemoteConfigHash() =>
     r'581f76311fb39c27371f336d66b954d803d4f05a';
 
 @ProviderFor(levelPolicy)
-const levelPolicyProvider = LevelPolicyProvider._();
+final levelPolicyProvider = LevelPolicyProvider._();
 
 final class LevelPolicyProvider
     extends $FunctionalProvider<LevelPolicy, LevelPolicy, LevelPolicy>
     with $Provider<LevelPolicy> {
-  const LevelPolicyProvider._()
+  LevelPolicyProvider._()
     : super(
         from: null,
         argument: null,
@@ -350,12 +350,12 @@ final class LevelPolicyProvider
 String _$levelPolicyHash() => r'cf33f35f707b67802f3c09b81ce189fa94a1620f';
 
 @ProviderFor(connectivity)
-const connectivityProvider = ConnectivityProvider._();
+final connectivityProvider = ConnectivityProvider._();
 
 final class ConnectivityProvider
     extends $FunctionalProvider<Connectivity, Connectivity, Connectivity>
     with $Provider<Connectivity> {
-  const ConnectivityProvider._()
+  ConnectivityProvider._()
     : super(
         from: null,
         argument: null,
@@ -391,11 +391,11 @@ final class ConnectivityProvider
 String _$connectivityHash() => r'dbbaa751fbd9afcb3ec3c33a3b00257f5fe5682c';
 
 @ProviderFor(uuidGenerator)
-const uuidGeneratorProvider = UuidGeneratorProvider._();
+final uuidGeneratorProvider = UuidGeneratorProvider._();
 
 final class UuidGeneratorProvider extends $FunctionalProvider<Uuid, Uuid, Uuid>
     with $Provider<Uuid> {
-  const UuidGeneratorProvider._()
+  UuidGeneratorProvider._()
     : super(
         from: null,
         argument: null,
@@ -431,7 +431,7 @@ final class UuidGeneratorProvider extends $FunctionalProvider<Uuid, Uuid, Uuid>
 String _$uuidGeneratorHash() => r'037307e88c8a89227ac8c8e7d971ffd877d0cb60';
 
 @ProviderFor(aiAssistantService)
-const aiAssistantServiceProvider = AiAssistantServiceProvider._();
+final aiAssistantServiceProvider = AiAssistantServiceProvider._();
 
 final class AiAssistantServiceProvider
     extends
@@ -441,7 +441,7 @@ final class AiAssistantServiceProvider
           AiAssistantService
         >
     with $Provider<AiAssistantService> {
-  const AiAssistantServiceProvider._()
+  AiAssistantServiceProvider._()
     : super(
         from: null,
         argument: null,
@@ -479,12 +479,12 @@ String _$aiAssistantServiceHash() =>
     r'614402ddc3a8583de90b4cb2ce26211cd9843e61';
 
 @ProviderFor(appDatabase)
-const appDatabaseProvider = AppDatabaseProvider._();
+final appDatabaseProvider = AppDatabaseProvider._();
 
 final class AppDatabaseProvider
     extends $FunctionalProvider<AppDatabase, AppDatabase, AppDatabase>
     with $Provider<AppDatabase> {
-  const AppDatabaseProvider._()
+  AppDatabaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -520,12 +520,12 @@ final class AppDatabaseProvider
 String _$appDatabaseHash() => r'd77dd55624f88ba85786c5ed36157c845beee8c5';
 
 @ProviderFor(outboxDao)
-const outboxDaoProvider = OutboxDaoProvider._();
+final outboxDaoProvider = OutboxDaoProvider._();
 
 final class OutboxDaoProvider
     extends $FunctionalProvider<OutboxDao, OutboxDao, OutboxDao>
     with $Provider<OutboxDao> {
-  const OutboxDaoProvider._()
+  OutboxDaoProvider._()
     : super(
         from: null,
         argument: null,
@@ -561,12 +561,12 @@ final class OutboxDaoProvider
 String _$outboxDaoHash() => r'c134f94b8f94f536107cb7b8dd8fc6a853733b6a';
 
 @ProviderFor(accountDao)
-const accountDaoProvider = AccountDaoProvider._();
+final accountDaoProvider = AccountDaoProvider._();
 
 final class AccountDaoProvider
     extends $FunctionalProvider<AccountDao, AccountDao, AccountDao>
     with $Provider<AccountDao> {
-  const AccountDaoProvider._()
+  AccountDaoProvider._()
     : super(
         from: null,
         argument: null,
@@ -602,12 +602,12 @@ final class AccountDaoProvider
 String _$accountDaoHash() => r'41cf905611cf13a5f91d7f114db19c474eb63ef2';
 
 @ProviderFor(categoryDao)
-const categoryDaoProvider = CategoryDaoProvider._();
+final categoryDaoProvider = CategoryDaoProvider._();
 
 final class CategoryDaoProvider
     extends $FunctionalProvider<CategoryDao, CategoryDao, CategoryDao>
     with $Provider<CategoryDao> {
-  const CategoryDaoProvider._()
+  CategoryDaoProvider._()
     : super(
         from: null,
         argument: null,
@@ -643,12 +643,12 @@ final class CategoryDaoProvider
 String _$categoryDaoHash() => r'95fc41600613b8ff1335794effd4b71fca511838';
 
 @ProviderFor(transactionDao)
-const transactionDaoProvider = TransactionDaoProvider._();
+final transactionDaoProvider = TransactionDaoProvider._();
 
 final class TransactionDaoProvider
     extends $FunctionalProvider<TransactionDao, TransactionDao, TransactionDao>
     with $Provider<TransactionDao> {
-  const TransactionDaoProvider._()
+  TransactionDaoProvider._()
     : super(
         from: null,
         argument: null,
@@ -684,11 +684,11 @@ final class TransactionDaoProvider
 String _$transactionDaoHash() => r'6dd75d3118f0e2e23be1b05fe5ebcee148e69f7f';
 
 @ProviderFor(tagDao)
-const tagDaoProvider = TagDaoProvider._();
+final tagDaoProvider = TagDaoProvider._();
 
 final class TagDaoProvider extends $FunctionalProvider<TagDao, TagDao, TagDao>
     with $Provider<TagDao> {
-  const TagDaoProvider._()
+  TagDaoProvider._()
     : super(
         from: null,
         argument: null,
@@ -724,7 +724,7 @@ final class TagDaoProvider extends $FunctionalProvider<TagDao, TagDao, TagDao>
 String _$tagDaoHash() => r'5d356e0e99632af543980064c22ec7032cc9c17d';
 
 @ProviderFor(transactionTagsDao)
-const transactionTagsDaoProvider = TransactionTagsDaoProvider._();
+final transactionTagsDaoProvider = TransactionTagsDaoProvider._();
 
 final class TransactionTagsDaoProvider
     extends
@@ -734,7 +734,7 @@ final class TransactionTagsDaoProvider
           TransactionTagsDao
         >
     with $Provider<TransactionTagsDao> {
-  const TransactionTagsDaoProvider._()
+  TransactionTagsDaoProvider._()
     : super(
         from: null,
         argument: null,
@@ -772,7 +772,7 @@ String _$transactionTagsDaoHash() =>
     r'2e03fb07d67f9e784e95955d0e185e57bddc9792';
 
 @ProviderFor(exportDataRepository)
-const exportDataRepositoryProvider = ExportDataRepositoryProvider._();
+final exportDataRepositoryProvider = ExportDataRepositoryProvider._();
 
 final class ExportDataRepositoryProvider
     extends
@@ -782,7 +782,7 @@ final class ExportDataRepositoryProvider
           ExportDataRepository
         >
     with $Provider<ExportDataRepository> {
-  const ExportDataRepositoryProvider._()
+  ExportDataRepositoryProvider._()
     : super(
         from: null,
         argument: null,
@@ -820,7 +820,7 @@ String _$exportDataRepositoryHash() =>
     r'c0c8b317564a4205bc4761ebed732a90ca6dca2f';
 
 @ProviderFor(exportBundleJsonEncoder)
-const exportBundleJsonEncoderProvider = ExportBundleJsonEncoderProvider._();
+final exportBundleJsonEncoderProvider = ExportBundleJsonEncoderProvider._();
 
 final class ExportBundleJsonEncoderProvider
     extends
@@ -830,7 +830,7 @@ final class ExportBundleJsonEncoderProvider
           ExportBundleJsonEncoder
         >
     with $Provider<ExportBundleJsonEncoder> {
-  const ExportBundleJsonEncoderProvider._()
+  ExportBundleJsonEncoderProvider._()
     : super(
         from: null,
         argument: null,
@@ -868,7 +868,7 @@ String _$exportBundleJsonEncoderHash() =>
     r'98cc7480796f81a14d0b5872d3c9b0a679ed88bd';
 
 @ProviderFor(exportBundleJsonDecoder)
-const exportBundleJsonDecoderProvider = ExportBundleJsonDecoderProvider._();
+final exportBundleJsonDecoderProvider = ExportBundleJsonDecoderProvider._();
 
 final class ExportBundleJsonDecoderProvider
     extends
@@ -878,7 +878,7 @@ final class ExportBundleJsonDecoderProvider
           ExportBundleJsonDecoder
         >
     with $Provider<ExportBundleJsonDecoder> {
-  const ExportBundleJsonDecoderProvider._()
+  ExportBundleJsonDecoderProvider._()
     : super(
         from: null,
         argument: null,
@@ -916,13 +916,13 @@ String _$exportBundleJsonDecoderHash() =>
     r'ed7ae4ea8b0909d8e73acb9d317cdbdc0bce6358';
 
 @ProviderFor(exportFileSaver)
-const exportFileSaverProvider = ExportFileSaverProvider._();
+final exportFileSaverProvider = ExportFileSaverProvider._();
 
 final class ExportFileSaverProvider
     extends
         $FunctionalProvider<ExportFileSaver, ExportFileSaver, ExportFileSaver>
     with $Provider<ExportFileSaver> {
-  const ExportFileSaverProvider._()
+  ExportFileSaverProvider._()
     : super(
         from: null,
         argument: null,
@@ -958,7 +958,7 @@ final class ExportFileSaverProvider
 String _$exportFileSaverHash() => r'bf455a4ef9af1c50a64411f0ff781f316f6e5e23';
 
 @ProviderFor(importFilePicker)
-const importFilePickerProvider = ImportFilePickerProvider._();
+final importFilePickerProvider = ImportFilePickerProvider._();
 
 final class ImportFilePickerProvider
     extends
@@ -968,7 +968,7 @@ final class ImportFilePickerProvider
           ImportFilePicker
         >
     with $Provider<ImportFilePicker> {
-  const ImportFilePickerProvider._()
+  ImportFilePickerProvider._()
     : super(
         from: null,
         argument: null,
@@ -1004,7 +1004,7 @@ final class ImportFilePickerProvider
 String _$importFilePickerHash() => r'3c5d5355bcb00c9260d8b66e0ad378116dc22e3f';
 
 @ProviderFor(prepareExportBundleUseCase)
-const prepareExportBundleUseCaseProvider =
+final prepareExportBundleUseCaseProvider =
     PrepareExportBundleUseCaseProvider._();
 
 final class PrepareExportBundleUseCaseProvider
@@ -1015,7 +1015,7 @@ final class PrepareExportBundleUseCaseProvider
           PrepareExportBundleUseCase
         >
     with $Provider<PrepareExportBundleUseCase> {
-  const PrepareExportBundleUseCaseProvider._()
+  PrepareExportBundleUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -1053,7 +1053,7 @@ String _$prepareExportBundleUseCaseHash() =>
     r'd4cf1a8b2882b4fdce34afc010e0c14333d0105c';
 
 @ProviderFor(exportUserDataUseCase)
-const exportUserDataUseCaseProvider = ExportUserDataUseCaseProvider._();
+final exportUserDataUseCaseProvider = ExportUserDataUseCaseProvider._();
 
 final class ExportUserDataUseCaseProvider
     extends
@@ -1063,7 +1063,7 @@ final class ExportUserDataUseCaseProvider
           ExportUserDataUseCase
         >
     with $Provider<ExportUserDataUseCase> {
-  const ExportUserDataUseCaseProvider._()
+  ExportUserDataUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -1101,7 +1101,7 @@ String _$exportUserDataUseCaseHash() =>
     r'd7d6f38e0347a3df5d4ca7bf0ad888414b6bf8f9';
 
 @ProviderFor(importDataRepository)
-const importDataRepositoryProvider = ImportDataRepositoryProvider._();
+final importDataRepositoryProvider = ImportDataRepositoryProvider._();
 
 final class ImportDataRepositoryProvider
     extends
@@ -1111,7 +1111,7 @@ final class ImportDataRepositoryProvider
           ImportDataRepository
         >
     with $Provider<ImportDataRepository> {
-  const ImportDataRepositoryProvider._()
+  ImportDataRepositoryProvider._()
     : super(
         from: null,
         argument: null,
@@ -1149,7 +1149,7 @@ String _$importDataRepositoryHash() =>
     r'8ce7d664a981cd8bc2f25ba47df7c42d9d64fbb7';
 
 @ProviderFor(importUserDataUseCase)
-const importUserDataUseCaseProvider = ImportUserDataUseCaseProvider._();
+final importUserDataUseCaseProvider = ImportUserDataUseCaseProvider._();
 
 final class ImportUserDataUseCaseProvider
     extends
@@ -1159,7 +1159,7 @@ final class ImportUserDataUseCaseProvider
           ImportUserDataUseCase
         >
     with $Provider<ImportUserDataUseCase> {
-  const ImportUserDataUseCaseProvider._()
+  ImportUserDataUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -1197,12 +1197,12 @@ String _$importUserDataUseCaseHash() =>
     r'9902df798e3cbd2e00b594863dff1e1559656002';
 
 @ProviderFor(budgetDao)
-const budgetDaoProvider = BudgetDaoProvider._();
+final budgetDaoProvider = BudgetDaoProvider._();
 
 final class BudgetDaoProvider
     extends $FunctionalProvider<BudgetDao, BudgetDao, BudgetDao>
     with $Provider<BudgetDao> {
-  const BudgetDaoProvider._()
+  BudgetDaoProvider._()
     : super(
         from: null,
         argument: null,
@@ -1238,7 +1238,7 @@ final class BudgetDaoProvider
 String _$budgetDaoHash() => r'6d271f84e0c1c8337fc10b0be34145e244e5d8d5';
 
 @ProviderFor(budgetInstanceDao)
-const budgetInstanceDaoProvider = BudgetInstanceDaoProvider._();
+final budgetInstanceDaoProvider = BudgetInstanceDaoProvider._();
 
 final class BudgetInstanceDaoProvider
     extends
@@ -1248,7 +1248,7 @@ final class BudgetInstanceDaoProvider
           BudgetInstanceDao
         >
     with $Provider<BudgetInstanceDao> {
-  const BudgetInstanceDaoProvider._()
+  BudgetInstanceDaoProvider._()
     : super(
         from: null,
         argument: null,
@@ -1285,12 +1285,12 @@ final class BudgetInstanceDaoProvider
 String _$budgetInstanceDaoHash() => r'f2ff161d2210b373bff95923b0810a8acb8f09bb';
 
 @ProviderFor(savingGoalDao)
-const savingGoalDaoProvider = SavingGoalDaoProvider._();
+final savingGoalDaoProvider = SavingGoalDaoProvider._();
 
 final class SavingGoalDaoProvider
     extends $FunctionalProvider<SavingGoalDao, SavingGoalDao, SavingGoalDao>
     with $Provider<SavingGoalDao> {
-  const SavingGoalDaoProvider._()
+  SavingGoalDaoProvider._()
     : super(
         from: null,
         argument: null,
@@ -1326,7 +1326,7 @@ final class SavingGoalDaoProvider
 String _$savingGoalDaoHash() => r'f486ee43a183e184c23f4137dcacb9c39c73aeb3';
 
 @ProviderFor(goalContributionDao)
-const goalContributionDaoProvider = GoalContributionDaoProvider._();
+final goalContributionDaoProvider = GoalContributionDaoProvider._();
 
 final class GoalContributionDaoProvider
     extends
@@ -1336,7 +1336,7 @@ final class GoalContributionDaoProvider
           GoalContributionDao
         >
     with $Provider<GoalContributionDao> {
-  const GoalContributionDaoProvider._()
+  GoalContributionDaoProvider._()
     : super(
         from: null,
         argument: null,
@@ -1374,7 +1374,7 @@ String _$goalContributionDaoHash() =>
     r'360ff3a0bd79e0a04ada0feeb9648c00b2f8d97a';
 
 @ProviderFor(goalAccountLinkDao)
-const goalAccountLinkDaoProvider = GoalAccountLinkDaoProvider._();
+final goalAccountLinkDaoProvider = GoalAccountLinkDaoProvider._();
 
 final class GoalAccountLinkDaoProvider
     extends
@@ -1384,7 +1384,7 @@ final class GoalAccountLinkDaoProvider
           GoalAccountLinkDao
         >
     with $Provider<GoalAccountLinkDao> {
-  const GoalAccountLinkDaoProvider._()
+  GoalAccountLinkDaoProvider._()
     : super(
         from: null,
         argument: null,
@@ -1422,12 +1422,12 @@ String _$goalAccountLinkDaoHash() =>
     r'6a6e58c8b7dff736a4e9fbd50dc92d7a27c00be4';
 
 @ProviderFor(profileDao)
-const profileDaoProvider = ProfileDaoProvider._();
+final profileDaoProvider = ProfileDaoProvider._();
 
 final class ProfileDaoProvider
     extends $FunctionalProvider<ProfileDao, ProfileDao, ProfileDao>
     with $Provider<ProfileDao> {
-  const ProfileDaoProvider._()
+  ProfileDaoProvider._()
     : super(
         from: null,
         argument: null,
@@ -1463,12 +1463,12 @@ final class ProfileDaoProvider
 String _$profileDaoHash() => r'c4fb55deddb24b0dabbb189a18f0e68e259be21c';
 
 @ProviderFor(creditDao)
-const creditDaoProvider = CreditDaoProvider._();
+final creditDaoProvider = CreditDaoProvider._();
 
 final class CreditDaoProvider
     extends $FunctionalProvider<CreditDao, CreditDao, CreditDao>
     with $Provider<CreditDao> {
-  const CreditDaoProvider._()
+  CreditDaoProvider._()
     : super(
         from: null,
         argument: null,
@@ -1504,7 +1504,7 @@ final class CreditDaoProvider
 String _$creditDaoHash() => r'86d365c0fcf0bc0bfc07c7b0e07a9b816321725b';
 
 @ProviderFor(creditPaymentDao)
-const creditPaymentDaoProvider = CreditPaymentDaoProvider._();
+final creditPaymentDaoProvider = CreditPaymentDaoProvider._();
 
 final class CreditPaymentDaoProvider
     extends
@@ -1514,7 +1514,7 @@ final class CreditPaymentDaoProvider
           CreditPaymentDao
         >
     with $Provider<CreditPaymentDao> {
-  const CreditPaymentDaoProvider._()
+  CreditPaymentDaoProvider._()
     : super(
         from: null,
         argument: null,
@@ -1550,12 +1550,12 @@ final class CreditPaymentDaoProvider
 String _$creditPaymentDaoHash() => r'70c834ba1eabc4c74ce841fff5604d42d9ee8e96';
 
 @ProviderFor(creditCardDao)
-const creditCardDaoProvider = CreditCardDaoProvider._();
+final creditCardDaoProvider = CreditCardDaoProvider._();
 
 final class CreditCardDaoProvider
     extends $FunctionalProvider<CreditCardDao, CreditCardDao, CreditCardDao>
     with $Provider<CreditCardDao> {
-  const CreditCardDaoProvider._()
+  CreditCardDaoProvider._()
     : super(
         from: null,
         argument: null,
@@ -1591,7 +1591,7 @@ final class CreditCardDaoProvider
 String _$creditCardDaoHash() => r'8e01c8bb69624f3ab917f4da633cc53e5d27d5ca';
 
 @ProviderFor(upcomingPaymentsDao)
-const upcomingPaymentsDaoProvider = UpcomingPaymentsDaoProvider._();
+final upcomingPaymentsDaoProvider = UpcomingPaymentsDaoProvider._();
 
 final class UpcomingPaymentsDaoProvider
     extends
@@ -1601,7 +1601,7 @@ final class UpcomingPaymentsDaoProvider
           UpcomingPaymentsDao
         >
     with $Provider<UpcomingPaymentsDao> {
-  const UpcomingPaymentsDaoProvider._()
+  UpcomingPaymentsDaoProvider._()
     : super(
         from: null,
         argument: null,
@@ -1639,7 +1639,7 @@ String _$upcomingPaymentsDaoHash() =>
     r'c0a0dddc7c94c45c289da27c7aa901cda850697b';
 
 @ProviderFor(paymentRemindersDao)
-const paymentRemindersDaoProvider = PaymentRemindersDaoProvider._();
+final paymentRemindersDaoProvider = PaymentRemindersDaoProvider._();
 
 final class PaymentRemindersDaoProvider
     extends
@@ -1649,7 +1649,7 @@ final class PaymentRemindersDaoProvider
           PaymentRemindersDao
         >
     with $Provider<PaymentRemindersDao> {
-  const PaymentRemindersDaoProvider._()
+  PaymentRemindersDaoProvider._()
     : super(
         from: null,
         argument: null,
@@ -1687,7 +1687,7 @@ String _$paymentRemindersDaoHash() =>
     r'0ccf44a3a2d861621cd7f172e6760fdf1ad5934a';
 
 @ProviderFor(flutterLocalNotificationsPlugin)
-const flutterLocalNotificationsPluginProvider =
+final flutterLocalNotificationsPluginProvider =
     FlutterLocalNotificationsPluginProvider._();
 
 final class FlutterLocalNotificationsPluginProvider
@@ -1698,7 +1698,7 @@ final class FlutterLocalNotificationsPluginProvider
           FlutterLocalNotificationsPlugin?
         >
     with $Provider<FlutterLocalNotificationsPlugin?> {
-  const FlutterLocalNotificationsPluginProvider._()
+  FlutterLocalNotificationsPluginProvider._()
     : super(
         from: null,
         argument: null,
@@ -1738,7 +1738,7 @@ String _$flutterLocalNotificationsPluginHash() =>
     r'09393e85415f184f9bb02647975651dd07be74fb';
 
 @ProviderFor(notificationFallbackPresenter)
-const notificationFallbackPresenterProvider =
+final notificationFallbackPresenterProvider =
     NotificationFallbackPresenterProvider._();
 
 final class NotificationFallbackPresenterProvider
@@ -1749,7 +1749,7 @@ final class NotificationFallbackPresenterProvider
           NotificationFallbackPresenter
         >
     with $Provider<NotificationFallbackPresenter> {
-  const NotificationFallbackPresenterProvider._()
+  NotificationFallbackPresenterProvider._()
     : super(
         from: null,
         argument: null,
@@ -1789,7 +1789,7 @@ String _$notificationFallbackPresenterHash() =>
     r'add04bf69e3b205265b37452400a227d64ddd1ff';
 
 @ProviderFor(pushPermissionService)
-const pushPermissionServiceProvider = PushPermissionServiceProvider._();
+final pushPermissionServiceProvider = PushPermissionServiceProvider._();
 
 final class PushPermissionServiceProvider
     extends
@@ -1799,7 +1799,7 @@ final class PushPermissionServiceProvider
           PushPermissionService
         >
     with $Provider<PushPermissionService> {
-  const PushPermissionServiceProvider._()
+  PushPermissionServiceProvider._()
     : super(
         from: null,
         argument: null,
@@ -1837,7 +1837,7 @@ String _$pushPermissionServiceHash() =>
     r'8fe2a28067a3d865f79a96b57cb9fb30ffb90fc3';
 
 @ProviderFor(notificationsGateway)
-const notificationsGatewayProvider = NotificationsGatewayProvider._();
+final notificationsGatewayProvider = NotificationsGatewayProvider._();
 
 final class NotificationsGatewayProvider
     extends
@@ -1847,7 +1847,7 @@ final class NotificationsGatewayProvider
           NotificationsGateway
         >
     with $Provider<NotificationsGateway> {
-  const NotificationsGatewayProvider._()
+  NotificationsGatewayProvider._()
     : super(
         from: null,
         argument: null,
@@ -1885,12 +1885,12 @@ String _$notificationsGatewayHash() =>
     r'45f10040ba3db0ab4f7bfde4a3285f7dc4948d96';
 
 @ProviderFor(workmanager)
-const workmanagerProvider = WorkmanagerProvider._();
+final workmanagerProvider = WorkmanagerProvider._();
 
 final class WorkmanagerProvider
     extends $FunctionalProvider<Workmanager, Workmanager, Workmanager>
     with $Provider<Workmanager> {
-  const WorkmanagerProvider._()
+  WorkmanagerProvider._()
     : super(
         from: null,
         argument: null,
@@ -1926,7 +1926,7 @@ final class WorkmanagerProvider
 String _$workmanagerHash() => r'884c489ccf3eeb94f5d425cc7ab546b9bf48747e';
 
 @ProviderFor(upcomingPaymentsWorkScheduler)
-const upcomingPaymentsWorkSchedulerProvider =
+final upcomingPaymentsWorkSchedulerProvider =
     UpcomingPaymentsWorkSchedulerProvider._();
 
 final class UpcomingPaymentsWorkSchedulerProvider
@@ -1937,7 +1937,7 @@ final class UpcomingPaymentsWorkSchedulerProvider
           UpcomingPaymentsWorkScheduler
         >
     with $Provider<UpcomingPaymentsWorkScheduler> {
-  const UpcomingPaymentsWorkSchedulerProvider._()
+  UpcomingPaymentsWorkSchedulerProvider._()
     : super(
         from: null,
         argument: null,
@@ -1977,12 +1977,12 @@ String _$upcomingPaymentsWorkSchedulerHash() =>
     r'd02f8ba9573c38966dc26073210fd2dfc45d990d';
 
 @ProviderFor(budgetSchedule)
-const budgetScheduleProvider = BudgetScheduleProvider._();
+final budgetScheduleProvider = BudgetScheduleProvider._();
 
 final class BudgetScheduleProvider
     extends $FunctionalProvider<BudgetSchedule, BudgetSchedule, BudgetSchedule>
     with $Provider<BudgetSchedule> {
-  const BudgetScheduleProvider._()
+  BudgetScheduleProvider._()
     : super(
         from: null,
         argument: null,
@@ -2018,7 +2018,7 @@ final class BudgetScheduleProvider
 String _$budgetScheduleHash() => r'dd4e864d9533d6685fa5d4333c2cad4cef43b5d1';
 
 @ProviderFor(accountRemoteDataSource)
-const accountRemoteDataSourceProvider = AccountRemoteDataSourceProvider._();
+final accountRemoteDataSourceProvider = AccountRemoteDataSourceProvider._();
 
 final class AccountRemoteDataSourceProvider
     extends
@@ -2028,7 +2028,7 @@ final class AccountRemoteDataSourceProvider
           AccountRemoteDataSource
         >
     with $Provider<AccountRemoteDataSource> {
-  const AccountRemoteDataSourceProvider._()
+  AccountRemoteDataSourceProvider._()
     : super(
         from: null,
         argument: null,
@@ -2066,7 +2066,7 @@ String _$accountRemoteDataSourceHash() =>
     r'b1ef9061f7f65a0d694f0a2f070d12f13502eb74';
 
 @ProviderFor(categoryRemoteDataSource)
-const categoryRemoteDataSourceProvider = CategoryRemoteDataSourceProvider._();
+final categoryRemoteDataSourceProvider = CategoryRemoteDataSourceProvider._();
 
 final class CategoryRemoteDataSourceProvider
     extends
@@ -2076,7 +2076,7 @@ final class CategoryRemoteDataSourceProvider
           CategoryRemoteDataSource
         >
     with $Provider<CategoryRemoteDataSource> {
-  const CategoryRemoteDataSourceProvider._()
+  CategoryRemoteDataSourceProvider._()
     : super(
         from: null,
         argument: null,
@@ -2114,7 +2114,7 @@ String _$categoryRemoteDataSourceHash() =>
     r'41e23c7c2518c2346671ee5662564b7559ddd941';
 
 @ProviderFor(tagRemoteDataSource)
-const tagRemoteDataSourceProvider = TagRemoteDataSourceProvider._();
+final tagRemoteDataSourceProvider = TagRemoteDataSourceProvider._();
 
 final class TagRemoteDataSourceProvider
     extends
@@ -2124,7 +2124,7 @@ final class TagRemoteDataSourceProvider
           TagRemoteDataSource
         >
     with $Provider<TagRemoteDataSource> {
-  const TagRemoteDataSourceProvider._()
+  TagRemoteDataSourceProvider._()
     : super(
         from: null,
         argument: null,
@@ -2162,7 +2162,7 @@ String _$tagRemoteDataSourceHash() =>
     r'3a0ae36e6c46ad15aaf0015dac04ebb4dfe44531';
 
 @ProviderFor(transactionTagRemoteDataSource)
-const transactionTagRemoteDataSourceProvider =
+final transactionTagRemoteDataSourceProvider =
     TransactionTagRemoteDataSourceProvider._();
 
 final class TransactionTagRemoteDataSourceProvider
@@ -2173,7 +2173,7 @@ final class TransactionTagRemoteDataSourceProvider
           TransactionTagRemoteDataSource
         >
     with $Provider<TransactionTagRemoteDataSource> {
-  const TransactionTagRemoteDataSourceProvider._()
+  TransactionTagRemoteDataSourceProvider._()
     : super(
         from: null,
         argument: null,
@@ -2213,7 +2213,7 @@ String _$transactionTagRemoteDataSourceHash() =>
     r'8668319950c64355b125dd90116b18606d3335f5';
 
 @ProviderFor(transactionRemoteDataSource)
-const transactionRemoteDataSourceProvider =
+final transactionRemoteDataSourceProvider =
     TransactionRemoteDataSourceProvider._();
 
 final class TransactionRemoteDataSourceProvider
@@ -2224,7 +2224,7 @@ final class TransactionRemoteDataSourceProvider
           TransactionRemoteDataSource
         >
     with $Provider<TransactionRemoteDataSource> {
-  const TransactionRemoteDataSourceProvider._()
+  TransactionRemoteDataSourceProvider._()
     : super(
         from: null,
         argument: null,
@@ -2262,7 +2262,7 @@ String _$transactionRemoteDataSourceHash() =>
     r'65d50f41155fa5905bd52f7ce1d39e2868b94004';
 
 @ProviderFor(profileRemoteDataSource)
-const profileRemoteDataSourceProvider = ProfileRemoteDataSourceProvider._();
+final profileRemoteDataSourceProvider = ProfileRemoteDataSourceProvider._();
 
 final class ProfileRemoteDataSourceProvider
     extends
@@ -2272,7 +2272,7 @@ final class ProfileRemoteDataSourceProvider
           ProfileRemoteDataSource
         >
     with $Provider<ProfileRemoteDataSource> {
-  const ProfileRemoteDataSourceProvider._()
+  ProfileRemoteDataSourceProvider._()
     : super(
         from: null,
         argument: null,
@@ -2310,7 +2310,7 @@ String _$profileRemoteDataSourceHash() =>
     r'45baf2527988bcc7389803c7cea36c9fa578effb';
 
 @ProviderFor(avatarRemoteDataSource)
-const avatarRemoteDataSourceProvider = AvatarRemoteDataSourceProvider._();
+final avatarRemoteDataSourceProvider = AvatarRemoteDataSourceProvider._();
 
 final class AvatarRemoteDataSourceProvider
     extends
@@ -2320,7 +2320,7 @@ final class AvatarRemoteDataSourceProvider
           AvatarRemoteDataSource
         >
     with $Provider<AvatarRemoteDataSource> {
-  const AvatarRemoteDataSourceProvider._()
+  AvatarRemoteDataSourceProvider._()
     : super(
         from: null,
         argument: null,
@@ -2358,7 +2358,7 @@ String _$avatarRemoteDataSourceHash() =>
     r'62a0f450283b5803e52fe4159c8dc4586da8244c';
 
 @ProviderFor(userProgressRemoteDataSource)
-const userProgressRemoteDataSourceProvider =
+final userProgressRemoteDataSourceProvider =
     UserProgressRemoteDataSourceProvider._();
 
 final class UserProgressRemoteDataSourceProvider
@@ -2369,7 +2369,7 @@ final class UserProgressRemoteDataSourceProvider
           UserProgressRemoteDataSource
         >
     with $Provider<UserProgressRemoteDataSource> {
-  const UserProgressRemoteDataSourceProvider._()
+  UserProgressRemoteDataSourceProvider._()
     : super(
         from: null,
         argument: null,
@@ -2407,7 +2407,7 @@ String _$userProgressRemoteDataSourceHash() =>
     r'009e10b99822950953d87758f1fe3aa367ab63b4';
 
 @ProviderFor(budgetRemoteDataSource)
-const budgetRemoteDataSourceProvider = BudgetRemoteDataSourceProvider._();
+final budgetRemoteDataSourceProvider = BudgetRemoteDataSourceProvider._();
 
 final class BudgetRemoteDataSourceProvider
     extends
@@ -2417,7 +2417,7 @@ final class BudgetRemoteDataSourceProvider
           BudgetRemoteDataSource
         >
     with $Provider<BudgetRemoteDataSource> {
-  const BudgetRemoteDataSourceProvider._()
+  BudgetRemoteDataSourceProvider._()
     : super(
         from: null,
         argument: null,
@@ -2455,7 +2455,7 @@ String _$budgetRemoteDataSourceHash() =>
     r'f2f3bcea8c010c92da9b9f1dc18eaf363350c1da';
 
 @ProviderFor(budgetInstanceRemoteDataSource)
-const budgetInstanceRemoteDataSourceProvider =
+final budgetInstanceRemoteDataSourceProvider =
     BudgetInstanceRemoteDataSourceProvider._();
 
 final class BudgetInstanceRemoteDataSourceProvider
@@ -2466,7 +2466,7 @@ final class BudgetInstanceRemoteDataSourceProvider
           BudgetInstanceRemoteDataSource
         >
     with $Provider<BudgetInstanceRemoteDataSource> {
-  const BudgetInstanceRemoteDataSourceProvider._()
+  BudgetInstanceRemoteDataSourceProvider._()
     : super(
         from: null,
         argument: null,
@@ -2506,7 +2506,7 @@ String _$budgetInstanceRemoteDataSourceHash() =>
     r'a020e9c9816dcaffaf93de641281dc389b6c4a5d';
 
 @ProviderFor(savingGoalRemoteDataSource)
-const savingGoalRemoteDataSourceProvider =
+final savingGoalRemoteDataSourceProvider =
     SavingGoalRemoteDataSourceProvider._();
 
 final class SavingGoalRemoteDataSourceProvider
@@ -2517,7 +2517,7 @@ final class SavingGoalRemoteDataSourceProvider
           SavingGoalRemoteDataSource
         >
     with $Provider<SavingGoalRemoteDataSource> {
-  const SavingGoalRemoteDataSourceProvider._()
+  SavingGoalRemoteDataSourceProvider._()
     : super(
         from: null,
         argument: null,
@@ -2555,7 +2555,7 @@ String _$savingGoalRemoteDataSourceHash() =>
     r'f92bab57e5d731e4d387077ea0733f42a2a95f56';
 
 @ProviderFor(aiAssistantRepository)
-const aiAssistantRepositoryProvider = AiAssistantRepositoryProvider._();
+final aiAssistantRepositoryProvider = AiAssistantRepositoryProvider._();
 
 final class AiAssistantRepositoryProvider
     extends
@@ -2565,7 +2565,7 @@ final class AiAssistantRepositoryProvider
           AiAssistantRepository
         >
     with $Provider<AiAssistantRepository> {
-  const AiAssistantRepositoryProvider._()
+  AiAssistantRepositoryProvider._()
     : super(
         from: null,
         argument: null,
@@ -2603,7 +2603,7 @@ String _$aiAssistantRepositoryHash() =>
     r'6df5de595411164b44e91c22f758d29e8fe853ad';
 
 @ProviderFor(askFinancialAssistantUseCase)
-const askFinancialAssistantUseCaseProvider =
+final askFinancialAssistantUseCaseProvider =
     AskFinancialAssistantUseCaseProvider._();
 
 final class AskFinancialAssistantUseCaseProvider
@@ -2614,7 +2614,7 @@ final class AskFinancialAssistantUseCaseProvider
           AskFinancialAssistantUseCase
         >
     with $Provider<AskFinancialAssistantUseCase> {
-  const AskFinancialAssistantUseCaseProvider._()
+  AskFinancialAssistantUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -2652,7 +2652,7 @@ String _$askFinancialAssistantUseCaseHash() =>
     r'f6e1566dc999d9a8c249741e2a4d831a1c6b2f0e';
 
 @ProviderFor(watchAiRecommendationsUseCase)
-const watchAiRecommendationsUseCaseProvider =
+final watchAiRecommendationsUseCaseProvider =
     WatchAiRecommendationsUseCaseProvider._();
 
 final class WatchAiRecommendationsUseCaseProvider
@@ -2663,7 +2663,7 @@ final class WatchAiRecommendationsUseCaseProvider
           WatchAiRecommendationsUseCase
         >
     with $Provider<WatchAiRecommendationsUseCase> {
-  const WatchAiRecommendationsUseCaseProvider._()
+  WatchAiRecommendationsUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -2703,7 +2703,7 @@ String _$watchAiRecommendationsUseCaseHash() =>
     r'c6587a1ab8d795ac25070be0222f5e42dd4e9d2d';
 
 @ProviderFor(watchAiAnalyticsUseCase)
-const watchAiAnalyticsUseCaseProvider = WatchAiAnalyticsUseCaseProvider._();
+final watchAiAnalyticsUseCaseProvider = WatchAiAnalyticsUseCaseProvider._();
 
 final class WatchAiAnalyticsUseCaseProvider
     extends
@@ -2713,7 +2713,7 @@ final class WatchAiAnalyticsUseCaseProvider
           WatchAiAnalyticsUseCase
         >
     with $Provider<WatchAiAnalyticsUseCase> {
-  const WatchAiAnalyticsUseCaseProvider._()
+  WatchAiAnalyticsUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -2751,7 +2751,7 @@ String _$watchAiAnalyticsUseCaseHash() =>
     r'5bd91aff70efe5aed2b5e802b4aa8c1c91cdaf30';
 
 @ProviderFor(accountRepository)
-const accountRepositoryProvider = AccountRepositoryProvider._();
+final accountRepositoryProvider = AccountRepositoryProvider._();
 
 final class AccountRepositoryProvider
     extends
@@ -2761,7 +2761,7 @@ final class AccountRepositoryProvider
           AccountRepository
         >
     with $Provider<AccountRepository> {
-  const AccountRepositoryProvider._()
+  AccountRepositoryProvider._()
     : super(
         from: null,
         argument: null,
@@ -2798,7 +2798,7 @@ final class AccountRepositoryProvider
 String _$accountRepositoryHash() => r'35504303f5e7045ab7c337f1041ee01cffb06875';
 
 @ProviderFor(accountTypeBackfillService)
-const accountTypeBackfillServiceProvider =
+final accountTypeBackfillServiceProvider =
     AccountTypeBackfillServiceProvider._();
 
 final class AccountTypeBackfillServiceProvider
@@ -2809,7 +2809,7 @@ final class AccountTypeBackfillServiceProvider
           AccountTypeBackfillService
         >
     with $Provider<AccountTypeBackfillService> {
-  const AccountTypeBackfillServiceProvider._()
+  AccountTypeBackfillServiceProvider._()
     : super(
         from: null,
         argument: null,
@@ -2847,7 +2847,7 @@ String _$accountTypeBackfillServiceHash() =>
     r'20229259185d147fcdf74cdb7186da84591ba659';
 
 @ProviderFor(creditRepository)
-const creditRepositoryProvider = CreditRepositoryProvider._();
+final creditRepositoryProvider = CreditRepositoryProvider._();
 
 final class CreditRepositoryProvider
     extends
@@ -2857,7 +2857,7 @@ final class CreditRepositoryProvider
           CreditRepository
         >
     with $Provider<CreditRepository> {
-  const CreditRepositoryProvider._()
+  CreditRepositoryProvider._()
     : super(
         from: null,
         argument: null,
@@ -2893,7 +2893,7 @@ final class CreditRepositoryProvider
 String _$creditRepositoryHash() => r'e87b92b5018d6ea3c41907acac546945e64b1f0a';
 
 @ProviderFor(creditCardRepository)
-const creditCardRepositoryProvider = CreditCardRepositoryProvider._();
+final creditCardRepositoryProvider = CreditCardRepositoryProvider._();
 
 final class CreditCardRepositoryProvider
     extends
@@ -2903,7 +2903,7 @@ final class CreditCardRepositoryProvider
           CreditCardRepository
         >
     with $Provider<CreditCardRepository> {
-  const CreditCardRepositoryProvider._()
+  CreditCardRepositoryProvider._()
     : super(
         from: null,
         argument: null,
@@ -2941,7 +2941,7 @@ String _$creditCardRepositoryHash() =>
     r'8ea137b07ab450daed1850a29a9d2e869d051b38';
 
 @ProviderFor(addAccountUseCase)
-const addAccountUseCaseProvider = AddAccountUseCaseProvider._();
+final addAccountUseCaseProvider = AddAccountUseCaseProvider._();
 
 final class AddAccountUseCaseProvider
     extends
@@ -2951,7 +2951,7 @@ final class AddAccountUseCaseProvider
           AddAccountUseCase
         >
     with $Provider<AddAccountUseCase> {
-  const AddAccountUseCaseProvider._()
+  AddAccountUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -2988,7 +2988,7 @@ final class AddAccountUseCaseProvider
 String _$addAccountUseCaseHash() => r'fa2b2563af599e8d07f320da1891e100d7ae6293';
 
 @ProviderFor(deleteAccountUseCase)
-const deleteAccountUseCaseProvider = DeleteAccountUseCaseProvider._();
+final deleteAccountUseCaseProvider = DeleteAccountUseCaseProvider._();
 
 final class DeleteAccountUseCaseProvider
     extends
@@ -2998,7 +2998,7 @@ final class DeleteAccountUseCaseProvider
           DeleteAccountUseCase
         >
     with $Provider<DeleteAccountUseCase> {
-  const DeleteAccountUseCaseProvider._()
+  DeleteAccountUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -3036,7 +3036,7 @@ String _$deleteAccountUseCaseHash() =>
     r'b2dc0b516807d5551b3e412819409a0f2a1b0604';
 
 @ProviderFor(watchAccountsUseCase)
-const watchAccountsUseCaseProvider = WatchAccountsUseCaseProvider._();
+final watchAccountsUseCaseProvider = WatchAccountsUseCaseProvider._();
 
 final class WatchAccountsUseCaseProvider
     extends
@@ -3046,7 +3046,7 @@ final class WatchAccountsUseCaseProvider
           WatchAccountsUseCase
         >
     with $Provider<WatchAccountsUseCase> {
-  const WatchAccountsUseCaseProvider._()
+  WatchAccountsUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -3084,7 +3084,7 @@ String _$watchAccountsUseCaseHash() =>
     r'1e591c8756219ebead3e51c5a37138b7013df854';
 
 @ProviderFor(watchHomeOverviewSummaryUseCase)
-const watchHomeOverviewSummaryUseCaseProvider =
+final watchHomeOverviewSummaryUseCaseProvider =
     WatchHomeOverviewSummaryUseCaseProvider._();
 
 final class WatchHomeOverviewSummaryUseCaseProvider
@@ -3095,7 +3095,7 @@ final class WatchHomeOverviewSummaryUseCaseProvider
           WatchHomeOverviewSummaryUseCase
         >
     with $Provider<WatchHomeOverviewSummaryUseCase> {
-  const WatchHomeOverviewSummaryUseCaseProvider._()
+  WatchHomeOverviewSummaryUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -3135,7 +3135,7 @@ String _$watchHomeOverviewSummaryUseCaseHash() =>
     r'9ca286484285a61d74bc3519116994c075ae4ed3';
 
 @ProviderFor(addCreditUseCase)
-const addCreditUseCaseProvider = AddCreditUseCaseProvider._();
+final addCreditUseCaseProvider = AddCreditUseCaseProvider._();
 
 final class AddCreditUseCaseProvider
     extends
@@ -3145,7 +3145,7 @@ final class AddCreditUseCaseProvider
           AddCreditUseCase
         >
     with $Provider<AddCreditUseCase> {
-  const AddCreditUseCaseProvider._()
+  AddCreditUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -3181,7 +3181,7 @@ final class AddCreditUseCaseProvider
 String _$addCreditUseCaseHash() => r'feb1f019d298ae8ec8092340bfc0b6348841df88';
 
 @ProviderFor(addCreditCardUseCase)
-const addCreditCardUseCaseProvider = AddCreditCardUseCaseProvider._();
+final addCreditCardUseCaseProvider = AddCreditCardUseCaseProvider._();
 
 final class AddCreditCardUseCaseProvider
     extends
@@ -3191,7 +3191,7 @@ final class AddCreditCardUseCaseProvider
           AddCreditCardUseCase
         >
     with $Provider<AddCreditCardUseCase> {
-  const AddCreditCardUseCaseProvider._()
+  AddCreditCardUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -3229,7 +3229,7 @@ String _$addCreditCardUseCaseHash() =>
     r'13ad63b6251da87547c3c193f29faf019bc639be';
 
 @ProviderFor(updateCreditCardUseCase)
-const updateCreditCardUseCaseProvider = UpdateCreditCardUseCaseProvider._();
+final updateCreditCardUseCaseProvider = UpdateCreditCardUseCaseProvider._();
 
 final class UpdateCreditCardUseCaseProvider
     extends
@@ -3239,7 +3239,7 @@ final class UpdateCreditCardUseCaseProvider
           UpdateCreditCardUseCase
         >
     with $Provider<UpdateCreditCardUseCase> {
-  const UpdateCreditCardUseCaseProvider._()
+  UpdateCreditCardUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -3277,7 +3277,7 @@ String _$updateCreditCardUseCaseHash() =>
     r'2b723c4e7e07c140f3d7ecaf1e878b25d561ab18';
 
 @ProviderFor(deleteCreditCardUseCase)
-const deleteCreditCardUseCaseProvider = DeleteCreditCardUseCaseProvider._();
+final deleteCreditCardUseCaseProvider = DeleteCreditCardUseCaseProvider._();
 
 final class DeleteCreditCardUseCaseProvider
     extends
@@ -3287,7 +3287,7 @@ final class DeleteCreditCardUseCaseProvider
           DeleteCreditCardUseCase
         >
     with $Provider<DeleteCreditCardUseCase> {
-  const DeleteCreditCardUseCaseProvider._()
+  DeleteCreditCardUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -3325,7 +3325,7 @@ String _$deleteCreditCardUseCaseHash() =>
     r'759f64968d89b90c9f1a2a639abed86e894aeef5';
 
 @ProviderFor(getCreditCardByAccountIdUseCase)
-const getCreditCardByAccountIdUseCaseProvider =
+final getCreditCardByAccountIdUseCaseProvider =
     GetCreditCardByAccountIdUseCaseProvider._();
 
 final class GetCreditCardByAccountIdUseCaseProvider
@@ -3336,7 +3336,7 @@ final class GetCreditCardByAccountIdUseCaseProvider
           GetCreditCardByAccountIdUseCase
         >
     with $Provider<GetCreditCardByAccountIdUseCase> {
-  const GetCreditCardByAccountIdUseCaseProvider._()
+  GetCreditCardByAccountIdUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -3376,7 +3376,7 @@ String _$getCreditCardByAccountIdUseCaseHash() =>
     r'3a32620a4531a6521e459ad68795b47c113c20f9';
 
 @ProviderFor(deleteCreditUseCase)
-const deleteCreditUseCaseProvider = DeleteCreditUseCaseProvider._();
+final deleteCreditUseCaseProvider = DeleteCreditUseCaseProvider._();
 
 final class DeleteCreditUseCaseProvider
     extends
@@ -3386,7 +3386,7 @@ final class DeleteCreditUseCaseProvider
           DeleteCreditUseCase
         >
     with $Provider<DeleteCreditUseCase> {
-  const DeleteCreditUseCaseProvider._()
+  DeleteCreditUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -3424,7 +3424,7 @@ String _$deleteCreditUseCaseHash() =>
     r'23ca6824b1916f02ccef784b16e2dae99b74d8f4';
 
 @ProviderFor(makeCreditPaymentUseCase)
-const makeCreditPaymentUseCaseProvider = MakeCreditPaymentUseCaseProvider._();
+final makeCreditPaymentUseCaseProvider = MakeCreditPaymentUseCaseProvider._();
 
 final class MakeCreditPaymentUseCaseProvider
     extends
@@ -3434,7 +3434,7 @@ final class MakeCreditPaymentUseCaseProvider
           MakeCreditPaymentUseCase
         >
     with $Provider<MakeCreditPaymentUseCase> {
-  const MakeCreditPaymentUseCaseProvider._()
+  MakeCreditPaymentUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -3472,7 +3472,7 @@ String _$makeCreditPaymentUseCaseHash() =>
     r'94a22d929bcd70b4b792ffb824147d82956786ef';
 
 @ProviderFor(watchCreditsUseCase)
-const watchCreditsUseCaseProvider = WatchCreditsUseCaseProvider._();
+final watchCreditsUseCaseProvider = WatchCreditsUseCaseProvider._();
 
 final class WatchCreditsUseCaseProvider
     extends
@@ -3482,7 +3482,7 @@ final class WatchCreditsUseCaseProvider
           WatchCreditsUseCase
         >
     with $Provider<WatchCreditsUseCase> {
-  const WatchCreditsUseCaseProvider._()
+  WatchCreditsUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -3520,7 +3520,7 @@ String _$watchCreditsUseCaseHash() =>
     r'502cf233c1f6419405d36ec0f5d567526ab114f6';
 
 @ProviderFor(watchCreditCardsUseCase)
-const watchCreditCardsUseCaseProvider = WatchCreditCardsUseCaseProvider._();
+final watchCreditCardsUseCaseProvider = WatchCreditCardsUseCaseProvider._();
 
 final class WatchCreditCardsUseCaseProvider
     extends
@@ -3530,7 +3530,7 @@ final class WatchCreditCardsUseCaseProvider
           WatchCreditCardsUseCase
         >
     with $Provider<WatchCreditCardsUseCase> {
-  const WatchCreditCardsUseCaseProvider._()
+  WatchCreditCardsUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -3568,7 +3568,7 @@ String _$watchCreditCardsUseCaseHash() =>
     r'0b0b3478f48c3d3a66662d6eb415bcc6122c3b27';
 
 @ProviderFor(watchBudgetsUseCase)
-const watchBudgetsUseCaseProvider = WatchBudgetsUseCaseProvider._();
+final watchBudgetsUseCaseProvider = WatchBudgetsUseCaseProvider._();
 
 final class WatchBudgetsUseCaseProvider
     extends
@@ -3578,7 +3578,7 @@ final class WatchBudgetsUseCaseProvider
           WatchBudgetsUseCase
         >
     with $Provider<WatchBudgetsUseCase> {
-  const WatchBudgetsUseCaseProvider._()
+  WatchBudgetsUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -3616,7 +3616,7 @@ String _$watchBudgetsUseCaseHash() =>
     r'2f2b4e2b4764abb13a5d62a06dad6ac899d28210';
 
 @ProviderFor(saveBudgetUseCase)
-const saveBudgetUseCaseProvider = SaveBudgetUseCaseProvider._();
+final saveBudgetUseCaseProvider = SaveBudgetUseCaseProvider._();
 
 final class SaveBudgetUseCaseProvider
     extends
@@ -3626,7 +3626,7 @@ final class SaveBudgetUseCaseProvider
           SaveBudgetUseCase
         >
     with $Provider<SaveBudgetUseCase> {
-  const SaveBudgetUseCaseProvider._()
+  SaveBudgetUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -3663,7 +3663,7 @@ final class SaveBudgetUseCaseProvider
 String _$saveBudgetUseCaseHash() => r'2b1ace00122d33da63c69892fc13e82f1323385e';
 
 @ProviderFor(deleteBudgetUseCase)
-const deleteBudgetUseCaseProvider = DeleteBudgetUseCaseProvider._();
+final deleteBudgetUseCaseProvider = DeleteBudgetUseCaseProvider._();
 
 final class DeleteBudgetUseCaseProvider
     extends
@@ -3673,7 +3673,7 @@ final class DeleteBudgetUseCaseProvider
           DeleteBudgetUseCase
         >
     with $Provider<DeleteBudgetUseCase> {
-  const DeleteBudgetUseCaseProvider._()
+  DeleteBudgetUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -3711,7 +3711,7 @@ String _$deleteBudgetUseCaseHash() =>
     r'a6fb7a342d2508fdd4b4cf21c9db445192eb25d2';
 
 @ProviderFor(computeBudgetProgressUseCase)
-const computeBudgetProgressUseCaseProvider =
+final computeBudgetProgressUseCaseProvider =
     ComputeBudgetProgressUseCaseProvider._();
 
 final class ComputeBudgetProgressUseCaseProvider
@@ -3722,7 +3722,7 @@ final class ComputeBudgetProgressUseCaseProvider
           ComputeBudgetProgressUseCase
         >
     with $Provider<ComputeBudgetProgressUseCase> {
-  const ComputeBudgetProgressUseCaseProvider._()
+  ComputeBudgetProgressUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -3760,7 +3760,7 @@ String _$computeBudgetProgressUseCaseHash() =>
     r'6e959206f2a50fea51f6fda1927229c34dbd7a52';
 
 @ProviderFor(createSavingGoalUseCase)
-const createSavingGoalUseCaseProvider = CreateSavingGoalUseCaseProvider._();
+final createSavingGoalUseCaseProvider = CreateSavingGoalUseCaseProvider._();
 
 final class CreateSavingGoalUseCaseProvider
     extends
@@ -3770,7 +3770,7 @@ final class CreateSavingGoalUseCaseProvider
           CreateSavingGoalUseCase
         >
     with $Provider<CreateSavingGoalUseCase> {
-  const CreateSavingGoalUseCaseProvider._()
+  CreateSavingGoalUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -3808,7 +3808,7 @@ String _$createSavingGoalUseCaseHash() =>
     r'93b8c9b44deaa81ac2b26ea4867d468b914b873c';
 
 @ProviderFor(updateSavingGoalUseCase)
-const updateSavingGoalUseCaseProvider = UpdateSavingGoalUseCaseProvider._();
+final updateSavingGoalUseCaseProvider = UpdateSavingGoalUseCaseProvider._();
 
 final class UpdateSavingGoalUseCaseProvider
     extends
@@ -3818,7 +3818,7 @@ final class UpdateSavingGoalUseCaseProvider
           UpdateSavingGoalUseCase
         >
     with $Provider<UpdateSavingGoalUseCase> {
-  const UpdateSavingGoalUseCaseProvider._()
+  UpdateSavingGoalUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -3856,7 +3856,7 @@ String _$updateSavingGoalUseCaseHash() =>
     r'de5d5f148e8edf98f06505044d1a305474246201';
 
 @ProviderFor(archiveSavingGoalUseCase)
-const archiveSavingGoalUseCaseProvider = ArchiveSavingGoalUseCaseProvider._();
+final archiveSavingGoalUseCaseProvider = ArchiveSavingGoalUseCaseProvider._();
 
 final class ArchiveSavingGoalUseCaseProvider
     extends
@@ -3866,7 +3866,7 @@ final class ArchiveSavingGoalUseCaseProvider
           ArchiveSavingGoalUseCase
         >
     with $Provider<ArchiveSavingGoalUseCase> {
-  const ArchiveSavingGoalUseCaseProvider._()
+  ArchiveSavingGoalUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -3904,7 +3904,7 @@ String _$archiveSavingGoalUseCaseHash() =>
     r'4494b09894ee7b6685f603152b70c3107634882b';
 
 @ProviderFor(watchSavingGoalsUseCase)
-const watchSavingGoalsUseCaseProvider = WatchSavingGoalsUseCaseProvider._();
+final watchSavingGoalsUseCaseProvider = WatchSavingGoalsUseCaseProvider._();
 
 final class WatchSavingGoalsUseCaseProvider
     extends
@@ -3914,7 +3914,7 @@ final class WatchSavingGoalsUseCaseProvider
           WatchSavingGoalsUseCase
         >
     with $Provider<WatchSavingGoalsUseCase> {
-  const WatchSavingGoalsUseCaseProvider._()
+  WatchSavingGoalsUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -3952,7 +3952,7 @@ String _$watchSavingGoalsUseCaseHash() =>
     r'4594ab8a779349cd0948384eb9c72b1beea27747';
 
 @ProviderFor(watchSavingGoalAnalyticsUseCase)
-const watchSavingGoalAnalyticsUseCaseProvider =
+final watchSavingGoalAnalyticsUseCaseProvider =
     WatchSavingGoalAnalyticsUseCaseProvider._();
 
 final class WatchSavingGoalAnalyticsUseCaseProvider
@@ -3963,7 +3963,7 @@ final class WatchSavingGoalAnalyticsUseCaseProvider
           WatchSavingGoalAnalyticsUseCase
         >
     with $Provider<WatchSavingGoalAnalyticsUseCase> {
-  const WatchSavingGoalAnalyticsUseCaseProvider._()
+  WatchSavingGoalAnalyticsUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -4003,7 +4003,7 @@ String _$watchSavingGoalAnalyticsUseCaseHash() =>
     r'f0a8c0b88af85b43a43d2db6f3d0e87bc454547e';
 
 @ProviderFor(getSavingGoalsUseCase)
-const getSavingGoalsUseCaseProvider = GetSavingGoalsUseCaseProvider._();
+final getSavingGoalsUseCaseProvider = GetSavingGoalsUseCaseProvider._();
 
 final class GetSavingGoalsUseCaseProvider
     extends
@@ -4013,7 +4013,7 @@ final class GetSavingGoalsUseCaseProvider
           GetSavingGoalsUseCase
         >
     with $Provider<GetSavingGoalsUseCase> {
-  const GetSavingGoalsUseCaseProvider._()
+  GetSavingGoalsUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -4051,7 +4051,7 @@ String _$getSavingGoalsUseCaseHash() =>
     r'0525aead0101084b70819efc8b58306fd06bd938';
 
 @ProviderFor(addContributionUseCase)
-const addContributionUseCaseProvider = AddContributionUseCaseProvider._();
+final addContributionUseCaseProvider = AddContributionUseCaseProvider._();
 
 final class AddContributionUseCaseProvider
     extends
@@ -4061,7 +4061,7 @@ final class AddContributionUseCaseProvider
           AddContributionUseCase
         >
     with $Provider<AddContributionUseCase> {
-  const AddContributionUseCaseProvider._()
+  AddContributionUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -4099,7 +4099,7 @@ String _$addContributionUseCaseHash() =>
     r'eb04b83c03ffbb85c98b350ed41b002e420d5f72';
 
 @ProviderFor(categoryRepository)
-const categoryRepositoryProvider = CategoryRepositoryProvider._();
+final categoryRepositoryProvider = CategoryRepositoryProvider._();
 
 final class CategoryRepositoryProvider
     extends
@@ -4109,7 +4109,7 @@ final class CategoryRepositoryProvider
           CategoryRepository
         >
     with $Provider<CategoryRepository> {
-  const CategoryRepositoryProvider._()
+  CategoryRepositoryProvider._()
     : super(
         from: null,
         argument: null,
@@ -4147,12 +4147,12 @@ String _$categoryRepositoryHash() =>
     r'ea2f9b89aa4534b1f6d340901c364a0ba4a14e19';
 
 @ProviderFor(tagRepository)
-const tagRepositoryProvider = TagRepositoryProvider._();
+final tagRepositoryProvider = TagRepositoryProvider._();
 
 final class TagRepositoryProvider
     extends $FunctionalProvider<TagRepository, TagRepository, TagRepository>
     with $Provider<TagRepository> {
-  const TagRepositoryProvider._()
+  TagRepositoryProvider._()
     : super(
         from: null,
         argument: null,
@@ -4188,7 +4188,7 @@ final class TagRepositoryProvider
 String _$tagRepositoryHash() => r'dddb65cb3e6adfc367ec6c204b75ca418f74a25f';
 
 @ProviderFor(transactionTagsRepository)
-const transactionTagsRepositoryProvider = TransactionTagsRepositoryProvider._();
+final transactionTagsRepositoryProvider = TransactionTagsRepositoryProvider._();
 
 final class TransactionTagsRepositoryProvider
     extends
@@ -4198,7 +4198,7 @@ final class TransactionTagsRepositoryProvider
           TransactionTagsRepository
         >
     with $Provider<TransactionTagsRepository> {
-  const TransactionTagsRepositoryProvider._()
+  TransactionTagsRepositoryProvider._()
     : super(
         from: null,
         argument: null,
@@ -4236,7 +4236,7 @@ String _$transactionTagsRepositoryHash() =>
     r'02a529325a184c6859d80a154289002c99cfe4ba';
 
 @ProviderFor(saveCategoryUseCase)
-const saveCategoryUseCaseProvider = SaveCategoryUseCaseProvider._();
+final saveCategoryUseCaseProvider = SaveCategoryUseCaseProvider._();
 
 final class SaveCategoryUseCaseProvider
     extends
@@ -4246,7 +4246,7 @@ final class SaveCategoryUseCaseProvider
           SaveCategoryUseCase
         >
     with $Provider<SaveCategoryUseCase> {
-  const SaveCategoryUseCaseProvider._()
+  SaveCategoryUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -4284,7 +4284,7 @@ String _$saveCategoryUseCaseHash() =>
     r'c9df54f4aa3bfc8cf852a4007a254d499e0b60b9';
 
 @ProviderFor(deleteCategoryUseCase)
-const deleteCategoryUseCaseProvider = DeleteCategoryUseCaseProvider._();
+final deleteCategoryUseCaseProvider = DeleteCategoryUseCaseProvider._();
 
 final class DeleteCategoryUseCaseProvider
     extends
@@ -4294,7 +4294,7 @@ final class DeleteCategoryUseCaseProvider
           DeleteCategoryUseCase
         >
     with $Provider<DeleteCategoryUseCase> {
-  const DeleteCategoryUseCaseProvider._()
+  DeleteCategoryUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -4332,12 +4332,12 @@ String _$deleteCategoryUseCaseHash() =>
     r'35134c5968610d737615af311aef0bb6b72cefb8';
 
 @ProviderFor(saveTagUseCase)
-const saveTagUseCaseProvider = SaveTagUseCaseProvider._();
+final saveTagUseCaseProvider = SaveTagUseCaseProvider._();
 
 final class SaveTagUseCaseProvider
     extends $FunctionalProvider<SaveTagUseCase, SaveTagUseCase, SaveTagUseCase>
     with $Provider<SaveTagUseCase> {
-  const SaveTagUseCaseProvider._()
+  SaveTagUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -4373,7 +4373,7 @@ final class SaveTagUseCaseProvider
 String _$saveTagUseCaseHash() => r'87cbb7d0eec826ea57f672cf97e5e3b1438ffd63';
 
 @ProviderFor(archiveTagUseCase)
-const archiveTagUseCaseProvider = ArchiveTagUseCaseProvider._();
+final archiveTagUseCaseProvider = ArchiveTagUseCaseProvider._();
 
 final class ArchiveTagUseCaseProvider
     extends
@@ -4383,7 +4383,7 @@ final class ArchiveTagUseCaseProvider
           ArchiveTagUseCase
         >
     with $Provider<ArchiveTagUseCase> {
-  const ArchiveTagUseCaseProvider._()
+  ArchiveTagUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -4420,7 +4420,7 @@ final class ArchiveTagUseCaseProvider
 String _$archiveTagUseCaseHash() => r'c6d141bb19fb1946c9f78252a5abb76b9c64d429';
 
 @ProviderFor(watchTagsUseCase)
-const watchTagsUseCaseProvider = WatchTagsUseCaseProvider._();
+final watchTagsUseCaseProvider = WatchTagsUseCaseProvider._();
 
 final class WatchTagsUseCaseProvider
     extends
@@ -4430,7 +4430,7 @@ final class WatchTagsUseCaseProvider
           WatchTagsUseCase
         >
     with $Provider<WatchTagsUseCase> {
-  const WatchTagsUseCaseProvider._()
+  WatchTagsUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -4466,7 +4466,7 @@ final class WatchTagsUseCaseProvider
 String _$watchTagsUseCaseHash() => r'01618b29a515a33678f50290bed97770a891dff1';
 
 @ProviderFor(setTransactionTagsUseCase)
-const setTransactionTagsUseCaseProvider = SetTransactionTagsUseCaseProvider._();
+final setTransactionTagsUseCaseProvider = SetTransactionTagsUseCaseProvider._();
 
 final class SetTransactionTagsUseCaseProvider
     extends
@@ -4476,7 +4476,7 @@ final class SetTransactionTagsUseCaseProvider
           SetTransactionTagsUseCase
         >
     with $Provider<SetTransactionTagsUseCase> {
-  const SetTransactionTagsUseCaseProvider._()
+  SetTransactionTagsUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -4514,7 +4514,7 @@ String _$setTransactionTagsUseCaseHash() =>
     r'655a78242350502f0f5a1f919d9e9a81bd551c7c';
 
 @ProviderFor(watchTransactionTagsUseCase)
-const watchTransactionTagsUseCaseProvider =
+final watchTransactionTagsUseCaseProvider =
     WatchTransactionTagsUseCaseProvider._();
 
 final class WatchTransactionTagsUseCaseProvider
@@ -4525,7 +4525,7 @@ final class WatchTransactionTagsUseCaseProvider
           WatchTransactionTagsUseCase
         >
     with $Provider<WatchTransactionTagsUseCase> {
-  const WatchTransactionTagsUseCaseProvider._()
+  WatchTransactionTagsUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -4563,7 +4563,7 @@ String _$watchTransactionTagsUseCaseHash() =>
     r'7eb947ab964471a43c2a14a12e6b805d851905ce';
 
 @ProviderFor(getTransactionTagIdsUseCase)
-const getTransactionTagIdsUseCaseProvider =
+final getTransactionTagIdsUseCaseProvider =
     GetTransactionTagIdsUseCaseProvider._();
 
 final class GetTransactionTagIdsUseCaseProvider
@@ -4574,7 +4574,7 @@ final class GetTransactionTagIdsUseCaseProvider
           GetTransactionTagIdsUseCase
         >
     with $Provider<GetTransactionTagIdsUseCase> {
-  const GetTransactionTagIdsUseCaseProvider._()
+  GetTransactionTagIdsUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -4612,7 +4612,7 @@ String _$getTransactionTagIdsUseCaseHash() =>
     r'01b4c7aca72f3c52d0ae398fc207a09819ad6942';
 
 @ProviderFor(transactionRepository)
-const transactionRepositoryProvider = TransactionRepositoryProvider._();
+final transactionRepositoryProvider = TransactionRepositoryProvider._();
 
 final class TransactionRepositoryProvider
     extends
@@ -4622,7 +4622,7 @@ final class TransactionRepositoryProvider
           TransactionRepository
         >
     with $Provider<TransactionRepository> {
-  const TransactionRepositoryProvider._()
+  TransactionRepositoryProvider._()
     : super(
         from: null,
         argument: null,
@@ -4660,7 +4660,7 @@ String _$transactionRepositoryHash() =>
     r'8d28764f47b8160dbfc32945061b52b146d5ee42';
 
 @ProviderFor(budgetRepository)
-const budgetRepositoryProvider = BudgetRepositoryProvider._();
+final budgetRepositoryProvider = BudgetRepositoryProvider._();
 
 final class BudgetRepositoryProvider
     extends
@@ -4670,7 +4670,7 @@ final class BudgetRepositoryProvider
           BudgetRepository
         >
     with $Provider<BudgetRepository> {
-  const BudgetRepositoryProvider._()
+  BudgetRepositoryProvider._()
     : super(
         from: null,
         argument: null,
@@ -4706,7 +4706,7 @@ final class BudgetRepositoryProvider
 String _$budgetRepositoryHash() => r'04bad8edb2ea732d9f98e0e2c0bbcf28348162f3';
 
 @ProviderFor(homeDashboardPreferencesRepository)
-const homeDashboardPreferencesRepositoryProvider =
+final homeDashboardPreferencesRepositoryProvider =
     HomeDashboardPreferencesRepositoryProvider._();
 
 final class HomeDashboardPreferencesRepositoryProvider
@@ -4717,7 +4717,7 @@ final class HomeDashboardPreferencesRepositoryProvider
           HomeDashboardPreferencesRepository
         >
     with $Provider<HomeDashboardPreferencesRepository> {
-  const HomeDashboardPreferencesRepositoryProvider._()
+  HomeDashboardPreferencesRepositoryProvider._()
     : super(
         from: null,
         argument: null,
@@ -4758,7 +4758,7 @@ String _$homeDashboardPreferencesRepositoryHash() =>
     r'c155972af33f2c3b5f38f9d979afab318ef1300d';
 
 @ProviderFor(overviewPreferencesRepository)
-const overviewPreferencesRepositoryProvider =
+final overviewPreferencesRepositoryProvider =
     OverviewPreferencesRepositoryProvider._();
 
 final class OverviewPreferencesRepositoryProvider
@@ -4769,7 +4769,7 @@ final class OverviewPreferencesRepositoryProvider
           OverviewPreferencesRepository
         >
     with $Provider<OverviewPreferencesRepository> {
-  const OverviewPreferencesRepositoryProvider._()
+  OverviewPreferencesRepositoryProvider._()
     : super(
         from: null,
         argument: null,
@@ -4809,7 +4809,7 @@ String _$overviewPreferencesRepositoryHash() =>
     r'cd911a1e89699229849f693cd0b62b6e06440aef';
 
 @ProviderFor(savingGoalRepository)
-const savingGoalRepositoryProvider = SavingGoalRepositoryProvider._();
+final savingGoalRepositoryProvider = SavingGoalRepositoryProvider._();
 
 final class SavingGoalRepositoryProvider
     extends
@@ -4819,7 +4819,7 @@ final class SavingGoalRepositoryProvider
           SavingGoalRepository
         >
     with $Provider<SavingGoalRepository> {
-  const SavingGoalRepositoryProvider._()
+  SavingGoalRepositoryProvider._()
     : super(
         from: null,
         argument: null,
@@ -4857,7 +4857,7 @@ String _$savingGoalRepositoryHash() =>
     r'e396773165770c6b959617015ecd4790d516b3ae';
 
 @ProviderFor(upcomingPaymentsRepository)
-const upcomingPaymentsRepositoryProvider =
+final upcomingPaymentsRepositoryProvider =
     UpcomingPaymentsRepositoryProvider._();
 
 final class UpcomingPaymentsRepositoryProvider
@@ -4868,7 +4868,7 @@ final class UpcomingPaymentsRepositoryProvider
           UpcomingPaymentsRepository
         >
     with $Provider<UpcomingPaymentsRepository> {
-  const UpcomingPaymentsRepositoryProvider._()
+  UpcomingPaymentsRepositoryProvider._()
     : super(
         from: null,
         argument: null,
@@ -4906,7 +4906,7 @@ String _$upcomingPaymentsRepositoryHash() =>
     r'b55dcccc5491b95755d298709e950cf3a242635b';
 
 @ProviderFor(paymentRemindersRepository)
-const paymentRemindersRepositoryProvider =
+final paymentRemindersRepositoryProvider =
     PaymentRemindersRepositoryProvider._();
 
 final class PaymentRemindersRepositoryProvider
@@ -4917,7 +4917,7 @@ final class PaymentRemindersRepositoryProvider
           PaymentRemindersRepository
         >
     with $Provider<PaymentRemindersRepository> {
-  const PaymentRemindersRepositoryProvider._()
+  PaymentRemindersRepositoryProvider._()
     : super(
         from: null,
         argument: null,
@@ -4955,7 +4955,7 @@ String _$paymentRemindersRepositoryHash() =>
     r'c7fbc9d2010c930e99b76b8a9f84fc4da9b0c9b4';
 
 @ProviderFor(watchAccountTransactionsUseCase)
-const watchAccountTransactionsUseCaseProvider =
+final watchAccountTransactionsUseCaseProvider =
     WatchAccountTransactionsUseCaseProvider._();
 
 final class WatchAccountTransactionsUseCaseProvider
@@ -4966,7 +4966,7 @@ final class WatchAccountTransactionsUseCaseProvider
           WatchAccountTransactionsUseCase
         >
     with $Provider<WatchAccountTransactionsUseCase> {
-  const WatchAccountTransactionsUseCaseProvider._()
+  WatchAccountTransactionsUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -5006,7 +5006,7 @@ String _$watchAccountTransactionsUseCaseHash() =>
     r'83c83164d3ce8065d619efc0bc7d16990fe9d70a';
 
 @ProviderFor(watchRecentTransactionsUseCase)
-const watchRecentTransactionsUseCaseProvider =
+final watchRecentTransactionsUseCaseProvider =
     WatchRecentTransactionsUseCaseProvider._();
 
 final class WatchRecentTransactionsUseCaseProvider
@@ -5017,7 +5017,7 @@ final class WatchRecentTransactionsUseCaseProvider
           WatchRecentTransactionsUseCase
         >
     with $Provider<WatchRecentTransactionsUseCase> {
-  const WatchRecentTransactionsUseCaseProvider._()
+  WatchRecentTransactionsUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -5057,7 +5057,7 @@ String _$watchRecentTransactionsUseCaseHash() =>
     r'b8f01a6912efa1d95b04dd015e398b978beee58e';
 
 @ProviderFor(watchAccountMonthlyTotalsUseCase)
-const watchAccountMonthlyTotalsUseCaseProvider =
+final watchAccountMonthlyTotalsUseCaseProvider =
     WatchAccountMonthlyTotalsUseCaseProvider._();
 
 final class WatchAccountMonthlyTotalsUseCaseProvider
@@ -5068,7 +5068,7 @@ final class WatchAccountMonthlyTotalsUseCaseProvider
           WatchAccountMonthlyTotalsUseCase
         >
     with $Provider<WatchAccountMonthlyTotalsUseCase> {
-  const WatchAccountMonthlyTotalsUseCaseProvider._()
+  WatchAccountMonthlyTotalsUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -5108,7 +5108,7 @@ String _$watchAccountMonthlyTotalsUseCaseHash() =>
     r'a5569d61e878be286b9092f8b9861885b2d6b35a';
 
 @ProviderFor(watchMonthlyAnalyticsUseCase)
-const watchMonthlyAnalyticsUseCaseProvider =
+final watchMonthlyAnalyticsUseCaseProvider =
     WatchMonthlyAnalyticsUseCaseProvider._();
 
 final class WatchMonthlyAnalyticsUseCaseProvider
@@ -5119,7 +5119,7 @@ final class WatchMonthlyAnalyticsUseCaseProvider
           WatchMonthlyAnalyticsUseCase
         >
     with $Provider<WatchMonthlyAnalyticsUseCase> {
-  const WatchMonthlyAnalyticsUseCaseProvider._()
+  WatchMonthlyAnalyticsUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -5157,7 +5157,7 @@ String _$watchMonthlyAnalyticsUseCaseHash() =>
     r'7f6780907a54c8d34be985056032d47bb088868c';
 
 @ProviderFor(groupTransactionsByDayUseCase)
-const groupTransactionsByDayUseCaseProvider =
+final groupTransactionsByDayUseCaseProvider =
     GroupTransactionsByDayUseCaseProvider._();
 
 final class GroupTransactionsByDayUseCaseProvider
@@ -5168,7 +5168,7 @@ final class GroupTransactionsByDayUseCaseProvider
           GroupTransactionsByDayUseCase
         >
     with $Provider<GroupTransactionsByDayUseCase> {
-  const GroupTransactionsByDayUseCaseProvider._()
+  GroupTransactionsByDayUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -5208,7 +5208,7 @@ String _$groupTransactionsByDayUseCaseHash() =>
     r'7a51339f0bbe69d564577c72d1f5eb9c846f63aa';
 
 @ProviderFor(getAiFinancialOverviewUseCase)
-const getAiFinancialOverviewUseCaseProvider =
+final getAiFinancialOverviewUseCaseProvider =
     GetAiFinancialOverviewUseCaseProvider._();
 
 final class GetAiFinancialOverviewUseCaseProvider
@@ -5219,7 +5219,7 @@ final class GetAiFinancialOverviewUseCaseProvider
           GetAiFinancialOverviewUseCase
         >
     with $Provider<GetAiFinancialOverviewUseCase> {
-  const GetAiFinancialOverviewUseCaseProvider._()
+  GetAiFinancialOverviewUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -5259,7 +5259,7 @@ String _$getAiFinancialOverviewUseCaseHash() =>
     r'81511f3d718a7e3ccd3f8f418a41e3f0eccc19ec';
 
 @ProviderFor(watchAiFinancialOverviewUseCase)
-const watchAiFinancialOverviewUseCaseProvider =
+final watchAiFinancialOverviewUseCaseProvider =
     WatchAiFinancialOverviewUseCaseProvider._();
 
 final class WatchAiFinancialOverviewUseCaseProvider
@@ -5270,7 +5270,7 @@ final class WatchAiFinancialOverviewUseCaseProvider
           WatchAiFinancialOverviewUseCase
         >
     with $Provider<WatchAiFinancialOverviewUseCase> {
-  const WatchAiFinancialOverviewUseCaseProvider._()
+  WatchAiFinancialOverviewUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -5310,7 +5310,7 @@ String _$watchAiFinancialOverviewUseCaseHash() =>
     r'aa3d9d11ec58dba0bbd9b92cc97a249ff9c12e95';
 
 @ProviderFor(exactAlarmPermissionService)
-const exactAlarmPermissionServiceProvider =
+final exactAlarmPermissionServiceProvider =
     ExactAlarmPermissionServiceProvider._();
 
 final class ExactAlarmPermissionServiceProvider
@@ -5321,7 +5321,7 @@ final class ExactAlarmPermissionServiceProvider
           ExactAlarmPermissionService
         >
     with $Provider<ExactAlarmPermissionService> {
-  const ExactAlarmPermissionServiceProvider._()
+  ExactAlarmPermissionServiceProvider._()
     : super(
         from: null,
         argument: null,
@@ -5359,7 +5359,7 @@ String _$exactAlarmPermissionServiceHash() =>
     r'e8e6b22ef0ae997d27dfb94299d65f3c12ef94a1';
 
 @ProviderFor(profileRepository)
-const profileRepositoryProvider = ProfileRepositoryProvider._();
+final profileRepositoryProvider = ProfileRepositoryProvider._();
 
 final class ProfileRepositoryProvider
     extends
@@ -5369,7 +5369,7 @@ final class ProfileRepositoryProvider
           ProfileRepository
         >
     with $Provider<ProfileRepository> {
-  const ProfileRepositoryProvider._()
+  ProfileRepositoryProvider._()
     : super(
         from: null,
         argument: null,
@@ -5406,7 +5406,7 @@ final class ProfileRepositoryProvider
 String _$profileRepositoryHash() => r'5f695bb343e4c24ca2f56b620439c6bbbd35a4bb';
 
 @ProviderFor(profileAvatarRepository)
-const profileAvatarRepositoryProvider = ProfileAvatarRepositoryProvider._();
+final profileAvatarRepositoryProvider = ProfileAvatarRepositoryProvider._();
 
 final class ProfileAvatarRepositoryProvider
     extends
@@ -5416,7 +5416,7 @@ final class ProfileAvatarRepositoryProvider
           ProfileAvatarRepository
         >
     with $Provider<ProfileAvatarRepository> {
-  const ProfileAvatarRepositoryProvider._()
+  ProfileAvatarRepositoryProvider._()
     : super(
         from: null,
         argument: null,
@@ -5454,7 +5454,7 @@ String _$profileAvatarRepositoryHash() =>
     r'0481fb2a0f293f529962554dc6c4c6721b09eabe';
 
 @ProviderFor(userProgressRepository)
-const userProgressRepositoryProvider = UserProgressRepositoryProvider._();
+final userProgressRepositoryProvider = UserProgressRepositoryProvider._();
 
 final class UserProgressRepositoryProvider
     extends
@@ -5464,7 +5464,7 @@ final class UserProgressRepositoryProvider
           UserProgressRepository
         >
     with $Provider<UserProgressRepository> {
-  const UserProgressRepositoryProvider._()
+  UserProgressRepositoryProvider._()
     : super(
         from: null,
         argument: null,
@@ -5502,7 +5502,7 @@ String _$userProgressRepositoryHash() =>
     r'45cd8ec50b47f83b716c24d37a2fb2d4d475b972';
 
 @ProviderFor(updateProfileUseCase)
-const updateProfileUseCaseProvider = UpdateProfileUseCaseProvider._();
+final updateProfileUseCaseProvider = UpdateProfileUseCaseProvider._();
 
 final class UpdateProfileUseCaseProvider
     extends
@@ -5512,7 +5512,7 @@ final class UpdateProfileUseCaseProvider
           UpdateProfileUseCase
         >
     with $Provider<UpdateProfileUseCase> {
-  const UpdateProfileUseCaseProvider._()
+  UpdateProfileUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -5550,7 +5550,7 @@ String _$updateProfileUseCaseHash() =>
     r'df5b968b7d1366622eb17431ae0e2f17bee33f27';
 
 @ProviderFor(recomputeUserProgressUseCase)
-const recomputeUserProgressUseCaseProvider =
+final recomputeUserProgressUseCaseProvider =
     RecomputeUserProgressUseCaseProvider._();
 
 final class RecomputeUserProgressUseCaseProvider
@@ -5561,7 +5561,7 @@ final class RecomputeUserProgressUseCaseProvider
           RecomputeUserProgressUseCase
         >
     with $Provider<RecomputeUserProgressUseCase> {
-  const RecomputeUserProgressUseCaseProvider._()
+  RecomputeUserProgressUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -5599,7 +5599,7 @@ String _$recomputeUserProgressUseCaseHash() =>
     r'9c78bde92d3ca19749aa137022dd0157c4a7975d';
 
 @ProviderFor(onTransactionCreatedUseCase)
-const onTransactionCreatedUseCaseProvider =
+final onTransactionCreatedUseCaseProvider =
     OnTransactionCreatedUseCaseProvider._();
 
 final class OnTransactionCreatedUseCaseProvider
@@ -5610,7 +5610,7 @@ final class OnTransactionCreatedUseCaseProvider
           OnTransactionCreatedUseCase
         >
     with $Provider<OnTransactionCreatedUseCase> {
-  const OnTransactionCreatedUseCaseProvider._()
+  OnTransactionCreatedUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -5648,7 +5648,7 @@ String _$onTransactionCreatedUseCaseHash() =>
     r'60e379acfa755ba8d782045d31577f39c7bef68d';
 
 @ProviderFor(onTransactionDeletedUseCase)
-const onTransactionDeletedUseCaseProvider =
+final onTransactionDeletedUseCaseProvider =
     OnTransactionDeletedUseCaseProvider._();
 
 final class OnTransactionDeletedUseCaseProvider
@@ -5659,7 +5659,7 @@ final class OnTransactionDeletedUseCaseProvider
           OnTransactionDeletedUseCase
         >
     with $Provider<OnTransactionDeletedUseCase> {
-  const OnTransactionDeletedUseCaseProvider._()
+  OnTransactionDeletedUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -5697,7 +5697,7 @@ String _$onTransactionDeletedUseCaseHash() =>
     r'34dc92ca2db0124451716e5cd2aa0ab9525d96bf';
 
 @ProviderFor(updateProfileAvatarUseCase)
-const updateProfileAvatarUseCaseProvider =
+final updateProfileAvatarUseCaseProvider =
     UpdateProfileAvatarUseCaseProvider._();
 
 final class UpdateProfileAvatarUseCaseProvider
@@ -5708,7 +5708,7 @@ final class UpdateProfileAvatarUseCaseProvider
           UpdateProfileAvatarUseCase
         >
     with $Provider<UpdateProfileAvatarUseCase> {
-  const UpdateProfileAvatarUseCaseProvider._()
+  UpdateProfileAvatarUseCaseProvider._()
     : super(
         from: null,
         argument: null,
@@ -5746,12 +5746,12 @@ String _$updateProfileAvatarUseCaseHash() =>
     r'bfe251b0b5b2e8b23cd482675f08eb3bbf1f9f84';
 
 @ProviderFor(syncService)
-const syncServiceProvider = SyncServiceProvider._();
+final syncServiceProvider = SyncServiceProvider._();
 
 final class SyncServiceProvider
     extends $FunctionalProvider<SyncService, SyncService, SyncService>
     with $Provider<SyncService> {
-  const SyncServiceProvider._()
+  SyncServiceProvider._()
     : super(
         from: null,
         argument: null,
@@ -5787,12 +5787,12 @@ final class SyncServiceProvider
 String _$syncServiceHash() => r'590d679c21a7585b66075cabbf6ab7eb5e68b593';
 
 @ProviderFor(authRepository)
-const authRepositoryProvider = AuthRepositoryProvider._();
+final authRepositoryProvider = AuthRepositoryProvider._();
 
 final class AuthRepositoryProvider
     extends $FunctionalProvider<AuthRepository, AuthRepository, AuthRepository>
     with $Provider<AuthRepository> {
-  const AuthRepositoryProvider._()
+  AuthRepositoryProvider._()
     : super(
         from: null,
         argument: null,
@@ -5828,7 +5828,7 @@ final class AuthRepositoryProvider
 String _$authRepositoryHash() => r'4d0bbf1626a7b9355346b5d195f6295372e6eb01';
 
 @ProviderFor(syncDataSanitizer)
-const syncDataSanitizerProvider = SyncDataSanitizerProvider._();
+final syncDataSanitizerProvider = SyncDataSanitizerProvider._();
 
 final class SyncDataSanitizerProvider
     extends
@@ -5838,7 +5838,7 @@ final class SyncDataSanitizerProvider
           SyncDataSanitizer
         >
     with $Provider<SyncDataSanitizer> {
-  const SyncDataSanitizerProvider._()
+  SyncDataSanitizerProvider._()
     : super(
         from: null,
         argument: null,
@@ -5875,13 +5875,13 @@ final class SyncDataSanitizerProvider
 String _$syncDataSanitizerHash() => r'7158c94797d4d9f8bfc57affd49f8f93f5c0b19c';
 
 @ProviderFor(authSyncService)
-const authSyncServiceProvider = AuthSyncServiceProvider._();
+final authSyncServiceProvider = AuthSyncServiceProvider._();
 
 final class AuthSyncServiceProvider
     extends
         $FunctionalProvider<AuthSyncService, AuthSyncService, AuthSyncService>
     with $Provider<AuthSyncService> {
-  const AuthSyncServiceProvider._()
+  AuthSyncServiceProvider._()
     : super(
         from: null,
         argument: null,

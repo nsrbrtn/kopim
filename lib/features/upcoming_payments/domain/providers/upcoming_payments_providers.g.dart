@@ -10,12 +10,12 @@ part of 'upcoming_payments_providers.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(timeService)
-const timeServiceProvider = TimeServiceProvider._();
+final timeServiceProvider = TimeServiceProvider._();
 
 final class TimeServiceProvider
     extends $FunctionalProvider<TimeService, TimeService, TimeService>
     with $Provider<TimeService> {
-  const TimeServiceProvider._()
+  TimeServiceProvider._()
     : super(
         from: null,
         argument: null,
@@ -51,12 +51,12 @@ final class TimeServiceProvider
 String _$timeServiceHash() => r'014fa0c8b8769299d3945df55c948b0712ac7676';
 
 @ProviderFor(schedulePolicy)
-const schedulePolicyProvider = SchedulePolicyProvider._();
+final schedulePolicyProvider = SchedulePolicyProvider._();
 
 final class SchedulePolicyProvider
     extends $FunctionalProvider<SchedulePolicy, SchedulePolicy, SchedulePolicy>
     with $Provider<SchedulePolicy> {
-  const SchedulePolicyProvider._()
+  SchedulePolicyProvider._()
     : super(
         from: null,
         argument: null,
@@ -92,12 +92,12 @@ final class SchedulePolicyProvider
 String _$schedulePolicyHash() => r'54fa9ad084bcbee704a33c81c8b54e40e5265d8e';
 
 @ProviderFor(idService)
-const idServiceProvider = IdServiceProvider._();
+final idServiceProvider = IdServiceProvider._();
 
 final class IdServiceProvider
     extends $FunctionalProvider<IdService, IdService, IdService>
     with $Provider<IdService> {
-  const IdServiceProvider._()
+  IdServiceProvider._()
     : super(
         from: null,
         argument: null,
@@ -133,7 +133,7 @@ final class IdServiceProvider
 String _$idServiceHash() => r'2cc56a8f6111c348e83951bc80f3824725c3d57a';
 
 @ProviderFor(upcomingPaymentValidator)
-const upcomingPaymentValidatorProvider = UpcomingPaymentValidatorProvider._();
+final upcomingPaymentValidatorProvider = UpcomingPaymentValidatorProvider._();
 
 final class UpcomingPaymentValidatorProvider
     extends
@@ -143,7 +143,7 @@ final class UpcomingPaymentValidatorProvider
           UpcomingPaymentValidator
         >
     with $Provider<UpcomingPaymentValidator> {
-  const UpcomingPaymentValidatorProvider._()
+  UpcomingPaymentValidatorProvider._()
     : super(
         from: null,
         argument: null,
@@ -181,7 +181,7 @@ String _$upcomingPaymentValidatorHash() =>
     r'0e0bd051641ee5473237d8502269608fecad5a9e';
 
 @ProviderFor(paymentReminderValidator)
-const paymentReminderValidatorProvider = PaymentReminderValidatorProvider._();
+final paymentReminderValidatorProvider = PaymentReminderValidatorProvider._();
 
 final class PaymentReminderValidatorProvider
     extends
@@ -191,7 +191,7 @@ final class PaymentReminderValidatorProvider
           PaymentReminderValidator
         >
     with $Provider<PaymentReminderValidator> {
-  const PaymentReminderValidatorProvider._()
+  PaymentReminderValidatorProvider._()
     : super(
         from: null,
         argument: null,
@@ -229,7 +229,7 @@ String _$paymentReminderValidatorHash() =>
     r'80c6702d68591788bd2dc56c4a14794953f32d7d';
 
 @ProviderFor(createUpcomingPaymentUC)
-const createUpcomingPaymentUCProvider = CreateUpcomingPaymentUCProvider._();
+final createUpcomingPaymentUCProvider = CreateUpcomingPaymentUCProvider._();
 
 final class CreateUpcomingPaymentUCProvider
     extends
@@ -239,7 +239,7 @@ final class CreateUpcomingPaymentUCProvider
           CreateUpcomingPaymentUC
         >
     with $Provider<CreateUpcomingPaymentUC> {
-  const CreateUpcomingPaymentUCProvider._()
+  CreateUpcomingPaymentUCProvider._()
     : super(
         from: null,
         argument: null,
@@ -277,7 +277,7 @@ String _$createUpcomingPaymentUCHash() =>
     r'cd8f679823518d0d0b0221aac33d486cc41627a4';
 
 @ProviderFor(updateUpcomingPaymentUC)
-const updateUpcomingPaymentUCProvider = UpdateUpcomingPaymentUCProvider._();
+final updateUpcomingPaymentUCProvider = UpdateUpcomingPaymentUCProvider._();
 
 final class UpdateUpcomingPaymentUCProvider
     extends
@@ -287,7 +287,7 @@ final class UpdateUpcomingPaymentUCProvider
           UpdateUpcomingPaymentUC
         >
     with $Provider<UpdateUpcomingPaymentUC> {
-  const UpdateUpcomingPaymentUCProvider._()
+  UpdateUpcomingPaymentUCProvider._()
     : super(
         from: null,
         argument: null,
@@ -325,7 +325,7 @@ String _$updateUpcomingPaymentUCHash() =>
     r'adb1e57e28bd37b937db012e7a7d18d65326d639';
 
 @ProviderFor(deleteUpcomingPaymentUC)
-const deleteUpcomingPaymentUCProvider = DeleteUpcomingPaymentUCProvider._();
+final deleteUpcomingPaymentUCProvider = DeleteUpcomingPaymentUCProvider._();
 
 final class DeleteUpcomingPaymentUCProvider
     extends
@@ -335,7 +335,7 @@ final class DeleteUpcomingPaymentUCProvider
           DeleteUpcomingPaymentUC
         >
     with $Provider<DeleteUpcomingPaymentUC> {
-  const DeleteUpcomingPaymentUCProvider._()
+  DeleteUpcomingPaymentUCProvider._()
     : super(
         from: null,
         argument: null,
@@ -373,7 +373,7 @@ String _$deleteUpcomingPaymentUCHash() =>
     r'468f4d63dd28e045202111b569a386ca338df3ce';
 
 @ProviderFor(recalcUpcomingPaymentUC)
-const recalcUpcomingPaymentUCProvider = RecalcUpcomingPaymentUCProvider._();
+final recalcUpcomingPaymentUCProvider = RecalcUpcomingPaymentUCProvider._();
 
 final class RecalcUpcomingPaymentUCProvider
     extends
@@ -383,7 +383,7 @@ final class RecalcUpcomingPaymentUCProvider
           RecalcUpcomingPaymentUC
         >
     with $Provider<RecalcUpcomingPaymentUC> {
-  const RecalcUpcomingPaymentUCProvider._()
+  RecalcUpcomingPaymentUCProvider._()
     : super(
         from: null,
         argument: null,
@@ -421,7 +421,7 @@ String _$recalcUpcomingPaymentUCHash() =>
     r'3f724494221beb0791d0b3d3d52431b08dcfa34a';
 
 @ProviderFor(createPaymentReminderUC)
-const createPaymentReminderUCProvider = CreatePaymentReminderUCProvider._();
+final createPaymentReminderUCProvider = CreatePaymentReminderUCProvider._();
 
 final class CreatePaymentReminderUCProvider
     extends
@@ -431,7 +431,7 @@ final class CreatePaymentReminderUCProvider
           CreatePaymentReminderUC
         >
     with $Provider<CreatePaymentReminderUC> {
-  const CreatePaymentReminderUCProvider._()
+  CreatePaymentReminderUCProvider._()
     : super(
         from: null,
         argument: null,
@@ -469,7 +469,7 @@ String _$createPaymentReminderUCHash() =>
     r'8d100eeea29c1f828a917a3fa0ab2ace95a32f27';
 
 @ProviderFor(updatePaymentReminderUC)
-const updatePaymentReminderUCProvider = UpdatePaymentReminderUCProvider._();
+final updatePaymentReminderUCProvider = UpdatePaymentReminderUCProvider._();
 
 final class UpdatePaymentReminderUCProvider
     extends
@@ -479,7 +479,7 @@ final class UpdatePaymentReminderUCProvider
           UpdatePaymentReminderUC
         >
     with $Provider<UpdatePaymentReminderUC> {
-  const UpdatePaymentReminderUCProvider._()
+  UpdatePaymentReminderUCProvider._()
     : super(
         from: null,
         argument: null,
@@ -517,7 +517,7 @@ String _$updatePaymentReminderUCHash() =>
     r'eb5a4ee312987690b16e79a8a1bb01085091031d';
 
 @ProviderFor(deletePaymentReminderUC)
-const deletePaymentReminderUCProvider = DeletePaymentReminderUCProvider._();
+final deletePaymentReminderUCProvider = DeletePaymentReminderUCProvider._();
 
 final class DeletePaymentReminderUCProvider
     extends
@@ -527,7 +527,7 @@ final class DeletePaymentReminderUCProvider
           DeletePaymentReminderUC
         >
     with $Provider<DeletePaymentReminderUC> {
-  const DeletePaymentReminderUCProvider._()
+  DeletePaymentReminderUCProvider._()
     : super(
         from: null,
         argument: null,
@@ -565,7 +565,7 @@ String _$deletePaymentReminderUCHash() =>
     r'd1d00158cd16e7e78a2f32d4b1c74dfd6a1cae4b';
 
 @ProviderFor(markReminderDoneUC)
-const markReminderDoneUCProvider = MarkReminderDoneUCProvider._();
+final markReminderDoneUCProvider = MarkReminderDoneUCProvider._();
 
 final class MarkReminderDoneUCProvider
     extends
@@ -575,7 +575,7 @@ final class MarkReminderDoneUCProvider
           MarkReminderDoneUC
         >
     with $Provider<MarkReminderDoneUC> {
-  const MarkReminderDoneUCProvider._()
+  MarkReminderDoneUCProvider._()
     : super(
         from: null,
         argument: null,
@@ -613,7 +613,7 @@ String _$markReminderDoneUCHash() =>
     r'ad2f2032065237db9c98db7290ad287e9e7eb929';
 
 @ProviderFor(listHomeUpcomingItemsUC)
-const listHomeUpcomingItemsUCProvider = ListHomeUpcomingItemsUCProvider._();
+final listHomeUpcomingItemsUCProvider = ListHomeUpcomingItemsUCProvider._();
 
 final class ListHomeUpcomingItemsUCProvider
     extends
@@ -623,7 +623,7 @@ final class ListHomeUpcomingItemsUCProvider
           ListHomeUpcomingItemsUC
         >
     with $Provider<ListHomeUpcomingItemsUC> {
-  const ListHomeUpcomingItemsUCProvider._()
+  ListHomeUpcomingItemsUCProvider._()
     : super(
         from: null,
         argument: null,
@@ -661,7 +661,7 @@ String _$listHomeUpcomingItemsUCHash() =>
     r'504f8f3f98410ca87c3456a9ddf162047cc13ff2';
 
 @ProviderFor(homeUpcomingItems)
-const homeUpcomingItemsProvider = HomeUpcomingItemsFamily._();
+final homeUpcomingItemsProvider = HomeUpcomingItemsFamily._();
 
 final class HomeUpcomingItemsProvider
     extends
@@ -673,7 +673,7 @@ final class HomeUpcomingItemsProvider
     with
         $FutureModifier<List<UpcomingItem>>,
         $StreamProvider<List<UpcomingItem>> {
-  const HomeUpcomingItemsProvider._({
+  HomeUpcomingItemsProvider._({
     required HomeUpcomingItemsFamily super.from,
     required int super.argument,
   }) : super(
@@ -721,7 +721,7 @@ String _$homeUpcomingItemsHash() => r'715310662d877c45baf24ec1ce58b0e56f5b79fb';
 
 final class HomeUpcomingItemsFamily extends $Family
     with $FunctionalFamilyOverride<Stream<List<UpcomingItem>>, int> {
-  const HomeUpcomingItemsFamily._()
+  HomeUpcomingItemsFamily._()
     : super(
         retry: null,
         name: r'homeUpcomingItemsProvider',
@@ -738,7 +738,7 @@ final class HomeUpcomingItemsFamily extends $Family
 }
 
 @ProviderFor(watchUpcomingPayments)
-const watchUpcomingPaymentsProvider = WatchUpcomingPaymentsProvider._();
+final watchUpcomingPaymentsProvider = WatchUpcomingPaymentsProvider._();
 
 final class WatchUpcomingPaymentsProvider
     extends
@@ -750,7 +750,7 @@ final class WatchUpcomingPaymentsProvider
     with
         $FutureModifier<List<UpcomingPayment>>,
         $StreamProvider<List<UpcomingPayment>> {
-  const WatchUpcomingPaymentsProvider._()
+  WatchUpcomingPaymentsProvider._()
     : super(
         from: null,
         argument: null,
@@ -780,7 +780,7 @@ String _$watchUpcomingPaymentsHash() =>
     r'aa935e90ee1152faa972249d9bf4bb6cff7d64b4';
 
 @ProviderFor(watchPaymentReminders)
-const watchPaymentRemindersProvider = WatchPaymentRemindersFamily._();
+final watchPaymentRemindersProvider = WatchPaymentRemindersFamily._();
 
 final class WatchPaymentRemindersProvider
     extends
@@ -792,7 +792,7 @@ final class WatchPaymentRemindersProvider
     with
         $FutureModifier<List<PaymentReminder>>,
         $StreamProvider<List<PaymentReminder>> {
-  const WatchPaymentRemindersProvider._({
+  WatchPaymentRemindersProvider._({
     required WatchPaymentRemindersFamily super.from,
     required int? super.argument,
   }) : super(
@@ -841,7 +841,7 @@ String _$watchPaymentRemindersHash() =>
 
 final class WatchPaymentRemindersFamily extends $Family
     with $FunctionalFamilyOverride<Stream<List<PaymentReminder>>, int?> {
-  const WatchPaymentRemindersFamily._()
+  WatchPaymentRemindersFamily._()
     : super(
         retry: null,
         name: r'watchPaymentRemindersProvider',

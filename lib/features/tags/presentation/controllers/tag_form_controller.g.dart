@@ -10,11 +10,11 @@ part of 'tag_form_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(TagFormController)
-const tagFormControllerProvider = TagFormControllerFamily._();
+final tagFormControllerProvider = TagFormControllerFamily._();
 
 final class TagFormControllerProvider
     extends $NotifierProvider<TagFormController, TagFormState> {
-  const TagFormControllerProvider._({
+  TagFormControllerProvider._({
     required TagFormControllerFamily super.from,
     required TagFormParams super.argument,
   }) : super(
@@ -69,7 +69,7 @@ final class TagFormControllerFamily extends $Family
           TagFormState,
           TagFormParams
         > {
-  const TagFormControllerFamily._()
+  TagFormControllerFamily._()
     : super(
         retry: null,
         name: r'tagFormControllerProvider',
@@ -93,7 +93,6 @@ abstract class _$TagFormController extends $Notifier<TagFormState> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build(_$args);
     final ref = this.ref as $Ref<TagFormState, TagFormState>;
     final element =
         ref.element
@@ -103,6 +102,6 @@ abstract class _$TagFormController extends $Notifier<TagFormState> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, () => build(_$args));
   }
 }

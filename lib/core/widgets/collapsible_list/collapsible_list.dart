@@ -177,7 +177,7 @@ class _KopimExpandableSectionPlayfulState
                 // Контент: высота + прозрачность + лёгкий сдвиг вверх
                 SizeTransition(
                   sizeFactor: _contentAnimation,
-                  axisAlignment: -1.0, // схлопываем вверх — хедер не скачет
+                  alignment: Alignment.topCenter,
                   child: FadeTransition(
                     opacity: _contentAnimation,
                     child: Transform.translate(

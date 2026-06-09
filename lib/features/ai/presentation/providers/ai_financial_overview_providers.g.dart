@@ -10,7 +10,7 @@ part of 'ai_financial_overview_providers.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(aiFinancialOverviewStream)
-const aiFinancialOverviewStreamProvider = AiFinancialOverviewStreamFamily._();
+final aiFinancialOverviewStreamProvider = AiFinancialOverviewStreamFamily._();
 
 final class AiFinancialOverviewStreamProvider
     extends
@@ -22,7 +22,7 @@ final class AiFinancialOverviewStreamProvider
     with
         $FutureModifier<AiFinancialOverview>,
         $StreamProvider<AiFinancialOverview> {
-  const AiFinancialOverviewStreamProvider._({
+  AiFinancialOverviewStreamProvider._({
     required AiFinancialOverviewStreamFamily super.from,
     required AiDataFilter super.argument,
   }) : super(
@@ -72,7 +72,7 @@ String _$aiFinancialOverviewStreamHash() =>
 
 final class AiFinancialOverviewStreamFamily extends $Family
     with $FunctionalFamilyOverride<Stream<AiFinancialOverview>, AiDataFilter> {
-  const AiFinancialOverviewStreamFamily._()
+  AiFinancialOverviewStreamFamily._()
     : super(
         retry: null,
         name: r'aiFinancialOverviewStreamProvider',
@@ -89,7 +89,7 @@ final class AiFinancialOverviewStreamFamily extends $Family
 }
 
 @ProviderFor(aiFinancialOverviewSnapshot)
-const aiFinancialOverviewSnapshotProvider =
+final aiFinancialOverviewSnapshotProvider =
     AiFinancialOverviewSnapshotFamily._();
 
 final class AiFinancialOverviewSnapshotProvider
@@ -102,7 +102,7 @@ final class AiFinancialOverviewSnapshotProvider
     with
         $FutureModifier<AiFinancialOverview>,
         $FutureProvider<AiFinancialOverview> {
-  const AiFinancialOverviewSnapshotProvider._({
+  AiFinancialOverviewSnapshotProvider._({
     required AiFinancialOverviewSnapshotFamily super.from,
     required AiDataFilter super.argument,
   }) : super(
@@ -153,7 +153,7 @@ String _$aiFinancialOverviewSnapshotHash() =>
 final class AiFinancialOverviewSnapshotFamily extends $Family
     with
         $FunctionalFamilyOverride<FutureOr<AiFinancialOverview>, AiDataFilter> {
-  const AiFinancialOverviewSnapshotFamily._()
+  AiFinancialOverviewSnapshotFamily._()
     : super(
         retry: null,
         name: r'aiFinancialOverviewSnapshotProvider',

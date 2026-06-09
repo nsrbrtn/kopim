@@ -10,7 +10,7 @@ part of 'user_progress_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(userProgress)
-const userProgressProvider = UserProgressFamily._();
+final userProgressProvider = UserProgressFamily._();
 
 final class UserProgressProvider
     extends
@@ -20,7 +20,7 @@ final class UserProgressProvider
           Stream<UserProgress>
         >
     with $FutureModifier<UserProgress>, $StreamProvider<UserProgress> {
-  const UserProgressProvider._({
+  UserProgressProvider._({
     required UserProgressFamily super.from,
     required String super.argument,
   }) : super(
@@ -68,7 +68,7 @@ String _$userProgressHash() => r'f7e56ecaddd4d85170bfc4ccfd43f702f0984668';
 
 final class UserProgressFamily extends $Family
     with $FunctionalFamilyOverride<Stream<UserProgress>, String> {
-  const UserProgressFamily._()
+  UserProgressFamily._()
     : super(
         retry: null,
         name: r'userProgressProvider',

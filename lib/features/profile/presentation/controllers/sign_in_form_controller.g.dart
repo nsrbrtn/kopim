@@ -10,11 +10,11 @@ part of 'sign_in_form_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(SignInFormController)
-const signInFormControllerProvider = SignInFormControllerProvider._();
+final signInFormControllerProvider = SignInFormControllerProvider._();
 
 final class SignInFormControllerProvider
     extends $NotifierProvider<SignInFormController, SignInFormState> {
-  const SignInFormControllerProvider._()
+  SignInFormControllerProvider._()
     : super(
         from: null,
         argument: null,
@@ -49,7 +49,6 @@ abstract class _$SignInFormController extends $Notifier<SignInFormState> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<SignInFormState, SignInFormState>;
     final element =
         ref.element
@@ -59,6 +58,6 @@ abstract class _$SignInFormController extends $Notifier<SignInFormState> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

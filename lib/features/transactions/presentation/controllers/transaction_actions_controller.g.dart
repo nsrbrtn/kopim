@@ -10,12 +10,12 @@ part of 'transaction_actions_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(TransactionActionsController)
-const transactionActionsControllerProvider =
+final transactionActionsControllerProvider =
     TransactionActionsControllerProvider._();
 
 final class TransactionActionsControllerProvider
     extends $NotifierProvider<TransactionActionsController, AsyncValue<void>> {
-  const TransactionActionsControllerProvider._()
+  TransactionActionsControllerProvider._()
     : super(
         from: null,
         argument: null,
@@ -51,7 +51,6 @@ abstract class _$TransactionActionsController
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build();
     final ref = this.ref as $Ref<AsyncValue<void>, AsyncValue<void>>;
     final element =
         ref.element
@@ -61,6 +60,6 @@ abstract class _$TransactionActionsController
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, build);
   }
 }

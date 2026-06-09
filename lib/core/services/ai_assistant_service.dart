@@ -540,7 +540,7 @@ class AiAssistantService {
       'messages': messages
           .map((AiAssistantMessage message) => message.toJson())
           .toList(growable: false),
-      if (requestOptions != null) ...requestOptions,
+      ...?requestOptions,
     };
 
     final Map<String, String> headers = <String, String>{

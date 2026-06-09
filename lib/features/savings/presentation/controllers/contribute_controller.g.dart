@@ -10,11 +10,11 @@ part of 'contribute_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(ContributeController)
-const contributeControllerProvider = ContributeControllerFamily._();
+final contributeControllerProvider = ContributeControllerFamily._();
 
 final class ContributeControllerProvider
     extends $NotifierProvider<ContributeController, ContributeState> {
-  const ContributeControllerProvider._({
+  ContributeControllerProvider._({
     required ContributeControllerFamily super.from,
     required SavingGoal super.argument,
   }) : super(
@@ -70,7 +70,7 @@ final class ContributeControllerFamily extends $Family
           ContributeState,
           SavingGoal
         > {
-  const ContributeControllerFamily._()
+  ContributeControllerFamily._()
     : super(
         retry: null,
         name: r'contributeControllerProvider',
@@ -94,7 +94,6 @@ abstract class _$ContributeController extends $Notifier<ContributeState> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build(_$args);
     final ref = this.ref as $Ref<ContributeState, ContributeState>;
     final element =
         ref.element
@@ -104,6 +103,6 @@ abstract class _$ContributeController extends $Notifier<ContributeState> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, () => build(_$args));
   }
 }

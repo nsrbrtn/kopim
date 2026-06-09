@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod/legacy.dart';
@@ -416,7 +417,9 @@ class _TransactionDraftState extends ConsumerState<_TransactionForm> {
                   physics: const BouncingScrollPhysics(),
                   keyboardDismissBehavior:
                       ScrollViewKeyboardDismissBehavior.onDrag,
-                  cacheExtent: MediaQuery.sizeOf(context).height,
+                  scrollCacheExtent: ScrollCacheExtent.pixels(
+                    MediaQuery.sizeOf(context).height,
+                  ),
                   itemCount: sections.length,
                   itemBuilder: (BuildContext context, int index) {
                     return sections[index];
@@ -1632,7 +1635,7 @@ class _CategoryDropdownFieldState
         ? strings.addTransactionHideCategories
         : strings.addTransactionShowAllCategories;
     final List<Category> headerCategories = <Category>[
-      if (selectedCategory != null) selectedCategory,
+      ?selectedCategory,
       if (showFavoritesInHeader) ...headerFavorites,
       if (!hasQuery) ...previewParents,
     ];

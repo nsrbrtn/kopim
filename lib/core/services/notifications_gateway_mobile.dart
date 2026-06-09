@@ -116,11 +116,11 @@ class MobileNotificationsGateway implements NotificationsGateway {
         androidActions: androidActions,
       );
       await _plugin.zonedSchedule(
-        id,
-        title,
-        body,
-        when,
-        details,
+        id: id,
+        title: title,
+        body: body,
+        scheduledDate: when,
+        notificationDetails: details,
         androidScheduleMode: androidScheduleMode,
         payload: payload,
         matchDateTimeComponents: null,
@@ -135,7 +135,7 @@ class MobileNotificationsGateway implements NotificationsGateway {
   Future<void> cancel(int id) async {
     await _ensureInitialized();
     try {
-      await _plugin.cancel(id);
+      await _plugin.cancel(id: id);
       _logger.logInfo('cancelled id=$id');
     } catch (error) {
       _logger.logError('Failed to cancel notification id=$id', error);
@@ -176,10 +176,10 @@ class MobileNotificationsGateway implements NotificationsGateway {
     if (!allowExact && Platform.isAndroid) {
       try {
         await _plugin.show(
-          0x54E57,
-          'Проверка уведомлений',
-          'Тестовое напоминание отправлено из настроек',
-          _buildNotificationDetails(),
+          id: 0x54E57,
+          title: 'Проверка уведомлений',
+          body: 'Тестовое напоминание отправлено из настроек',
+          notificationDetails: _buildNotificationDetails(),
           payload: 'test',
         );
         _logger.logInfo('Test notification shown immediately (fallback)');
@@ -219,7 +219,7 @@ class MobileNotificationsGateway implements NotificationsGateway {
     );
 
     await _plugin.initialize(
-      settings,
+      settings: settings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         if (!_responsesController.isClosed) {
           _responsesController.add(response);

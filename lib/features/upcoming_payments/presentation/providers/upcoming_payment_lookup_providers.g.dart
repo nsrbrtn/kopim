@@ -10,7 +10,7 @@ part of 'upcoming_payment_lookup_providers.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(upcomingPaymentById)
-const upcomingPaymentByIdProvider = UpcomingPaymentByIdFamily._();
+final upcomingPaymentByIdProvider = UpcomingPaymentByIdFamily._();
 
 final class UpcomingPaymentByIdProvider
     extends
@@ -20,7 +20,7 @@ final class UpcomingPaymentByIdProvider
           FutureOr<UpcomingPayment?>
         >
     with $FutureModifier<UpcomingPayment?>, $FutureProvider<UpcomingPayment?> {
-  const UpcomingPaymentByIdProvider._({
+  UpcomingPaymentByIdProvider._({
     required UpcomingPaymentByIdFamily super.from,
     required String super.argument,
   }) : super(
@@ -69,7 +69,7 @@ String _$upcomingPaymentByIdHash() =>
 
 final class UpcomingPaymentByIdFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<UpcomingPayment?>, String> {
-  const UpcomingPaymentByIdFamily._()
+  UpcomingPaymentByIdFamily._()
     : super(
         retry: null,
         name: r'upcomingPaymentByIdProvider',
@@ -86,7 +86,7 @@ final class UpcomingPaymentByIdFamily extends $Family
 }
 
 @ProviderFor(paymentReminderById)
-const paymentReminderByIdProvider = PaymentReminderByIdFamily._();
+final paymentReminderByIdProvider = PaymentReminderByIdFamily._();
 
 final class PaymentReminderByIdProvider
     extends
@@ -96,7 +96,7 @@ final class PaymentReminderByIdProvider
           FutureOr<PaymentReminder?>
         >
     with $FutureModifier<PaymentReminder?>, $FutureProvider<PaymentReminder?> {
-  const PaymentReminderByIdProvider._({
+  PaymentReminderByIdProvider._({
     required PaymentReminderByIdFamily super.from,
     required String super.argument,
   }) : super(
@@ -145,7 +145,7 @@ String _$paymentReminderByIdHash() =>
 
 final class PaymentReminderByIdFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<PaymentReminder?>, String> {
-  const PaymentReminderByIdFamily._()
+  PaymentReminderByIdFamily._()
     : super(
         retry: null,
         name: r'paymentReminderByIdProvider',

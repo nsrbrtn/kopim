@@ -10,13 +10,13 @@ part of 'analytics_providers.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(analyticsFilters)
-const analyticsFiltersProvider = AnalyticsFiltersProvider._();
+final analyticsFiltersProvider = AnalyticsFiltersProvider._();
 
 final class AnalyticsFiltersProvider
     extends
         $FunctionalProvider<AnalyticsFilter, AnalyticsFilter, AnalyticsFilter>
     with $Provider<AnalyticsFilter> {
-  const AnalyticsFiltersProvider._()
+  AnalyticsFiltersProvider._()
     : super(
         from: null,
         argument: null,
@@ -52,7 +52,7 @@ final class AnalyticsFiltersProvider
 String _$analyticsFiltersHash() => r'1b1542c9cc14ed5ec7b0e02f9b4f57636fa2166b';
 
 @ProviderFor(analyticsFilteredStats)
-const analyticsFilteredStatsProvider = AnalyticsFilteredStatsFamily._();
+final analyticsFilteredStatsProvider = AnalyticsFilteredStatsFamily._();
 
 final class AnalyticsFilteredStatsProvider
     extends
@@ -64,7 +64,7 @@ final class AnalyticsFilteredStatsProvider
     with
         $FutureModifier<AnalyticsOverview>,
         $StreamProvider<AnalyticsOverview> {
-  const AnalyticsFilteredStatsProvider._({
+  AnalyticsFilteredStatsProvider._({
     required AnalyticsFilteredStatsFamily super.from,
     required int super.argument,
   }) : super(
@@ -114,7 +114,7 @@ String _$analyticsFilteredStatsHash() =>
 
 final class AnalyticsFilteredStatsFamily extends $Family
     with $FunctionalFamilyOverride<Stream<AnalyticsOverview>, int> {
-  const AnalyticsFilteredStatsFamily._()
+  AnalyticsFilteredStatsFamily._()
     : super(
         retry: null,
         name: r'analyticsFilteredStatsProvider',
@@ -134,7 +134,7 @@ final class AnalyticsFilteredStatsFamily extends $Family
 }
 
 @ProviderFor(analyticsCategories)
-const analyticsCategoriesProvider = AnalyticsCategoriesProvider._();
+final analyticsCategoriesProvider = AnalyticsCategoriesProvider._();
 
 final class AnalyticsCategoriesProvider
     extends
@@ -144,7 +144,7 @@ final class AnalyticsCategoriesProvider
           Stream<List<Category>>
         >
     with $FutureModifier<List<Category>>, $StreamProvider<List<Category>> {
-  const AnalyticsCategoriesProvider._()
+  AnalyticsCategoriesProvider._()
     : super(
         from: null,
         argument: null,
@@ -174,7 +174,7 @@ String _$analyticsCategoriesHash() =>
     r'b244571b7a817e86a0c358c27806907e4f9fcf08';
 
 @ProviderFor(analyticsAccounts)
-const analyticsAccountsProvider = AnalyticsAccountsProvider._();
+final analyticsAccountsProvider = AnalyticsAccountsProvider._();
 
 final class AnalyticsAccountsProvider
     extends
@@ -186,7 +186,7 @@ final class AnalyticsAccountsProvider
     with
         $FutureModifier<List<AccountEntity>>,
         $StreamProvider<List<AccountEntity>> {
-  const AnalyticsAccountsProvider._()
+  AnalyticsAccountsProvider._()
     : super(
         from: null,
         argument: null,
@@ -215,7 +215,7 @@ final class AnalyticsAccountsProvider
 String _$analyticsAccountsHash() => r'847f95a32c4b1a15e460e67c2936d6c06feb5230';
 
 @ProviderFor(monthlyBalanceData)
-const monthlyBalanceDataProvider = MonthlyBalanceDataProvider._();
+final monthlyBalanceDataProvider = MonthlyBalanceDataProvider._();
 
 final class MonthlyBalanceDataProvider
     extends
@@ -227,7 +227,7 @@ final class MonthlyBalanceDataProvider
     with
         $FutureModifier<List<MonthlyBalanceData>>,
         $StreamProvider<List<MonthlyBalanceData>> {
-  const MonthlyBalanceDataProvider._()
+  MonthlyBalanceDataProvider._()
     : super(
         from: null,
         argument: null,

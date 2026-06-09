@@ -10,7 +10,7 @@ part of 'account_details_providers.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(accountDetails)
-const accountDetailsProvider = AccountDetailsFamily._();
+final accountDetailsProvider = AccountDetailsFamily._();
 
 final class AccountDetailsProvider
     extends
@@ -20,7 +20,7 @@ final class AccountDetailsProvider
           Stream<AccountEntity?>
         >
     with $FutureModifier<AccountEntity?>, $StreamProvider<AccountEntity?> {
-  const AccountDetailsProvider._({
+  AccountDetailsProvider._({
     required AccountDetailsFamily super.from,
     required String super.argument,
   }) : super(
@@ -68,7 +68,7 @@ String _$accountDetailsHash() => r'0c0bb8c45ca729a38f98b36f7d63b3197a9b253e';
 
 final class AccountDetailsFamily extends $Family
     with $FunctionalFamilyOverride<Stream<AccountEntity?>, String> {
-  const AccountDetailsFamily._()
+  AccountDetailsFamily._()
     : super(
         retry: null,
         name: r'accountDetailsProvider',
@@ -85,7 +85,7 @@ final class AccountDetailsFamily extends $Family
 }
 
 @ProviderFor(accountTransactions)
-const accountTransactionsProvider = AccountTransactionsFamily._();
+final accountTransactionsProvider = AccountTransactionsFamily._();
 
 final class AccountTransactionsProvider
     extends
@@ -97,7 +97,7 @@ final class AccountTransactionsProvider
     with
         $FutureModifier<List<TransactionEntity>>,
         $StreamProvider<List<TransactionEntity>> {
-  const AccountTransactionsProvider._({
+  AccountTransactionsProvider._({
     required AccountTransactionsFamily super.from,
     required String super.argument,
   }) : super(
@@ -146,7 +146,7 @@ String _$accountTransactionsHash() =>
 
 final class AccountTransactionsFamily extends $Family
     with $FunctionalFamilyOverride<Stream<List<TransactionEntity>>, String> {
-  const AccountTransactionsFamily._()
+  AccountTransactionsFamily._()
     : super(
         retry: null,
         name: r'accountTransactionsProvider',
@@ -163,12 +163,12 @@ final class AccountTransactionsFamily extends $Family
 }
 
 @ProviderFor(AccountTransactionsVisibleMonthsController)
-const accountTransactionsVisibleMonthsControllerProvider =
+final accountTransactionsVisibleMonthsControllerProvider =
     AccountTransactionsVisibleMonthsControllerFamily._();
 
 final class AccountTransactionsVisibleMonthsControllerProvider
     extends $NotifierProvider<AccountTransactionsVisibleMonthsController, int> {
-  const AccountTransactionsVisibleMonthsControllerProvider._({
+  AccountTransactionsVisibleMonthsControllerProvider._({
     required AccountTransactionsVisibleMonthsControllerFamily super.from,
     required String super.argument,
   }) : super(
@@ -227,7 +227,7 @@ final class AccountTransactionsVisibleMonthsControllerFamily extends $Family
           int,
           String
         > {
-  const AccountTransactionsVisibleMonthsControllerFamily._()
+  AccountTransactionsVisibleMonthsControllerFamily._()
     : super(
         retry: null,
         name: r'accountTransactionsVisibleMonthsControllerProvider',
@@ -255,7 +255,6 @@ abstract class _$AccountTransactionsVisibleMonthsController
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build(_$args);
     final ref = this.ref as $Ref<int, int>;
     final element =
         ref.element
@@ -265,12 +264,12 @@ abstract class _$AccountTransactionsVisibleMonthsController
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, () => build(_$args));
   }
 }
 
 @ProviderFor(AccountDetailsPeriodController)
-const accountDetailsPeriodControllerProvider =
+final accountDetailsPeriodControllerProvider =
     AccountDetailsPeriodControllerFamily._();
 
 final class AccountDetailsPeriodControllerProvider
@@ -279,7 +278,7 @@ final class AccountDetailsPeriodControllerProvider
           AccountDetailsPeriodController,
           AccountDetailsPeriod
         > {
-  const AccountDetailsPeriodControllerProvider._({
+  AccountDetailsPeriodControllerProvider._({
     required AccountDetailsPeriodControllerFamily super.from,
     required String super.argument,
   }) : super(
@@ -336,7 +335,7 @@ final class AccountDetailsPeriodControllerFamily extends $Family
           AccountDetailsPeriod,
           String
         > {
-  const AccountDetailsPeriodControllerFamily._()
+  AccountDetailsPeriodControllerFamily._()
     : super(
         retry: null,
         name: r'accountDetailsPeriodControllerProvider',
@@ -361,7 +360,6 @@ abstract class _$AccountDetailsPeriodController
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build(_$args);
     final ref = this.ref as $Ref<AccountDetailsPeriod, AccountDetailsPeriod>;
     final element =
         ref.element
@@ -371,12 +369,12 @@ abstract class _$AccountDetailsPeriodController
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, () => build(_$args));
   }
 }
 
 @ProviderFor(accountDetailsPeriodRange)
-const accountDetailsPeriodRangeProvider = AccountDetailsPeriodRangeFamily._();
+final accountDetailsPeriodRangeProvider = AccountDetailsPeriodRangeFamily._();
 
 final class AccountDetailsPeriodRangeProvider
     extends
@@ -386,7 +384,7 @@ final class AccountDetailsPeriodRangeProvider
           DateTimeRange<DateTime>
         >
     with $Provider<DateTimeRange<DateTime>> {
-  const AccountDetailsPeriodRangeProvider._({
+  AccountDetailsPeriodRangeProvider._({
     required AccountDetailsPeriodRangeFamily super.from,
     required String super.argument,
   }) : super(
@@ -444,7 +442,7 @@ String _$accountDetailsPeriodRangeHash() =>
 
 final class AccountDetailsPeriodRangeFamily extends $Family
     with $FunctionalFamilyOverride<DateTimeRange<DateTime>, String> {
-  const AccountDetailsPeriodRangeFamily._()
+  AccountDetailsPeriodRangeFamily._()
     : super(
         retry: null,
         name: r'accountDetailsPeriodRangeProvider',
@@ -461,7 +459,7 @@ final class AccountDetailsPeriodRangeFamily extends $Family
 }
 
 @ProviderFor(accountTransactionsVisibleRange)
-const accountTransactionsVisibleRangeProvider =
+final accountTransactionsVisibleRangeProvider =
     AccountTransactionsVisibleRangeFamily._();
 
 final class AccountTransactionsVisibleRangeProvider
@@ -472,7 +470,7 @@ final class AccountTransactionsVisibleRangeProvider
           DateTimeRange<DateTime>
         >
     with $Provider<DateTimeRange<DateTime>> {
-  const AccountTransactionsVisibleRangeProvider._({
+  AccountTransactionsVisibleRangeProvider._({
     required AccountTransactionsVisibleRangeFamily super.from,
     required String super.argument,
   }) : super(
@@ -530,7 +528,7 @@ String _$accountTransactionsVisibleRangeHash() =>
 
 final class AccountTransactionsVisibleRangeFamily extends $Family
     with $FunctionalFamilyOverride<DateTimeRange<DateTime>, String> {
-  const AccountTransactionsVisibleRangeFamily._()
+  AccountTransactionsVisibleRangeFamily._()
     : super(
         retry: null,
         name: r'accountTransactionsVisibleRangeProvider',
@@ -550,7 +548,7 @@ final class AccountTransactionsVisibleRangeFamily extends $Family
 }
 
 @ProviderFor(accountTopCategoryTotals)
-const accountTopCategoryTotalsProvider = AccountTopCategoryTotalsFamily._();
+final accountTopCategoryTotalsProvider = AccountTopCategoryTotalsFamily._();
 
 final class AccountTopCategoryTotalsProvider
     extends
@@ -562,7 +560,7 @@ final class AccountTopCategoryTotalsProvider
     with
         $FutureModifier<List<TransactionCategoryTotals>>,
         $StreamProvider<List<TransactionCategoryTotals>> {
-  const AccountTopCategoryTotalsProvider._({
+  AccountTopCategoryTotalsProvider._({
     required AccountTopCategoryTotalsFamily super.from,
     required ({String accountId, DateTime start, DateTime end}) super.argument,
   }) : super(
@@ -622,7 +620,7 @@ final class AccountTopCategoryTotalsFamily extends $Family
           Stream<List<TransactionCategoryTotals>>,
           ({String accountId, DateTime start, DateTime end})
         > {
-  const AccountTopCategoryTotalsFamily._()
+  AccountTopCategoryTotalsFamily._()
     : super(
         retry: null,
         name: r'accountTopCategoryTotalsProvider',
@@ -645,7 +643,7 @@ final class AccountTopCategoryTotalsFamily extends $Family
 }
 
 @ProviderFor(accountCategories)
-const accountCategoriesProvider = AccountCategoriesProvider._();
+final accountCategoriesProvider = AccountCategoriesProvider._();
 
 final class AccountCategoriesProvider
     extends
@@ -655,7 +653,7 @@ final class AccountCategoriesProvider
           Stream<List<Category>>
         >
     with $FutureModifier<List<Category>>, $StreamProvider<List<Category>> {
-  const AccountCategoriesProvider._()
+  AccountCategoriesProvider._()
     : super(
         from: null,
         argument: null,
@@ -684,7 +682,7 @@ final class AccountCategoriesProvider
 String _$accountCategoriesHash() => r'a2ff64337d4c3c1bd82315c851a4059ff4edb2b0';
 
 @ProviderFor(accountTransactionSummary)
-const accountTransactionSummaryProvider = AccountTransactionSummaryFamily._();
+final accountTransactionSummaryProvider = AccountTransactionSummaryFamily._();
 
 final class AccountTransactionSummaryProvider
     extends
@@ -694,7 +692,7 @@ final class AccountTransactionSummaryProvider
           AsyncValue<AccountTransactionSummary>
         >
     with $Provider<AsyncValue<AccountTransactionSummary>> {
-  const AccountTransactionSummaryProvider._({
+  AccountTransactionSummaryProvider._({
     required AccountTransactionSummaryFamily super.from,
     required String super.argument,
   }) : super(
@@ -757,7 +755,7 @@ final class AccountTransactionSummaryFamily extends $Family
           AsyncValue<AccountTransactionSummary>,
           String
         > {
-  const AccountTransactionSummaryFamily._()
+  AccountTransactionSummaryFamily._()
     : super(
         retry: null,
         name: r'accountTransactionSummaryProvider',
@@ -774,7 +772,7 @@ final class AccountTransactionSummaryFamily extends $Family
 }
 
 @ProviderFor(canShowMoreAccountTransactions)
-const canShowMoreAccountTransactionsProvider =
+final canShowMoreAccountTransactionsProvider =
     CanShowMoreAccountTransactionsFamily._();
 
 final class CanShowMoreAccountTransactionsProvider
@@ -785,7 +783,7 @@ final class CanShowMoreAccountTransactionsProvider
           AsyncValue<bool>
         >
     with $Provider<AsyncValue<bool>> {
-  const CanShowMoreAccountTransactionsProvider._({
+  CanShowMoreAccountTransactionsProvider._({
     required CanShowMoreAccountTransactionsFamily super.from,
     required String super.argument,
   }) : super(
@@ -842,7 +840,7 @@ String _$canShowMoreAccountTransactionsHash() =>
 
 final class CanShowMoreAccountTransactionsFamily extends $Family
     with $FunctionalFamilyOverride<AsyncValue<bool>, String> {
-  const CanShowMoreAccountTransactionsFamily._()
+  CanShowMoreAccountTransactionsFamily._()
     : super(
         retry: null,
         name: r'canShowMoreAccountTransactionsProvider',
@@ -859,7 +857,7 @@ final class CanShowMoreAccountTransactionsFamily extends $Family
 }
 
 @ProviderFor(AccountTransactionsFilterController)
-const accountTransactionsFilterControllerProvider =
+final accountTransactionsFilterControllerProvider =
     AccountTransactionsFilterControllerFamily._();
 
 final class AccountTransactionsFilterControllerProvider
@@ -868,7 +866,7 @@ final class AccountTransactionsFilterControllerProvider
           AccountTransactionsFilterController,
           AccountTransactionsFilter
         > {
-  const AccountTransactionsFilterControllerProvider._({
+  AccountTransactionsFilterControllerProvider._({
     required AccountTransactionsFilterControllerFamily super.from,
     required String super.argument,
   }) : super(
@@ -927,7 +925,7 @@ final class AccountTransactionsFilterControllerFamily extends $Family
           AccountTransactionsFilter,
           String
         > {
-  const AccountTransactionsFilterControllerFamily._()
+  AccountTransactionsFilterControllerFamily._()
     : super(
         retry: null,
         name: r'accountTransactionsFilterControllerProvider',
@@ -955,7 +953,6 @@ abstract class _$AccountTransactionsFilterController
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build(_$args);
     final ref =
         this.ref as $Ref<AccountTransactionsFilter, AccountTransactionsFilter>;
     final element =
@@ -966,12 +963,12 @@ abstract class _$AccountTransactionsFilterController
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, () => build(_$args));
   }
 }
 
 @ProviderFor(filteredAccountTransactions)
-const filteredAccountTransactionsProvider =
+final filteredAccountTransactionsProvider =
     FilteredAccountTransactionsFamily._();
 
 final class FilteredAccountTransactionsProvider
@@ -982,7 +979,7 @@ final class FilteredAccountTransactionsProvider
           AsyncValue<List<TransactionEntity>>
         >
     with $Provider<AsyncValue<List<TransactionEntity>>> {
-  const FilteredAccountTransactionsProvider._({
+  FilteredAccountTransactionsProvider._({
     required FilteredAccountTransactionsFamily super.from,
     required String super.argument,
   }) : super(
@@ -1043,7 +1040,7 @@ String _$filteredAccountTransactionsHash() =>
 final class FilteredAccountTransactionsFamily extends $Family
     with
         $FunctionalFamilyOverride<AsyncValue<List<TransactionEntity>>, String> {
-  const FilteredAccountTransactionsFamily._()
+  FilteredAccountTransactionsFamily._()
     : super(
         retry: null,
         name: r'filteredAccountTransactionsProvider',
@@ -1060,7 +1057,7 @@ final class FilteredAccountTransactionsFamily extends $Family
 }
 
 @ProviderFor(accountTransactionsMatchingFilters)
-const accountTransactionsMatchingFiltersProvider =
+final accountTransactionsMatchingFiltersProvider =
     AccountTransactionsMatchingFiltersFamily._();
 
 final class AccountTransactionsMatchingFiltersProvider
@@ -1071,7 +1068,7 @@ final class AccountTransactionsMatchingFiltersProvider
           AsyncValue<List<TransactionEntity>>
         >
     with $Provider<AsyncValue<List<TransactionEntity>>> {
-  const AccountTransactionsMatchingFiltersProvider._({
+  AccountTransactionsMatchingFiltersProvider._({
     required AccountTransactionsMatchingFiltersFamily super.from,
     required String super.argument,
   }) : super(
@@ -1133,7 +1130,7 @@ String _$accountTransactionsMatchingFiltersHash() =>
 final class AccountTransactionsMatchingFiltersFamily extends $Family
     with
         $FunctionalFamilyOverride<AsyncValue<List<TransactionEntity>>, String> {
-  const AccountTransactionsMatchingFiltersFamily._()
+  AccountTransactionsMatchingFiltersFamily._()
     : super(
         retry: null,
         name: r'accountTransactionsMatchingFiltersProvider',

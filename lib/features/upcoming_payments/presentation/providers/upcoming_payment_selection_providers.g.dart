@@ -10,7 +10,7 @@ part of 'upcoming_payment_selection_providers.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(upcomingPaymentAccounts)
-const upcomingPaymentAccountsProvider = UpcomingPaymentAccountsProvider._();
+final upcomingPaymentAccountsProvider = UpcomingPaymentAccountsProvider._();
 
 final class UpcomingPaymentAccountsProvider
     extends
@@ -22,7 +22,7 @@ final class UpcomingPaymentAccountsProvider
     with
         $FutureModifier<List<AccountEntity>>,
         $StreamProvider<List<AccountEntity>> {
-  const UpcomingPaymentAccountsProvider._()
+  UpcomingPaymentAccountsProvider._()
     : super(
         from: null,
         argument: null,
@@ -52,7 +52,7 @@ String _$upcomingPaymentAccountsHash() =>
     r'6a7c52dde1c65922cac8b74c8a3d3260c9786416';
 
 @ProviderFor(upcomingPaymentCategories)
-const upcomingPaymentCategoriesProvider = UpcomingPaymentCategoriesProvider._();
+final upcomingPaymentCategoriesProvider = UpcomingPaymentCategoriesProvider._();
 
 final class UpcomingPaymentCategoriesProvider
     extends
@@ -62,7 +62,7 @@ final class UpcomingPaymentCategoriesProvider
           Stream<List<Category>>
         >
     with $FutureModifier<List<Category>>, $StreamProvider<List<Category>> {
-  const UpcomingPaymentCategoriesProvider._()
+  UpcomingPaymentCategoriesProvider._()
     : super(
         from: null,
         argument: null,

@@ -66,20 +66,28 @@ class ExportBundleJsonDecoder {
     final DateTime generatedAt = DateTime.parse(generatedAtRaw);
 
     final List<AccountEntity> accounts = _parseAccounts(
-      _readSection(jsonMap, 'accounts', expectedType: List),
+      _readSection(jsonMap, 'accounts', expectedType: _ExportSectionType.list),
     );
     final List<TransactionEntity> transactions = _parseTransactions(
-      _readSection(jsonMap, 'transactions', expectedType: List),
+      _readSection(
+        jsonMap,
+        'transactions',
+        expectedType: _ExportSectionType.list,
+      ),
     );
     final List<Category> categories = _parseCategories(
-      _readSection(jsonMap, 'categories', expectedType: List),
+      _readSection(
+        jsonMap,
+        'categories',
+        expectedType: _ExportSectionType.list,
+      ),
     );
     final List<TagEntity> tags = _parseTags(
       _readSection(
         jsonMap,
         'tags',
         required: ExportBundleSchema.requiresExtendedSnapshot(version),
-        expectedType: List,
+        expectedType: _ExportSectionType.list,
       ),
     );
     final List<TransactionTagEntity> transactionTags = _parseTransactionTags(
@@ -87,7 +95,7 @@ class ExportBundleJsonDecoder {
         jsonMap,
         'transactionTags',
         required: ExportBundleSchema.requiresExtendedSnapshot(version),
-        expectedType: List,
+        expectedType: _ExportSectionType.list,
       ),
     );
     final List<SavingGoal> savingGoals = _parseSavingGoals(
@@ -95,7 +103,7 @@ class ExportBundleJsonDecoder {
         jsonMap,
         'savingGoals',
         required: ExportBundleSchema.requiresSavingGoals(version),
-        expectedType: List,
+        expectedType: _ExportSectionType.list,
       ),
     );
     final List<CreditEntity> credits = _parseCredits(
@@ -103,7 +111,7 @@ class ExportBundleJsonDecoder {
         jsonMap,
         'credits',
         required: ExportBundleSchema.requiresLiabilities(version),
-        expectedType: List,
+        expectedType: _ExportSectionType.list,
       ),
     );
     final List<CreditCardEntity> creditCards = _parseCreditCards(
@@ -111,7 +119,7 @@ class ExportBundleJsonDecoder {
         jsonMap,
         'creditCards',
         required: ExportBundleSchema.requiresLiabilities(version),
-        expectedType: List,
+        expectedType: _ExportSectionType.list,
       ),
     );
     final List<DebtEntity> debts = _parseDebts(
@@ -119,7 +127,7 @@ class ExportBundleJsonDecoder {
         jsonMap,
         'debts',
         required: ExportBundleSchema.requiresLiabilities(version),
-        expectedType: List,
+        expectedType: _ExportSectionType.list,
       ),
     );
     final List<Budget> budgets = _parseBudgets(
@@ -127,7 +135,7 @@ class ExportBundleJsonDecoder {
         jsonMap,
         'budgets',
         required: ExportBundleSchema.requiresExtendedSnapshot(version),
-        expectedType: List,
+        expectedType: _ExportSectionType.list,
       ),
     );
     final List<BudgetInstance> budgetInstances = _parseBudgetInstances(
@@ -135,7 +143,7 @@ class ExportBundleJsonDecoder {
         jsonMap,
         'budgetInstances',
         required: ExportBundleSchema.requiresExtendedSnapshot(version),
-        expectedType: List,
+        expectedType: _ExportSectionType.list,
       ),
     );
     final List<UpcomingPayment> upcomingPayments = _parseUpcomingPayments(
@@ -143,7 +151,7 @@ class ExportBundleJsonDecoder {
         jsonMap,
         'upcomingPayments',
         required: ExportBundleSchema.requiresExtendedSnapshot(version),
-        expectedType: List,
+        expectedType: _ExportSectionType.list,
       ),
     );
     final List<PaymentReminder> paymentReminders = _parsePaymentReminders(
@@ -151,18 +159,23 @@ class ExportBundleJsonDecoder {
         jsonMap,
         'paymentReminders',
         required: ExportBundleSchema.requiresExtendedSnapshot(version),
-        expectedType: List,
+        expectedType: _ExportSectionType.list,
       ),
     );
     final Profile? profile = _parseProfile(
-      _readSection(jsonMap, 'profile', required: false, expectedType: Map),
+      _readSection(
+        jsonMap,
+        'profile',
+        required: false,
+        expectedType: _ExportSectionType.map,
+      ),
     );
     final UserProgress? progress = _parseProgress(
       _readSection(
         jsonMap,
         'progress',
         required: ExportBundleSchema.requiresProfileProgressIntegrity(version),
-        expectedType: Map,
+        expectedType: _ExportSectionType.map,
       ),
     );
     final ExportBundleIntegrity? integrity = _parseIntegrity(
@@ -170,7 +183,7 @@ class ExportBundleJsonDecoder {
         jsonMap,
         'integrity',
         required: ExportBundleSchema.requiresProfileProgressIntegrity(version),
-        expectedType: Map,
+        expectedType: _ExportSectionType.map,
       ),
     );
 
@@ -670,7 +683,7 @@ class ExportBundleJsonDecoder {
     Map<String, Object?> jsonMap,
     String key, {
     bool required = true,
-    Type? expectedType,
+    _ExportSectionType? expectedType,
   }) {
     if (!jsonMap.containsKey(key)) {
       if (required) {
@@ -686,12 +699,14 @@ class ExportBundleJsonDecoder {
       }
       return null;
     }
-    if (expectedType == List && value is! List) {
+    if (expectedType == _ExportSectionType.list && value is! List) {
       throw FormatException('Секция $key имеет некорректный формат.');
     }
-    if (expectedType == Map && value is! Map) {
+    if (expectedType == _ExportSectionType.map && value is! Map) {
       throw FormatException('Секция $key имеет некорректный формат.');
     }
     return value;
   }
 }
+
+enum _ExportSectionType { list, map }

@@ -10,11 +10,11 @@ part of 'category_form_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(CategoryFormController)
-const categoryFormControllerProvider = CategoryFormControllerFamily._();
+final categoryFormControllerProvider = CategoryFormControllerFamily._();
 
 final class CategoryFormControllerProvider
     extends $NotifierProvider<CategoryFormController, CategoryFormState> {
-  const CategoryFormControllerProvider._({
+  CategoryFormControllerProvider._({
     required CategoryFormControllerFamily super.from,
     required CategoryFormParams super.argument,
   }) : super(
@@ -71,7 +71,7 @@ final class CategoryFormControllerFamily extends $Family
           CategoryFormState,
           CategoryFormParams
         > {
-  const CategoryFormControllerFamily._()
+  CategoryFormControllerFamily._()
     : super(
         retry: null,
         name: r'categoryFormControllerProvider',
@@ -95,7 +95,6 @@ abstract class _$CategoryFormController extends $Notifier<CategoryFormState> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build(_$args);
     final ref = this.ref as $Ref<CategoryFormState, CategoryFormState>;
     final element =
         ref.element
@@ -105,6 +104,6 @@ abstract class _$CategoryFormController extends $Notifier<CategoryFormState> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, () => build(_$args));
   }
 }

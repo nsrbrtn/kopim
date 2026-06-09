@@ -10,12 +10,12 @@ part of 'ai_financial_data_repository_impl.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(aiAnalyticsDao)
-const aiAnalyticsDaoProvider = AiAnalyticsDaoProvider._();
+final aiAnalyticsDaoProvider = AiAnalyticsDaoProvider._();
 
 final class AiAnalyticsDaoProvider
     extends $FunctionalProvider<AiAnalyticsDao, AiAnalyticsDao, AiAnalyticsDao>
     with $Provider<AiAnalyticsDao> {
-  const AiAnalyticsDaoProvider._()
+  AiAnalyticsDaoProvider._()
     : super(
         from: null,
         argument: null,
@@ -51,7 +51,7 @@ final class AiAnalyticsDaoProvider
 String _$aiAnalyticsDaoHash() => r'76e0811404f4588734352984d8b5c3de180357ee';
 
 @ProviderFor(aiFinancialDataRepository)
-const aiFinancialDataRepositoryProvider = AiFinancialDataRepositoryProvider._();
+final aiFinancialDataRepositoryProvider = AiFinancialDataRepositoryProvider._();
 
 final class AiFinancialDataRepositoryProvider
     extends
@@ -61,7 +61,7 @@ final class AiFinancialDataRepositoryProvider
           AiFinancialDataRepository
         >
     with $Provider<AiFinancialDataRepository> {
-  const AiFinancialDataRepositoryProvider._()
+  AiFinancialDataRepositoryProvider._()
     : super(
         from: null,
         argument: null,

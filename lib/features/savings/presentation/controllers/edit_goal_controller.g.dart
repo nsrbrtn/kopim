@@ -10,11 +10,11 @@ part of 'edit_goal_controller.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(EditGoalController)
-const editGoalControllerProvider = EditGoalControllerFamily._();
+final editGoalControllerProvider = EditGoalControllerFamily._();
 
 final class EditGoalControllerProvider
     extends $NotifierProvider<EditGoalController, EditGoalState> {
-  const EditGoalControllerProvider._({
+  EditGoalControllerProvider._({
     required EditGoalControllerFamily super.from,
     required SavingGoal? super.argument,
   }) : super(
@@ -70,7 +70,7 @@ final class EditGoalControllerFamily extends $Family
           EditGoalState,
           SavingGoal?
         > {
-  const EditGoalControllerFamily._()
+  EditGoalControllerFamily._()
     : super(
         retry: null,
         name: r'editGoalControllerProvider',
@@ -94,7 +94,6 @@ abstract class _$EditGoalController extends $Notifier<EditGoalState> {
   @$mustCallSuper
   @override
   void runBuild() {
-    final created = build(_$args);
     final ref = this.ref as $Ref<EditGoalState, EditGoalState>;
     final element =
         ref.element
@@ -104,6 +103,6 @@ abstract class _$EditGoalController extends $Notifier<EditGoalState> {
               Object?,
               Object?
             >;
-    element.handleValue(ref, created);
+    element.handleCreate(ref, () => build(_$args));
   }
 }

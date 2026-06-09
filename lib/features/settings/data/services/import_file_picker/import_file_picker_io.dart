@@ -12,20 +12,19 @@ ImportFilePicker buildImportFilePicker() => _ImportFilePickerIo();
 class _ImportFilePickerIo implements ImportFilePicker {
   @override
   Future<PickedImportFile?> pickFile(DataTransferFormat format) async {
-    final FilePickerResult? result = await FilePicker.platform.pickFiles(
+    final PlatformFile? file = await FilePicker.pickFile(
       type: FileType.custom,
       allowedExtensions: <String>[format.fileExtension],
-      withData: true,
     );
 
-    if (result == null || result.files.isEmpty) {
+    if (file == null) {
       return null;
     }
 
-    final PlatformFile file = result.files.first;
-    Uint8List? bytes = file.bytes;
-
-    if (bytes == null) {
+    Uint8List bytes;
+    try {
+      bytes = await file.readAsBytes();
+    } on StateError {
       final String? path = file.path;
       if (path == null) {
         return null;

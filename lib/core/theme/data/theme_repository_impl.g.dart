@@ -10,13 +10,13 @@ part of 'theme_repository_impl.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(themeRepository)
-const themeRepositoryProvider = ThemeRepositoryProvider._();
+final themeRepositoryProvider = ThemeRepositoryProvider._();
 
 final class ThemeRepositoryProvider
     extends
         $FunctionalProvider<ThemeRepository, ThemeRepository, ThemeRepository>
     with $Provider<ThemeRepository> {
-  const ThemeRepositoryProvider._()
+  ThemeRepositoryProvider._()
     : super(
         from: null,
         argument: null,

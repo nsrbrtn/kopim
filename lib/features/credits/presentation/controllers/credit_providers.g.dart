@@ -10,7 +10,7 @@ part of 'credit_providers.dart';
 // ignore_for_file: type=lint, type=warning
 
 @ProviderFor(creditSchedule)
-const creditScheduleProvider = CreditScheduleFamily._();
+final creditScheduleProvider = CreditScheduleFamily._();
 
 final class CreditScheduleProvider
     extends
@@ -22,7 +22,7 @@ final class CreditScheduleProvider
     with
         $FutureModifier<List<CreditPaymentScheduleEntity>>,
         $StreamProvider<List<CreditPaymentScheduleEntity>> {
-  const CreditScheduleProvider._({
+  CreditScheduleProvider._({
     required CreditScheduleFamily super.from,
     required String super.argument,
   }) : super(
@@ -74,7 +74,7 @@ final class CreditScheduleFamily extends $Family
           Stream<List<CreditPaymentScheduleEntity>>,
           String
         > {
-  const CreditScheduleFamily._()
+  CreditScheduleFamily._()
     : super(
         retry: null,
         name: r'creditScheduleProvider',
@@ -91,7 +91,7 @@ final class CreditScheduleFamily extends $Family
 }
 
 @ProviderFor(nextUpcomingPayment)
-const nextUpcomingPaymentProvider = NextUpcomingPaymentFamily._();
+final nextUpcomingPaymentProvider = NextUpcomingPaymentFamily._();
 
 final class NextUpcomingPaymentProvider
     extends
@@ -103,7 +103,7 @@ final class NextUpcomingPaymentProvider
     with
         $FutureModifier<CreditPaymentScheduleEntity?>,
         $FutureProvider<CreditPaymentScheduleEntity?> {
-  const NextUpcomingPaymentProvider._({
+  NextUpcomingPaymentProvider._({
     required NextUpcomingPaymentFamily super.from,
     required String super.argument,
   }) : super(
@@ -156,7 +156,7 @@ final class NextUpcomingPaymentFamily extends $Family
           FutureOr<CreditPaymentScheduleEntity?>,
           String
         > {
-  const NextUpcomingPaymentFamily._()
+  NextUpcomingPaymentFamily._()
     : super(
         retry: null,
         name: r'nextUpcomingPaymentProvider',
