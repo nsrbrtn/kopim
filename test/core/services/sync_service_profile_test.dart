@@ -16,6 +16,8 @@ import 'package:kopim/features/budgets/data/sources/remote/budget_instance_remot
 import 'package:kopim/features/budgets/data/sources/remote/budget_remote_data_source.dart';
 import 'package:kopim/features/categories/data/sources/remote/category_remote_data_source.dart';
 import 'package:kopim/features/credits/data/sources/remote/credit_card_remote_data_source.dart';
+import 'package:kopim/features/credits/data/sources/remote/credit_payment_group_remote_data_source.dart';
+import 'package:kopim/features/credits/data/sources/remote/credit_payment_schedule_remote_data_source.dart';
 import 'package:kopim/features/credits/data/sources/remote/credit_remote_data_source.dart';
 import 'package:kopim/features/credits/data/sources/remote/debt_remote_data_source.dart';
 import 'package:kopim/features/profile/data/local/profile_dao.dart';
@@ -95,6 +97,11 @@ void main() {
       creditRemoteDataSource: CreditRemoteDataSource(firestore),
       creditCardRemoteDataSource: CreditCardRemoteDataSource(firestore),
       debtRemoteDataSource: DebtRemoteDataSource(firestore),
+      creditPaymentGroupRemoteDataSource: CreditPaymentGroupRemoteDataSource(
+        firestore,
+      ),
+      creditPaymentScheduleRemoteDataSource:
+          CreditPaymentScheduleRemoteDataSource(firestore),
       budgetRemoteDataSource: BudgetRemoteDataSource(firestore),
       budgetInstanceRemoteDataSource: BudgetInstanceRemoteDataSource(firestore),
       savingGoalRemoteDataSource: SavingGoalRemoteDataSource(firestore),

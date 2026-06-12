@@ -1,13 +1,15 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/data/outbox/outbox_payload_normalizer.dart';
+import 'package:kopim/core/money/money.dart';
 import 'package:kopim/features/accounts/data/sources/remote/account_remote_data_source.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/budgets/data/sources/remote/budget_instance_remote_data_source.dart';
@@ -17,11 +19,15 @@ import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/categories/data/sources/remote/category_remote_data_source.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/credits/data/sources/remote/credit_card_remote_data_source.dart';
+import 'package:kopim/features/credits/data/sources/remote/credit_payment_group_remote_data_source.dart';
+import 'package:kopim/features/credits/data/sources/remote/credit_payment_schedule_remote_data_source.dart';
 import 'package:kopim/features/credits/data/sources/remote/credit_remote_data_source.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/credits/data/sources/remote/debt_remote_data_source.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_group.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.dart';
 import 'package:kopim/features/savings/data/sources/remote/saving_goal_remote_data_source.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/profile/data/remote/profile_remote_data_source.dart';
@@ -49,6 +55,10 @@ class SyncService {
     required CreditRemoteDataSource creditRemoteDataSource,
     required CreditCardRemoteDataSource creditCardRemoteDataSource,
     required DebtRemoteDataSource debtRemoteDataSource,
+    required CreditPaymentGroupRemoteDataSource
+    creditPaymentGroupRemoteDataSource,
+    required CreditPaymentScheduleRemoteDataSource
+    creditPaymentScheduleRemoteDataSource,
     required ProfileRemoteDataSource profileRemoteDataSource,
     required BudgetRemoteDataSource budgetRemoteDataSource,
     required BudgetInstanceRemoteDataSource budgetInstanceRemoteDataSource,
@@ -67,6 +77,9 @@ class SyncService {
        _creditRemoteDataSource = creditRemoteDataSource,
        _creditCardRemoteDataSource = creditCardRemoteDataSource,
        _debtRemoteDataSource = debtRemoteDataSource,
+       _creditPaymentGroupRemoteDataSource = creditPaymentGroupRemoteDataSource,
+       _creditPaymentScheduleRemoteDataSource =
+           creditPaymentScheduleRemoteDataSource,
        _profileRemoteDataSource = profileRemoteDataSource,
        _budgetRemoteDataSource = budgetRemoteDataSource,
        _budgetInstanceRemoteDataSource = budgetInstanceRemoteDataSource,
@@ -77,6 +90,8 @@ class SyncService {
        _connectivity = connectivity ?? Connectivity(),
        _payloadNormalizer = payloadNormalizer;
 
+  static const Duration _staleSendingRecoveryWindow = Duration(minutes: 5);
+
   final OutboxDao _outboxDao;
   final AccountRemoteDataSource _accountRemoteDataSource;
   final CategoryRemoteDataSource _categoryRemoteDataSource;
@@ -86,6 +101,9 @@ class SyncService {
   final CreditRemoteDataSource _creditRemoteDataSource;
   final CreditCardRemoteDataSource _creditCardRemoteDataSource;
   final DebtRemoteDataSource _debtRemoteDataSource;
+  final CreditPaymentGroupRemoteDataSource _creditPaymentGroupRemoteDataSource;
+  final CreditPaymentScheduleRemoteDataSource
+  _creditPaymentScheduleRemoteDataSource;
   final ProfileRemoteDataSource _profileRemoteDataSource;
   final BudgetRemoteDataSource _budgetRemoteDataSource;
   final BudgetInstanceRemoteDataSource _budgetInstanceRemoteDataSource;
@@ -140,6 +158,9 @@ class SyncService {
     _isSyncing = true;
     _updateStatus();
     try {
+      await _outboxDao.resetStaleSendingToPending(
+        cutoff: DateTime.now().subtract(_staleSendingRecoveryWindow),
+      );
       await _outboxDao.deleteByEntityType('category_group');
       final List<db.OutboxEntryRow> pendingEntries = await _outboxDao
           .fetchPending(limit: 100);
@@ -230,6 +251,16 @@ class SyncService {
             payload,
           );
           await _dispatchDebt(userId, debt, operation);
+          break;
+        case 'credit_payment_group':
+          final CreditPaymentGroupEntity group = _groupFromPayload(payload);
+          await _dispatchCreditPaymentGroup(userId, group, operation);
+          break;
+        case 'credit_payment_schedule':
+          final CreditPaymentScheduleEntity schedule = _scheduleFromPayload(
+            payload,
+          );
+          await _dispatchCreditPaymentSchedule(userId, schedule, operation);
           break;
         case 'profile':
           final Profile profile = Profile.fromJson(payload);
@@ -379,6 +410,40 @@ class SyncService {
     return _debtRemoteDataSource.upsert(
       userId,
       debt.copyWith(isDeleted: false),
+    );
+  }
+
+  Future<void> _dispatchCreditPaymentGroup(
+    String userId,
+    CreditPaymentGroupEntity group,
+    OutboxOperation operation,
+  ) {
+    if (operation == OutboxOperation.delete) {
+      return _creditPaymentGroupRemoteDataSource.delete(
+        userId,
+        group.copyWith(isDeleted: true),
+      );
+    }
+    return _creditPaymentGroupRemoteDataSource.upsert(
+      userId,
+      group.copyWith(isDeleted: false),
+    );
+  }
+
+  Future<void> _dispatchCreditPaymentSchedule(
+    String userId,
+    CreditPaymentScheduleEntity schedule,
+    OutboxOperation operation,
+  ) {
+    if (operation == OutboxOperation.delete) {
+      return _creditPaymentScheduleRemoteDataSource.delete(
+        userId,
+        schedule.copyWith(isDeleted: true),
+      );
+    }
+    return _creditPaymentScheduleRemoteDataSource.upsert(
+      userId,
+      schedule.copyWith(isDeleted: false),
     );
   }
 
@@ -552,6 +617,86 @@ class SyncService {
     );
   }
 
+  CreditPaymentGroupEntity _groupFromPayload(Map<String, dynamic> payload) {
+    final int scale = _readInt(payload['totalOutflowScale']) ?? 2;
+    return CreditPaymentGroupEntity(
+      id: payload['id'] as String? ?? '',
+      creditId: payload['creditId'] as String? ?? '',
+      sourceAccountId: payload['sourceAccountId'] as String? ?? '',
+      scheduleItemId: payload['scheduleItemId'] as String?,
+      paidAt: _coerceDateTime(payload['paidAt']) ?? DateTime.now().toUtc(),
+      totalOutflow: Money.fromMinor(
+        _readBigInt(payload['totalOutflowMinor']) ?? BigInt.zero,
+        currency: 'XXX',
+        scale: scale,
+      ),
+      principalPaid: Money.fromMinor(
+        _readBigInt(payload['principalPaidMinor']) ?? BigInt.zero,
+        currency: 'XXX',
+        scale: scale,
+      ),
+      interestPaid: Money.fromMinor(
+        _readBigInt(payload['interestPaidMinor']) ?? BigInt.zero,
+        currency: 'XXX',
+        scale: scale,
+      ),
+      feesPaid: Money.fromMinor(
+        _readBigInt(payload['feesPaidMinor']) ?? BigInt.zero,
+        currency: 'XXX',
+        scale: scale,
+      ),
+      note: payload['note'] as String?,
+      idempotencyKey: payload['idempotencyKey'] as String?,
+      createdAt: _coerceDateTime(payload['createdAt']),
+      updatedAt: _coerceDateTime(payload['updatedAt']),
+      isDeleted: payload['isDeleted'] as bool? ?? false,
+    );
+  }
+
+  CreditPaymentScheduleEntity _scheduleFromPayload(
+    Map<String, dynamic> payload,
+  ) {
+    final int scale = _readInt(payload['amountScale']) ?? 2;
+    return CreditPaymentScheduleEntity(
+      id: payload['id'] as String? ?? '',
+      creditId: payload['creditId'] as String? ?? '',
+      periodKey: payload['periodKey'] as String? ?? '',
+      dueDate: _coerceDateTime(payload['dueDate']) ?? DateTime.now().toUtc(),
+      status: CreditPaymentStatus.values.byName(
+        payload['status'] as String? ?? CreditPaymentStatus.planned.name,
+      ),
+      principalAmount: Money.fromMinor(
+        _readBigInt(payload['principalAmountMinor']) ?? BigInt.zero,
+        currency: 'XXX',
+        scale: scale,
+      ),
+      interestAmount: Money.fromMinor(
+        _readBigInt(payload['interestAmountMinor']) ?? BigInt.zero,
+        currency: 'XXX',
+        scale: scale,
+      ),
+      totalAmount: Money.fromMinor(
+        _readBigInt(payload['totalAmountMinor']) ?? BigInt.zero,
+        currency: 'XXX',
+        scale: scale,
+      ),
+      principalPaid: Money.fromMinor(
+        _readBigInt(payload['principalPaidMinor']) ?? BigInt.zero,
+        currency: 'XXX',
+        scale: scale,
+      ),
+      interestPaid: Money.fromMinor(
+        _readBigInt(payload['interestPaidMinor']) ?? BigInt.zero,
+        currency: 'XXX',
+        scale: scale,
+      ),
+      paidAt: _coerceDateTime(payload['paidAt']),
+      createdAt: _coerceDateTime(payload['createdAt']),
+      updatedAt: _coerceDateTime(payload['updatedAt']),
+      isDeleted: payload['isDeleted'] as bool? ?? false,
+    );
+  }
+
   CreditEntity _applyCreditMoney(
     CreditEntity credit,
     Map<String, dynamic> payload,
@@ -585,6 +730,14 @@ class SyncService {
     if (value is int) return value;
     if (value is num) return value.toInt();
     return int.tryParse(value.toString());
+  }
+
+  DateTime? _coerceDateTime(Object? value) {
+    if (value == null) return null;
+    if (value is Timestamp) return value.toDate().toUtc();
+    if (value is DateTime) return value.toUtc();
+    if (value is String) return DateTime.tryParse(value)?.toUtc();
+    return null;
   }
 
   Future<void> _handleConnectivity(List<ConnectivityResult> results) async {

@@ -1358,9 +1358,14 @@ Stream<R> _switchLatest<T, R>(Stream<T> source, Stream<R> Function(T) mapper) {
   StreamSubscription<T>? outerSub;
   StreamSubscription<R>? innerSub;
   bool sourceDone = false;
+  int activeToken = 0;
+  int pendingCancels = 0;
 
   Future<void> maybeClose() async {
-    if (sourceDone && innerSub == null && !controller.isClosed) {
+    if (sourceDone &&
+        pendingCancels == 0 &&
+        innerSub == null &&
+        !controller.isClosed) {
       await controller.close();
     }
   }
@@ -1368,13 +1373,29 @@ Stream<R> _switchLatest<T, R>(Stream<T> source, Stream<R> Function(T) mapper) {
   controller = StreamController<R>(
     onListen: () {
       outerSub = source.listen(
-        (T value) async {
-          await innerSub?.cancel();
+        (T value) {
+          final int token = ++activeToken;
+          final StreamSubscription<R>? previousInner = innerSub;
+          if (previousInner != null) {
+            pendingCancels += 1;
+            unawaited(
+              previousInner.cancel().whenComplete(() async {
+                pendingCancels -= 1;
+                await maybeClose();
+              }),
+            );
+          }
           innerSub = mapper(value).listen(
-            controller.add,
+            (R event) {
+              if (token == activeToken) {
+                controller.add(event);
+              }
+            },
             onError: controller.addError,
             onDone: () async {
-              innerSub = null;
+              if (token == activeToken) {
+                innerSub = null;
+              }
               await maybeClose();
             },
           );

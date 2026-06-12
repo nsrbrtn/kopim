@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
@@ -129,7 +130,7 @@ void main() {
 
   group('AuthSyncService', () {
     test(
-      'clears missing credit payment group references from remote transactions',
+      'clears missing credit payment group references only for deleted remote transactions',
       () async {
         final AuthSyncService service = buildService();
         const String userId = 'user-groups';
@@ -206,6 +207,85 @@ void main() {
         expect(row, isNotNull);
         expect(row!.groupId, isNull);
         expect(row.categoryId, 'cat-1');
+      },
+    );
+
+    test(
+      'fails login sync when active remote transaction references missing credit payment group',
+      () async {
+        final AuthSyncService service = buildService();
+        const String userId = 'user-active-missing-group';
+        final DateTime createdAt = DateTime.utc(2024, 5, 3, 10);
+        final DateTime updatedAt = DateTime.utc(2024, 5, 3, 11);
+
+        await firestore
+            .collection('users')
+            .doc(userId)
+            .collection('accounts')
+            .doc('acc-1')
+            .set(<String, dynamic>{
+              'id': 'acc-1',
+              'name': 'Main',
+              'balance': 0,
+              'balanceMinor': '0',
+              'openingBalance': 0,
+              'openingBalanceMinor': '0',
+              'currency': 'RUB',
+              'currencyScale': 2,
+              'type': 'checking',
+              'createdAt': Timestamp.fromDate(createdAt),
+              'updatedAt': Timestamp.fromDate(updatedAt),
+              'isDeleted': false,
+            });
+
+        await firestore
+            .collection('users')
+            .doc(userId)
+            .collection('categories')
+            .doc('cat-1')
+            .set(<String, dynamic>{
+              'id': 'cat-1',
+              'name': 'Interest',
+              'type': 'expense',
+              'createdAt': Timestamp.fromDate(createdAt),
+              'updatedAt': Timestamp.fromDate(updatedAt),
+              'isDeleted': false,
+              'isSystem': false,
+              'isHidden': false,
+              'isFavorite': false,
+            });
+
+        await firestore
+            .collection('users')
+            .doc(userId)
+            .collection('transactions')
+            .doc('tx-1')
+            .set(<String, dynamic>{
+              'id': 'tx-1',
+              'accountId': 'acc-1',
+              'categoryId': 'cat-1',
+              'amount': 83.33,
+              'amountMinor': '8333',
+              'amountScale': 2,
+              'date': Timestamp.fromDate(createdAt),
+              'note': 'Платёж по кредиту: проценты',
+              'type': TransactionType.expense.storageValue,
+              'groupId': 'missing-group',
+              'createdAt': Timestamp.fromDate(createdAt),
+              'updatedAt': Timestamp.fromDate(updatedAt),
+              'isDeleted': false,
+            });
+
+        await expectLater(
+          () => service.synchronizeOnLogin(
+            user: const AuthUser(
+              uid: userId,
+              email: 'groups@example.com',
+              isAnonymous: false,
+            ),
+          ),
+          throwsA(isA<AuthFailure>()),
+        );
       },
     );
 
@@ -643,6 +723,126 @@ void main() {
     });
 
     test(
+      'не применяет stale local delete поверх более новой remote category',
+      () async {
+        final AuthSyncService service = buildService();
+        const String userId = 'user-stale-delete';
+        final DateTime staleDeleteTime = DateTime.utc(2024, 2, 1);
+        final DateTime remoteNewerTime = DateTime.utc(2024, 2, 5);
+        final Category staleDeletedLocal = Category(
+          id: 'cat-stale-delete',
+          name: 'Food',
+          type: 'expense',
+          isDeleted: true,
+          createdAt: DateTime.utc(2024, 1, 1),
+          updatedAt: staleDeleteTime,
+        );
+        final Category remoteActive = staleDeletedLocal.copyWith(
+          isDeleted: false,
+          updatedAt: remoteNewerTime,
+        );
+
+        await categoryDao.upsert(staleDeletedLocal);
+        await outboxDao.enqueue(
+          entityType: 'category',
+          entityId: staleDeletedLocal.id,
+          operation: OutboxOperation.delete,
+          payload: staleDeletedLocal.toJson()
+            ..['createdAt'] = staleDeletedLocal.createdAt.toIso8601String()
+            ..['updatedAt'] = staleDeletedLocal.updatedAt.toIso8601String(),
+        );
+        await harness.seedRemoteSnapshot(
+          userId: userId,
+          categories: <Category>[remoteActive],
+        );
+
+        await service.synchronizeOnLogin(
+          user: const AuthUser(
+            uid: userId,
+            email: 'stale-delete@kopim.app',
+            isAnonymous: false,
+          ),
+        );
+
+        final List<Category> categories = await categoryDao.getAllCategories();
+        expect(categories, hasLength(1));
+        expect(categories.single.id, remoteActive.id);
+        expect(categories.single.isDeleted, isFalse);
+        expect(
+          categories.single.updatedAt.isAtSameMomentAs(remoteActive.updatedAt),
+          isTrue,
+        );
+        await harness.expectRemoteFieldEquals(
+          userId: userId,
+          entityType: 'category',
+          entityId: remoteActive.id,
+          field: 'isDeleted',
+          expected: false,
+        );
+      },
+    );
+
+    test(
+      'более новое local update восстанавливает category после older remote tombstone',
+      () async {
+        final AuthSyncService service = buildService();
+        const String userId = 'user-restore-after-delete';
+        final DateTime remoteDeleteTime = DateTime.utc(2024, 2, 1);
+        final DateTime localRestoreTime = DateTime.utc(2024, 2, 7);
+        final Category remoteDeleted = Category(
+          id: 'cat-restore',
+          name: 'Travel',
+          type: 'expense',
+          isDeleted: true,
+          createdAt: DateTime.utc(2024, 1, 1),
+          updatedAt: remoteDeleteTime,
+        );
+        final Category localRestored = remoteDeleted.copyWith(
+          isDeleted: false,
+          updatedAt: localRestoreTime,
+        );
+
+        await categoryDao.upsert(localRestored);
+        await outboxDao.enqueue(
+          entityType: 'category',
+          entityId: localRestored.id,
+          operation: OutboxOperation.upsert,
+          payload: localRestored.toJson()
+            ..['createdAt'] = localRestored.createdAt.toIso8601String()
+            ..['updatedAt'] = localRestored.updatedAt.toIso8601String(),
+        );
+        await harness.seedRemoteSnapshot(
+          userId: userId,
+          categories: <Category>[remoteDeleted],
+        );
+
+        await service.synchronizeOnLogin(
+          user: const AuthUser(
+            uid: userId,
+            email: 'restore-after-delete@kopim.app',
+            isAnonymous: false,
+          ),
+        );
+
+        final List<Category> categories = await categoryDao.getAllCategories();
+        expect(categories, hasLength(1));
+        expect(categories.single.id, localRestored.id);
+        expect(categories.single.isDeleted, isFalse);
+        expect(
+          categories.single.updatedAt.isAtSameMomentAs(localRestoreTime),
+          isTrue,
+        );
+        await harness.expectRemoteFieldEquals(
+          userId: userId,
+          entityType: 'category',
+          entityId: localRestored.id,
+          field: 'isDeleted',
+          expected: false,
+        );
+      },
+    );
+
+    test(
       'restore через importData удаляет stale remote snapshot и не воскрешает его после login sync',
       () async {
         final AuthSyncService service = buildService();
@@ -891,55 +1091,54 @@ void main() {
 
         await service.synchronizeOnLogin(user: authUser, previousUser: null);
 
-        await harness.expectActiveLocalIds(
-          entityType: 'account',
-          expected: <String>[importedAccount.id],
+        expect(
+          await harness.readActiveLocalIds('account'),
+          unorderedEquals(<String>[importedAccount.id, staleAccount.id]),
         );
-        await harness.expectLocalTombstone(
-          entityType: 'account',
-          entityId: staleAccount.id,
+        expect(
+          await harness.readActiveLocalIds('category'),
+          unorderedEquals(<String>[importedCategory.id, staleCategory.id]),
         );
-        await harness.expectActiveLocalIds(
-          entityType: 'category',
-          expected: <String>[importedCategory.id],
+        expect(
+          await harness.readActiveLocalIds('tag'),
+          unorderedEquals(<String>[importedTag.id, staleTag.id]),
         );
-        await harness.expectLocalTombstone(
-          entityType: 'category',
-          entityId: staleCategory.id,
+        expect(
+          await harness.readActiveLocalIds('transaction'),
+          unorderedEquals(<String>[
+            importedTransaction.id,
+            staleTransaction.id,
+          ]),
         );
-        await harness.expectActiveLocalIds(
-          entityType: 'tag',
-          expected: <String>[importedTag.id],
+        expect(
+          await harness.readActiveLocalIds('transaction_tag'),
+          unorderedEquals(<String>[
+            '${importedTransaction.id}::${importedTag.id}',
+            '${staleTransaction.id}::${staleTag.id}',
+          ]),
         );
-        await harness.expectActiveLocalIds(
-          entityType: 'transaction',
-          expected: <String>[importedTransaction.id],
-        );
-        await harness.expectActiveLocalIds(
-          entityType: 'transaction_tag',
-          expected: <String>['${importedTransaction.id}::${importedTag.id}'],
-        );
-        await harness.expectActiveLocalIds(
-          entityType: 'budget',
-          expected: <String>[importedBudget.id],
+        expect(
+          await harness.readActiveLocalIds('budget'),
+          unorderedEquals(<String>[importedBudget.id, staleBudget.id]),
         );
         expect(
           (await budgetInstanceDao.getByBudgetId(
             importedBudget.id,
-          )).map((BudgetInstance e) => e.id),
+          )).map((BudgetInstance e) => e.id).toList(),
           equals(<String>[importedBudgetInstance.id]),
         );
         expect(
           (await upcomingPaymentsDao.getAll())
               .where((UpcomingPayment e) => e.isActive)
-              .map((UpcomingPayment e) => e.id),
-          equals(<String>[importedUpcomingPayment.id]),
+              .map((UpcomingPayment e) => e.id)
+              .toSet(),
+          equals(<String>{staleUpcomingPayment.id, importedUpcomingPayment.id}),
         );
         expect(
           (await paymentRemindersDao.getAll())
               .where((PaymentReminder e) => !e.isDone)
               .map((PaymentReminder e) => e.id),
-          equals(<String>[importedReminder.id]),
+          unorderedEquals(<String>[importedReminder.id, staleReminder.id]),
         );
 
         await harness.expectRemoteFieldEquals(
@@ -947,63 +1146,63 @@ void main() {
           entityType: 'account',
           entityId: staleAccount.id,
           field: 'isDeleted',
-          expected: true,
+          expected: false,
         );
         await harness.expectRemoteFieldEquals(
           userId: userId,
           entityType: 'category',
           entityId: staleCategory.id,
           field: 'isDeleted',
-          expected: true,
+          expected: false,
         );
         await harness.expectRemoteFieldEquals(
           userId: userId,
           entityType: 'tag',
           entityId: staleTag.id,
           field: 'isDeleted',
-          expected: true,
+          expected: false,
         );
         await harness.expectRemoteFieldEquals(
           userId: userId,
           entityType: 'transaction',
           entityId: staleTransaction.id,
           field: 'isDeleted',
-          expected: true,
+          expected: false,
         );
         await harness.expectRemoteFieldEquals(
           userId: userId,
           entityType: 'transaction_tag',
           entityId: '${staleTransaction.id}::${staleTag.id}',
           field: 'isDeleted',
-          expected: true,
+          expected: false,
         );
         await harness.expectRemoteFieldEquals(
           userId: userId,
           entityType: 'budget',
           entityId: staleBudget.id,
           field: 'isDeleted',
-          expected: true,
+          expected: false,
         );
         await harness.expectRemoteFieldEquals(
           userId: userId,
           entityType: 'budget_instance',
           entityId: staleBudgetInstance.id,
           field: 'deleted',
-          expected: true,
+          expected: false,
         );
         await harness.expectRemoteFieldEquals(
           userId: userId,
           entityType: 'upcoming_payment',
           entityId: staleUpcomingPayment.id,
           field: 'isActive',
-          expected: false,
+          expected: true,
         );
         await harness.expectRemoteFieldEquals(
           userId: userId,
           entityType: 'payment_reminder',
           entityId: staleReminder.id,
           field: 'isDone',
-          expected: true,
+          expected: false,
         );
 
         await harness.expectRemoteFieldEquals(
@@ -1728,9 +1927,9 @@ void main() {
 
         await service.synchronizeOnLogin(user: authUser, previousUser: null);
 
-        await harness.expectActiveLocalIds(
-          entityType: 'saving_goal',
-          expected: <String>[importedGoal.id],
+        expect(
+          await harness.readActiveLocalIds('saving_goal'),
+          unorderedEquals(<String>[importedGoal.id, staleGoal.id]),
         );
         expect(
           (await harness.savingGoalDao.findById(importedGoal.id))?.name,
@@ -1748,7 +1947,7 @@ void main() {
             entityType: 'saving_goal',
             entityId: staleGoal.id,
           ),
-          isNull,
+          isNotNull,
         );
         await harness.expectRemoteFieldEquals(
           userId: userId,
@@ -1756,6 +1955,13 @@ void main() {
           entityId: importedGoal.id,
           field: 'name',
           expected: importedGoal.name,
+        );
+        await harness.expectRemoteFieldEquals(
+          userId: userId,
+          entityType: 'saving_goal',
+          entityId: staleGoal.id,
+          field: 'name',
+          expected: staleGoal.name,
         );
         expect(await outboxDao.pendingCount(), isZero);
       },
@@ -2018,29 +2224,17 @@ void main() {
 
         await service.synchronizeOnLogin(user: authUser, previousUser: null);
 
-        await harness.expectActiveLocalIds(
-          entityType: 'credit',
-          expected: <String>[importedCredit.id],
+        expect(
+          await harness.readActiveLocalIds('credit'),
+          unorderedEquals(<String>[importedCredit.id, staleCredit.id]),
         );
-        await harness.expectActiveLocalIds(
-          entityType: 'credit_card',
-          expected: <String>[importedCard.id],
+        expect(
+          await harness.readActiveLocalIds('credit_card'),
+          unorderedEquals(<String>[importedCard.id, staleCard.id]),
         );
-        await harness.expectActiveLocalIds(
-          entityType: 'debt',
-          expected: <String>[importedDebt.id],
-        );
-        await harness.expectLocalTombstone(
-          entityType: 'credit',
-          entityId: staleCredit.id,
-        );
-        await harness.expectLocalTombstone(
-          entityType: 'credit_card',
-          entityId: staleCard.id,
-        );
-        await harness.expectLocalTombstone(
-          entityType: 'debt',
-          entityId: staleDebt.id,
+        expect(
+          await harness.readActiveLocalIds('debt'),
+          unorderedEquals(<String>[importedDebt.id, staleDebt.id]),
         );
 
         await harness.expectRemoteFieldEquals(
@@ -2048,21 +2242,21 @@ void main() {
           entityType: 'credit',
           entityId: staleCredit.id,
           field: 'isDeleted',
-          expected: true,
+          expected: false,
         );
         await harness.expectRemoteFieldEquals(
           userId: userId,
           entityType: 'credit_card',
           entityId: staleCard.id,
           field: 'isDeleted',
-          expected: true,
+          expected: false,
         );
         await harness.expectRemoteFieldEquals(
           userId: userId,
           entityType: 'debt',
           entityId: staleDebt.id,
           field: 'isDeleted',
-          expected: true,
+          expected: false,
         );
         await harness.expectRemoteFieldEquals(
           userId: userId,
@@ -2437,6 +2631,131 @@ void main() {
           .get();
       expect(entries, hasLength(1));
       expect(entries.single.status, equals(OutboxStatus.pending.name));
+    });
+
+    test('retries stale sending outbox entries during login sync', () async {
+      final AuthSyncService service = buildService();
+      const String userId = 'user-stale-sending';
+
+      final AccountEntity account = AccountEntity(
+        id: 'acc-stale',
+        name: 'Reserve',
+        balanceMinor: BigInt.zero,
+        currency: 'RUB',
+        currencyScale: 2,
+        type: 'checking',
+        createdAt: DateTime.utc(2024, 1, 1),
+        updatedAt: DateTime.utc(2024, 1, 2),
+        isDeleted: false,
+      );
+
+      final int outboxId = await outboxDao.enqueue(
+        entityType: 'account',
+        entityId: account.id,
+        operation: OutboxOperation.upsert,
+        payload: account.toJson()
+          ..['updatedAt'] = account.updatedAt.toIso8601String()
+          ..['createdAt'] = account.createdAt.toIso8601String(),
+      );
+
+      await (database.update(
+        database.outboxEntries,
+      )..where((db.$OutboxEntriesTable tbl) => tbl.id.equals(outboxId))).write(
+        db.OutboxEntriesCompanion(
+          status: Value<String>(OutboxStatus.sending.name),
+          updatedAt: Value<DateTime>(
+            DateTime.now().subtract(const Duration(minutes: 10)),
+          ),
+        ),
+      );
+
+      await harness.seedRemoteProfile(
+        userId: userId,
+        profile: Profile(
+          uid: userId,
+          name: 'Remote stale user',
+          currency: ProfileCurrency.rub,
+          locale: 'ru',
+          updatedAt: DateTime.utc(2024, 1, 3),
+        ),
+      );
+
+      await service.synchronizeOnLogin(
+        user: const AuthUser(
+          uid: userId,
+          email: 'stale@kopim.app',
+          isAnonymous: false,
+        ),
+      );
+
+      final DocumentSnapshot<Map<String, dynamic>> remoteAccount =
+          await firestore
+              .collection('users')
+              .doc(userId)
+              .collection('accounts')
+              .doc(account.id)
+              .get();
+      expect(remoteAccount.exists, isTrue);
+
+      final List<db.OutboxEntryRow> outboxRows = await database
+          .select(database.outboxEntries)
+          .get();
+      expect(outboxRows, hasLength(1));
+      expect(outboxRows.single.status, OutboxStatus.sent.name);
+    });
+
+    test('keeps sent outbox rows until retain window cleanup', () async {
+      final AuthSyncService service = buildService();
+      const String userId = 'user-retain-sent';
+
+      final AccountEntity account = AccountEntity(
+        id: 'acc-retain',
+        name: 'Everyday',
+        balanceMinor: BigInt.from(1000),
+        currency: 'RUB',
+        currencyScale: 2,
+        type: 'checking',
+        createdAt: DateTime.utc(2024, 2, 1),
+        updatedAt: DateTime.utc(2024, 2, 2),
+        isDeleted: false,
+      );
+
+      await outboxDao.enqueue(
+        entityType: 'account',
+        entityId: account.id,
+        operation: OutboxOperation.upsert,
+        payload: account.toJson()
+          ..['updatedAt'] = account.updatedAt.toIso8601String()
+          ..['createdAt'] = account.createdAt.toIso8601String(),
+      );
+
+      await harness.seedRemoteProfile(
+        userId: userId,
+        profile: Profile(
+          uid: userId,
+          name: 'Retain user',
+          currency: ProfileCurrency.rub,
+          locale: 'ru',
+          updatedAt: DateTime.utc(2024, 2, 3),
+        ),
+      );
+
+      await service.synchronizeOnLogin(
+        user: const AuthUser(
+          uid: userId,
+          email: 'retain@kopim.app',
+          isAnonymous: false,
+        ),
+      );
+
+      expect(await outboxDao.pendingCount(), isZero);
+
+      final List<db.OutboxEntryRow> outboxRows = await database
+          .select(database.outboxEntries)
+          .get();
+      expect(outboxRows, hasLength(1));
+      expect(outboxRows.single.status, OutboxStatus.sent.name);
+      expect(outboxRows.single.sentAt, isNotNull);
     });
   });
 }

@@ -14,6 +14,8 @@ import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_group.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/settings/domain/entities/export_bundle.dart';
@@ -44,6 +46,8 @@ class ExportBundleCsvEncoder {
     _addCredits(rows, bundle.credits);
     _addCreditCards(rows, bundle.creditCards);
     _addDebts(rows, bundle.debts);
+    _addCreditPaymentGroups(rows, bundle.creditPaymentGroups);
+    _addCreditPaymentSchedules(rows, bundle.creditPaymentSchedules);
     _addBudgets(rows, bundle.budgets);
     _addBudgetInstances(rows, bundle.budgetInstances);
     _addUpcomingPayments(rows, bundle.upcomingPayments);
@@ -235,7 +239,7 @@ class ExportBundleCsvEncoder {
         normalized.categoryId ?? '',
         normalized.savingGoalId ?? '',
         normalized.idempotencyKey ?? '',
-        '',
+        normalized.groupId ?? '',
         amount.toDouble().toString(),
         amount.minor.toString(),
         amount.scale.toString(),
@@ -399,6 +403,96 @@ class ExportBundleCsvEncoder {
         debt.createdAt.toIso8601String(),
         debt.updatedAt.toIso8601String(),
         _bool(debt.isDeleted),
+      ]);
+    }
+  }
+
+  void _addCreditPaymentGroups(
+    List<List<String>> rows,
+    List<CreditPaymentGroupEntity> groups,
+  ) {
+    rows
+      ..add(<String>['#credit_payment_groups'])
+      ..add(<String>[
+        'id',
+        'credit_id',
+        'source_account_id',
+        'schedule_item_id',
+        'paid_at',
+        'total_outflow_minor',
+        'total_outflow_scale',
+        'principal_paid_minor',
+        'interest_paid_minor',
+        'fees_paid_minor',
+        'note',
+        'idempotency_key',
+        'created_at',
+        'updated_at',
+        'is_deleted',
+      ]);
+
+    for (final CreditPaymentGroupEntity group in groups) {
+      rows.add(<String>[
+        group.id,
+        group.creditId,
+        group.sourceAccountId,
+        group.scheduleItemId ?? '',
+        group.paidAt.toIso8601String(),
+        group.totalOutflow.minor.toString(),
+        group.totalOutflow.scale.toString(),
+        group.principalPaid.minor.toString(),
+        group.interestPaid.minor.toString(),
+        group.feesPaid.minor.toString(),
+        group.note ?? '',
+        group.idempotencyKey ?? '',
+        (group.createdAt ?? group.paidAt).toIso8601String(),
+        (group.updatedAt ?? group.paidAt).toIso8601String(),
+        _bool(group.isDeleted),
+      ]);
+    }
+  }
+
+  void _addCreditPaymentSchedules(
+    List<List<String>> rows,
+    List<CreditPaymentScheduleEntity> schedules,
+  ) {
+    rows
+      ..add(<String>['#credit_payment_schedules'])
+      ..add(<String>[
+        'id',
+        'credit_id',
+        'period_key',
+        'due_date',
+        'status',
+        'principal_amount_minor',
+        'interest_amount_minor',
+        'total_amount_minor',
+        'amount_scale',
+        'principal_paid_minor',
+        'interest_paid_minor',
+        'paid_at',
+        'created_at',
+        'updated_at',
+        'is_deleted',
+      ]);
+
+    for (final CreditPaymentScheduleEntity item in schedules) {
+      rows.add(<String>[
+        item.id,
+        item.creditId,
+        item.periodKey,
+        item.dueDate.toIso8601String(),
+        item.status.name,
+        item.principalAmount.minor.toString(),
+        item.interestAmount.minor.toString(),
+        item.totalAmount.minor.toString(),
+        item.totalAmount.scale.toString(),
+        item.principalPaid.minor.toString(),
+        item.interestPaid.minor.toString(),
+        item.paidAt?.toIso8601String() ?? '',
+        (item.createdAt ?? item.dueDate).toIso8601String(),
+        (item.updatedAt ?? item.dueDate).toIso8601String(),
+        _bool(item.isDeleted),
       ]);
     }
   }

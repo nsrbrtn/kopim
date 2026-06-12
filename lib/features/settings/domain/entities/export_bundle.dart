@@ -6,6 +6,8 @@ import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_group.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/domain/entities/user_progress.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
@@ -58,6 +60,16 @@ abstract class ExportBundle with _$ExportBundle {
 
     /// Набор локальных долгов.
     @Default(<DebtEntity>[]) List<DebtEntity> debts,
+
+    /// Набор групп кредитных платежей.
+    @JsonKey(includeFromJson: false, includeToJson: false)
+    @Default(<CreditPaymentGroupEntity>[])
+    List<CreditPaymentGroupEntity> creditPaymentGroups,
+
+    /// Набор элементов графика кредитных платежей.
+    @JsonKey(includeFromJson: false, includeToJson: false)
+    @Default(<CreditPaymentScheduleEntity>[])
+    List<CreditPaymentScheduleEntity> creditPaymentSchedules,
 
     /// Набор локальных бюджетов.
     @Default(<Budget>[]) List<Budget> budgets,

@@ -117,6 +117,9 @@ void main() {
           .doc(transaction.id)
           .set(
             transaction.toJson()
+              ..['amount'] = 100.0
+              ..['amountMinor'] = '10000'
+              ..['amountScale'] = 2
               ..['updatedAt'] = Timestamp.fromDate(transaction.updatedAt)
               ..['createdAt'] = Timestamp.fromDate(transaction.createdAt),
           );
@@ -135,8 +138,23 @@ void main() {
       final db.TransactionRow? savedTx = await transactionDao.findById(
         transaction.id,
       );
+      final db.SavingGoalRow? savedGoal =
+          await (harness.database.select(harness.database.savingGoals)..where(
+                (db.$SavingGoalsTable tbl) => tbl.id.equals(savingGoalId),
+              ))
+              .getSingleOrNull();
+      final List<db.GoalContributionRow> contributions =
+          await (harness.database.select(harness.database.goalContributions)
+                ..where(
+                  (db.$GoalContributionsTable tbl) =>
+                      tbl.transactionId.equals(transaction.id),
+                ))
+              .get();
       expect(savedTx, isNotNull);
       expect(savedTx?.savingGoalId, savingGoalId);
+      expect(savedGoal?.currentAmount, 10000);
+      expect(contributions, hasLength(1));
+      expect(contributions.single.amount, 10000);
     },
   );
 

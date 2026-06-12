@@ -114,11 +114,9 @@ class _KopimExpandableSectionPlayfulState
         return Transform.scale(
           alignment: Alignment.center,
           scale: scale,
-          child: Container(
-            decoration: BoxDecoration(
-              color: colors.surfaceContainer,
-              borderRadius: BorderRadius.circular(28),
-            ),
+          child: Material(
+            color: colors.surfaceContainer,
+            borderRadius: BorderRadius.circular(28),
             clipBehavior: Clip.antiAlias,
             child: Column(
               mainAxisSize: MainAxisSize.min,

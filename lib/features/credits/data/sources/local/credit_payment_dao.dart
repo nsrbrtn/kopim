@@ -19,11 +19,23 @@ class CreditPaymentDao {
     });
   }
 
+  Future<void> upsertSchedule(List<CreditPaymentScheduleEntity> items) async {
+    if (items.isEmpty) return;
+    await _db.batch((Batch batch) {
+      batch.insertAll(
+        _db.creditPaymentSchedules,
+        items.map(_mapScheduleToCompanion).toList(),
+        mode: InsertMode.insertOrReplace,
+      );
+    });
+  }
+
   Future<List<CreditPaymentScheduleEntity>> getSchedule(String creditId) async {
     final String currency = await _resolveCreditCurrency(creditId);
     final List<db.CreditPaymentScheduleRow> rows =
         await (_db.select(_db.creditPaymentSchedules)..where(
-              (db.CreditPaymentSchedules tbl) => tbl.creditId.equals(creditId),
+              (db.CreditPaymentSchedules tbl) =>
+                  tbl.creditId.equals(creditId) & tbl.isDeleted.equals(false),
             ))
             .get();
 
@@ -42,7 +54,8 @@ class CreditPaymentDao {
 
   Stream<List<CreditPaymentScheduleEntity>> watchSchedule(String creditId) {
     return (_db.select(_db.creditPaymentSchedules)..where(
-          (db.CreditPaymentSchedules tbl) => tbl.creditId.equals(creditId),
+          (db.CreditPaymentSchedules tbl) =>
+              tbl.creditId.equals(creditId) & tbl.isDeleted.equals(false),
         ))
         .watch()
         .asyncMap((List<db.CreditPaymentScheduleRow> rows) async {
@@ -71,6 +84,19 @@ class CreditPaymentDao {
     await _db.into(_db.creditPaymentGroups).insert(_mapGroupToCompanion(group));
   }
 
+  Future<void> upsertPaymentGroups(
+    List<CreditPaymentGroupEntity> groups,
+  ) async {
+    if (groups.isEmpty) return;
+    await _db.batch((Batch batch) {
+      batch.insertAll(
+        _db.creditPaymentGroups,
+        groups.map(_mapGroupToCompanion).toList(),
+        mode: InsertMode.insertOrReplace,
+      );
+    });
+  }
+
   Future<bool> insertPaymentGroupIfAbsent(
     CreditPaymentGroupEntity group,
   ) async {
@@ -92,7 +118,8 @@ class CreditPaymentDao {
     final String currency = await _resolveCreditCurrency(creditId);
     final List<db.CreditPaymentGroupRow> rows =
         await (_db.select(_db.creditPaymentGroups)..where(
-              (db.CreditPaymentGroups tbl) => tbl.creditId.equals(creditId),
+              (db.CreditPaymentGroups tbl) =>
+                  tbl.creditId.equals(creditId) & tbl.isDeleted.equals(false),
             ))
             .get();
     rows.sort(
@@ -137,20 +164,79 @@ class CreditPaymentDao {
     return _mapRowToGroupEntity(row, currency: currency);
   }
 
-  Future<void> deletePaymentArtifactsByCreditId(String creditId) async {
-    await (_db.delete(
-          _db.creditPaymentGroups,
-        )..where((db.CreditPaymentGroups tbl) => tbl.creditId.equals(creditId)))
-        .go();
-    await (_db.delete(_db.creditPaymentSchedules)..where(
-          (db.CreditPaymentSchedules tbl) => tbl.creditId.equals(creditId),
+  Future<void> markPaymentArtifactsDeletedByCreditId(
+    String creditId,
+    DateTime deletedAt,
+  ) async {
+    await (_db.update(_db.creditPaymentGroups)..where(
+          (db.CreditPaymentGroups tbl) =>
+              tbl.creditId.equals(creditId) & tbl.isDeleted.equals(false),
         ))
-        .go();
+        .write(
+          db.CreditPaymentGroupsCompanion(
+            isDeleted: const Value<bool>(true),
+            updatedAt: Value<DateTime>(deletedAt),
+          ),
+        );
+    await (_db.update(_db.creditPaymentSchedules)..where(
+          (db.CreditPaymentSchedules tbl) =>
+              tbl.creditId.equals(creditId) & tbl.isDeleted.equals(false),
+        ))
+        .write(
+          db.CreditPaymentSchedulesCompanion(
+            isDeleted: const Value<bool>(true),
+            updatedAt: Value<DateTime>(deletedAt),
+          ),
+        );
+  }
+
+  Future<List<CreditPaymentScheduleEntity>> getAllScheduleItems() async {
+    final List<db.CreditPaymentScheduleRow> rows = await _db
+        .select(_db.creditPaymentSchedules)
+        .get();
+    if (rows.isEmpty) {
+      return const <CreditPaymentScheduleEntity>[];
+    }
+    final Map<String, String> currenciesByCreditId = await _resolveCurrencies(
+      rows.map((db.CreditPaymentScheduleRow row) => row.creditId),
+    );
+    return rows
+        .map(
+          (db.CreditPaymentScheduleRow row) => _mapRowToScheduleEntity(
+            row,
+            currency: currenciesByCreditId[row.creditId] ?? 'XXX',
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  Future<List<CreditPaymentGroupEntity>> getAllPaymentGroups() async {
+    final List<db.CreditPaymentGroupRow> rows = await _db
+        .select(_db.creditPaymentGroups)
+        .get();
+    if (rows.isEmpty) {
+      return const <CreditPaymentGroupEntity>[];
+    }
+    final Map<String, String> currenciesByCreditId = await _resolveCurrencies(
+      rows.map((db.CreditPaymentGroupRow row) => row.creditId),
+    );
+    return rows
+        .map(
+          (db.CreditPaymentGroupRow row) => _mapRowToGroupEntity(
+            row,
+            currency: currenciesByCreditId[row.creditId] ?? 'XXX',
+          ),
+        )
+        .toList(growable: false);
   }
 
   db.CreditPaymentSchedulesCompanion _mapScheduleToCompanion(
     CreditPaymentScheduleEntity item,
   ) {
+    final DateTime createdAt =
+        item.createdAt?.toUtc() ?? DateTime.now().toUtc();
+    final DateTime updatedAt =
+        item.updatedAt?.toUtc() ?? DateTime.now().toUtc();
     return db.CreditPaymentSchedulesCompanion(
       id: Value<String>(item.id),
       creditId: Value<String>(item.creditId),
@@ -166,7 +252,9 @@ class CreditPaymentDao {
       principalPaidMinor: Value<String>(item.principalPaid.minor.toString()),
       interestPaidMinor: Value<String>(item.interestPaid.minor.toString()),
       paidAt: Value<DateTime?>(item.paidAt),
-      updatedAt: Value<DateTime>(DateTime.now()),
+      createdAt: Value<DateTime>(createdAt),
+      updatedAt: Value<DateTime>(updatedAt),
+      isDeleted: Value<bool>(item.isDeleted),
     );
   }
 
@@ -208,12 +296,19 @@ class CreditPaymentDao {
         scale: scale,
       ),
       paidAt: row.paidAt,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      isDeleted: row.isDeleted,
     );
   }
 
   db.CreditPaymentGroupsCompanion _mapGroupToCompanion(
     CreditPaymentGroupEntity group,
   ) {
+    final DateTime createdAt =
+        group.createdAt?.toUtc() ?? DateTime.now().toUtc();
+    final DateTime updatedAt =
+        group.updatedAt?.toUtc() ?? DateTime.now().toUtc();
     return db.CreditPaymentGroupsCompanion(
       id: Value<String>(group.id),
       creditId: Value<String>(group.creditId),
@@ -227,7 +322,9 @@ class CreditPaymentDao {
       feesPaidMinor: Value<String>(group.feesPaid.minor.toString()),
       note: Value<String?>(group.note),
       idempotencyKey: Value<String?>(group.idempotencyKey),
-      updatedAt: Value<DateTime>(DateTime.now()),
+      createdAt: Value<DateTime>(createdAt),
+      updatedAt: Value<DateTime>(updatedAt),
+      isDeleted: Value<bool>(group.isDeleted),
     );
   }
 
@@ -265,6 +362,9 @@ class CreditPaymentDao {
       ),
       note: row.note,
       idempotencyKey: row.idempotencyKey,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      isDeleted: row.isDeleted,
     );
   }
 
@@ -282,5 +382,19 @@ LIMIT 1
         )
         .getSingleOrNull();
     return row?.read<String?>('currency') ?? 'XXX';
+  }
+
+  Future<Map<String, String>> _resolveCurrencies(
+    Iterable<String> creditIds,
+  ) async {
+    final Set<String> ids = creditIds.toSet();
+    if (ids.isEmpty) {
+      return const <String, String>{};
+    }
+    final Map<String, String> result = <String, String>{};
+    for (final String creditId in ids) {
+      result[creditId] = await _resolveCreditCurrency(creditId);
+    }
+    return result;
   }
 }

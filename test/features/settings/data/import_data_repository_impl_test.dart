@@ -5,6 +5,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
+import 'package:kopim/core/money/money.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/features/accounts/data/services/account_type_backfill_service.dart';
@@ -17,9 +18,11 @@ import 'package:kopim/features/categories/data/sources/local/category_dao.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/credits/data/sources/local/credit_card_dao.dart';
 import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
+import 'package:kopim/features/credits/data/sources/local/credit_payment_dao.dart';
 import 'package:kopim/features/credits/data/sources/local/debt_dao.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_group.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
 import 'package:kopim/features/profile/data/local/profile_dao.dart';
 import 'package:kopim/features/profile/domain/policies/level_policy.dart';
@@ -54,6 +57,7 @@ void main() {
   late CreditDao creditDao;
   late CreditCardDao creditCardDao;
   late DebtDao debtDao;
+  late CreditPaymentDao creditPaymentDao;
   late BudgetDao budgetDao;
   late BudgetInstanceDao budgetInstanceDao;
   late SavingGoalDao savingGoalDao;
@@ -84,6 +88,7 @@ void main() {
     creditDao = CreditDao(database);
     creditCardDao = CreditCardDao(database);
     debtDao = DebtDao(database);
+    creditPaymentDao = CreditPaymentDao(database);
     budgetDao = BudgetDao(database);
     budgetInstanceDao = BudgetInstanceDao(database);
     savingGoalDao = SavingGoalDao(database);
@@ -115,6 +120,7 @@ void main() {
       creditDao: creditDao,
       creditCardDao: creditCardDao,
       debtDao: debtDao,
+      creditPaymentDao: creditPaymentDao,
       budgetDao: budgetDao,
       budgetInstanceDao: budgetInstanceDao,
       savingGoalDao: savingGoalDao,
@@ -138,6 +144,7 @@ void main() {
   });
 
   ExportBundle bundleFactory({
+    String schemaVersion = '1.7.0',
     List<AccountEntity> accounts = const <AccountEntity>[],
     List<Category> categories = const <Category>[],
     List<TagEntity> tags = const <TagEntity>[],
@@ -146,6 +153,8 @@ void main() {
     List<CreditEntity> credits = const <CreditEntity>[],
     List<CreditCardEntity> creditCards = const <CreditCardEntity>[],
     List<DebtEntity> debts = const <DebtEntity>[],
+    List<CreditPaymentGroupEntity> creditPaymentGroups =
+        const <CreditPaymentGroupEntity>[],
     List<Budget> budgets = const <Budget>[],
     List<BudgetInstance> budgetInstances = const <BudgetInstance>[],
     List<UpcomingPayment> upcomingPayments = const <UpcomingPayment>[],
@@ -153,7 +162,7 @@ void main() {
     List<TransactionEntity> transactions = const <TransactionEntity>[],
   }) {
     return ExportBundle(
-      schemaVersion: '1.7.0',
+      schemaVersion: schemaVersion,
       generatedAt: DateTime.utc(2024, 1, 1),
       accounts: accounts,
       transactions: transactions,
@@ -164,6 +173,7 @@ void main() {
       credits: credits,
       creditCards: creditCards,
       debts: debts,
+      creditPaymentGroups: creditPaymentGroups,
       budgets: budgets,
       budgetInstances: budgetInstances,
       upcomingPayments: upcomingPayments,
@@ -262,6 +272,146 @@ void main() {
       () => analytics.logEvent('import_restore_completed', any()),
     ).called(2);
   });
+
+  test(
+    'merge-only import пересчитывает баланс по полному локальному snapshot, а не только по imported subset',
+    () async {
+      final DateTime now = DateTime.utc(2024, 6, 1);
+      final AccountEntity account = AccountEntity(
+        id: 'acc-1',
+        name: 'Main',
+        balanceMinor: BigInt.from(100000),
+        openingBalanceMinor: BigInt.from(100000),
+        currency: 'USD',
+        currencyScale: 2,
+        type: 'cash',
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      await repository.importData(
+        bundle: bundleFactory(accounts: <AccountEntity>[account]),
+      );
+
+      await transactionDao.upsertAll(<TransactionEntity>[
+        TransactionEntity(
+          id: 'tx-existing-income',
+          accountId: account.id,
+          amountMinor: BigInt.from(20000),
+          amountScale: 2,
+          date: now,
+          type: TransactionType.income.storageValue,
+          createdAt: now,
+          updatedAt: now,
+        ),
+        TransactionEntity(
+          id: 'tx-existing-expense',
+          accountId: account.id,
+          amountMinor: BigInt.from(5000),
+          amountScale: 2,
+          date: now,
+          type: TransactionType.expense.storageValue,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ]);
+
+      await repository.importData(
+        bundle: bundleFactory(
+          accounts: <AccountEntity>[account],
+          transactions: <TransactionEntity>[
+            TransactionEntity(
+              id: 'tx-imported-expense',
+              accountId: account.id,
+              amountMinor: BigInt.from(3000),
+              amountScale: 2,
+              date: now,
+              type: TransactionType.expense.storageValue,
+              createdAt: now,
+              updatedAt: now,
+            ),
+          ],
+        ),
+      );
+
+      final AccountEntity updated = (await accountDao.getAllAccounts()).single;
+      expect(updated.balanceMinor, BigInt.from(112000));
+    },
+  );
+
+  test(
+    'восстанавливает goal contributions и currentAmount после импорта',
+    () async {
+      final DateTime now = DateTime.utc(2024, 6, 1);
+      final AccountEntity source = AccountEntity(
+        id: 'acc-source',
+        name: 'Source',
+        balanceMinor: BigInt.from(50_000),
+        currency: 'USD',
+        currencyScale: 2,
+        type: 'cash',
+        createdAt: now,
+        updatedAt: now,
+      );
+      final AccountEntity storage = AccountEntity(
+        id: 'acc-storage',
+        name: 'Storage',
+        balanceMinor: BigInt.zero,
+        currency: 'USD',
+        currencyScale: 2,
+        type: 'savings',
+        createdAt: now,
+        updatedAt: now,
+      );
+      final SavingGoal goal = SavingGoal(
+        id: 'goal-1',
+        userId: 'user-1',
+        name: 'Emergency',
+        accountId: storage.id,
+        storageAccountIds: <String>[storage.id],
+        targetAmount: 10_000,
+        currentAmount: 0,
+        createdAt: now,
+        updatedAt: now,
+      );
+      final TransactionEntity contribution = TransactionEntity(
+        id: 'tx-goal-1',
+        accountId: source.id,
+        transferAccountId: storage.id,
+        savingGoalId: goal.id,
+        amountMinor: BigInt.from(2_500),
+        amountScale: 2,
+        date: now,
+        type: TransactionType.transfer.storageValue,
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      await repository.importData(
+        bundle: bundleFactory(
+          accounts: <AccountEntity>[source, storage],
+          savingGoals: <SavingGoal>[goal],
+          transactions: <TransactionEntity>[contribution],
+        ),
+      );
+
+      final SavingGoal? restoredGoal = await savingGoalDao.findById(goal.id);
+      final List<db.GoalContributionRow> contributions =
+          await (database.select(database.goalContributions)..where(
+                (db.$GoalContributionsTable tbl) =>
+                    tbl.transactionId.equals(contribution.id),
+              ))
+              .get();
+
+      expect(restoredGoal, isNotNull);
+      expect(restoredGoal!.currentAmount, 2_500);
+      expect(contributions, hasLength(1));
+      expect(contributions.single.id, contribution.id);
+      expect(contributions.single.goalId, goal.id);
+      expect(contributions.single.storageAccountId, storage.id);
+      expect(contributions.single.amount, 2_500);
+    },
+  );
 
   test('ставит импортированные сущности в outbox для синхронизации', () async {
     final DateTime now = DateTime.utc(2024, 6, 1);
@@ -384,6 +534,154 @@ void main() {
   });
 
   test(
+    'сохраняет groupId при modern import, если credit payment group присутствует в snapshot',
+    () async {
+      final DateTime now = DateTime.utc(2024, 6, 1);
+      final AccountEntity account = AccountEntity(
+        id: 'acc-1',
+        name: 'Main',
+        balanceMinor: BigInt.zero,
+        currency: 'USD',
+        currencyScale: 2,
+        type: 'cash',
+        createdAt: now,
+        updatedAt: now,
+      );
+      final AccountEntity sourceAccount = AccountEntity(
+        id: 'acc-source',
+        name: 'Source',
+        balanceMinor: BigInt.from(100000),
+        currency: 'USD',
+        currencyScale: 2,
+        type: 'cash',
+        createdAt: now,
+        updatedAt: now,
+      );
+      final Category category = Category(
+        id: 'cat-1',
+        name: 'Credit',
+        type: 'expense',
+        createdAt: now,
+        updatedAt: now,
+      );
+      final CreditEntity credit = CreditEntity(
+        id: 'credit-1',
+        accountId: account.id,
+        categoryId: category.id,
+        totalAmountMinor: BigInt.from(100000),
+        totalAmountScale: 2,
+        interestRate: 12,
+        termMonths: 12,
+        startDate: now,
+        paymentDay: 10,
+        createdAt: now,
+        updatedAt: now,
+      );
+      final CreditPaymentGroupEntity group = CreditPaymentGroupEntity(
+        id: 'group-1',
+        creditId: credit.id,
+        sourceAccountId: sourceAccount.id,
+        paidAt: now,
+        totalOutflow: Money.fromMinor(
+          BigInt.from(10000),
+          currency: 'USD',
+          scale: 2,
+        ),
+        principalPaid: Money.fromMinor(
+          BigInt.from(9000),
+          currency: 'USD',
+          scale: 2,
+        ),
+        interestPaid: Money.fromMinor(
+          BigInt.from(1000),
+          currency: 'USD',
+          scale: 2,
+        ),
+        feesPaid: Money.fromMinor(BigInt.zero, currency: 'USD', scale: 2),
+        createdAt: now,
+        updatedAt: now,
+      );
+      final TransactionEntity transaction = TransactionEntity(
+        id: 'tx-modern-group',
+        accountId: sourceAccount.id,
+        categoryId: category.id,
+        groupId: group.id,
+        amountMinor: BigInt.from(10000),
+        amountScale: 2,
+        date: now,
+        type: TransactionType.expense.storageValue,
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      await repository.importData(
+        bundle: bundleFactory(
+          schemaVersion: '1.8.0',
+          accounts: <AccountEntity>[account, sourceAccount],
+          categories: <Category>[category],
+          credits: <CreditEntity>[credit],
+          transactions: <TransactionEntity>[transaction],
+          creditPaymentGroups: <CreditPaymentGroupEntity>[group],
+        ),
+      );
+
+      final db.TransactionRow? row = await transactionDao.findById(
+        transaction.id,
+      );
+      expect(row, isNotNull);
+      expect(row!.groupId, group.id);
+    },
+  );
+
+  test(
+    'отклоняет modern import, если active transaction ссылается на отсутствующую credit payment group',
+    () async {
+      final DateTime now = DateTime.utc(2024, 6, 1);
+      final AccountEntity account = AccountEntity(
+        id: 'acc-1',
+        name: 'Main',
+        balanceMinor: BigInt.zero,
+        currency: 'USD',
+        currencyScale: 2,
+        type: 'cash',
+        createdAt: now,
+        updatedAt: now,
+      );
+      final Category category = Category(
+        id: 'cat-1',
+        name: 'Credit',
+        type: 'expense',
+        createdAt: now,
+        updatedAt: now,
+      );
+      final TransactionEntity transaction = TransactionEntity(
+        id: 'tx-missing-group',
+        accountId: account.id,
+        categoryId: category.id,
+        groupId: 'missing-group',
+        amountMinor: BigInt.from(8333),
+        amountScale: 2,
+        date: now,
+        type: TransactionType.expense.storageValue,
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      await expectLater(
+        () => repository.importData(
+          bundle: bundleFactory(
+            schemaVersion: '1.8.0',
+            accounts: <AccountEntity>[account],
+            categories: <Category>[category],
+            transactions: <TransactionEntity>[transaction],
+          ),
+        ),
+        throwsA(isA<FormatException>()),
+      );
+    },
+  );
+
+  test(
     'restore запускает deferred backfill для legacy account types',
     () async {
       final DateTime now = DateTime.utc(2024, 6, 1);
@@ -472,7 +770,7 @@ void main() {
   );
 
   test(
-    'очищает старые локальные транзакции и obligations перед restore',
+    'делает merge-only import и сохраняет существующие локальные данные',
     () async {
       final DateTime now = DateTime.utc(2024, 6, 1);
       await repository.importData(
@@ -538,19 +836,20 @@ void main() {
       final List<TransactionEntity> transactions = await transactionDao
           .getAllTransactions();
 
-      expect(accounts.map((AccountEntity account) => account.id), <String>[
-        'fresh-account',
-      ]);
-      expect(debts, isEmpty);
+      expect(
+        accounts.map((AccountEntity account) => account.id).toSet(),
+        <String>{'stale-account', 'fresh-account'},
+      );
+      expect(debts.map((db.DebtRow debt) => debt.id), <String>['stale-debt']);
       expect(
         transactions.map((TransactionEntity transaction) => transaction.id),
-        isEmpty,
+        <String>['stale-tx'],
       );
     },
   );
 
   test(
-    'ставит delete-маркеры для сущностей, пропавших из restore snapshot',
+    'не ставит delete-маркеры для сущностей, отсутствующих в backup',
     () async {
       final DateTime now = DateTime.utc(2024, 6, 1);
       await repository.importData(
@@ -621,26 +920,125 @@ void main() {
       );
 
       final List<db.OutboxEntryRow> pending = await outboxDao.fetchPending(
-        limit: 20,
+        limit: 50,
       );
       final List<db.OutboxEntryRow> deleteEntries = pending
           .where((db.OutboxEntryRow entry) => entry.operation == 'delete')
           .toList(growable: false);
 
-      expect(
-        deleteEntries
-            .map((db.OutboxEntryRow entry) => entry.entityType)
-            .toSet(),
-        <String>{'account', 'category', 'saving_goal', 'transaction'},
+      expect(deleteEntries, isEmpty);
+    },
+  );
+
+  test(
+    'import поверх существующих данных добавляет snapshot по id и не угадывает дубли',
+    () async {
+      final DateTime now = DateTime.utc(2024, 6, 1);
+      final AccountEntity account = AccountEntity(
+        id: 'acc-1',
+        name: 'Main',
+        balanceMinor: BigInt.from(100000),
+        currency: 'RUB',
+        currencyScale: 2,
+        type: 'cash',
+        createdAt: now,
+        updatedAt: now,
       );
 
-      final db.OutboxEntryRow deletedAccount = deleteEntries.firstWhere(
-        (db.OutboxEntryRow entry) => entry.entityType == 'account',
+      await repository.importData(
+        bundle: bundleFactory(accounts: <AccountEntity>[account]),
       );
-      final Map<String, dynamic> accountPayload =
-          jsonDecode(deletedAccount.payload) as Map<String, dynamic>;
-      expect(accountPayload['id'], 'stale-account');
-      expect(accountPayload['isDeleted'], true);
+
+      final TransactionEntity existing = TransactionEntity(
+        id: 'tx-existing',
+        accountId: account.id,
+        amountMinor: BigInt.from(5000),
+        amountScale: 2,
+        date: now,
+        note: 'coffee',
+        type: TransactionType.expense.storageValue,
+        createdAt: now,
+        updatedAt: now,
+      );
+      await transactionDao.upsert(existing);
+
+      final TransactionEntity importedSameDataButDifferentId =
+          TransactionEntity(
+            id: 'tx-imported',
+            accountId: account.id,
+            amountMinor: BigInt.from(5000),
+            amountScale: 2,
+            date: now,
+            note: 'coffee',
+            type: TransactionType.expense.storageValue,
+            createdAt: now,
+            updatedAt: now,
+          );
+
+      await repository.importData(
+        bundle: bundleFactory(
+          accounts: <AccountEntity>[account],
+          transactions: <TransactionEntity>[importedSameDataButDifferentId],
+        ),
+      );
+
+      final List<TransactionEntity> transactions = await transactionDao
+          .getAllTransactions();
+      expect(
+        transactions.map((TransactionEntity tx) => tx.id).toSet(),
+        <String>{'tx-existing', 'tx-imported'},
+      );
+    },
+  );
+
+  test(
+    'отклоняет неподдерживаемую схему до локальных изменений и outbox side effects',
+    () async {
+      final DateTime now = DateTime.utc(2024, 6, 1);
+      final AccountEntity existingAccount = AccountEntity(
+        id: 'acc-existing',
+        name: 'Existing',
+        balanceMinor: BigInt.from(50000),
+        currency: 'USD',
+        currencyScale: 2,
+        type: 'cash',
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      await accountDao.upsert(existingAccount);
+
+      await expectLater(
+        () => repository.importData(
+          bundle: ExportBundle(
+            schemaVersion: '9.0.0',
+            generatedAt: now,
+            accounts: <AccountEntity>[
+              AccountEntity(
+                id: 'acc-imported',
+                name: 'Imported',
+                balanceMinor: BigInt.from(10000),
+                currency: 'USD',
+                currencyScale: 2,
+                type: 'cash',
+                createdAt: now,
+                updatedAt: now,
+              ),
+            ],
+          ),
+        ),
+        throwsA(isA<FormatException>()),
+      );
+
+      final List<AccountEntity> accounts = await accountDao.getAllAccounts();
+      final List<db.OutboxEntryRow> outboxEntries = await database
+          .select(database.outboxEntries)
+          .get();
+
+      expect(accounts.map((AccountEntity account) => account.id), <String>[
+        existingAccount.id,
+      ]);
+      expect(outboxEntries, isEmpty);
     },
   );
 

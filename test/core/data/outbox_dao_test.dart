@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:drift/drift.dart' show DatabaseConnection;
+import 'package:drift/drift.dart' show DatabaseConnection, Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/data/database.dart';
@@ -68,4 +68,172 @@ void main() {
     expect(sent.status, OutboxStatus.sent.name);
     expect(sent.sentAt, isNotNull);
   });
+
+  test(
+    'enqueue coalesces repeated unsent operations for the same entity',
+    () async {
+      final int firstId = await outboxDao.enqueue(
+        entityType: 'account',
+        entityId: 'acc-1',
+        operation: OutboxOperation.upsert,
+        payload: <String, dynamic>{'id': 'acc-1', 'name': 'Old'},
+      );
+
+      final int secondId = await outboxDao.enqueue(
+        entityType: 'account',
+        entityId: 'acc-1',
+        operation: OutboxOperation.upsert,
+        payload: <String, dynamic>{'id': 'acc-1', 'name': 'New'},
+      );
+
+      expect(secondId, firstId);
+
+      final List<OutboxEntryRow> entries = await outboxDao.fetchPending();
+      expect(entries, hasLength(1));
+      expect(outboxDao.decodePayload(entries.single)['name'], 'New');
+      expect(entries.single.status, OutboxStatus.pending.name);
+    },
+  );
+
+  test(
+    'fetchPending orders entities by sync dependency order before createdAt',
+    () async {
+      await outboxDao.enqueue(
+        entityType: 'transaction',
+        entityId: 'tx-1',
+        operation: OutboxOperation.upsert,
+        payload: <String, dynamic>{'id': 'tx-1'},
+      );
+      await outboxDao.enqueue(
+        entityType: 'account',
+        entityId: 'acc-1',
+        operation: OutboxOperation.upsert,
+        payload: <String, dynamic>{'id': 'acc-1'},
+      );
+      await outboxDao.enqueue(
+        entityType: 'saving_goal',
+        entityId: 'goal-1',
+        operation: OutboxOperation.upsert,
+        payload: <String, dynamic>{'id': 'goal-1'},
+      );
+      await outboxDao.enqueue(
+        entityType: 'credit_payment_schedule',
+        entityId: 'schedule-1',
+        operation: OutboxOperation.upsert,
+        payload: <String, dynamic>{'id': 'schedule-1'},
+      );
+      await outboxDao.enqueue(
+        entityType: 'credit_payment_group',
+        entityId: 'group-1',
+        operation: OutboxOperation.upsert,
+        payload: <String, dynamic>{'id': 'group-1'},
+      );
+
+      final List<OutboxEntryRow> entries = await outboxDao.fetchPending(
+        limit: 10,
+      );
+
+      expect(
+        entries.map((OutboxEntryRow entry) => entry.entityType).toList(),
+        <String>[
+          'account',
+          'saving_goal',
+          'credit_payment_schedule',
+          'credit_payment_group',
+          'transaction',
+        ],
+      );
+    },
+  );
+
+  test(
+    'resetStaleSendingToPending recovers only stale sending entries',
+    () async {
+      final int staleId = await outboxDao.enqueue(
+        entityType: 'account',
+        entityId: 'acc-stale',
+        operation: OutboxOperation.upsert,
+        payload: <String, dynamic>{'id': 'acc-stale'},
+      );
+      final int freshId = await outboxDao.enqueue(
+        entityType: 'account',
+        entityId: 'acc-fresh',
+        operation: OutboxOperation.upsert,
+        payload: <String, dynamic>{'id': 'acc-fresh'},
+      );
+
+      final DateTime now = DateTime.now();
+      await (database.update(
+        database.outboxEntries,
+      )..where((OutboxEntries tbl) => tbl.id.equals(staleId))).write(
+        OutboxEntriesCompanion(
+          status: Value<String>(OutboxStatus.sending.name),
+          updatedAt: Value<DateTime>(now.subtract(const Duration(minutes: 10))),
+        ),
+      );
+      await (database.update(
+        database.outboxEntries,
+      )..where((OutboxEntries tbl) => tbl.id.equals(freshId))).write(
+        OutboxEntriesCompanion(
+          status: Value<String>(OutboxStatus.sending.name),
+          updatedAt: Value<DateTime>(now.subtract(const Duration(minutes: 1))),
+        ),
+      );
+
+      final int resetCount = await outboxDao.resetStaleSendingToPending(
+        cutoff: now.subtract(const Duration(minutes: 5)),
+      );
+
+      expect(resetCount, 1);
+
+      final List<OutboxEntryRow> rows = await database
+          .select(database.outboxEntries)
+          .get();
+      final OutboxEntryRow stale = rows.singleWhere(
+        (OutboxEntryRow row) => row.id == staleId,
+      );
+      final OutboxEntryRow fresh = rows.singleWhere(
+        (OutboxEntryRow row) => row.id == freshId,
+      );
+      expect(stale.status, OutboxStatus.pending.name);
+      expect(fresh.status, OutboxStatus.sending.name);
+    },
+  );
+
+  test(
+    'pruneSent keeps fresh sent entries until retain window passes',
+    () async {
+      final int id = await outboxDao.enqueue(
+        entityType: 'account',
+        entityId: 'acc-sent',
+        operation: OutboxOperation.upsert,
+        payload: <String, dynamic>{'id': 'acc-sent'},
+      );
+      await outboxDao.markAsSent(id);
+
+      await outboxDao.pruneSent(retain: const Duration(days: 7));
+
+      final List<OutboxEntryRow> rowsAfterFreshPrune = await database
+          .select(database.outboxEntries)
+          .get();
+      expect(rowsAfterFreshPrune, hasLength(1));
+
+      await (database.update(
+        database.outboxEntries,
+      )..where((OutboxEntries tbl) => tbl.id.equals(id))).write(
+        OutboxEntriesCompanion(
+          sentAt: Value<DateTime>(
+            DateTime.now().subtract(const Duration(days: 8)),
+          ),
+        ),
+      );
+
+      await outboxDao.pruneSent(retain: const Duration(days: 7));
+
+      final List<OutboxEntryRow> rowsAfterExpiredPrune = await database
+          .select(database.outboxEntries)
+          .get();
+      expect(rowsAfterExpiredPrune, isEmpty);
+    },
+  );
 }

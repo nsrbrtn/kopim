@@ -120,7 +120,14 @@ UI:
 
 - При входе — запуск логики синхронизации локальных данных с облаком.
 - После LWW merge аккаунтов баланс пересчитывается из транзакций (minor‑units), `account.balance` — derived.
+- `UserProgress` является derived-состоянием от активных локальных транзакций:
+  - `totalTx`, `level`, `title`, `nextThreshold` пересчитываются локально;
+  - login sync не импортирует `progress` как snapshot сущность;
+  - export может включать `progress` как derived snapshot для переносимости и integrity, но import не должен считать его независимой истиной;
+  - remote `users/{uid}/progress/progress` — только best-effort max counter для геймификации и не должен перезаписывать локальную derived-статистику меньшим или просто более свежим значением.
+- Отдельного achievements/unlocked state сейчас нет; при его появлении это должна быть самостоятельная sync-сущность с явным manifest entry и cleanup coverage.
 - Любая новая пользовательская Firestore-коллекция или подколлекция по пути `users/{uid}/...` должна в той же задаче добавляться в cleaner удаления аккаунта (`UserAccountCleanupRepositoryImpl`), чтобы account deletion не оставлял orphaned user data.
+- Источник правды для этого правила — `SyncContract`: новая user-collection должна добавляться в manifest, после чего она автоматически попадает в cleanup coverage и parity-тесты.
 
 Performance:
 
@@ -173,6 +180,26 @@ Performance:
 - Popолнение цели создаёт транзакцию с `savingGoalId`; для обычного межсчетного сценария это `transfer`, а для allocation-only сценария `source == storage` допустим тот же `transfer` без изменения баланса счета.
 - Для пополнения запрещены переводы между разными валютами; источник и счет цели должны иметь одну валюту.
 - Прогресс цели (`currentAmount`) и запись в `goal_contributions` обновляются в одной DB-транзакции с созданием/редактированием/удалением связанной транзакции.
+- `goal_contributions` — derived/rebuildable слой, а не каноничный sync-state:
+  - deterministic rebuild собирает generated contributions из активных транзакций с `savingGoalId`;
+  - rebuild идемпотентен и может безопасно запускаться после login sync и import;
+  - manual/custom contributions не должны стираться generated rebuild-логикой;
+  - `saving_goals.currentAmount` пересчитывается из canonical transactions/contributions, а не принимается вслепую из remote/backup.
+- Saving goal transfer внутри одного счёта хранения не меняет баланс счёта, но меняет прогресс цели.
+- Saving goal transfer между разными счетами меняет оба счёта и прогресс цели.
+
+## Credit Payment Artifacts
+
+Инварианты:
+
+- `credit_payment_groups` и `credit_payment_schedules` — пользовательски значимые данные, а не derived cache.
+- Они входят в login sync, export/import contract, outbox и account cleanup.
+- Их удаление идет через tombstone (`isDeleted`), а не через физическое удаление remote-документа, чтобы stale snapshot не мог воскресить старые связи.
+- `transactions.groupId` сохраняется для валидной credit payment group и не зануляется silently в новом контракте.
+- Основная стратегия сохранения `groupId` — `two-phase write`: сначала credit payment artifacts, затем ссылающиеся на них transactions.
+- Только legacy backup со схемой `< 1.8.0` очищает `groupId`, потому что старый portable format не гарантировал наличие credit payment artifacts.
+- Отсутствующая `credit_payment_group` при merge/import — это diagnostic-ситуация; для modern contract активная transaction с такой ссылкой должна ломать sync/import fail-fast, а не silently терять связь.
+- В debug/dev сборках после startup, login sync и import логируется developer-facing DB integrity report; новые sync-сущности должны приходить сразу с regression-тестами и проверками этого отчета.
 
 ## Overview (Обзор)
 

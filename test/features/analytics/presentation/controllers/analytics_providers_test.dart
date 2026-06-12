@@ -1398,8 +1398,27 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      final CreditDebtOperationsOverview overview = await container.read(
-        analyticsCreditDebtOperationsProvider.future,
+      final Completer<CreditDebtOperationsOverview> result =
+          Completer<CreditDebtOperationsOverview>();
+      final ProviderSubscription<AsyncValue<CreditDebtOperationsOverview>> sub =
+          container.listen<AsyncValue<CreditDebtOperationsOverview>>(
+            analyticsCreditDebtOperationsProvider,
+            (
+              AsyncValue<CreditDebtOperationsOverview>? previous,
+              AsyncValue<CreditDebtOperationsOverview> next,
+            ) {
+              next.whenData((CreditDebtOperationsOverview value) {
+                if (!result.isCompleted) {
+                  result.complete(value);
+                }
+              });
+            },
+            fireImmediately: true,
+          );
+      addTearDown(sub.close);
+
+      final CreditDebtOperationsOverview overview = await result.future.timeout(
+        const Duration(seconds: 2),
       );
 
       expect(overview.principalRepayment.toDouble(), closeTo(50.0, 0.001));
@@ -1410,7 +1429,5 @@ void main() {
         CreditDebtOperationKind.principalRepayment,
       );
     },
-    skip:
-        'Требуется отдельная стабилизация switchLatest для синхронных/долгоживущих stream-кейсов.',
   );
 }

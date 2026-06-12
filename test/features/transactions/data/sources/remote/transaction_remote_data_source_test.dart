@@ -5,7 +5,7 @@ import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 
 void main() {
   group('TransactionRemoteDataSource', () {
-    test('не переносит groupId в Firestore round-trip', () async {
+    test('переносит groupId в Firestore round-trip', () async {
       final FakeFirebaseFirestore firestore = FakeFirebaseFirestore();
       final TransactionRemoteDataSource dataSource =
           TransactionRemoteDataSource(firestore);
@@ -42,11 +42,11 @@ void main() {
 
       expect(fetched, hasLength(1));
       expect(fetched.first.id, entity.id);
-      expect(fetched.first.groupId, isNull);
+      expect(fetched.first.groupId, entity.groupId);
       expect(fetched.first.type, entity.type);
       expect(fetched.first.transferAccountId, entity.transferAccountId);
       expect(rawData, isNotNull);
-      expect(rawData!.containsKey('groupId'), isFalse);
+      expect(rawData!['groupId'], entity.groupId);
     });
   });
 }

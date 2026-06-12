@@ -15,6 +15,8 @@ import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_group.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/settings/domain/entities/export_bundle.dart';
@@ -55,6 +57,8 @@ class ExportBundleCsvDecoder {
     bool hasCredits = false;
     bool hasCreditCards = false;
     bool hasDebts = false;
+    bool hasCreditPaymentGroups = false;
+    bool hasCreditPaymentSchedules = false;
     bool hasBudgets = false;
     bool hasBudgetInstances = false;
     bool hasUpcomingPayments = false;
@@ -68,6 +72,10 @@ class ExportBundleCsvDecoder {
     final List<CreditEntity> credits = <CreditEntity>[];
     final List<CreditCardEntity> creditCards = <CreditCardEntity>[];
     final List<DebtEntity> debts = <DebtEntity>[];
+    final List<CreditPaymentGroupEntity> creditPaymentGroups =
+        <CreditPaymentGroupEntity>[];
+    final List<CreditPaymentScheduleEntity> creditPaymentSchedules =
+        <CreditPaymentScheduleEntity>[];
     final List<Budget> budgets = <Budget>[];
     final List<BudgetInstance> budgetInstances = <BudgetInstance>[];
     final List<UpcomingPayment> upcomingPayments = <UpcomingPayment>[];
@@ -130,6 +138,22 @@ class ExportBundleCsvDecoder {
         case '#debts':
           hasDebts = true;
           index = _parseDebts(rows, index + 1, debts);
+          break;
+        case '#credit_payment_groups':
+          hasCreditPaymentGroups = true;
+          index = _parseCreditPaymentGroups(
+            rows,
+            index + 1,
+            creditPaymentGroups,
+          );
+          break;
+        case '#credit_payment_schedules':
+          hasCreditPaymentSchedules = true;
+          index = _parseCreditPaymentSchedules(
+            rows,
+            index + 1,
+            creditPaymentSchedules,
+          );
           break;
         case '#budgets':
           hasBudgets = true;
@@ -210,6 +234,16 @@ class ExportBundleCsvDecoder {
       required: ExportBundleSchema.requiresLiabilities(version),
     );
     _ensureSection(
+      sectionName: '#credit_payment_groups',
+      present: hasCreditPaymentGroups,
+      required: ExportBundleSchema.requiresCreditPaymentArtifacts(version),
+    );
+    _ensureSection(
+      sectionName: '#credit_payment_schedules',
+      present: hasCreditPaymentSchedules,
+      required: ExportBundleSchema.requiresCreditPaymentArtifacts(version),
+    );
+    _ensureSection(
       sectionName: '#budgets',
       present: hasBudgets,
       required: ExportBundleSchema.requiresExtendedSnapshot(version),
@@ -241,11 +275,18 @@ class ExportBundleCsvDecoder {
       credits: credits,
       creditCards: creditCards,
       debts: debts,
+      creditPaymentGroups: creditPaymentGroups,
+      creditPaymentSchedules: creditPaymentSchedules,
       budgets: budgets,
       budgetInstances: budgetInstances,
       upcomingPayments: upcomingPayments,
       paymentReminders: paymentReminders,
-      transactions: transactions,
+      transactions: transactions
+          .map(
+            (TransactionEntity transaction) =>
+                _normalizeImportedTransaction(transaction, version),
+          )
+          .toList(growable: false),
     );
   }
 
@@ -459,32 +500,26 @@ class ExportBundleCsvDecoder {
         final BigInt resolvedMinor =
             amountMinor ??
             Money.fromDouble(legacyAmount, currency: 'XXX', scale: scale).minor;
-        return SyncContract.normalizeTransactionForPortableSync(
-          TransactionEntity(
-            id: _readRequired(header.columns, row, 'id'),
-            accountId: _readRequired(header.columns, row, 'account_id'),
-            transferAccountId: _readOptional(
-              header.columns,
-              row,
-              'transfer_account_id',
-            ),
-            categoryId: _readOptional(header.columns, row, 'category_id'),
-            savingGoalId: _readOptional(header.columns, row, 'saving_goal_id'),
-            idempotencyKey: _readOptional(
-              header.columns,
-              row,
-              'idempotency_key',
-            ),
-            groupId: _readOptional(header.columns, row, 'group_id'),
-            amountMinor: resolvedMinor,
-            amountScale: scale,
-            date: _readDate(header.columns, row, 'date'),
-            note: _readOptional(header.columns, row, 'note'),
-            type: _readRequired(header.columns, row, 'type'),
-            createdAt: _readDate(header.columns, row, 'created_at'),
-            updatedAt: _readDate(header.columns, row, 'updated_at'),
-            isDeleted: _readBool(header.columns, row, 'is_deleted'),
+        return TransactionEntity(
+          id: _readRequired(header.columns, row, 'id'),
+          accountId: _readRequired(header.columns, row, 'account_id'),
+          transferAccountId: _readOptional(
+            header.columns,
+            row,
+            'transfer_account_id',
           ),
+          categoryId: _readOptional(header.columns, row, 'category_id'),
+          savingGoalId: _readOptional(header.columns, row, 'saving_goal_id'),
+          idempotencyKey: _readOptional(header.columns, row, 'idempotency_key'),
+          groupId: _readOptional(header.columns, row, 'group_id'),
+          amountMinor: resolvedMinor,
+          amountScale: scale,
+          date: _readDate(header.columns, row, 'date'),
+          note: _readOptional(header.columns, row, 'note'),
+          type: _readRequired(header.columns, row, 'type'),
+          createdAt: _readDate(header.columns, row, 'created_at'),
+          updatedAt: _readDate(header.columns, row, 'updated_at'),
+          isDeleted: _readBool(header.columns, row, 'is_deleted'),
         );
       }());
       index += 1;
@@ -716,6 +751,149 @@ class ExportBundleCsvDecoder {
           isDeleted: _readBool(header.columns, row, 'is_deleted'),
         );
       }());
+      index += 1;
+    }
+    return index;
+  }
+
+  int _parseCreditPaymentGroups(
+    List<List<String>> rows,
+    int startIndex,
+    List<CreditPaymentGroupEntity> groups,
+  ) {
+    final _SectionHeader header = _readHeader(
+      rows,
+      startIndex,
+      '#credit_payment_groups',
+    );
+    int index = header.nextIndex;
+    while (index < rows.length && !_isSectionMarker(rows[index])) {
+      final List<String> row = rows[index];
+      if (_isEmptyRow(row)) {
+        index += 1;
+        continue;
+      }
+      final int scale =
+          _readOptionalInt(header.columns, row, 'total_outflow_scale') ?? 2;
+      groups.add(
+        CreditPaymentGroupEntity(
+          id: _readRequired(header.columns, row, 'id'),
+          creditId: _readRequired(header.columns, row, 'credit_id'),
+          sourceAccountId: _readRequired(
+            header.columns,
+            row,
+            'source_account_id',
+          ),
+          scheduleItemId: _readOptional(
+            header.columns,
+            row,
+            'schedule_item_id',
+          ),
+          paidAt: _readDate(header.columns, row, 'paid_at'),
+          totalOutflow: Money.fromMinor(
+            _readOptionalBigInt(header.columns, row, 'total_outflow_minor') ??
+                BigInt.zero,
+            currency: 'XXX',
+            scale: scale,
+          ),
+          principalPaid: Money.fromMinor(
+            _readOptionalBigInt(header.columns, row, 'principal_paid_minor') ??
+                BigInt.zero,
+            currency: 'XXX',
+            scale: scale,
+          ),
+          interestPaid: Money.fromMinor(
+            _readOptionalBigInt(header.columns, row, 'interest_paid_minor') ??
+                BigInt.zero,
+            currency: 'XXX',
+            scale: scale,
+          ),
+          feesPaid: Money.fromMinor(
+            _readOptionalBigInt(header.columns, row, 'fees_paid_minor') ??
+                BigInt.zero,
+            currency: 'XXX',
+            scale: scale,
+          ),
+          note: _readOptional(header.columns, row, 'note'),
+          idempotencyKey: _readOptional(header.columns, row, 'idempotency_key'),
+          createdAt: _readOptionalDate(header.columns, row, 'created_at'),
+          updatedAt: _readOptionalDate(header.columns, row, 'updated_at'),
+          isDeleted: _readBool(header.columns, row, 'is_deleted'),
+        ),
+      );
+      index += 1;
+    }
+    return index;
+  }
+
+  int _parseCreditPaymentSchedules(
+    List<List<String>> rows,
+    int startIndex,
+    List<CreditPaymentScheduleEntity> schedules,
+  ) {
+    final _SectionHeader header = _readHeader(
+      rows,
+      startIndex,
+      '#credit_payment_schedules',
+    );
+    int index = header.nextIndex;
+    while (index < rows.length && !_isSectionMarker(rows[index])) {
+      final List<String> row = rows[index];
+      if (_isEmptyRow(row)) {
+        index += 1;
+        continue;
+      }
+      final int scale =
+          _readOptionalInt(header.columns, row, 'amount_scale') ?? 2;
+      schedules.add(
+        CreditPaymentScheduleEntity(
+          id: _readRequired(header.columns, row, 'id'),
+          creditId: _readRequired(header.columns, row, 'credit_id'),
+          periodKey: _readRequired(header.columns, row, 'period_key'),
+          dueDate: _readDate(header.columns, row, 'due_date'),
+          status: CreditPaymentStatus.values.byName(
+            _readRequired(header.columns, row, 'status'),
+          ),
+          principalAmount: Money.fromMinor(
+            _readOptionalBigInt(
+                  header.columns,
+                  row,
+                  'principal_amount_minor',
+                ) ??
+                BigInt.zero,
+            currency: 'XXX',
+            scale: scale,
+          ),
+          interestAmount: Money.fromMinor(
+            _readOptionalBigInt(header.columns, row, 'interest_amount_minor') ??
+                BigInt.zero,
+            currency: 'XXX',
+            scale: scale,
+          ),
+          totalAmount: Money.fromMinor(
+            _readOptionalBigInt(header.columns, row, 'total_amount_minor') ??
+                BigInt.zero,
+            currency: 'XXX',
+            scale: scale,
+          ),
+          principalPaid: Money.fromMinor(
+            _readOptionalBigInt(header.columns, row, 'principal_paid_minor') ??
+                BigInt.zero,
+            currency: 'XXX',
+            scale: scale,
+          ),
+          interestPaid: Money.fromMinor(
+            _readOptionalBigInt(header.columns, row, 'interest_paid_minor') ??
+                BigInt.zero,
+            currency: 'XXX',
+            scale: scale,
+          ),
+          paidAt: _readOptionalDate(header.columns, row, 'paid_at'),
+          createdAt: _readOptionalDate(header.columns, row, 'created_at'),
+          updatedAt: _readOptionalDate(header.columns, row, 'updated_at'),
+          isDeleted: _readBool(header.columns, row, 'is_deleted'),
+        ),
+      );
       index += 1;
     }
     return index;
@@ -1178,6 +1356,18 @@ class ExportBundleCsvDecoder {
         .whereType<Map<String, dynamic>>()
         .map(BudgetCategoryAllocation.fromJson)
         .toList(growable: false);
+  }
+
+  TransactionEntity _normalizeImportedTransaction(
+    TransactionEntity transaction,
+    ExportBundleSchemaVersion version,
+  ) {
+    final TransactionEntity normalized =
+        SyncContract.normalizeTransactionForPortableSync(transaction);
+    if (!ExportBundleSchema.requiresCreditPaymentArtifacts(version)) {
+      return normalized.copyWith(groupId: null);
+    }
+    return normalized;
   }
 }
 

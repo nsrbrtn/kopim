@@ -3,6 +3,7 @@ import 'package:drift/native.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/data/database.dart';
+import 'package:kopim/core/services/sync/sync_contract.dart';
 import 'package:kopim/features/profile/data/user_account_cleanup_repository_impl.dart';
 import 'package:kopim/features/profile/domain/repositories/profile_avatar_repository.dart';
 import 'dart:typed_data';
@@ -47,77 +48,73 @@ void main() {
   });
 
   test(
-    'deleteRemoteUserData removes synced and legacy remote collections',
+    'deleteRemoteUserData removes every manifest cleanup collection and root doc',
     () async {
       const String uid = 'user-1';
-      await firestore
-          .collection('users')
-          .doc(uid)
-          .collection('recurring_payments')
-          .doc('pay-1')
-          .set(<String, dynamic>{'id': 'pay-1'});
-      await firestore
-          .collection('users')
-          .doc(uid)
-          .collection('reminders')
-          .doc('rem-1')
-          .set(<String, dynamic>{'id': 'rem-1'});
-      await firestore
-          .collection('users')
-          .doc(uid)
-          .collection('credit_payment_groups')
-          .doc('group-1')
-          .set(<String, dynamic>{'id': 'group-1'});
-      await firestore
-          .collection('users')
-          .doc(uid)
-          .collection('credit_payment_schedules')
-          .doc('schedule-1')
-          .set(<String, dynamic>{'id': 'schedule-1'});
+      await firestore.collection('users').doc(uid).set(<String, dynamic>{
+        'uid': uid,
+        'name': 'User',
+      });
+      for (final String collection in SyncContract.remoteCleanupCollections) {
+        await firestore
+            .collection('users')
+            .doc(uid)
+            .collection(collection)
+            .doc('$collection-doc')
+            .set(<String, dynamic>{'id': '$collection-doc'});
+      }
 
       await repository.deleteRemoteUserData(uid);
 
-      final int recurringCount =
-          (await firestore
-                  .collection('users')
-                  .doc(uid)
-                  .collection('recurring_payments')
-                  .get())
-              .docs
-              .length;
-      final int remindersCount =
-          (await firestore
-                  .collection('users')
-                  .doc(uid)
-                  .collection('reminders')
-                  .get())
-              .docs
-              .length;
-      final int groupsCount =
-          (await firestore
-                  .collection('users')
-                  .doc(uid)
-                  .collection('credit_payment_groups')
-                  .get())
-              .docs
-              .length;
-      final int schedulesCount =
-          (await firestore
-                  .collection('users')
-                  .doc(uid)
-                  .collection('credit_payment_schedules')
-                  .get())
-              .docs
-              .length;
+      for (final String collection in SyncContract.remoteCleanupCollections) {
+        final int count =
+            (await firestore
+                    .collection('users')
+                    .doc(uid)
+                    .collection(collection)
+                    .get())
+                .docs
+                .length;
+        expect(count, 0, reason: 'Коллекция $collection должна удаляться.');
+      }
       final bool userExists =
           (await firestore.collection('users').doc(uid).get()).exists;
 
-      expect(recurringCount, 0);
-      expect(remindersCount, 0);
-      expect(groupsCount, 0);
-      expect(schedulesCount, 0);
       expect(userExists, isFalse);
       expect(avatarRepository.deletedUid, uid);
     },
   );
+
+  test('deleteLocalUserData clears local user tables and outbox', () async {
+    await database
+        .into(database.accounts)
+        .insert(
+          AccountsCompanion.insert(
+            id: 'acc-1',
+            name: 'Main',
+            balance: 0,
+            currency: 'RUB',
+            type: 'cash',
+          ),
+        );
+    await database
+        .into(database.profiles)
+        .insert(ProfilesCompanion.insert(uid: 'user-1'));
+    await database
+        .into(database.outboxEntries)
+        .insert(
+          OutboxEntriesCompanion.insert(
+            entityType: 'account',
+            entityId: 'acc-1',
+            operation: 'upsert',
+            payload: '{}',
+          ),
+        );
+
+    await repository.deleteLocalUserData();
+
+    expect((await database.select(database.accounts).get()), isEmpty);
+    expect((await database.select(database.profiles).get()), isEmpty);
+    expect((await database.select(database.outboxEntries).get()), isEmpty);
+  });
 }

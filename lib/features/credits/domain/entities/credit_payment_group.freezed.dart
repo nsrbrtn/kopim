@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$CreditPaymentGroupEntity {
 
- String get id; String get creditId; String get sourceAccountId; String? get scheduleItemId; DateTime get paidAt; Money get totalOutflow; Money get principalPaid; Money get interestPaid; Money get feesPaid; String? get note; String? get idempotencyKey;
+ String get id; String get creditId; String get sourceAccountId; String? get scheduleItemId; DateTime get paidAt; Money get totalOutflow; Money get principalPaid; Money get interestPaid; Money get feesPaid; String? get note; String? get idempotencyKey; DateTime? get createdAt; DateTime? get updatedAt; bool get isDeleted;
 /// Create a copy of CreditPaymentGroupEntity
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -25,16 +25,16 @@ $CreditPaymentGroupEntityCopyWith<CreditPaymentGroupEntity> get copyWith => _$Cr
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreditPaymentGroupEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.creditId, creditId) || other.creditId == creditId)&&(identical(other.sourceAccountId, sourceAccountId) || other.sourceAccountId == sourceAccountId)&&(identical(other.scheduleItemId, scheduleItemId) || other.scheduleItemId == scheduleItemId)&&(identical(other.paidAt, paidAt) || other.paidAt == paidAt)&&(identical(other.totalOutflow, totalOutflow) || other.totalOutflow == totalOutflow)&&(identical(other.principalPaid, principalPaid) || other.principalPaid == principalPaid)&&(identical(other.interestPaid, interestPaid) || other.interestPaid == interestPaid)&&(identical(other.feesPaid, feesPaid) || other.feesPaid == feesPaid)&&(identical(other.note, note) || other.note == note)&&(identical(other.idempotencyKey, idempotencyKey) || other.idempotencyKey == idempotencyKey));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CreditPaymentGroupEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.creditId, creditId) || other.creditId == creditId)&&(identical(other.sourceAccountId, sourceAccountId) || other.sourceAccountId == sourceAccountId)&&(identical(other.scheduleItemId, scheduleItemId) || other.scheduleItemId == scheduleItemId)&&(identical(other.paidAt, paidAt) || other.paidAt == paidAt)&&(identical(other.totalOutflow, totalOutflow) || other.totalOutflow == totalOutflow)&&(identical(other.principalPaid, principalPaid) || other.principalPaid == principalPaid)&&(identical(other.interestPaid, interestPaid) || other.interestPaid == interestPaid)&&(identical(other.feesPaid, feesPaid) || other.feesPaid == feesPaid)&&(identical(other.note, note) || other.note == note)&&(identical(other.idempotencyKey, idempotencyKey) || other.idempotencyKey == idempotencyKey)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,creditId,sourceAccountId,scheduleItemId,paidAt,totalOutflow,principalPaid,interestPaid,feesPaid,note,idempotencyKey);
+int get hashCode => Object.hash(runtimeType,id,creditId,sourceAccountId,scheduleItemId,paidAt,totalOutflow,principalPaid,interestPaid,feesPaid,note,idempotencyKey,createdAt,updatedAt,isDeleted);
 
 @override
 String toString() {
-  return 'CreditPaymentGroupEntity(id: $id, creditId: $creditId, sourceAccountId: $sourceAccountId, scheduleItemId: $scheduleItemId, paidAt: $paidAt, totalOutflow: $totalOutflow, principalPaid: $principalPaid, interestPaid: $interestPaid, feesPaid: $feesPaid, note: $note, idempotencyKey: $idempotencyKey)';
+  return 'CreditPaymentGroupEntity(id: $id, creditId: $creditId, sourceAccountId: $sourceAccountId, scheduleItemId: $scheduleItemId, paidAt: $paidAt, totalOutflow: $totalOutflow, principalPaid: $principalPaid, interestPaid: $interestPaid, feesPaid: $feesPaid, note: $note, idempotencyKey: $idempotencyKey, createdAt: $createdAt, updatedAt: $updatedAt, isDeleted: $isDeleted)';
 }
 
 
@@ -45,7 +45,7 @@ abstract mixin class $CreditPaymentGroupEntityCopyWith<$Res>  {
   factory $CreditPaymentGroupEntityCopyWith(CreditPaymentGroupEntity value, $Res Function(CreditPaymentGroupEntity) _then) = _$CreditPaymentGroupEntityCopyWithImpl;
 @useResult
 $Res call({
- String id, String creditId, String sourceAccountId, String? scheduleItemId, DateTime paidAt, Money totalOutflow, Money principalPaid, Money interestPaid, Money feesPaid, String? note, String? idempotencyKey
+ String id, String creditId, String sourceAccountId, String? scheduleItemId, DateTime paidAt, Money totalOutflow, Money principalPaid, Money interestPaid, Money feesPaid, String? note, String? idempotencyKey, DateTime? createdAt, DateTime? updatedAt, bool isDeleted
 });
 
 
@@ -62,7 +62,7 @@ class _$CreditPaymentGroupEntityCopyWithImpl<$Res>
 
 /// Create a copy of CreditPaymentGroupEntity
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? creditId = null,Object? sourceAccountId = null,Object? scheduleItemId = freezed,Object? paidAt = null,Object? totalOutflow = null,Object? principalPaid = null,Object? interestPaid = null,Object? feesPaid = null,Object? note = freezed,Object? idempotencyKey = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? creditId = null,Object? sourceAccountId = null,Object? scheduleItemId = freezed,Object? paidAt = null,Object? totalOutflow = null,Object? principalPaid = null,Object? interestPaid = null,Object? feesPaid = null,Object? note = freezed,Object? idempotencyKey = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,Object? isDeleted = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,creditId: null == creditId ? _self.creditId : creditId // ignore: cast_nullable_to_non_nullable
@@ -75,7 +75,10 @@ as Money,interestPaid: null == interestPaid ? _self.interestPaid : interestPaid 
 as Money,feesPaid: null == feesPaid ? _self.feesPaid : feesPaid // ignore: cast_nullable_to_non_nullable
 as Money,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
 as String?,idempotencyKey: freezed == idempotencyKey ? _self.idempotencyKey : idempotencyKey // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,isDeleted: null == isDeleted ? _self.isDeleted : isDeleted // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -160,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String creditId,  String sourceAccountId,  String? scheduleItemId,  DateTime paidAt,  Money totalOutflow,  Money principalPaid,  Money interestPaid,  Money feesPaid,  String? note,  String? idempotencyKey)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String creditId,  String sourceAccountId,  String? scheduleItemId,  DateTime paidAt,  Money totalOutflow,  Money principalPaid,  Money interestPaid,  Money feesPaid,  String? note,  String? idempotencyKey,  DateTime? createdAt,  DateTime? updatedAt,  bool isDeleted)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CreditPaymentGroupEntity() when $default != null:
-return $default(_that.id,_that.creditId,_that.sourceAccountId,_that.scheduleItemId,_that.paidAt,_that.totalOutflow,_that.principalPaid,_that.interestPaid,_that.feesPaid,_that.note,_that.idempotencyKey);case _:
+return $default(_that.id,_that.creditId,_that.sourceAccountId,_that.scheduleItemId,_that.paidAt,_that.totalOutflow,_that.principalPaid,_that.interestPaid,_that.feesPaid,_that.note,_that.idempotencyKey,_that.createdAt,_that.updatedAt,_that.isDeleted);case _:
   return orElse();
 
 }
@@ -181,10 +184,10 @@ return $default(_that.id,_that.creditId,_that.sourceAccountId,_that.scheduleItem
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String creditId,  String sourceAccountId,  String? scheduleItemId,  DateTime paidAt,  Money totalOutflow,  Money principalPaid,  Money interestPaid,  Money feesPaid,  String? note,  String? idempotencyKey)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String creditId,  String sourceAccountId,  String? scheduleItemId,  DateTime paidAt,  Money totalOutflow,  Money principalPaid,  Money interestPaid,  Money feesPaid,  String? note,  String? idempotencyKey,  DateTime? createdAt,  DateTime? updatedAt,  bool isDeleted)  $default,) {final _that = this;
 switch (_that) {
 case _CreditPaymentGroupEntity():
-return $default(_that.id,_that.creditId,_that.sourceAccountId,_that.scheduleItemId,_that.paidAt,_that.totalOutflow,_that.principalPaid,_that.interestPaid,_that.feesPaid,_that.note,_that.idempotencyKey);case _:
+return $default(_that.id,_that.creditId,_that.sourceAccountId,_that.scheduleItemId,_that.paidAt,_that.totalOutflow,_that.principalPaid,_that.interestPaid,_that.feesPaid,_that.note,_that.idempotencyKey,_that.createdAt,_that.updatedAt,_that.isDeleted);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -201,10 +204,10 @@ return $default(_that.id,_that.creditId,_that.sourceAccountId,_that.scheduleItem
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String creditId,  String sourceAccountId,  String? scheduleItemId,  DateTime paidAt,  Money totalOutflow,  Money principalPaid,  Money interestPaid,  Money feesPaid,  String? note,  String? idempotencyKey)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String creditId,  String sourceAccountId,  String? scheduleItemId,  DateTime paidAt,  Money totalOutflow,  Money principalPaid,  Money interestPaid,  Money feesPaid,  String? note,  String? idempotencyKey,  DateTime? createdAt,  DateTime? updatedAt,  bool isDeleted)?  $default,) {final _that = this;
 switch (_that) {
 case _CreditPaymentGroupEntity() when $default != null:
-return $default(_that.id,_that.creditId,_that.sourceAccountId,_that.scheduleItemId,_that.paidAt,_that.totalOutflow,_that.principalPaid,_that.interestPaid,_that.feesPaid,_that.note,_that.idempotencyKey);case _:
+return $default(_that.id,_that.creditId,_that.sourceAccountId,_that.scheduleItemId,_that.paidAt,_that.totalOutflow,_that.principalPaid,_that.interestPaid,_that.feesPaid,_that.note,_that.idempotencyKey,_that.createdAt,_that.updatedAt,_that.isDeleted);case _:
   return null;
 
 }
@@ -216,7 +219,7 @@ return $default(_that.id,_that.creditId,_that.sourceAccountId,_that.scheduleItem
 
 
 class _CreditPaymentGroupEntity implements CreditPaymentGroupEntity {
-  const _CreditPaymentGroupEntity({required this.id, required this.creditId, required this.sourceAccountId, this.scheduleItemId, required this.paidAt, required this.totalOutflow, required this.principalPaid, required this.interestPaid, required this.feesPaid, this.note, this.idempotencyKey});
+  const _CreditPaymentGroupEntity({required this.id, required this.creditId, required this.sourceAccountId, this.scheduleItemId, required this.paidAt, required this.totalOutflow, required this.principalPaid, required this.interestPaid, required this.feesPaid, this.note, this.idempotencyKey, this.createdAt, this.updatedAt, this.isDeleted = false});
   
 
 @override final  String id;
@@ -230,6 +233,9 @@ class _CreditPaymentGroupEntity implements CreditPaymentGroupEntity {
 @override final  Money feesPaid;
 @override final  String? note;
 @override final  String? idempotencyKey;
+@override final  DateTime? createdAt;
+@override final  DateTime? updatedAt;
+@override@JsonKey() final  bool isDeleted;
 
 /// Create a copy of CreditPaymentGroupEntity
 /// with the given fields replaced by the non-null parameter values.
@@ -241,16 +247,16 @@ _$CreditPaymentGroupEntityCopyWith<_CreditPaymentGroupEntity> get copyWith => __
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreditPaymentGroupEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.creditId, creditId) || other.creditId == creditId)&&(identical(other.sourceAccountId, sourceAccountId) || other.sourceAccountId == sourceAccountId)&&(identical(other.scheduleItemId, scheduleItemId) || other.scheduleItemId == scheduleItemId)&&(identical(other.paidAt, paidAt) || other.paidAt == paidAt)&&(identical(other.totalOutflow, totalOutflow) || other.totalOutflow == totalOutflow)&&(identical(other.principalPaid, principalPaid) || other.principalPaid == principalPaid)&&(identical(other.interestPaid, interestPaid) || other.interestPaid == interestPaid)&&(identical(other.feesPaid, feesPaid) || other.feesPaid == feesPaid)&&(identical(other.note, note) || other.note == note)&&(identical(other.idempotencyKey, idempotencyKey) || other.idempotencyKey == idempotencyKey));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CreditPaymentGroupEntity&&(identical(other.id, id) || other.id == id)&&(identical(other.creditId, creditId) || other.creditId == creditId)&&(identical(other.sourceAccountId, sourceAccountId) || other.sourceAccountId == sourceAccountId)&&(identical(other.scheduleItemId, scheduleItemId) || other.scheduleItemId == scheduleItemId)&&(identical(other.paidAt, paidAt) || other.paidAt == paidAt)&&(identical(other.totalOutflow, totalOutflow) || other.totalOutflow == totalOutflow)&&(identical(other.principalPaid, principalPaid) || other.principalPaid == principalPaid)&&(identical(other.interestPaid, interestPaid) || other.interestPaid == interestPaid)&&(identical(other.feesPaid, feesPaid) || other.feesPaid == feesPaid)&&(identical(other.note, note) || other.note == note)&&(identical(other.idempotencyKey, idempotencyKey) || other.idempotencyKey == idempotencyKey)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.isDeleted, isDeleted) || other.isDeleted == isDeleted));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,id,creditId,sourceAccountId,scheduleItemId,paidAt,totalOutflow,principalPaid,interestPaid,feesPaid,note,idempotencyKey);
+int get hashCode => Object.hash(runtimeType,id,creditId,sourceAccountId,scheduleItemId,paidAt,totalOutflow,principalPaid,interestPaid,feesPaid,note,idempotencyKey,createdAt,updatedAt,isDeleted);
 
 @override
 String toString() {
-  return 'CreditPaymentGroupEntity(id: $id, creditId: $creditId, sourceAccountId: $sourceAccountId, scheduleItemId: $scheduleItemId, paidAt: $paidAt, totalOutflow: $totalOutflow, principalPaid: $principalPaid, interestPaid: $interestPaid, feesPaid: $feesPaid, note: $note, idempotencyKey: $idempotencyKey)';
+  return 'CreditPaymentGroupEntity(id: $id, creditId: $creditId, sourceAccountId: $sourceAccountId, scheduleItemId: $scheduleItemId, paidAt: $paidAt, totalOutflow: $totalOutflow, principalPaid: $principalPaid, interestPaid: $interestPaid, feesPaid: $feesPaid, note: $note, idempotencyKey: $idempotencyKey, createdAt: $createdAt, updatedAt: $updatedAt, isDeleted: $isDeleted)';
 }
 
 
@@ -261,7 +267,7 @@ abstract mixin class _$CreditPaymentGroupEntityCopyWith<$Res> implements $Credit
   factory _$CreditPaymentGroupEntityCopyWith(_CreditPaymentGroupEntity value, $Res Function(_CreditPaymentGroupEntity) _then) = __$CreditPaymentGroupEntityCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String creditId, String sourceAccountId, String? scheduleItemId, DateTime paidAt, Money totalOutflow, Money principalPaid, Money interestPaid, Money feesPaid, String? note, String? idempotencyKey
+ String id, String creditId, String sourceAccountId, String? scheduleItemId, DateTime paidAt, Money totalOutflow, Money principalPaid, Money interestPaid, Money feesPaid, String? note, String? idempotencyKey, DateTime? createdAt, DateTime? updatedAt, bool isDeleted
 });
 
 
@@ -278,7 +284,7 @@ class __$CreditPaymentGroupEntityCopyWithImpl<$Res>
 
 /// Create a copy of CreditPaymentGroupEntity
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? creditId = null,Object? sourceAccountId = null,Object? scheduleItemId = freezed,Object? paidAt = null,Object? totalOutflow = null,Object? principalPaid = null,Object? interestPaid = null,Object? feesPaid = null,Object? note = freezed,Object? idempotencyKey = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? creditId = null,Object? sourceAccountId = null,Object? scheduleItemId = freezed,Object? paidAt = null,Object? totalOutflow = null,Object? principalPaid = null,Object? interestPaid = null,Object? feesPaid = null,Object? note = freezed,Object? idempotencyKey = freezed,Object? createdAt = freezed,Object? updatedAt = freezed,Object? isDeleted = null,}) {
   return _then(_CreditPaymentGroupEntity(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,creditId: null == creditId ? _self.creditId : creditId // ignore: cast_nullable_to_non_nullable
@@ -291,7 +297,10 @@ as Money,interestPaid: null == interestPaid ? _self.interestPaid : interestPaid 
 as Money,feesPaid: null == feesPaid ? _self.feesPaid : feesPaid // ignore: cast_nullable_to_non_nullable
 as Money,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
 as String?,idempotencyKey: freezed == idempotencyKey ? _self.idempotencyKey : idempotencyKey // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,isDeleted: null == isDeleted ? _self.isDeleted : isDeleted // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 

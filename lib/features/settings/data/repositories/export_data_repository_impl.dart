@@ -8,9 +8,12 @@ import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/credits/data/sources/local/credit_card_dao.dart';
 import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
 import 'package:kopim/features/credits/data/sources/local/debt_dao.dart';
+import 'package:kopim/features/credits/data/sources/local/credit_payment_dao.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_group.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.dart';
 import 'package:kopim/features/profile/data/local/profile_dao.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/domain/entities/user_progress.dart';
@@ -43,6 +46,7 @@ class ExportDataRepositoryImpl implements ExportDataRepository {
     required CreditDao creditDao,
     required CreditCardDao creditCardDao,
     required DebtDao debtDao,
+    required CreditPaymentDao creditPaymentDao,
     required BudgetDao budgetDao,
     required BudgetInstanceDao budgetInstanceDao,
     required SavingGoalDao savingGoalDao,
@@ -60,6 +64,7 @@ class ExportDataRepositoryImpl implements ExportDataRepository {
        _creditDao = creditDao,
        _creditCardDao = creditCardDao,
        _debtDao = debtDao,
+       _creditPaymentDao = creditPaymentDao,
        _budgetDao = budgetDao,
        _budgetInstanceDao = budgetInstanceDao,
        _savingGoalDao = savingGoalDao,
@@ -78,6 +83,7 @@ class ExportDataRepositoryImpl implements ExportDataRepository {
   final CreditDao _creditDao;
   final CreditCardDao _creditCardDao;
   final DebtDao _debtDao;
+  final CreditPaymentDao _creditPaymentDao;
   final BudgetDao _budgetDao;
   final BudgetInstanceDao _budgetInstanceDao;
   final SavingGoalDao _savingGoalDao;
@@ -155,6 +161,16 @@ class ExportDataRepositoryImpl implements ExportDataRepository {
   }
 
   @override
+  Future<List<CreditPaymentGroupEntity>> fetchCreditPaymentGroups() {
+    return _creditPaymentDao.getAllPaymentGroups();
+  }
+
+  @override
+  Future<List<CreditPaymentScheduleEntity>> fetchCreditPaymentSchedules() {
+    return _creditPaymentDao.getAllScheduleItems();
+  }
+
+  @override
   Future<List<Budget>> fetchBudgets() {
     return _budgetDao.getAllBudgets();
   }
@@ -187,6 +203,8 @@ class ExportDataRepositoryImpl implements ExportDataRepository {
   Future<UserProgress> fetchProgress() async {
     final int totalTx = await _transactionDao.countActiveTransactions();
     final int level = _levelPolicy.levelFor(totalTx);
+    // Export сохраняет derived snapshot прогресса для переносимости/диагностики,
+    // но каноника для него остаётся локальный набор транзакций.
     return UserProgress(
       totalTx: totalTx,
       level: level,

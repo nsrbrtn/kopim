@@ -61,6 +61,8 @@ class RecomputeUserProgressUseCase {
       final ProgressSnapshot? remote = await _repository.fetchRemoteProgress(
         uid,
       );
+      // Remote progress остаётся только best-effort max counter, поэтому
+      // локальная производная статистика не заменяется облачным значением.
       final int resolvedTotal = max(localCount, remote?.totalTx ?? 0);
       if (remote == null || remote.totalTx != resolvedTotal) {
         await _repository.saveRemoteProgress(

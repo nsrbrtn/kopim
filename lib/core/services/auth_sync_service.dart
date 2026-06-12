@@ -15,6 +15,8 @@ import 'package:kopim/core/money/money.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
+import 'package:kopim/core/services/sync/local_sync_integrity_debug_reporter.dart';
+import 'package:kopim/core/services/sync/local_sync_integrity_diagnostics_service.dart';
 import 'package:kopim/core/services/sync/sync_data_sanitizer.dart';
 import 'package:kopim/features/accounts/data/services/account_type_backfill_service.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
@@ -29,6 +31,7 @@ import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/categories/data/sources/local/category_dao.dart';
 import 'package:kopim/features/categories/data/sources/remote/category_remote_data_source.dart';
 import 'package:kopim/features/savings/data/mappers/saving_goal_storage_accounts_mapper.dart';
+import 'package:kopim/features/savings/data/services/goal_contribution_rebuild_service.dart';
 import 'package:kopim/features/savings/data/sources/local/goal_account_link_dao.dart';
 import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
 import 'package:kopim/features/savings/data/sources/remote/saving_goal_remote_data_source.dart';
@@ -46,11 +49,16 @@ import 'package:kopim/features/tags/domain/entities/transaction_tag.dart';
 import 'package:kopim/features/credits/data/sources/local/credit_card_dao.dart';
 import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
 import 'package:kopim/features/credits/data/sources/local/debt_dao.dart';
+import 'package:kopim/features/credits/data/sources/local/credit_payment_dao.dart';
 import 'package:kopim/features/credits/data/sources/remote/credit_card_remote_data_source.dart';
+import 'package:kopim/features/credits/data/sources/remote/credit_payment_group_remote_data_source.dart';
+import 'package:kopim/features/credits/data/sources/remote/credit_payment_schedule_remote_data_source.dart';
 import 'package:kopim/features/credits/data/sources/remote/credit_remote_data_source.dart';
 import 'package:kopim/features/credits/data/sources/remote/debt_remote_data_source.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_group.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/daos/payment_reminders_dao.dart';
 import 'package:kopim/features/upcoming_payments/data/drift/daos/upcoming_payments_dao.dart';
@@ -77,6 +85,7 @@ class AuthSyncService {
     required CreditCardDao creditCardDao,
     required CreditDao creditDao,
     required DebtDao debtDao,
+    required CreditPaymentDao creditPaymentDao,
     required BudgetDao budgetDao,
     required BudgetInstanceDao budgetInstanceDao,
     required SavingGoalDao savingGoalDao,
@@ -91,6 +100,10 @@ class AuthSyncService {
     required CreditCardRemoteDataSource creditCardRemoteDataSource,
     required CreditRemoteDataSource creditRemoteDataSource,
     required DebtRemoteDataSource debtRemoteDataSource,
+    required CreditPaymentGroupRemoteDataSource
+    creditPaymentGroupRemoteDataSource,
+    required CreditPaymentScheduleRemoteDataSource
+    creditPaymentScheduleRemoteDataSource,
     required BudgetRemoteDataSource budgetRemoteDataSource,
     required BudgetInstanceRemoteDataSource budgetInstanceRemoteDataSource,
     required SavingGoalRemoteDataSource savingGoalRemoteDataSource,
@@ -103,6 +116,9 @@ class AuthSyncService {
     required AnalyticsService analyticsService,
     required SyncDataSanitizer dataSanitizer,
     AccountTypeBackfillService? accountTypeBackfillService,
+    GoalContributionRebuildService? goalContributionRebuildService,
+    LocalSyncIntegrityDiagnosticsService? integrityDiagnosticsService,
+    LocalSyncIntegrityDebugReporter? integrityDebugReporter,
     OutboxPayloadNormalizer payloadNormalizer = const OutboxPayloadNormalizer(),
   }) : _database = database,
        _outboxDao = outboxDao,
@@ -114,6 +130,7 @@ class AuthSyncService {
        _creditCardDao = creditCardDao,
        _creditDao = creditDao,
        _debtDao = debtDao,
+       _creditPaymentDao = creditPaymentDao,
        _budgetDao = budgetDao,
        _budgetInstanceDao = budgetInstanceDao,
        _savingGoalDao = savingGoalDao,
@@ -129,6 +146,9 @@ class AuthSyncService {
        _creditCardRemoteDataSource = creditCardRemoteDataSource,
        _creditRemoteDataSource = creditRemoteDataSource,
        _debtRemoteDataSource = debtRemoteDataSource,
+       _creditPaymentGroupRemoteDataSource = creditPaymentGroupRemoteDataSource,
+       _creditPaymentScheduleRemoteDataSource =
+           creditPaymentScheduleRemoteDataSource,
        _budgetRemoteDataSource = budgetRemoteDataSource,
        _budgetInstanceRemoteDataSource = budgetInstanceRemoteDataSource,
        _savingGoalRemoteDataSource = savingGoalRemoteDataSource,
@@ -139,8 +159,25 @@ class AuthSyncService {
        _logger = loggerService,
        _analyticsService = analyticsService,
        _accountTypeBackfillService = accountTypeBackfillService,
+       _goalContributionRebuildService =
+           goalContributionRebuildService ??
+           GoalContributionRebuildService(database),
+       _integrityDiagnosticsService =
+           integrityDiagnosticsService ??
+           LocalSyncIntegrityDiagnosticsService(database),
+       _integrityDebugReporter =
+           integrityDebugReporter ??
+           LocalSyncIntegrityDebugReporter(
+             diagnosticsService:
+                 integrityDiagnosticsService ??
+                 LocalSyncIntegrityDiagnosticsService(database),
+             formatter: const LocalSyncIntegrityReportFormatter(),
+             logger: loggerService,
+           ),
        _dataSanitizer = dataSanitizer,
        _payloadNormalizer = payloadNormalizer;
+
+  static const Duration _staleSendingRecoveryWindow = Duration(minutes: 5);
 
   static const int _outboxBatchSize = 500;
 
@@ -154,6 +191,7 @@ class AuthSyncService {
   final CreditCardDao _creditCardDao;
   final CreditDao _creditDao;
   final DebtDao _debtDao;
+  final CreditPaymentDao _creditPaymentDao;
   final BudgetDao _budgetDao;
   final BudgetInstanceDao _budgetInstanceDao;
   final SavingGoalDao _savingGoalDao;
@@ -168,6 +206,9 @@ class AuthSyncService {
   final CreditCardRemoteDataSource _creditCardRemoteDataSource;
   final CreditRemoteDataSource _creditRemoteDataSource;
   final DebtRemoteDataSource _debtRemoteDataSource;
+  final CreditPaymentGroupRemoteDataSource _creditPaymentGroupRemoteDataSource;
+  final CreditPaymentScheduleRemoteDataSource
+  _creditPaymentScheduleRemoteDataSource;
   final BudgetRemoteDataSource _budgetRemoteDataSource;
   final BudgetInstanceRemoteDataSource _budgetInstanceRemoteDataSource;
   final SavingGoalRemoteDataSource _savingGoalRemoteDataSource;
@@ -179,6 +220,9 @@ class AuthSyncService {
   final LoggerService _logger;
   final AnalyticsService _analyticsService;
   final AccountTypeBackfillService? _accountTypeBackfillService;
+  final GoalContributionRebuildService _goalContributionRebuildService;
+  final LocalSyncIntegrityDiagnosticsService _integrityDiagnosticsService;
+  final LocalSyncIntegrityDebugReporter _integrityDebugReporter;
   final OutboxPayloadNormalizer _payloadNormalizer;
   final SyncDataSanitizer _dataSanitizer;
 
@@ -232,6 +276,7 @@ class AuthSyncService {
           ...backfillEntries,
         ];
       }
+      await _runIntegrityDiagnostics(context: 'auth_sync');
       await _analyticsService.logEvent('auth_sync_success', <String, dynamic>{
         ...syncContext,
         'pendingEntries': preparedEntries.length,
@@ -241,6 +286,9 @@ class AuthSyncService {
         'remoteCredits': remoteSnapshot.credits.length,
         'remoteCreditCards': remoteSnapshot.creditCards.length,
         'remoteDebts': remoteSnapshot.debts.length,
+        'remoteCreditPaymentGroups': remoteSnapshot.creditPaymentGroups.length,
+        'remoteCreditPaymentSchedules':
+            remoteSnapshot.creditPaymentSchedules.length,
         'remoteBudgets': remoteSnapshot.budgets.length,
         'remoteBudgetInstances': remoteSnapshot.budgetInstances.length,
         'remoteSavingGoals': remoteSnapshot.savingGoals.length,
@@ -254,6 +302,9 @@ class AuthSyncService {
         'Credits: ${remoteSnapshot.credits.length}, '
         'Credit cards: ${remoteSnapshot.creditCards.length}, '
         'Debts: ${remoteSnapshot.debts.length}, '
+        'Credit payment groups: ${remoteSnapshot.creditPaymentGroups.length}, '
+        'Credit payment schedules: '
+        '${remoteSnapshot.creditPaymentSchedules.length}, '
         'Budgets: ${remoteSnapshot.budgets.length}, '
         'Savings goals: ${remoteSnapshot.savingGoals.length}, '
         'Recurring payments: ${remoteSnapshot.upcomingPayments.length}.',
@@ -278,6 +329,69 @@ class AuthSyncService {
     } finally {
       _inProgress = false;
     }
+  }
+
+  Future<void> _runIntegrityDiagnostics({required String context}) async {
+    final LocalSyncIntegrityReport report = await _integrityDiagnosticsService
+        .run();
+    _integrityDebugReporter.logReport(context: context, report: report);
+    if (!report.hasIssues) {
+      _logger.logInfo(
+        'AuthSyncService: integrity diagnostics clean after $context.',
+      );
+      return;
+    }
+    _logger.logError(
+      'AuthSyncService: integrity diagnostics found ${report.issueCount} issue(s) '
+      'after $context.',
+    );
+    await _analyticsService.logEvent('local_db_integrity_issues', <
+      String,
+      dynamic
+    >{
+      'context': context,
+      'dbSchemaVersion': _database.schemaVersion,
+      'issueCount': report.issueCount,
+      'distinctTypes': report.issues
+          .map((LocalSyncIntegrityIssue issue) => issue.type)
+          .toSet()
+          .length,
+      'staleSending': report.countByType(
+        LocalSyncIntegrityIssueType.staleSendingOutbox,
+      ),
+      'unsupportedOutbox': report.countByType(
+        LocalSyncIntegrityIssueType.unsupportedOutboxEntityType,
+      ),
+      'orphanTransactions':
+          report.countByType(
+            LocalSyncIntegrityIssueType.orphanTransactionAccount,
+          ) +
+          report.countByType(
+            LocalSyncIntegrityIssueType.orphanTransactionCategory,
+          ) +
+          report.countByType(LocalSyncIntegrityIssueType.invalidTransferLink),
+      'accountBalances': report.countByType(
+        LocalSyncIntegrityIssueType.accountBalanceMismatch,
+      ),
+      'savingGoals':
+          report.countByType(
+            LocalSyncIntegrityIssueType.invalidSavingGoalLink,
+          ) +
+          report.countByType(
+            LocalSyncIntegrityIssueType.savingGoalCurrentAmountMismatch,
+          ) +
+          report.countByType(
+            LocalSyncIntegrityIssueType.savingGoalMissingStorageAccount,
+          ),
+      'creditArtifacts':
+          report.countByType(
+            LocalSyncIntegrityIssueType.invalidCreditGroupLink,
+          ) +
+          report.countByType(LocalSyncIntegrityIssueType.invalidCreditSchedule),
+      'moneyFields': report.countByType(
+        LocalSyncIntegrityIssueType.invalidMoneyField,
+      ),
+    });
   }
 
   Future<List<db.OutboxEntryRow>> _runDeferredAccountTypeBackfill(
@@ -327,6 +441,9 @@ class AuthSyncService {
 
   Future<List<db.OutboxEntryRow>> _preparePendingEntries() async {
     return _database.transaction(() async {
+      await _outboxDao.resetStaleSendingToPending(
+        cutoff: DateTime.now().subtract(_staleSendingRecoveryWindow),
+      );
       final List<OutboxEntryRow> pending = await _outboxDao.fetchPending(
         limit: _outboxBatchSize,
       );
@@ -532,6 +649,40 @@ class AuthSyncService {
               );
             }
             break;
+          case 'credit_payment_group':
+            final CreditPaymentGroupEntity group = _groupFromPayload(payload);
+            if (operation == OutboxOperation.delete) {
+              _creditPaymentGroupRemoteDataSource.deleteInTransaction(
+                transaction,
+                userId,
+                group.copyWith(isDeleted: true),
+              );
+            } else {
+              _creditPaymentGroupRemoteDataSource.upsertInTransaction(
+                transaction,
+                userId,
+                group.copyWith(isDeleted: false),
+              );
+            }
+            break;
+          case 'credit_payment_schedule':
+            final CreditPaymentScheduleEntity schedule = _scheduleFromPayload(
+              payload,
+            );
+            if (operation == OutboxOperation.delete) {
+              _creditPaymentScheduleRemoteDataSource.deleteInTransaction(
+                transaction,
+                userId,
+                schedule.copyWith(isDeleted: true),
+              );
+            } else {
+              _creditPaymentScheduleRemoteDataSource.upsertInTransaction(
+                transaction,
+                userId,
+                schedule.copyWith(isDeleted: false),
+              );
+            }
+            break;
           case 'profile':
             if (operation == OutboxOperation.delete) {
               continue;
@@ -727,6 +878,10 @@ class AuthSyncService {
         return userRef.collection('credit_cards').doc(entityId);
       case 'debt':
         return userRef.collection('debts').doc(entityId);
+      case 'credit_payment_group':
+        return userRef.collection('credit_payment_groups').doc(entityId);
+      case 'credit_payment_schedule':
+        return userRef.collection('credit_payment_schedules').doc(entityId);
       case 'budget':
         return userRef.collection('budgets').doc(entityId);
       case 'budget_instance':
@@ -857,6 +1012,86 @@ class AuthSyncService {
     );
   }
 
+  CreditPaymentGroupEntity _groupFromPayload(Map<String, dynamic> payload) {
+    final int scale = _readInt(payload['totalOutflowScale']) ?? 2;
+    return CreditPaymentGroupEntity(
+      id: payload['id'] as String? ?? '',
+      creditId: payload['creditId'] as String? ?? '',
+      sourceAccountId: payload['sourceAccountId'] as String? ?? '',
+      scheduleItemId: payload['scheduleItemId'] as String?,
+      paidAt: _coerceDateTime(payload['paidAt']) ?? DateTime.now().toUtc(),
+      totalOutflow: Money.fromMinor(
+        _readBigInt(payload['totalOutflowMinor']) ?? BigInt.zero,
+        currency: 'XXX',
+        scale: scale,
+      ),
+      principalPaid: Money.fromMinor(
+        _readBigInt(payload['principalPaidMinor']) ?? BigInt.zero,
+        currency: 'XXX',
+        scale: scale,
+      ),
+      interestPaid: Money.fromMinor(
+        _readBigInt(payload['interestPaidMinor']) ?? BigInt.zero,
+        currency: 'XXX',
+        scale: scale,
+      ),
+      feesPaid: Money.fromMinor(
+        _readBigInt(payload['feesPaidMinor']) ?? BigInt.zero,
+        currency: 'XXX',
+        scale: scale,
+      ),
+      note: payload['note'] as String?,
+      idempotencyKey: payload['idempotencyKey'] as String?,
+      createdAt: _coerceDateTime(payload['createdAt']),
+      updatedAt: _coerceDateTime(payload['updatedAt']),
+      isDeleted: payload['isDeleted'] as bool? ?? false,
+    );
+  }
+
+  CreditPaymentScheduleEntity _scheduleFromPayload(
+    Map<String, dynamic> payload,
+  ) {
+    final int scale = _readInt(payload['amountScale']) ?? 2;
+    return CreditPaymentScheduleEntity(
+      id: payload['id'] as String? ?? '',
+      creditId: payload['creditId'] as String? ?? '',
+      periodKey: payload['periodKey'] as String? ?? '',
+      dueDate: _coerceDateTime(payload['dueDate']) ?? DateTime.now().toUtc(),
+      status: CreditPaymentStatus.values.byName(
+        payload['status'] as String? ?? CreditPaymentStatus.planned.name,
+      ),
+      principalAmount: Money.fromMinor(
+        _readBigInt(payload['principalAmountMinor']) ?? BigInt.zero,
+        currency: 'XXX',
+        scale: scale,
+      ),
+      interestAmount: Money.fromMinor(
+        _readBigInt(payload['interestAmountMinor']) ?? BigInt.zero,
+        currency: 'XXX',
+        scale: scale,
+      ),
+      totalAmount: Money.fromMinor(
+        _readBigInt(payload['totalAmountMinor']) ?? BigInt.zero,
+        currency: 'XXX',
+        scale: scale,
+      ),
+      principalPaid: Money.fromMinor(
+        _readBigInt(payload['principalPaidMinor']) ?? BigInt.zero,
+        currency: 'XXX',
+        scale: scale,
+      ),
+      interestPaid: Money.fromMinor(
+        _readBigInt(payload['interestPaidMinor']) ?? BigInt.zero,
+        currency: 'XXX',
+        scale: scale,
+      ),
+      paidAt: _coerceDateTime(payload['paidAt']),
+      createdAt: _coerceDateTime(payload['createdAt']),
+      updatedAt: _coerceDateTime(payload['updatedAt']),
+      isDeleted: payload['isDeleted'] as bool? ?? false,
+    );
+  }
+
   Budget _applyBudgetMoney(Budget budget, Map<String, dynamic> payload) {
     return budget.copyWith(
       amountMinor: _readBigInt(payload['amountMinor']),
@@ -920,6 +1155,8 @@ class AuthSyncService {
       _creditRemoteDataSource.fetchAll(userId),
       _creditCardRemoteDataSource.fetchAll(userId),
       _debtRemoteDataSource.fetchAll(userId),
+      _creditPaymentGroupRemoteDataSource.fetchAll(userId),
+      _creditPaymentScheduleRemoteDataSource.fetchAll(userId),
       _budgetRemoteDataSource.fetchAll(userId),
       _budgetInstanceRemoteDataSource.fetchAll(userId),
       _savingGoalRemoteDataSource.fetchAll(userId),
@@ -936,11 +1173,13 @@ class AuthSyncService {
       credits: results[5] as List<CreditEntity>,
       creditCards: results[6] as List<CreditCardEntity>,
       debts: results[7] as List<DebtEntity>,
-      budgets: results[8] as List<Budget>,
-      budgetInstances: results[9] as List<BudgetInstance>,
-      savingGoals: results[10] as List<SavingGoal>,
-      upcomingPayments: results[11] as List<UpcomingPayment>,
-      paymentReminders: results[12] as List<PaymentReminder>,
+      creditPaymentGroups: results[8] as List<CreditPaymentGroupEntity>,
+      creditPaymentSchedules: results[9] as List<CreditPaymentScheduleEntity>,
+      budgets: results[10] as List<Budget>,
+      budgetInstances: results[11] as List<BudgetInstance>,
+      savingGoals: results[12] as List<SavingGoal>,
+      upcomingPayments: results[13] as List<UpcomingPayment>,
+      paymentReminders: results[14] as List<PaymentReminder>,
       profile: profile,
     );
   }
@@ -958,7 +1197,7 @@ class AuthSyncService {
     await _database.transaction(() async {
       if (processedIds.isNotEmpty) {
         await _outboxDao.markBatchAsSent(processedIds);
-        await _outboxDao.clearSent();
+        await _outboxDao.pruneSent();
       }
 
       final List<AccountEntity> localAccounts = await _accountDao
@@ -982,6 +1221,10 @@ class AuthSyncService {
       final List<DebtEntity> localDebts = (await _debtDao.getAllDebts())
           .map(_debtDao.mapRowToEntity)
           .toList();
+      final List<CreditPaymentGroupEntity> localCreditPaymentGroups =
+          await _creditPaymentDao.getAllPaymentGroups();
+      final List<CreditPaymentScheduleEntity> localCreditPaymentSchedules =
+          await _creditPaymentDao.getAllScheduleItems();
       final List<Budget> localBudgets = await _budgetDao.getAllBudgets();
       final List<BudgetInstance> localBudgetInstances = await _budgetInstanceDao
           .getAllInstances();
@@ -1051,6 +1294,22 @@ class AuthSyncService {
         getId: (DebtEntity entity) => entity.id,
         getUpdatedAt: (DebtEntity entity) => entity.updatedAt,
       );
+      final List<CreditPaymentGroupEntity> mergedCreditPaymentGroups =
+          _mergeEntities<CreditPaymentGroupEntity>(
+            local: localCreditPaymentGroups,
+            remote: remoteSnapshot.creditPaymentGroups,
+            getId: (CreditPaymentGroupEntity entity) => entity.id,
+            getUpdatedAt: (CreditPaymentGroupEntity entity) =>
+                entity.updatedAt ?? entity.createdAt ?? entity.paidAt,
+          );
+      final List<CreditPaymentScheduleEntity> mergedCreditPaymentSchedules =
+          _mergeEntities<CreditPaymentScheduleEntity>(
+            local: localCreditPaymentSchedules,
+            remote: remoteSnapshot.creditPaymentSchedules,
+            getId: (CreditPaymentScheduleEntity entity) => entity.id,
+            getUpdatedAt: (CreditPaymentScheduleEntity entity) =>
+                entity.updatedAt ?? entity.createdAt ?? entity.dueDate,
+          );
       final List<Budget> mergedBudgets = _mergeEntities<Budget>(
         local: localBudgets,
         remote: remoteSnapshot.budgets,
@@ -1146,9 +1405,42 @@ class AuthSyncService {
         final Set<String> validSavingGoalIds = mergedSavingGoals
             .map((SavingGoal e) => e.id)
             .toSet();
-        final Set<String> validPaymentGroupIds = (await (_database.select(
-          _database.creditPaymentGroups,
-        )).get()).map((db.CreditPaymentGroupRow row) => row.id).toSet();
+
+        final Set<String> validCreditIds = sanitizedCredits
+            .map((CreditEntity e) => e.id)
+            .toSet();
+        final List<CreditPaymentScheduleEntity>
+        sanitizedCreditPaymentSchedules = _dataSanitizer
+            .sanitizeCreditPaymentSchedules(
+              schedules: mergedCreditPaymentSchedules,
+              validCreditIds: validCreditIds,
+            );
+        await _creditPaymentDao.upsertSchedule(sanitizedCreditPaymentSchedules);
+
+        final Set<String> validScheduleIds = sanitizedCreditPaymentSchedules
+            .where((CreditPaymentScheduleEntity e) => !e.isDeleted)
+            .map((CreditPaymentScheduleEntity e) => e.id)
+            .toSet();
+        final List<CreditPaymentGroupEntity> sanitizedCreditPaymentGroups =
+            _dataSanitizer.sanitizeCreditPaymentGroups(
+              groups: mergedCreditPaymentGroups,
+              validCreditIds: validCreditIds,
+              validAccountIds: validAccountIds,
+              validScheduleIds: validScheduleIds,
+            );
+        await _creditPaymentDao.upsertPaymentGroups(
+          sanitizedCreditPaymentGroups,
+        );
+
+        final Set<String> validPaymentGroupIds = sanitizedCreditPaymentGroups
+            .where((CreditPaymentGroupEntity e) => !e.isDeleted)
+            .map((CreditPaymentGroupEntity e) => e.id)
+            .toSet();
+
+        _assertResolvableCreditPaymentLinks(
+          transactions: normalizedTransactions,
+          validPaymentGroupIds: validPaymentGroupIds,
+        );
 
         // Tier 3: Core Entities (Transactions, Rules, Budgets)
         // Sanitize transactions
@@ -1186,6 +1478,7 @@ class AuthSyncService {
               validTagIds: validTagIds,
             );
         await _transactionTagsDao.upsertAll(sanitizedTransactionTags);
+        await _goalContributionRebuildService.rebuild();
 
         for (final UpcomingPayment payment in sanitizedUpcomingPayments) {
           await _upcomingPaymentsDao.upsert(payment);
@@ -1780,6 +2073,35 @@ class AuthSyncService {
         .map((MapEntry<String, int> entry) => '${entry.key}(${entry.value})')
         .join(', ');
   }
+
+  void _assertResolvableCreditPaymentLinks({
+    required List<TransactionEntity> transactions,
+    required Set<String> validPaymentGroupIds,
+  }) {
+    final List<TransactionEntity> unresolved = transactions
+        .where(
+          (TransactionEntity transaction) =>
+              !transaction.isDeleted &&
+              transaction.groupId != null &&
+              !validPaymentGroupIds.contains(transaction.groupId),
+        )
+        .toList(growable: false);
+    if (unresolved.isEmpty) {
+      return;
+    }
+
+    final String sample = unresolved
+        .take(3)
+        .map(
+          (TransactionEntity transaction) =>
+              '${transaction.id}:${transaction.groupId}',
+        )
+        .join(', ');
+    throw StateError(
+      'Login sync получил active transactions с отсутствующими '
+      'credit_payment_groups. Примеры: $sample',
+    );
+  }
 }
 
 class _CategorySanitizationResult {
@@ -1828,6 +2150,8 @@ class _RemoteSnapshot {
     required this.credits,
     required this.creditCards,
     required this.debts,
+    required this.creditPaymentGroups,
+    required this.creditPaymentSchedules,
     required this.budgets,
     required this.budgetInstances,
     required this.savingGoals,
@@ -1844,6 +2168,8 @@ class _RemoteSnapshot {
   final List<CreditEntity> credits;
   final List<CreditCardEntity> creditCards;
   final List<DebtEntity> debts;
+  final List<CreditPaymentGroupEntity> creditPaymentGroups;
+  final List<CreditPaymentScheduleEntity> creditPaymentSchedules;
   final List<Budget> budgets;
   final List<BudgetInstance> budgetInstances;
   final List<SavingGoal> savingGoals;

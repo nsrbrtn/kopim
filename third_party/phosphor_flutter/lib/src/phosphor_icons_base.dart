@@ -25722,8 +25722,8 @@ class PhosphorIcons {
   }
 
   static PhosphorIconData pictureInpicture(
-    [PhosphorIconsStyle style = PhosphorIconsStyle.regular]
-  ) => pictureInPicture(style);
+          [PhosphorIconsStyle style = PhosphorIconsStyle.regular]) =>
+      pictureInPicture(style);
 
   /// regular: ![piggy-bank](https://raw.githubusercontent.com/phosphor-icons/core/main/assets/regular/piggy-bank.svg)
   /// thin: ![piggy-bank](https://raw.githubusercontent.com/phosphor-icons/core/main/assets/thin/piggy-bank.svg)

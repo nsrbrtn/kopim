@@ -5,6 +5,8 @@ import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_group.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/domain/entities/user_progress.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
@@ -42,6 +44,12 @@ abstract class ExportDataRepository {
 
   /// Возвращает все долги.
   Future<List<DebtEntity>> fetchDebts();
+
+  /// Возвращает все группы кредитных платежей.
+  Future<List<CreditPaymentGroupEntity>> fetchCreditPaymentGroups();
+
+  /// Возвращает все элементы графика кредитных платежей.
+  Future<List<CreditPaymentScheduleEntity>> fetchCreditPaymentSchedules();
 
   /// Возвращает все бюджеты.
   Future<List<Budget>> fetchBudgets();

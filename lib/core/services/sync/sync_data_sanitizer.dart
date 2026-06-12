@@ -2,6 +2,8 @@ import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_group.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
 import 'package:kopim/features/tags/domain/entities/transaction_tag.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -57,8 +59,12 @@ class SyncDataSanitizer {
         changed = true;
       }
 
-      // 5. Check optional credit payment group dependency.
-      if (groupId != null && !validPaymentGroupIds.contains(groupId)) {
+      // 5. Missing credit payment group can be safely cleared only for
+      // tombstoned transactions. Active modern transactions should be handled
+      // by the caller via ordering or fail-fast diagnostics.
+      if (groupId != null &&
+          !validPaymentGroupIds.contains(groupId) &&
+          tx.isDeleted) {
         groupId = null;
         changed = true;
       }
@@ -317,6 +323,85 @@ class SyncDataSanitizer {
     if (skippedCount > 0) {
       logger.logInfo(
         'SyncDataSanitizer: skipped $skippedCount debts due to missing accounts.',
+      );
+    }
+
+    return sanitized;
+  }
+
+  List<CreditPaymentScheduleEntity> sanitizeCreditPaymentSchedules({
+    required List<CreditPaymentScheduleEntity> schedules,
+    required Set<String> validCreditIds,
+  }) {
+    if (schedules.isEmpty) return schedules;
+
+    final List<CreditPaymentScheduleEntity> sanitized =
+        <CreditPaymentScheduleEntity>[];
+    int skippedCount = 0;
+
+    for (final CreditPaymentScheduleEntity schedule in schedules) {
+      if (!validCreditIds.contains(schedule.creditId)) {
+        skippedCount++;
+        continue;
+      }
+      sanitized.add(schedule);
+    }
+
+    if (skippedCount > 0) {
+      logger.logInfo(
+        'SyncDataSanitizer: skipped $skippedCount credit payment schedules '
+        'due to missing credits.',
+      );
+    }
+
+    return sanitized;
+  }
+
+  List<CreditPaymentGroupEntity> sanitizeCreditPaymentGroups({
+    required List<CreditPaymentGroupEntity> groups,
+    required Set<String> validCreditIds,
+    required Set<String> validAccountIds,
+    required Set<String> validScheduleIds,
+  }) {
+    if (groups.isEmpty) return groups;
+
+    final List<CreditPaymentGroupEntity> sanitized =
+        <CreditPaymentGroupEntity>[];
+    int skippedCount = 0;
+    int sanitizedCount = 0;
+
+    for (final CreditPaymentGroupEntity group in groups) {
+      if (!validCreditIds.contains(group.creditId) ||
+          !validAccountIds.contains(group.sourceAccountId)) {
+        skippedCount++;
+        continue;
+      }
+
+      if (group.isDeleted) {
+        sanitized.add(group);
+        continue;
+      }
+
+      if (group.scheduleItemId != null &&
+          !validScheduleIds.contains(group.scheduleItemId!)) {
+        sanitizedCount++;
+        sanitized.add(group.copyWith(scheduleItemId: null));
+        continue;
+      }
+
+      sanitized.add(group);
+    }
+
+    if (skippedCount > 0) {
+      logger.logInfo(
+        'SyncDataSanitizer: skipped $skippedCount credit payment groups '
+        'due to missing credit/account references.',
+      );
+    }
+    if (sanitizedCount > 0) {
+      logger.logInfo(
+        'SyncDataSanitizer: sanitized $sanitizedCount credit payment groups '
+        '(cleared missing schedule references).',
       );
     }
 

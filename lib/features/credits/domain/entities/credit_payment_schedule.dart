@@ -17,6 +17,9 @@ abstract class CreditPaymentScheduleEntity with _$CreditPaymentScheduleEntity {
     required Money principalPaid,
     required Money interestPaid,
     DateTime? paidAt,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    @Default(false) bool isDeleted,
   }) = _CreditPaymentScheduleEntity;
 }
 

@@ -93,6 +93,11 @@ class AppStartupController extends _$AppStartupController {
           .read(upcomingPaymentsWorkSchedulerProvider)
           .cleanupLegacyWorkIfNeeded();
     }
+    unawaited(
+      ref
+          .read(localSyncIntegrityDebugReporterProvider)
+          .runAndLog(context: 'app_startup_background'),
+    );
     await _activateUpcomingNotificationsSync();
   }
 
@@ -100,6 +105,11 @@ class AppStartupController extends _$AppStartupController {
     try {
       final SyncService syncService = ref.read(syncServiceProvider);
       await syncService.initialize();
+      unawaited(
+        ref
+            .read(localSyncIntegrityDebugReporterProvider)
+            .runAndLog(context: 'app_startup_web'),
+      );
       // Оптимизация: не ждем завершения первичной синхронизации на вебе,
       // чтобы быстрее показать интерфейс.
       unawaited(syncService.syncPending());

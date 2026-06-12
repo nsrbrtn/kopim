@@ -817,7 +817,7 @@ final class ExportDataRepositoryProvider
 }
 
 String _$exportDataRepositoryHash() =>
-    r'c0c8b317564a4205bc4761ebed732a90ca6dca2f';
+    r'd69e7c9cd3028d8fa996f2a6a08c4ba5b1ea2b4b';
 
 @ProviderFor(exportBundleJsonEncoder)
 final exportBundleJsonEncoderProvider = ExportBundleJsonEncoderProvider._();
@@ -1146,7 +1146,7 @@ final class ImportDataRepositoryProvider
 }
 
 String _$importDataRepositoryHash() =>
-    r'8ce7d664a981cd8bc2f25ba47df7c42d9d64fbb7';
+    r'a73c450b8470bee7de770a439abd6252a1563ba3';
 
 @ProviderFor(importUserDataUseCase)
 final importUserDataUseCaseProvider = ImportUserDataUseCaseProvider._();
@@ -5784,7 +5784,7 @@ final class SyncServiceProvider
   }
 }
 
-String _$syncServiceHash() => r'590d679c21a7585b66075cabbf6ab7eb5e68b593';
+String _$syncServiceHash() => r'e810dd0dbaa7a4b216bba21b7c0eaf6c62ddee46';
 
 @ProviderFor(authRepository)
 final authRepositoryProvider = AuthRepositoryProvider._();
@@ -5874,6 +5874,160 @@ final class SyncDataSanitizerProvider
 
 String _$syncDataSanitizerHash() => r'7158c94797d4d9f8bfc57affd49f8f93f5c0b19c';
 
+@ProviderFor(localSyncIntegrityDiagnosticsService)
+final localSyncIntegrityDiagnosticsServiceProvider =
+    LocalSyncIntegrityDiagnosticsServiceProvider._();
+
+final class LocalSyncIntegrityDiagnosticsServiceProvider
+    extends
+        $FunctionalProvider<
+          LocalSyncIntegrityDiagnosticsService,
+          LocalSyncIntegrityDiagnosticsService,
+          LocalSyncIntegrityDiagnosticsService
+        >
+    with $Provider<LocalSyncIntegrityDiagnosticsService> {
+  LocalSyncIntegrityDiagnosticsServiceProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'localSyncIntegrityDiagnosticsServiceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() =>
+      _$localSyncIntegrityDiagnosticsServiceHash();
+
+  @$internal
+  @override
+  $ProviderElement<LocalSyncIntegrityDiagnosticsService> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  LocalSyncIntegrityDiagnosticsService create(Ref ref) {
+    return localSyncIntegrityDiagnosticsService(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(LocalSyncIntegrityDiagnosticsService value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride:
+          $SyncValueProvider<LocalSyncIntegrityDiagnosticsService>(value),
+    );
+  }
+}
+
+String _$localSyncIntegrityDiagnosticsServiceHash() =>
+    r'e1f82c60e7263ac04d402ccb715128f453a94d60';
+
+@ProviderFor(localSyncIntegrityReportFormatter)
+final localSyncIntegrityReportFormatterProvider =
+    LocalSyncIntegrityReportFormatterProvider._();
+
+final class LocalSyncIntegrityReportFormatterProvider
+    extends
+        $FunctionalProvider<
+          LocalSyncIntegrityReportFormatter,
+          LocalSyncIntegrityReportFormatter,
+          LocalSyncIntegrityReportFormatter
+        >
+    with $Provider<LocalSyncIntegrityReportFormatter> {
+  LocalSyncIntegrityReportFormatterProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'localSyncIntegrityReportFormatterProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() =>
+      _$localSyncIntegrityReportFormatterHash();
+
+  @$internal
+  @override
+  $ProviderElement<LocalSyncIntegrityReportFormatter> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  LocalSyncIntegrityReportFormatter create(Ref ref) {
+    return localSyncIntegrityReportFormatter(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(LocalSyncIntegrityReportFormatter value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<LocalSyncIntegrityReportFormatter>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$localSyncIntegrityReportFormatterHash() =>
+    r'befde308015adf35b99721f3f9577342e6640210';
+
+@ProviderFor(localSyncIntegrityDebugReporter)
+final localSyncIntegrityDebugReporterProvider =
+    LocalSyncIntegrityDebugReporterProvider._();
+
+final class LocalSyncIntegrityDebugReporterProvider
+    extends
+        $FunctionalProvider<
+          LocalSyncIntegrityDebugReporter,
+          LocalSyncIntegrityDebugReporter,
+          LocalSyncIntegrityDebugReporter
+        >
+    with $Provider<LocalSyncIntegrityDebugReporter> {
+  LocalSyncIntegrityDebugReporterProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'localSyncIntegrityDebugReporterProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$localSyncIntegrityDebugReporterHash();
+
+  @$internal
+  @override
+  $ProviderElement<LocalSyncIntegrityDebugReporter> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  LocalSyncIntegrityDebugReporter create(Ref ref) {
+    return localSyncIntegrityDebugReporter(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(LocalSyncIntegrityDebugReporter value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<LocalSyncIntegrityDebugReporter>(
+        value,
+      ),
+    );
+  }
+}
+
+String _$localSyncIntegrityDebugReporterHash() =>
+    r'1327113ca21ea3ff03cbf1f670c7187fa9d46b0b';
+
 @ProviderFor(authSyncService)
 final authSyncServiceProvider = AuthSyncServiceProvider._();
 
@@ -5914,4 +6068,4 @@ final class AuthSyncServiceProvider
   }
 }
 
-String _$authSyncServiceHash() => r'd3d48f1c4b150dd527e5bcb816bf67d1bb73eef0';
+String _$authSyncServiceHash() => r'f49bd41816fbe07de339bbb4570c429ae9361967';

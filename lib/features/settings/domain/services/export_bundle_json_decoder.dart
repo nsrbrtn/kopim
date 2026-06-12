@@ -14,6 +14,8 @@ import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_group.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/domain/entities/user_progress.dart';
@@ -131,6 +133,28 @@ class ExportBundleJsonDecoder {
         expectedType: _ExportSectionType.list,
       ),
     );
+    final List<CreditPaymentGroupEntity> creditPaymentGroups =
+        _parseCreditPaymentGroups(
+          _readSection(
+            jsonMap,
+            'creditPaymentGroups',
+            required: ExportBundleSchema.requiresCreditPaymentArtifacts(
+              version,
+            ),
+            expectedType: _ExportSectionType.list,
+          ),
+        );
+    final List<CreditPaymentScheduleEntity> creditPaymentSchedules =
+        _parseCreditPaymentSchedules(
+          _readSection(
+            jsonMap,
+            'creditPaymentSchedules',
+            required: ExportBundleSchema.requiresCreditPaymentArtifacts(
+              version,
+            ),
+            expectedType: _ExportSectionType.list,
+          ),
+        );
     final List<Budget> budgets = _parseBudgets(
       _readSection(
         jsonMap,
@@ -192,7 +216,12 @@ class ExportBundleJsonDecoder {
       schemaVersion: schemaVersion,
       generatedAt: generatedAt,
       accounts: accounts,
-      transactions: transactions,
+      transactions: transactions
+          .map(
+            (TransactionEntity transaction) =>
+                _normalizeImportedTransaction(transaction, version),
+          )
+          .toList(growable: false),
       categories: categories,
       tags: tags,
       transactionTags: transactionTags,
@@ -200,6 +229,8 @@ class ExportBundleJsonDecoder {
       credits: credits,
       creditCards: creditCards,
       debts: debts,
+      creditPaymentGroups: creditPaymentGroups,
+      creditPaymentSchedules: creditPaymentSchedules,
       budgets: budgets,
       budgetInstances: budgetInstances,
       upcomingPayments: upcomingPayments,
@@ -278,24 +309,22 @@ class ExportBundleJsonDecoder {
                 currency: 'XXX',
                 scale: scale,
               ).minor;
-          return SyncContract.normalizeTransactionForPortableSync(
-            TransactionEntity(
-              id: _readString(data, 'id'),
-              accountId: _readString(data, 'accountId'),
-              transferAccountId: _readOptionalString(data, 'transferAccountId'),
-              categoryId: _readOptionalString(data, 'categoryId'),
-              savingGoalId: _readOptionalString(data, 'savingGoalId'),
-              idempotencyKey: _readOptionalString(data, 'idempotencyKey'),
-              groupId: _readOptionalString(data, 'groupId'),
-              amountMinor: resolvedMinor,
-              amountScale: scale,
-              date: _readDate(data, 'date'),
-              note: _readOptionalString(data, 'note'),
-              type: _readString(data, 'type'),
-              createdAt: _readDate(data, 'createdAt'),
-              updatedAt: _readDate(data, 'updatedAt'),
-              isDeleted: _readBool(data, 'isDeleted'),
-            ),
+          return TransactionEntity(
+            id: _readString(data, 'id'),
+            accountId: _readString(data, 'accountId'),
+            transferAccountId: _readOptionalString(data, 'transferAccountId'),
+            categoryId: _readOptionalString(data, 'categoryId'),
+            savingGoalId: _readOptionalString(data, 'savingGoalId'),
+            idempotencyKey: _readOptionalString(data, 'idempotencyKey'),
+            groupId: _readOptionalString(data, 'groupId'),
+            amountMinor: resolvedMinor,
+            amountScale: scale,
+            date: _readDate(data, 'date'),
+            note: _readOptionalString(data, 'note'),
+            type: _readString(data, 'type'),
+            createdAt: _readDate(data, 'createdAt'),
+            updatedAt: _readDate(data, 'updatedAt'),
+            isDeleted: _readBool(data, 'isDeleted'),
           );
         })
         .toList(growable: false);
@@ -432,6 +461,96 @@ class ExportBundleJsonDecoder {
             note: _readOptionalString(data, 'note'),
             createdAt: _readDate(data, 'createdAt'),
             updatedAt: _readDate(data, 'updatedAt'),
+            isDeleted: _readBool(data, 'isDeleted'),
+          );
+        })
+        .toList(growable: false);
+  }
+
+  List<CreditPaymentGroupEntity> _parseCreditPaymentGroups(Object? raw) {
+    if (raw is! List) return const <CreditPaymentGroupEntity>[];
+    return raw
+        .whereType<Map<String, Object?>>()
+        .map((Map<String, Object?> data) {
+          final int scale = _readInt(data['totalOutflowScale']) ?? 2;
+          return CreditPaymentGroupEntity(
+            id: _readString(data, 'id'),
+            creditId: _readString(data, 'creditId'),
+            sourceAccountId: _readString(data, 'sourceAccountId'),
+            scheduleItemId: _readOptionalString(data, 'scheduleItemId'),
+            paidAt: _readDate(data, 'paidAt'),
+            totalOutflow: Money.fromMinor(
+              _readBigInt(data['totalOutflowMinor']) ?? BigInt.zero,
+              currency: 'XXX',
+              scale: scale,
+            ),
+            principalPaid: Money.fromMinor(
+              _readBigInt(data['principalPaidMinor']) ?? BigInt.zero,
+              currency: 'XXX',
+              scale: scale,
+            ),
+            interestPaid: Money.fromMinor(
+              _readBigInt(data['interestPaidMinor']) ?? BigInt.zero,
+              currency: 'XXX',
+              scale: scale,
+            ),
+            feesPaid: Money.fromMinor(
+              _readBigInt(data['feesPaidMinor']) ?? BigInt.zero,
+              currency: 'XXX',
+              scale: scale,
+            ),
+            note: _readOptionalString(data, 'note'),
+            idempotencyKey: _readOptionalString(data, 'idempotencyKey'),
+            createdAt: _readOptionalDate(data, 'createdAt'),
+            updatedAt: _readOptionalDate(data, 'updatedAt'),
+            isDeleted: _readBool(data, 'isDeleted'),
+          );
+        })
+        .toList(growable: false);
+  }
+
+  List<CreditPaymentScheduleEntity> _parseCreditPaymentSchedules(Object? raw) {
+    if (raw is! List) return const <CreditPaymentScheduleEntity>[];
+    return raw
+        .whereType<Map<String, Object?>>()
+        .map((Map<String, Object?> data) {
+          final int scale = _readInt(data['amountScale']) ?? 2;
+          return CreditPaymentScheduleEntity(
+            id: _readString(data, 'id'),
+            creditId: _readString(data, 'creditId'),
+            periodKey: _readString(data, 'periodKey'),
+            dueDate: _readDate(data, 'dueDate'),
+            status: CreditPaymentStatus.values.byName(
+              _readString(data, 'status'),
+            ),
+            principalAmount: Money.fromMinor(
+              _readBigInt(data['principalAmountMinor']) ?? BigInt.zero,
+              currency: 'XXX',
+              scale: scale,
+            ),
+            interestAmount: Money.fromMinor(
+              _readBigInt(data['interestAmountMinor']) ?? BigInt.zero,
+              currency: 'XXX',
+              scale: scale,
+            ),
+            totalAmount: Money.fromMinor(
+              _readBigInt(data['totalAmountMinor']) ?? BigInt.zero,
+              currency: 'XXX',
+              scale: scale,
+            ),
+            principalPaid: Money.fromMinor(
+              _readBigInt(data['principalPaidMinor']) ?? BigInt.zero,
+              currency: 'XXX',
+              scale: scale,
+            ),
+            interestPaid: Money.fromMinor(
+              _readBigInt(data['interestPaidMinor']) ?? BigInt.zero,
+              currency: 'XXX',
+              scale: scale,
+            ),
+            paidAt: _readOptionalDate(data, 'paidAt'),
+            createdAt: _readOptionalDate(data, 'createdAt'),
+            updatedAt: _readOptionalDate(data, 'updatedAt'),
             isDeleted: _readBool(data, 'isDeleted'),
           );
         })
@@ -580,6 +699,18 @@ class ExportBundleJsonDecoder {
       );
     }
     return ExportBundleIntegrity.fromJson(raw);
+  }
+
+  TransactionEntity _normalizeImportedTransaction(
+    TransactionEntity transaction,
+    ExportBundleSchemaVersion version,
+  ) {
+    final TransactionEntity normalized =
+        SyncContract.normalizeTransactionForPortableSync(transaction);
+    if (!ExportBundleSchema.requiresCreditPaymentArtifacts(version)) {
+      return normalized.copyWith(groupId: null);
+    }
+    return normalized;
   }
 
   ProfileCurrency _parseProfileCurrency(String? raw) {

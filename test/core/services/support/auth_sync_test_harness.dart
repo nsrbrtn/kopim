@@ -24,12 +24,17 @@ import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/credits/data/sources/local/credit_card_dao.dart';
 import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
 import 'package:kopim/features/credits/data/sources/local/debt_dao.dart';
+import 'package:kopim/features/credits/data/sources/local/credit_payment_dao.dart';
 import 'package:kopim/features/credits/data/sources/remote/credit_card_remote_data_source.dart';
+import 'package:kopim/features/credits/data/sources/remote/credit_payment_group_remote_data_source.dart';
+import 'package:kopim/features/credits/data/sources/remote/credit_payment_schedule_remote_data_source.dart';
 import 'package:kopim/features/credits/data/sources/remote/credit_remote_data_source.dart';
 import 'package:kopim/features/credits/data/sources/remote/debt_remote_data_source.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_group.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.dart';
 import 'package:kopim/features/profile/data/local/profile_dao.dart';
 import 'package:kopim/features/profile/data/remote/profile_remote_data_source.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
@@ -71,6 +76,7 @@ class AuthSyncTestHarness {
   late CreditCardDao creditCardDao;
   late CreditDao creditDao;
   late DebtDao debtDao;
+  late CreditPaymentDao creditPaymentDao;
   late BudgetDao budgetDao;
   late BudgetInstanceDao budgetInstanceDao;
   late SavingGoalDao savingGoalDao;
@@ -90,6 +96,8 @@ class AuthSyncTestHarness {
   late CreditRemoteDataSource creditRemote;
   late CreditCardRemoteDataSource creditCardRemote;
   late DebtRemoteDataSource debtRemote;
+  late CreditPaymentGroupRemoteDataSource creditPaymentGroupRemote;
+  late CreditPaymentScheduleRemoteDataSource creditPaymentScheduleRemote;
   late UpcomingPaymentRemoteDataSource upcomingPaymentRemote;
   late PaymentReminderRemoteDataSource paymentReminderRemote;
   late SyncDataSanitizer sanitizer;
@@ -107,6 +115,7 @@ class AuthSyncTestHarness {
     creditCardDao = CreditCardDao(database);
     creditDao = CreditDao(database);
     debtDao = DebtDao(database);
+    creditPaymentDao = CreditPaymentDao(database);
     budgetDao = BudgetDao(database);
     budgetInstanceDao = BudgetInstanceDao(database);
     savingGoalDao = SavingGoalDao(database);
@@ -132,6 +141,10 @@ class AuthSyncTestHarness {
     creditRemote = CreditRemoteDataSource(firestore);
     creditCardRemote = CreditCardRemoteDataSource(firestore);
     debtRemote = DebtRemoteDataSource(firestore);
+    creditPaymentGroupRemote = CreditPaymentGroupRemoteDataSource(firestore);
+    creditPaymentScheduleRemote = CreditPaymentScheduleRemoteDataSource(
+      firestore,
+    );
     upcomingPaymentRemote = UpcomingPaymentRemoteDataSource(firestore);
     paymentReminderRemote = PaymentReminderRemoteDataSource(firestore);
     sanitizer = SyncDataSanitizer(logger: logger);
@@ -144,6 +157,7 @@ class AuthSyncTestHarness {
       creditDao: creditDao,
       creditCardDao: creditCardDao,
       debtDao: debtDao,
+      creditPaymentDao: creditPaymentDao,
       budgetDao: budgetDao,
       budgetInstanceDao: budgetInstanceDao,
       savingGoalDao: savingGoalDao,
@@ -195,6 +209,7 @@ class AuthSyncTestHarness {
       creditCardDao: creditCardDao,
       creditDao: creditDao,
       debtDao: debtDao,
+      creditPaymentDao: creditPaymentDao,
       budgetDao: budgetDao,
       budgetInstanceDao: budgetInstanceDao,
       savingGoalDao: savingGoalDao,
@@ -211,6 +226,8 @@ class AuthSyncTestHarness {
       creditCardRemoteDataSource: CreditCardRemoteDataSource(firestore),
       creditRemoteDataSource: CreditRemoteDataSource(firestore),
       debtRemoteDataSource: DebtRemoteDataSource(firestore),
+      creditPaymentGroupRemoteDataSource: creditPaymentGroupRemote,
+      creditPaymentScheduleRemoteDataSource: creditPaymentScheduleRemote,
       budgetRemoteDataSource: budgetRemoteDataSource ?? budgetRemote,
       budgetInstanceRemoteDataSource:
           budgetInstanceRemoteDataSource ?? budgetInstanceRemote,
@@ -242,6 +259,10 @@ class AuthSyncTestHarness {
     List<CreditEntity> credits = const <CreditEntity>[],
     List<CreditCardEntity> creditCards = const <CreditCardEntity>[],
     List<DebtEntity> debts = const <DebtEntity>[],
+    List<CreditPaymentGroupEntity> creditPaymentGroups =
+        const <CreditPaymentGroupEntity>[],
+    List<CreditPaymentScheduleEntity> creditPaymentSchedules =
+        const <CreditPaymentScheduleEntity>[],
     List<UpcomingPayment> upcomingPayments = const <UpcomingPayment>[],
     List<PaymentReminder> paymentReminders = const <PaymentReminder>[],
   }) async {
@@ -277,6 +298,12 @@ class AuthSyncTestHarness {
     }
     for (final DebtEntity debt in debts) {
       await debtRemote.upsert(userId, debt);
+    }
+    for (final CreditPaymentGroupEntity group in creditPaymentGroups) {
+      await creditPaymentGroupRemote.upsert(userId, group);
+    }
+    for (final CreditPaymentScheduleEntity item in creditPaymentSchedules) {
+      await creditPaymentScheduleRemote.upsert(userId, item);
     }
     for (final UpcomingPayment payment in upcomingPayments) {
       await upcomingPaymentRemote.upsert(userId, payment);

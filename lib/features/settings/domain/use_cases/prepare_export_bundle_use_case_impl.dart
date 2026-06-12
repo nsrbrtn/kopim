@@ -5,6 +5,8 @@ import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_group.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/domain/entities/user_progress.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
@@ -62,6 +64,10 @@ class PrepareExportBundleUseCaseImpl implements PrepareExportBundleUseCase {
     final Future<List<CreditCardEntity>> creditCardsFuture = _repository
         .fetchCreditCards();
     final Future<List<DebtEntity>> debtsFuture = _repository.fetchDebts();
+    final Future<List<CreditPaymentGroupEntity>> creditPaymentGroupsFuture =
+        _repository.fetchCreditPaymentGroups();
+    final Future<List<CreditPaymentScheduleEntity>>
+    creditPaymentSchedulesFuture = _repository.fetchCreditPaymentSchedules();
     final Future<List<Budget>> budgetsFuture = _repository.fetchBudgets();
     final Future<List<BudgetInstance>> budgetInstancesFuture = _repository
         .fetchBudgetInstances();
@@ -82,6 +88,10 @@ class PrepareExportBundleUseCaseImpl implements PrepareExportBundleUseCase {
     final List<CreditEntity> credits = await creditsFuture;
     final List<CreditCardEntity> creditCards = await creditCardsFuture;
     final List<DebtEntity> debts = await debtsFuture;
+    final List<CreditPaymentGroupEntity> creditPaymentGroups =
+        await creditPaymentGroupsFuture;
+    final List<CreditPaymentScheduleEntity> creditPaymentSchedules =
+        await creditPaymentSchedulesFuture;
     final List<Budget> budgets = await budgetsFuture;
     final List<BudgetInstance> budgetInstances = await budgetInstancesFuture;
     final List<UpcomingPayment> upcomingPayments = await upcomingPaymentsFuture;
@@ -101,6 +111,8 @@ class PrepareExportBundleUseCaseImpl implements PrepareExportBundleUseCase {
       credits: credits,
       creditCards: creditCards,
       debts: debts,
+      creditPaymentGroups: creditPaymentGroups,
+      creditPaymentSchedules: creditPaymentSchedules,
       budgets: budgets,
       budgetInstances: budgetInstances,
       upcomingPayments: upcomingPayments,

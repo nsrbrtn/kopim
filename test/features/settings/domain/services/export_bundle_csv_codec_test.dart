@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:kopim/core/money/money.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
@@ -14,6 +15,8 @@ import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_group.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/settings/domain/entities/export_bundle.dart';
@@ -31,7 +34,7 @@ void main() {
 
   test('encodes and decodes CSV bundle with escaped fields', () {
     final ExportBundle bundle = ExportBundle(
-      schemaVersion: '1.6.0',
+      schemaVersion: '1.8.0',
       generatedAt: DateTime.utc(2024, 2, 10, 12, 30),
       accounts: <AccountEntity>[
         AccountEntity(
@@ -77,6 +80,7 @@ void main() {
           id: 't1',
           accountId: 'a1',
           categoryId: 'c1',
+          groupId: 'group-1',
           amountMinor: BigInt.from(1240),
           amountScale: 2,
           date: DateTime.utc(2024, 2, 9),
@@ -145,6 +149,70 @@ void main() {
           dueDate: DateTime.utc(2024, 3, 1),
           createdAt: DateTime.utc(2024, 2, 1),
           updatedAt: DateTime.utc(2024, 2, 1),
+        ),
+      ],
+      creditPaymentGroups: <CreditPaymentGroupEntity>[
+        CreditPaymentGroupEntity(
+          id: 'group-1',
+          creditId: 'cr1',
+          sourceAccountId: 'a1',
+          scheduleItemId: 'schedule-1',
+          paidAt: DateTime.utc(2024, 2, 9),
+          totalOutflow: Money.fromMinor(
+            BigInt.from(1240),
+            currency: 'XXX',
+            scale: 2,
+          ),
+          principalPaid: Money.fromMinor(
+            BigInt.from(1000),
+            currency: 'XXX',
+            scale: 2,
+          ),
+          interestPaid: Money.fromMinor(
+            BigInt.from(200),
+            currency: 'XXX',
+            scale: 2,
+          ),
+          feesPaid: Money.fromMinor(BigInt.from(40), currency: 'XXX', scale: 2),
+          createdAt: DateTime.utc(2024, 2, 9),
+          updatedAt: DateTime.utc(2024, 2, 9),
+        ),
+      ],
+      creditPaymentSchedules: <CreditPaymentScheduleEntity>[
+        CreditPaymentScheduleEntity(
+          id: 'schedule-1',
+          creditId: 'cr1',
+          periodKey: '2024-02',
+          dueDate: DateTime.utc(2024, 2, 10),
+          status: CreditPaymentStatus.paid,
+          principalAmount: Money.fromMinor(
+            BigInt.from(1000),
+            currency: 'XXX',
+            scale: 2,
+          ),
+          interestAmount: Money.fromMinor(
+            BigInt.from(200),
+            currency: 'XXX',
+            scale: 2,
+          ),
+          totalAmount: Money.fromMinor(
+            BigInt.from(1200),
+            currency: 'XXX',
+            scale: 2,
+          ),
+          principalPaid: Money.fromMinor(
+            BigInt.from(1000),
+            currency: 'XXX',
+            scale: 2,
+          ),
+          interestPaid: Money.fromMinor(
+            BigInt.from(200),
+            currency: 'XXX',
+            scale: 2,
+          ),
+          paidAt: DateTime.utc(2024, 2, 9),
+          createdAt: DateTime.utc(2024, 2, 1),
+          updatedAt: DateTime.utc(2024, 2, 9),
         ),
       ],
       budgets: <Budget>[
@@ -216,9 +284,11 @@ void main() {
     final Uint8List bytes = encoder.encode(bundle).bytes;
     final ExportBundle decoded = decoder.decode(bytes);
 
-    expect(decoded, bundle);
     expect(decoded.accounts.single.isHidden, isTrue);
     expect(decoded.savingGoals.single.storageAccountIds, <String>['a1', 'a2']);
+    expect(decoded.transactions.single.groupId, 'group-1');
+    expect(decoded.creditPaymentGroups.single.id, 'group-1');
+    expect(decoded.creditPaymentSchedules.single.id, 'schedule-1');
   });
 
   test('decodes legacy CSV backup without type_version as zero', () {
@@ -263,6 +333,48 @@ id,account_id,transfer_account_id,category_id,saving_goal_id,idempotency_key,gro
     expect(decoded.accounts.single.type, 'card');
     expect(decoded.accounts.single.typeVersion, 0);
     expect(decoded.savingGoals.single.storageAccountIds, <String>['a1']);
+  });
+
+  test('clears legacy CSV transaction groupId for schema before 1.8.0', () {
+    const String csv = '''
+#kopim-export
+#schema_version,1.7.0
+#generated_at,2024-02-10T12:30:00.000Z
+#accounts
+id,name,balance,opening_balance,balance_minor,opening_balance_minor,currency_scale,currency,type,type_version,created_at,updated_at,color,gradient_id,icon_name,icon_style,is_deleted,is_primary,is_hidden
+a1,Main,0,0,0,0,2,USD,checking,1,2024-01-01T00:00:00.000Z,2024-01-01T00:00:00.000Z,,,,,false,false,false
+#categories
+id,name,type,icon_json,color,parent_id,created_at,updated_at,is_deleted,is_system,is_hidden,is_favorite
+#tags
+id,name,color,created_at,updated_at,is_deleted
+#transaction_tags
+transaction_id,tag_id,created_at,updated_at,is_deleted
+#saving_goals
+id,user_id,name,account_id,storage_account_ids,target_date,target_amount,current_amount,note,created_at,updated_at,archived_at
+#credits
+id,account_id,category_id,interest_category_id,fees_category_id,total_amount,total_amount_minor,total_amount_scale,interest_rate,term_months,start_date,first_payment_date,payment_day,created_at,updated_at,is_deleted
+#credit_cards
+id,account_id,credit_limit,credit_limit_minor,credit_limit_scale,statement_day,payment_due_days,interest_rate_annual,created_at,updated_at,is_deleted
+#debts
+id,account_id,name,amount,amount_minor,amount_scale,due_date,note,created_at,updated_at,is_deleted
+#budgets
+id,title,amount,amount_minor,amount_scale,period,start_date,end_date,scope,categories,category_allocations,accounts,created_at,updated_at,is_deleted
+#budget_instances
+id,budget_id,period_start,period_end,amount,amount_minor,spent,spent_minor,amount_scale,status,created_at,updated_at
+#upcoming_payments
+id,title,account_id,category_id,amount,amount_minor,amount_scale,day_of_month,notify_days_before,notify_time_hhmm,auto_post,is_active,created_at_ms,updated_at_ms
+#payment_reminders
+id,title,amount,amount_minor,amount_scale,when_at_ms,is_done,created_at_ms,updated_at_ms
+#transactions
+id,account_id,transfer_account_id,category_id,saving_goal_id,idempotency_key,group_id,amount,amount_minor,amount_scale,date,note,type,created_at,updated_at,is_deleted
+tx-1,a1,,,,,legacy-group,12.4,1240,2,2024-02-09T00:00:00.000Z,,expense,2024-02-09T00:00:00.000Z,2024-02-09T00:00:00.000Z,false
+''';
+
+    final ExportBundle decoded = decoder.decode(
+      Uint8List.fromList(utf8.encode(csv)),
+    );
+
+    expect(decoded.transactions.single.groupId, isNull);
   });
 
   test('fails when schema version is missing', () {

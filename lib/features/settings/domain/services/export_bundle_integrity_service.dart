@@ -14,6 +14,8 @@ import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_group.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/domain/entities/user_progress.dart';
@@ -41,6 +43,8 @@ class ExportBundleIntegrityService {
     'credits',
     'creditCards',
     'debts',
+    'creditPaymentGroups',
+    'creditPaymentSchedules',
     'budgets',
     'budgetInstances',
     'upcomingPayments',
@@ -66,6 +70,8 @@ class ExportBundleIntegrityService {
       'credits': source.credits.length,
       'creditCards': source.creditCards.length,
       'debts': source.debts.length,
+      'creditPaymentGroups': source.creditPaymentGroups.length,
+      'creditPaymentSchedules': source.creditPaymentSchedules.length,
       'budgets': source.budgets.length,
       'budgetInstances': source.budgetInstances.length,
       'upcomingPayments': source.upcomingPayments.length,
@@ -176,6 +182,12 @@ class ExportBundleIntegrityService {
           .map(_mapCreditCard)
           .toList(growable: false),
       'debts': bundle.debts.map(_mapDebt).toList(growable: false),
+      'creditPaymentGroups': bundle.creditPaymentGroups
+          .map(_mapCreditPaymentGroup)
+          .toList(growable: false),
+      'creditPaymentSchedules': bundle.creditPaymentSchedules
+          .map(_mapCreditPaymentSchedule)
+          .toList(growable: false),
       'budgets': bundle.budgets.map(_mapBudget).toList(growable: false),
       'budgetInstances': bundle.budgetInstances
           .map(_mapBudgetInstance)
@@ -229,6 +241,7 @@ class ExportBundleIntegrityService {
       'transferAccountId': normalized.transferAccountId,
       'categoryId': normalized.categoryId,
       'savingGoalId': normalized.savingGoalId,
+      'groupId': normalized.groupId,
       'idempotencyKey': normalized.idempotencyKey,
       'amount': amount.toDouble(),
       'amountMinor': amount.minor.toString(),
@@ -295,6 +308,48 @@ class ExportBundleIntegrityService {
       'createdAt': debt.createdAt.toIso8601String(),
       'updatedAt': debt.updatedAt.toIso8601String(),
       'isDeleted': debt.isDeleted,
+    }..removeWhere((String key, Object? value) => value == null);
+  }
+
+  Map<String, Object?> _mapCreditPaymentGroup(CreditPaymentGroupEntity group) {
+    return <String, Object?>{
+      'id': group.id,
+      'creditId': group.creditId,
+      'sourceAccountId': group.sourceAccountId,
+      'scheduleItemId': group.scheduleItemId,
+      'paidAt': group.paidAt.toIso8601String(),
+      'totalOutflowMinor': group.totalOutflow.minor.toString(),
+      'totalOutflowScale': group.totalOutflow.scale,
+      'principalPaidMinor': group.principalPaid.minor.toString(),
+      'interestPaidMinor': group.interestPaid.minor.toString(),
+      'feesPaidMinor': group.feesPaid.minor.toString(),
+      'note': group.note,
+      'idempotencyKey': group.idempotencyKey,
+      'createdAt': (group.createdAt ?? group.paidAt).toIso8601String(),
+      'updatedAt': (group.updatedAt ?? group.paidAt).toIso8601String(),
+      'isDeleted': group.isDeleted,
+    }..removeWhere((String key, Object? value) => value == null);
+  }
+
+  Map<String, Object?> _mapCreditPaymentSchedule(
+    CreditPaymentScheduleEntity item,
+  ) {
+    return <String, Object?>{
+      'id': item.id,
+      'creditId': item.creditId,
+      'periodKey': item.periodKey,
+      'dueDate': item.dueDate.toIso8601String(),
+      'status': item.status.name,
+      'principalAmountMinor': item.principalAmount.minor.toString(),
+      'interestAmountMinor': item.interestAmount.minor.toString(),
+      'totalAmountMinor': item.totalAmount.minor.toString(),
+      'amountScale': item.totalAmount.scale,
+      'principalPaidMinor': item.principalPaid.minor.toString(),
+      'interestPaidMinor': item.interestPaid.minor.toString(),
+      'paidAt': item.paidAt?.toIso8601String(),
+      'createdAt': (item.createdAt ?? item.dueDate).toIso8601String(),
+      'updatedAt': (item.updatedAt ?? item.dueDate).toIso8601String(),
+      'isDeleted': item.isDeleted,
     }..removeWhere((String key, Object? value) => value == null);
   }
 

@@ -13,7 +13,7 @@ class UserAccountCleanupRepositoryImpl implements UserAccountCleanupRepository {
        _database = database,
        _profileAvatarRepository = profileAvatarRepository;
 
-  static const List<String> _userCollections =
+  static final List<String> _userCollections =
       SyncContract.remoteCleanupCollections;
 
   final FirebaseFirestore _firestore;

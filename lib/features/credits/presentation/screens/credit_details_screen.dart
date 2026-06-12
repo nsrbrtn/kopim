@@ -722,19 +722,19 @@ class _DaySectionView extends StatelessWidget {
                   currencySymbol: currencySymbol,
                   strings: strings,
                 ),
-                groupedCreditPayment:
-                    (
-                      String groupId,
-                      List<TransactionEntity> transactions,
-                      MoneyAmount totalOutflow,
-                      DateTime date,
-                      String? note,
-                    ) => GroupedCreditPaymentTile(
-                      group: GroupedCreditPaymentFeedItem(
-                        groupId: groupId,
-                        transactions: transactions,
-                        totalOutflow: totalOutflow,
-                        date: date,
+            groupedCreditPayment:
+                (
+                  String groupId,
+                  List<TransactionEntity> transactions,
+                  MoneyAmount totalOutflow,
+                  DateTime date,
+                  String? note,
+                ) => GroupedCreditPaymentTile(
+                  group: GroupedCreditPaymentFeedItem(
+                    groupId: groupId,
+                    transactions: transactions,
+                    totalOutflow: totalOutflow,
+                    date: date,
                     note: note,
                   ),
                   currencySymbol: currencySymbol,

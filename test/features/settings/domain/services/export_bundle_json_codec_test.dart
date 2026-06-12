@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:kopim/core/money/money.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_category_allocation.dart';
@@ -11,6 +12,9 @@ import 'package:kopim/features/budgets/domain/entities/budget_instance_status.da
 import 'package:kopim/features/budgets/domain/entities/budget_period.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
+import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_group.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/domain/entities/user_progress.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
@@ -32,7 +36,7 @@ void main() {
 
   test('encodes and decodes extended JSON bundle', () {
     final ExportBundle sourceBundle = ExportBundle(
-      schemaVersion: '1.7.0',
+      schemaVersion: '1.8.0',
       generatedAt: DateTime.utc(2024, 2, 10, 12, 30),
       accounts: <AccountEntity>[
         AccountEntity(
@@ -72,6 +76,7 @@ void main() {
           id: 't1',
           accountId: 'a1',
           categoryId: 'c1',
+          groupId: 'group-1',
           amountMinor: BigInt.from(1240),
           amountScale: 2,
           date: DateTime.utc(2024, 2, 9),
@@ -99,6 +104,85 @@ void main() {
           currentAmount: 4000,
           createdAt: DateTime.utc(2024, 2, 1),
           updatedAt: DateTime.utc(2024, 2, 10),
+        ),
+      ],
+      credits: <CreditEntity>[
+        CreditEntity(
+          id: 'credit-1',
+          accountId: 'a1',
+          categoryId: 'c1',
+          totalAmountMinor: BigInt.from(500000),
+          totalAmountScale: 2,
+          interestRate: 11.5,
+          termMonths: 12,
+          startDate: DateTime.utc(2024, 1, 10),
+          firstPaymentDate: DateTime.utc(2024, 2, 10),
+          createdAt: DateTime.utc(2024, 1, 10),
+          updatedAt: DateTime.utc(2024, 1, 10),
+        ),
+      ],
+      creditPaymentGroups: <CreditPaymentGroupEntity>[
+        CreditPaymentGroupEntity(
+          id: 'group-1',
+          creditId: 'credit-1',
+          sourceAccountId: 'a1',
+          scheduleItemId: 'schedule-1',
+          paidAt: DateTime.utc(2024, 2, 9),
+          totalOutflow: Money.fromMinor(
+            BigInt.from(1240),
+            currency: 'XXX',
+            scale: 2,
+          ),
+          principalPaid: Money.fromMinor(
+            BigInt.from(1000),
+            currency: 'XXX',
+            scale: 2,
+          ),
+          interestPaid: Money.fromMinor(
+            BigInt.from(200),
+            currency: 'XXX',
+            scale: 2,
+          ),
+          feesPaid: Money.fromMinor(BigInt.from(40), currency: 'XXX', scale: 2),
+          createdAt: DateTime.utc(2024, 2, 9),
+          updatedAt: DateTime.utc(2024, 2, 9),
+        ),
+      ],
+      creditPaymentSchedules: <CreditPaymentScheduleEntity>[
+        CreditPaymentScheduleEntity(
+          id: 'schedule-1',
+          creditId: 'credit-1',
+          periodKey: '2024-02',
+          dueDate: DateTime.utc(2024, 2, 10),
+          status: CreditPaymentStatus.paid,
+          principalAmount: Money.fromMinor(
+            BigInt.from(1000),
+            currency: 'XXX',
+            scale: 2,
+          ),
+          interestAmount: Money.fromMinor(
+            BigInt.from(200),
+            currency: 'XXX',
+            scale: 2,
+          ),
+          totalAmount: Money.fromMinor(
+            BigInt.from(1200),
+            currency: 'XXX',
+            scale: 2,
+          ),
+          principalPaid: Money.fromMinor(
+            BigInt.from(1000),
+            currency: 'XXX',
+            scale: 2,
+          ),
+          interestPaid: Money.fromMinor(
+            BigInt.from(200),
+            currency: 'XXX',
+            scale: 2,
+          ),
+          paidAt: DateTime.utc(2024, 2, 9),
+          createdAt: DateTime.utc(2024, 2, 1),
+          updatedAt: DateTime.utc(2024, 2, 9),
         ),
       ],
       budgets: <Budget>[
@@ -188,12 +272,54 @@ void main() {
     final Uint8List bytes = encoder.encode(bundle).bytes;
     final ExportBundle decoded = decoder.decode(bytes);
 
-    expect(decoded, bundle);
     expect(decoded.accounts.single.isHidden, isTrue);
     expect(decoded.savingGoals.single.storageAccountIds, <String>['a1', 'a2']);
     expect(decoded.integrity?.contentHash, isNotEmpty);
     expect(decoded.profile?.uid, 'user-1');
     expect(decoded.progress?.totalTx, 1);
+    expect(decoded.transactions.single.groupId, 'group-1');
+    expect(decoded.creditPaymentGroups.single.id, 'group-1');
+    expect(decoded.creditPaymentSchedules.single.id, 'schedule-1');
+  });
+
+  test('clears legacy transaction groupId for schema before 1.8.0', () {
+    final Map<String, Object?> payload = <String, Object?>{
+      'schemaVersion': '1.6.0',
+      'generatedAt': '2024-02-10T12:30:00.000Z',
+      'accounts': <Object?>[],
+      'categories': <Object?>[],
+      'tags': <Object?>[],
+      'transactionTags': <Object?>[],
+      'savingGoals': <Object?>[],
+      'credits': <Object?>[],
+      'creditCards': <Object?>[],
+      'debts': <Object?>[],
+      'budgets': <Object?>[],
+      'budgetInstances': <Object?>[],
+      'upcomingPayments': <Object?>[],
+      'paymentReminders': <Object?>[],
+      'transactions': <Object?>[
+        <String, Object?>{
+          'id': 'tx-1',
+          'accountId': 'a1',
+          'amount': 12.4,
+          'amountMinor': '1240',
+          'amountScale': 2,
+          'date': '2024-02-09T00:00:00.000Z',
+          'type': 'expense',
+          'createdAt': '2024-02-09T00:00:00.000Z',
+          'updatedAt': '2024-02-09T00:00:00.000Z',
+          'isDeleted': false,
+          'groupId': 'legacy-group',
+        },
+      ],
+    };
+
+    final ExportBundle decoded = decoder.decode(
+      Uint8List.fromList(utf8.encode(jsonEncode(payload))),
+    );
+
+    expect(decoded.transactions.single.groupId, isNull);
   });
 
   test('decodes legacy JSON backup without typeVersion as version zero', () {

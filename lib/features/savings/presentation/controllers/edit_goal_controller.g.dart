@@ -59,7 +59,7 @@ final class EditGoalControllerProvider
 }
 
 String _$editGoalControllerHash() =>
-    r'c2d89f6dd70713743fb0f674111ce9921b389e4c';
+    r'c88de8edfb85e7ea1bd9df0e36ef0ac05f0715b4';
 
 final class EditGoalControllerFamily extends $Family
     with

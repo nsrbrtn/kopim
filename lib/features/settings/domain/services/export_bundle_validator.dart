@@ -5,6 +5,8 @@ import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_group.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/domain/entities/user_progress.dart';
@@ -74,6 +76,20 @@ class ExportBundleValidator {
     );
     _requireUniqueIds(
       issues,
+      section: 'creditPaymentGroups',
+      ids: bundle.creditPaymentGroups.map(
+        (CreditPaymentGroupEntity group) => group.id,
+      ),
+    );
+    _requireUniqueIds(
+      issues,
+      section: 'creditPaymentSchedules',
+      ids: bundle.creditPaymentSchedules.map(
+        (CreditPaymentScheduleEntity item) => item.id,
+      ),
+    );
+    _requireUniqueIds(
+      issues,
       section: 'budgets',
       ids: bundle.budgets.map((Budget budget) => budget.id),
     );
@@ -116,6 +132,15 @@ class ExportBundleValidator {
         .toSet();
     final Set<String> savingGoalIds = bundle.savingGoals
         .map((SavingGoal goal) => goal.id)
+        .toSet();
+    final Set<String> creditIds = bundle.credits
+        .map((CreditEntity credit) => credit.id)
+        .toSet();
+    final Set<String> creditPaymentGroupIds = bundle.creditPaymentGroups
+        .map((CreditPaymentGroupEntity group) => group.id)
+        .toSet();
+    final Set<String> creditPaymentScheduleIds = bundle.creditPaymentSchedules
+        .map((CreditPaymentScheduleEntity item) => item.id)
         .toSet();
     final Set<String> budgetIds = bundle.budgets
         .map((Budget budget) => budget.id)
@@ -201,6 +226,32 @@ class ExportBundleValidator {
         );
       }
     }
+    for (final CreditPaymentScheduleEntity item
+        in bundle.creditPaymentSchedules) {
+      if (!creditIds.contains(item.creditId)) {
+        issues.add(
+          'График платежа ${item.id} ссылается на отсутствующий creditId ${item.creditId}.',
+        );
+      }
+    }
+    for (final CreditPaymentGroupEntity group in bundle.creditPaymentGroups) {
+      if (!creditIds.contains(group.creditId)) {
+        issues.add(
+          'Группа платежа ${group.id} ссылается на отсутствующий creditId ${group.creditId}.',
+        );
+      }
+      if (!accountIds.contains(group.sourceAccountId)) {
+        issues.add(
+          'Группа платежа ${group.id} ссылается на отсутствующий sourceAccountId ${group.sourceAccountId}.',
+        );
+      }
+      if (group.scheduleItemId != null &&
+          !creditPaymentScheduleIds.contains(group.scheduleItemId)) {
+        issues.add(
+          'Группа платежа ${group.id} ссылается на отсутствующий scheduleItemId ${group.scheduleItemId}.',
+        );
+      }
+    }
     for (final TransactionEntity transaction in bundle.transactions) {
       if (!accountIds.contains(transaction.accountId)) {
         issues.add(
@@ -223,6 +274,12 @@ class ExportBundleValidator {
           !savingGoalIds.contains(transaction.savingGoalId)) {
         issues.add(
           'Транзакция ${transaction.id} ссылается на отсутствующий savingGoalId ${transaction.savingGoalId}.',
+        );
+      }
+      if (transaction.groupId != null &&
+          !creditPaymentGroupIds.contains(transaction.groupId)) {
+        issues.add(
+          'Транзакция ${transaction.id} ссылается на отсутствующий groupId ${transaction.groupId}.',
         );
       }
     }

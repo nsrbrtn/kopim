@@ -272,6 +272,7 @@ class _QuickTransactionSheetState
   late final TextEditingController _amountController;
   late final FocusNode _amountFocusNode;
   ProviderSubscription<QuickTransactionState>? _stateSubscription;
+  Timer? _snackBarDismissTimer;
 
   @override
   void initState() {
@@ -304,6 +305,7 @@ class _QuickTransactionSheetState
 
   @override
   void dispose() {
+    _snackBarDismissTimer?.cancel();
     _stateSubscription?.close();
     _amountFocusNode.dispose();
     _amountController.dispose();
@@ -447,6 +449,7 @@ class _QuickTransactionSheetState
     SnackBarAction? action,
     Duration duration = const Duration(seconds: 3),
   }) {
+    _snackBarDismissTimer?.cancel();
     final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar();
     final ScaffoldFeatureController<SnackBar, SnackBarClosedReason> controller =
@@ -454,14 +457,12 @@ class _QuickTransactionSheetState
           SnackBar(content: content, duration: duration, action: action),
         );
     if (action != null) {
-      unawaited(
-        Future<void>.delayed(duration).then((_) {
-          if (!mounted) {
-            return;
-          }
-          controller.close();
-        }),
-      );
+      _snackBarDismissTimer = Timer(duration, () {
+        if (!mounted) {
+          return;
+        }
+        controller.close();
+      });
     }
   }
 

@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kopim/features/profile/domain/repositories/user_progress_repository.dart';
 
+/// Remote progress хранит только best-effort max counter для геймификации.
+/// Он не является каноничным источником истины для локального прогресса.
 class UserProgressRemoteDataSource {
   UserProgressRemoteDataSource(this._firestore);
 

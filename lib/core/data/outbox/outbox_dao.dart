@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 import 'package:kopim/core/data/database.dart' as db;
+import 'package:kopim/core/services/sync/sync_contract.dart';
 
 enum OutboxOperation { upsert, delete }
 
@@ -11,6 +12,10 @@ class OutboxDao {
   OutboxDao(this._db);
 
   final db.AppDatabase _db;
+  static const List<OutboxStatus> _compactableStatuses = <OutboxStatus>[
+    OutboxStatus.pending,
+    OutboxStatus.failed,
+  ];
 
   Future<int> pendingCount() {
     final Expression<int> query = _db.outboxEntries.id.count();
@@ -32,8 +37,30 @@ class OutboxDao {
     required String entityId,
     required OutboxOperation operation,
     required Map<String, dynamic> payload,
-  }) {
+  }) async {
     final DateTime now = DateTime.now();
+    final String encodedPayload = jsonEncode(payload);
+    final db.OutboxEntryRow? compacted = await _findCompactableEntry(
+      entityType: entityType,
+      entityId: entityId,
+      operation: operation,
+    );
+    if (compacted != null) {
+      await (_db.update(
+            _db.outboxEntries,
+          )..where((db.$OutboxEntriesTable tbl) => tbl.id.equals(compacted.id)))
+          .write(
+            db.OutboxEntriesCompanion(
+              payload: Value<String>(encodedPayload),
+              status: Value<String>(OutboxStatus.pending.name),
+              attemptCount: const Value<int>(0),
+              updatedAt: Value<DateTime>(now),
+              sentAt: const Value<DateTime?>.absent(),
+              lastError: const Value<String?>.absent(),
+            ),
+          );
+      return compacted.id;
+    }
     return _db
         .into(_db.outboxEntries)
         .insert(
@@ -41,7 +68,7 @@ class OutboxDao {
             entityType: entityType,
             entityId: entityId,
             operation: operation.name,
-            payload: jsonEncode(payload),
+            payload: encodedPayload,
             status: Value<String>(OutboxStatus.pending.name),
             attemptCount: const Value<int>(0),
             createdAt: Value<DateTime>(now),
@@ -57,14 +84,11 @@ class OutboxDao {
         (db.$OutboxEntriesTable tbl) =>
             tbl.status.equals(OutboxStatus.pending.name) |
             tbl.status.equals(OutboxStatus.failed.name),
-      )
-      ..orderBy(<OrderClauseGenerator<db.$OutboxEntriesTable>>[
-        (db.$OutboxEntriesTable tbl) => OrderingTerm(expression: tbl.createdAt),
-      ]);
-    if (limit != null) {
-      query.limit(limit);
-    }
-    return query.watch();
+      );
+    return query.watch().map(
+      (List<db.OutboxEntryRow> entries) =>
+          _sortPendingEntries(entries, limit: limit),
+    );
   }
 
   Future<void> deleteByEntityType(String entityType) async {
@@ -81,12 +105,11 @@ class OutboxDao {
         (db.$OutboxEntriesTable tbl) =>
             tbl.status.equals(OutboxStatus.pending.name) |
             tbl.status.equals(OutboxStatus.failed.name),
-      )
-      ..orderBy(<OrderClauseGenerator<db.$OutboxEntriesTable>>[
-        (db.$OutboxEntriesTable tbl) => OrderingTerm(expression: tbl.createdAt),
-      ])
-      ..limit(limit);
-    return query.get();
+      );
+    return query.get().then(
+      (List<db.OutboxEntryRow> entries) =>
+          _sortPendingEntries(entries, limit: limit),
+    );
   }
 
   Future<db.OutboxEntryRow> prepareForSend(db.OutboxEntryRow entry) async {
@@ -171,6 +194,20 @@ class OutboxDao {
     );
   }
 
+  Future<int> resetStaleSendingToPending({required DateTime cutoff}) {
+    return (_db.update(_db.outboxEntries)..where(
+          (db.$OutboxEntriesTable tbl) =>
+              tbl.status.equals(OutboxStatus.sending.name) &
+              tbl.updatedAt.isSmallerOrEqualValue(cutoff),
+        ))
+        .write(
+          db.OutboxEntriesCompanion(
+            status: Value<String>(OutboxStatus.pending.name),
+            updatedAt: Value<DateTime>(DateTime.now()),
+          ),
+        );
+  }
+
   Future<void> pruneSent({Duration retain = const Duration(days: 7)}) {
     final DateTime cutoff = DateTime.now().subtract(retain);
     return (_db.delete(_db.outboxEntries)..where(
@@ -192,5 +229,62 @@ class OutboxDao {
 
   Map<String, dynamic> decodePayload(db.OutboxEntryRow entry) {
     return jsonDecode(entry.payload) as Map<String, dynamic>;
+  }
+
+  Future<db.OutboxEntryRow?> _findCompactableEntry({
+    required String entityType,
+    required String entityId,
+    required OutboxOperation operation,
+  }) {
+    final SimpleSelectStatement<db.$OutboxEntriesTable, db.OutboxEntryRow>
+    query = _db.select(_db.outboxEntries)
+      ..where(
+        (db.$OutboxEntriesTable tbl) =>
+            tbl.entityType.equals(entityType) &
+            tbl.entityId.equals(entityId) &
+            tbl.operation.equals(operation.name) &
+            tbl.status.isIn(
+              _compactableStatuses
+                  .map((OutboxStatus status) => status.name)
+                  .toList(growable: false),
+            ),
+      )
+      ..orderBy(<OrderClauseGenerator<db.$OutboxEntriesTable>>[
+        (db.$OutboxEntriesTable tbl) =>
+            OrderingTerm(expression: tbl.updatedAt, mode: OrderingMode.desc),
+        (db.$OutboxEntriesTable tbl) =>
+            OrderingTerm(expression: tbl.id, mode: OrderingMode.desc),
+      ])
+      ..limit(1);
+    return query.getSingleOrNull();
+  }
+
+  List<db.OutboxEntryRow> _sortPendingEntries(
+    List<db.OutboxEntryRow> entries, {
+    int? limit,
+  }) {
+    final List<db.OutboxEntryRow> sorted = List<db.OutboxEntryRow>.from(entries)
+      ..sort((db.OutboxEntryRow a, db.OutboxEntryRow b) {
+        final int dependencyCompare = _dependencyOrderFor(
+          a.entityType,
+        ).compareTo(_dependencyOrderFor(b.entityType));
+        if (dependencyCompare != 0) {
+          return dependencyCompare;
+        }
+        final int createdAtCompare = a.createdAt.compareTo(b.createdAt);
+        if (createdAtCompare != 0) {
+          return createdAtCompare;
+        }
+        return a.id.compareTo(b.id);
+      });
+    if (limit == null || sorted.length <= limit) {
+      return sorted;
+    }
+    return sorted.take(limit).toList(growable: false);
+  }
+
+  int _dependencyOrderFor(String entityType) {
+    return SyncContract.manifestByOutboxType[entityType]?.dependencyOrder ??
+        1 << 20;
   }
 }

@@ -28,6 +28,8 @@ import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/notification_fallback_presenter.dart';
 import 'package:kopim/core/services/notifications_gateway.dart';
 import 'package:kopim/core/services/push_permission_service.dart';
+import 'package:kopim/core/services/sync/local_sync_integrity_debug_reporter.dart';
+import 'package:kopim/core/services/sync/local_sync_integrity_diagnostics_service.dart';
 import 'package:kopim/core/services/sync/sync_data_sanitizer.dart';
 import 'package:kopim/core/services/sync_service.dart';
 import 'package:kopim/features/ai/data/local/ai_assistant_tool_dao.dart';
@@ -126,6 +128,8 @@ import 'package:kopim/features/profile/domain/usecases/recompute_user_progress_u
 import 'package:kopim/features/profile/domain/usecases/update_profile_avatar_use_case.dart';
 import 'package:kopim/features/profile/domain/usecases/update_profile_use_case.dart';
 import 'package:kopim/features/profile/domain/usecases/update_profile_use_case_impl.dart';
+import 'package:kopim/features/credits/data/sources/remote/credit_payment_group_remote_data_source.dart';
+import 'package:kopim/features/credits/data/sources/remote/credit_payment_schedule_remote_data_source.dart';
 import 'package:kopim/features/settings/data/repositories/export_data_repository_impl.dart';
 import 'package:kopim/features/settings/data/repositories/import_data_repository_impl.dart';
 import 'package:kopim/features/settings/data/services/export_file_saver/export_file_saver_factory.dart';
@@ -404,6 +408,7 @@ ExportDataRepository exportDataRepository(Ref ref) => ExportDataRepositoryImpl(
   creditDao: ref.watch(creditDaoProvider),
   creditCardDao: ref.watch(creditCardDaoProvider),
   debtDao: ref.watch(debtDaoProvider),
+  creditPaymentDao: ref.watch(creditPaymentDaoProvider),
   budgetDao: ref.watch(budgetDaoProvider),
   budgetInstanceDao: ref.watch(budgetInstanceDaoProvider),
   savingGoalDao: ref.watch(savingGoalDaoProvider),
@@ -454,6 +459,7 @@ ImportDataRepository importDataRepository(Ref ref) => ImportDataRepositoryImpl(
   creditDao: ref.watch(creditDaoProvider),
   creditCardDao: ref.watch(creditCardDaoProvider),
   debtDao: ref.watch(debtDaoProvider),
+  creditPaymentDao: ref.watch(creditPaymentDaoProvider),
   budgetDao: ref.watch(budgetDaoProvider),
   budgetInstanceDao: ref.watch(budgetInstanceDaoProvider),
   savingGoalDao: ref.watch(savingGoalDaoProvider),
@@ -467,6 +473,10 @@ ImportDataRepository importDataRepository(Ref ref) => ImportDataRepositoryImpl(
   loggerService: ref.watch(loggerServiceProvider),
   analyticsService: ref.watch(analyticsServiceProvider),
   accountTypeBackfillService: ref.watch(accountTypeBackfillServiceProvider),
+  integrityDiagnosticsService: ref.watch(
+    localSyncIntegrityDiagnosticsServiceProvider,
+  ),
+  integrityDebugReporter: ref.watch(localSyncIntegrityDebugReporterProvider),
 );
 
 @riverpod
@@ -550,6 +560,20 @@ creditCardRemoteDataSourceProvider = rp.Provider<CreditCardRemoteDataSource>((
 final rp.Provider<DebtRemoteDataSource> debtRemoteDataSourceProvider =
     rp.Provider<DebtRemoteDataSource>((rp.Ref ref) {
       return DebtRemoteDataSource(ref.watch(firestoreProvider));
+    });
+
+final rp.Provider<CreditPaymentGroupRemoteDataSource>
+creditPaymentGroupRemoteDataSourceProvider =
+    rp.Provider<CreditPaymentGroupRemoteDataSource>((rp.Ref ref) {
+      return CreditPaymentGroupRemoteDataSource(ref.watch(firestoreProvider));
+    });
+
+final rp.Provider<CreditPaymentScheduleRemoteDataSource>
+creditPaymentScheduleRemoteDataSourceProvider =
+    rp.Provider<CreditPaymentScheduleRemoteDataSource>((rp.Ref ref) {
+      return CreditPaymentScheduleRemoteDataSource(
+        ref.watch(firestoreProvider),
+      );
     });
 
 @riverpod
@@ -1275,6 +1299,12 @@ SyncService syncService(Ref ref) {
     creditRemoteDataSource: ref.watch(creditRemoteDataSourceProvider),
     creditCardRemoteDataSource: ref.watch(creditCardRemoteDataSourceProvider),
     debtRemoteDataSource: ref.watch(debtRemoteDataSourceProvider),
+    creditPaymentGroupRemoteDataSource: ref.watch(
+      creditPaymentGroupRemoteDataSourceProvider,
+    ),
+    creditPaymentScheduleRemoteDataSource: ref.watch(
+      creditPaymentScheduleRemoteDataSourceProvider,
+    ),
     profileRemoteDataSource: ref.watch(profileRemoteDataSourceProvider),
     budgetRemoteDataSource: ref.watch(budgetRemoteDataSourceProvider),
     budgetInstanceRemoteDataSource: ref.watch(
@@ -1327,6 +1357,25 @@ SyncDataSanitizer syncDataSanitizer(Ref ref) =>
     SyncDataSanitizer(logger: ref.watch(loggerServiceProvider));
 
 @riverpod
+LocalSyncIntegrityDiagnosticsService localSyncIntegrityDiagnosticsService(
+  Ref ref,
+) => LocalSyncIntegrityDiagnosticsService(ref.watch(appDatabaseProvider));
+
+@riverpod
+LocalSyncIntegrityReportFormatter localSyncIntegrityReportFormatter(Ref ref) =>
+    const LocalSyncIntegrityReportFormatter();
+
+@riverpod
+LocalSyncIntegrityDebugReporter localSyncIntegrityDebugReporter(Ref ref) =>
+    LocalSyncIntegrityDebugReporter(
+      diagnosticsService: ref.watch(
+        localSyncIntegrityDiagnosticsServiceProvider,
+      ),
+      formatter: ref.watch(localSyncIntegrityReportFormatterProvider),
+      logger: ref.watch(loggerServiceProvider),
+    );
+
+@riverpod
 AuthSyncService authSyncService(Ref ref) => AuthSyncService(
   database: ref.watch(appDatabaseProvider),
   outboxDao: ref.watch(outboxDaoProvider),
@@ -1338,6 +1387,7 @@ AuthSyncService authSyncService(Ref ref) => AuthSyncService(
   creditCardDao: ref.watch(creditCardDaoProvider),
   creditDao: ref.watch(creditDaoProvider),
   debtDao: ref.watch(debtDaoProvider),
+  creditPaymentDao: ref.watch(creditPaymentDaoProvider),
   budgetDao: ref.watch(budgetDaoProvider),
   budgetInstanceDao: ref.watch(budgetInstanceDaoProvider),
   savingGoalDao: ref.watch(savingGoalDaoProvider),
@@ -1355,6 +1405,12 @@ AuthSyncService authSyncService(Ref ref) => AuthSyncService(
   creditCardRemoteDataSource: ref.watch(creditCardRemoteDataSourceProvider),
   creditRemoteDataSource: ref.watch(creditRemoteDataSourceProvider),
   debtRemoteDataSource: ref.watch(debtRemoteDataSourceProvider),
+  creditPaymentGroupRemoteDataSource: ref.watch(
+    creditPaymentGroupRemoteDataSourceProvider,
+  ),
+  creditPaymentScheduleRemoteDataSource: ref.watch(
+    creditPaymentScheduleRemoteDataSourceProvider,
+  ),
   budgetRemoteDataSource: ref.watch(budgetRemoteDataSourceProvider),
   budgetInstanceRemoteDataSource: ref.watch(
     budgetInstanceRemoteDataSourceProvider,
@@ -1372,4 +1428,8 @@ AuthSyncService authSyncService(Ref ref) => AuthSyncService(
   analyticsService: ref.watch(analyticsServiceProvider),
   dataSanitizer: ref.watch(syncDataSanitizerProvider),
   accountTypeBackfillService: ref.watch(accountTypeBackfillServiceProvider),
+  integrityDiagnosticsService: ref.watch(
+    localSyncIntegrityDiagnosticsServiceProvider,
+  ),
+  integrityDebugReporter: ref.watch(localSyncIntegrityDebugReporterProvider),
 );

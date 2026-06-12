@@ -381,6 +381,8 @@ class CreditPaymentSchedules extends Table {
   DateTimeColumn get paidAt => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  BoolColumn get isDeleted =>
+      boolean().named('is_deleted').withDefault(const Constant<bool>(false))();
 
   @override
   Set<Column<Object>> get primaryKey => <Column<Object>>{id};
@@ -411,6 +413,8 @@ class CreditPaymentGroups extends Table {
   TextColumn get idempotencyKey => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  BoolColumn get isDeleted =>
+      boolean().named('is_deleted').withDefault(const Constant<bool>(false))();
 
   @override
   Set<Column<Object>> get primaryKey => <Column<Object>>{id};
@@ -470,7 +474,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 45;
+  int get schemaVersion => 46;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -943,6 +947,17 @@ LEFT JOIN accounts acc ON up.account_id = acc.id
         );
         if (await _columnExists('saving_goals', 'account_id')) {
           await _backfillSavingGoalAccountLinks(m);
+        }
+      }
+      if (from < 46) {
+        if (!await _columnExists('credit_payment_schedules', 'is_deleted')) {
+          await m.addColumn(
+            creditPaymentSchedules,
+            creditPaymentSchedules.isDeleted,
+          );
+        }
+        if (!await _columnExists('credit_payment_groups', 'is_deleted')) {
+          await m.addColumn(creditPaymentGroups, creditPaymentGroups.isDeleted);
         }
       }
       if (from < 34) {

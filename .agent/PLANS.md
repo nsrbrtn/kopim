@@ -110,6 +110,18 @@ flutter test --reporter expanded
 - UI: списки оптимизированы (`itemExtent`/`prototypeItem`), форматтеры кэшированы.
 - Ошибки/сеть: корректные offline/syncing/up-to-date состояния.
 
+## Sync Entity Checklist
+
+Если задача добавляет новую sync-сущность или меняет статус существующей на sync/user-significant, ExecPlan должен явно покрыть:
+
+- manifest entry в `SyncContract` с delete semantics, conflict policy и dependency order;
+- Drift migration/metadata поля, если для tombstone или sync state нужны новые колонки;
+- remote data source, outbox payload/dispatch, `SyncService`, `AuthSyncService`;
+- merge-only import/export contract и cleanup coverage;
+- resurrection-safe delete policy: для user-significant сущностей по умолчанию tombstone-first, а не hard delete;
+- DB integrity diagnostics и debug/dev integrity report coverage;
+- regression-тесты на parity, merge, delete/restore, import/export и cleanup.
+
 ## Документация
 
 - Любое изменение поведения обновляет `docs/`.

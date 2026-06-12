@@ -5,6 +5,8 @@ import 'package:kopim/core/money/currency_scale.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
+import 'package:kopim/core/services/sync/local_sync_integrity_debug_reporter.dart';
+import 'package:kopim/core/services/sync/local_sync_integrity_diagnostics_service.dart';
 import 'package:kopim/core/services/sync/sync_contract.dart';
 import 'package:kopim/features/accounts/data/services/account_type_backfill_service.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
@@ -18,20 +20,25 @@ import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/credits/data/sources/local/credit_card_dao.dart';
 import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
 import 'package:kopim/features/credits/data/sources/local/debt_dao.dart';
+import 'package:kopim/features/credits/data/sources/local/credit_payment_dao.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_group.dart';
+import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.dart';
 import 'package:kopim/features/profile/data/local/profile_dao.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/domain/entities/user_progress.dart';
 import 'package:kopim/features/profile/domain/policies/level_policy.dart';
 import 'package:kopim/features/savings/data/mappers/saving_goal_storage_accounts_mapper.dart';
+import 'package:kopim/features/savings/data/services/goal_contribution_rebuild_service.dart';
 import 'package:kopim/features/savings/data/sources/local/goal_account_link_dao.dart';
 import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/settings/domain/entities/export_bundle.dart';
 import 'package:kopim/features/settings/domain/repositories/import_data_repository.dart';
 import 'package:kopim/features/settings/domain/services/export_bundle_integrity_service.dart';
+import 'package:kopim/features/settings/domain/services/export_bundle_schema.dart';
 import 'package:kopim/features/tags/data/sources/local/tag_dao.dart';
 import 'package:kopim/features/tags/data/sources/local/transaction_tags_dao.dart';
 import 'package:kopim/features/tags/domain/entities/tag.dart';
@@ -55,6 +62,7 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
     required CreditDao creditDao,
     required CreditCardDao creditCardDao,
     required DebtDao debtDao,
+    required CreditPaymentDao creditPaymentDao,
     required BudgetDao budgetDao,
     required BudgetInstanceDao budgetInstanceDao,
     required SavingGoalDao savingGoalDao,
@@ -68,6 +76,9 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
     LoggerService? loggerService,
     AnalyticsService? analyticsService,
     AccountTypeBackfillService? accountTypeBackfillService,
+    GoalContributionRebuildService? goalContributionRebuildService,
+    LocalSyncIntegrityDiagnosticsService? integrityDiagnosticsService,
+    LocalSyncIntegrityDebugReporter? integrityDebugReporter,
   }) : _database = database,
        _accountDao = accountDao,
        _categoryDao = categoryDao,
@@ -76,6 +87,7 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
        _creditDao = creditDao,
        _creditCardDao = creditCardDao,
        _debtDao = debtDao,
+       _creditPaymentDao = creditPaymentDao,
        _budgetDao = budgetDao,
        _budgetInstanceDao = budgetInstanceDao,
        _savingGoalDao = savingGoalDao,
@@ -88,7 +100,22 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
        _levelPolicy = levelPolicy,
        _logger = loggerService,
        _analytics = analyticsService,
-       _accountTypeBackfillService = accountTypeBackfillService;
+       _accountTypeBackfillService = accountTypeBackfillService,
+       _goalContributionRebuildService =
+           goalContributionRebuildService ??
+           GoalContributionRebuildService(database),
+       _integrityDiagnosticsService =
+           integrityDiagnosticsService ??
+           LocalSyncIntegrityDiagnosticsService(database),
+       _integrityDebugReporter =
+           integrityDebugReporter ??
+           LocalSyncIntegrityDebugReporter(
+             diagnosticsService:
+                 integrityDiagnosticsService ??
+                 LocalSyncIntegrityDiagnosticsService(database),
+             formatter: const LocalSyncIntegrityReportFormatter(),
+             logger: loggerService ?? LoggerService(),
+           );
 
   final db.AppDatabase _database;
   final AccountDao _accountDao;
@@ -98,6 +125,7 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
   final CreditDao _creditDao;
   final CreditCardDao _creditCardDao;
   final DebtDao _debtDao;
+  final CreditPaymentDao _creditPaymentDao;
   final BudgetDao _budgetDao;
   final BudgetInstanceDao _budgetInstanceDao;
   final SavingGoalDao _savingGoalDao;
@@ -111,6 +139,9 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
   final LoggerService? _logger;
   final AnalyticsService? _analytics;
   final AccountTypeBackfillService? _accountTypeBackfillService;
+  final GoalContributionRebuildService _goalContributionRebuildService;
+  final LocalSyncIntegrityDiagnosticsService _integrityDiagnosticsService;
+  final LocalSyncIntegrityDebugReporter _integrityDebugReporter;
   static const ExportBundleIntegrityService _integrityService =
       ExportBundleIntegrityService();
 
@@ -123,6 +154,9 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
   static const String _creditEntityType = 'credit';
   static const String _creditCardEntityType = 'credit_card';
   static const String _debtEntityType = 'debt';
+  static const String _creditPaymentGroupEntityType = 'credit_payment_group';
+  static const String _creditPaymentScheduleEntityType =
+      'credit_payment_schedule';
   static const String _budgetEntityType = 'budget';
   static const String _budgetInstanceEntityType = 'budget_instance';
   static const String _upcomingPaymentEntityType = 'upcoming_payment';
@@ -139,12 +173,25 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
     final List<CreditEntity> credits = bundle.credits;
     final List<CreditCardEntity> creditCards = bundle.creditCards;
     final List<DebtEntity> debts = bundle.debts;
+    final List<CreditPaymentGroupEntity> creditPaymentGroups =
+        bundle.creditPaymentGroups;
+    final List<CreditPaymentScheduleEntity> creditPaymentSchedules =
+        bundle.creditPaymentSchedules;
     final List<Budget> budgets = bundle.budgets;
     final List<BudgetInstance> budgetInstances = bundle.budgetInstances;
     final List<UpcomingPayment> upcomingPayments = bundle.upcomingPayments;
     final List<PaymentReminder> paymentReminders = bundle.paymentReminders;
-    final List<TransactionEntity> transactions =
-        SyncContract.normalizeTransactionsForPortableSync(bundle.transactions);
+    final ExportBundleSchemaVersion schemaVersion =
+        ExportBundleSchema.parseAndValidate(bundle.schemaVersion);
+    final List<TransactionEntity> transactions = bundle.transactions
+        .map(
+          (TransactionEntity transaction) =>
+              _normalizeImportedTransaction(transaction, schemaVersion),
+        )
+        .toList(growable: false);
+    final Set<String> importedCreditPaymentGroupIds = creditPaymentGroups
+        .map((CreditPaymentGroupEntity group) => group.id)
+        .toSet();
     _logger?.logInfo(
       'ImportDataRepository: start restore '
       'accounts=${accounts.length}, '
@@ -152,16 +199,18 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
       'transactions=${transactions.length}',
     );
     try {
+      if (bundle.integrity != null) {
+        _integrityService.verify(bundle);
+      }
       await _database.transaction(() async {
-        final _ExistingImportSnapshot existingSnapshot =
-            await _loadExistingSnapshot();
-        await _clearImportedSnapshot();
         await _accountDao.upsertAll(accounts);
         await _categoryDao.upsertAll(categories);
         await _tagDao.upsertAll(tags);
         await _creditDao.upsertAll(credits);
         await _creditCardDao.upsertAll(creditCards);
         await _debtDao.upsertAll(debts);
+        await _creditPaymentDao.upsertSchedule(creditPaymentSchedules);
+        await _creditPaymentDao.upsertPaymentGroups(creditPaymentGroups);
         await _budgetDao.upsertAll(budgets);
         await _budgetInstanceDao.upsertAll(budgetInstances);
         await _savingGoalDao.upsertAll(savingGoals);
@@ -173,69 +222,79 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
         );
         await _upsertUpcomingPayments(upcomingPayments);
         await _upsertPaymentReminders(paymentReminders);
-        await _transactionDao.upsertAll(transactions);
+        final List<TransactionEntity> validatedTransactions =
+            _validateImportedTransactionGroupReferences(
+              transactions,
+              schemaVersion: schemaVersion,
+              validGroupIds: importedCreditPaymentGroupIds,
+            );
+        await _transactionDao.upsertAll(validatedTransactions);
+        await _goalContributionRebuildService.rebuild();
         await _transactionTagsDao.upsertAll(transactionTags);
         if (bundle.profile != null) {
           await _profileDao.upsertInTransaction(bundle.profile!);
         }
-        await _recalculateAccountBalances(transactions);
+        await _recalculateAccountBalances();
 
         final List<AccountEntity> persistedAccounts =
             await _loadImportedAccounts(accounts);
-        final DateTime syncTimestamp = DateTime.now().toUtc();
-        await _enqueueDeletedSnapshot(
-          existingSnapshot: existingSnapshot,
-          importedAccountIds: accounts.map(
-            (AccountEntity account) => account.id,
-          ),
-          importedCategoryIds: categories.map(
-            (Category category) => category.id,
-          ),
-          importedTagKeys: tags.map((TagEntity tag) => tag.id),
-          importedTransactionTagKeys: transactionTags.map(_transactionTagKey),
-          importedSavingGoalIds: savingGoals.map((SavingGoal goal) => goal.id),
-          importedCreditIds: credits.map((CreditEntity credit) => credit.id),
-          importedCreditCardIds: creditCards.map(
-            (CreditCardEntity creditCard) => creditCard.id,
-          ),
-          importedDebtIds: debts.map((DebtEntity debt) => debt.id),
-          importedBudgetIds: budgets.map((Budget budget) => budget.id),
-          importedBudgetInstanceIds: budgetInstances.map(
-            (BudgetInstance instance) => instance.id,
-          ),
-          importedUpcomingPaymentIds: upcomingPayments.map(
-            (UpcomingPayment payment) => payment.id,
-          ),
-          importedPaymentReminderIds: paymentReminders.map(
-            (PaymentReminder reminder) => reminder.id,
-          ),
-          importedTransactionIds: transactions.map(
-            (TransactionEntity transaction) => transaction.id,
-          ),
-          syncTimestamp: syncTimestamp,
-        );
         await _enqueueAccounts(persistedAccounts);
         await _enqueueCategories(categories);
         await _enqueueTags(tags);
         await _enqueueCredits(credits);
         await _enqueueCreditCards(creditCards);
         await _enqueueDebts(debts);
+        await _enqueueCreditPaymentSchedules(creditPaymentSchedules);
+        await _enqueueCreditPaymentGroups(creditPaymentGroups);
         await _enqueueBudgets(budgets);
         await _enqueueBudgetInstances(budgetInstances);
         await _enqueueSavingGoals(savingGoals);
         await _enqueueUpcomingPayments(upcomingPayments);
         await _enqueuePaymentReminders(paymentReminders);
-        await _enqueueTransactions(transactions);
+        await _enqueueTransactions(validatedTransactions);
         await _enqueueTransactionTags(transactionTags);
         if (bundle.profile != null) {
           await _enqueueProfile(bundle.profile!);
         }
         if (bundle.integrity != null) {
-          final ExportBundle importedSnapshot = await _buildImportedBundle(
-            bundle,
-          );
+          final ExportBundle importedSnapshot =
+              await _buildImportedBundleForIds(
+                expected: bundle.copyWith(transactions: transactions),
+                accountIds: accounts.map((AccountEntity account) => account.id),
+                categoryIds: categories.map((Category category) => category.id),
+                tagIds: tags.map((TagEntity tag) => tag.id),
+                transactionTagKeys: transactionTags.map(_transactionTagKey),
+                savingGoalIds: savingGoals.map((SavingGoal goal) => goal.id),
+                creditIds: credits.map((CreditEntity credit) => credit.id),
+                creditCardIds: creditCards.map(
+                  (CreditCardEntity creditCard) => creditCard.id,
+                ),
+                debtIds: debts.map((DebtEntity debt) => debt.id),
+                creditPaymentGroupIds: creditPaymentGroups.map(
+                  (CreditPaymentGroupEntity group) => group.id,
+                ),
+                creditPaymentScheduleIds: creditPaymentSchedules.map(
+                  (CreditPaymentScheduleEntity item) => item.id,
+                ),
+                budgetIds: budgets.map((Budget budget) => budget.id),
+                budgetInstanceIds: budgetInstances.map(
+                  (BudgetInstance instance) => instance.id,
+                ),
+                upcomingPaymentIds: upcomingPayments.map(
+                  (UpcomingPayment payment) => payment.id,
+                ),
+                paymentReminderIds: paymentReminders.map(
+                  (PaymentReminder reminder) => reminder.id,
+                ),
+                transactionIds: validatedTransactions.map(
+                  (TransactionEntity transaction) => transaction.id,
+                ),
+              );
           _integrityService.verify(
-            importedSnapshot.copyWith(integrity: bundle.integrity),
+            importedSnapshot.copyWith(
+              integrity: bundle.integrity,
+              transactions: validatedTransactions,
+            ),
           );
         }
       });
@@ -253,12 +312,15 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
           'updated=${result.updatedCount}, scanned=${result.scannedCount}',
         );
       }
+      await _runIntegrityDiagnostics();
       if (_analytics != null) {
         await _analytics.logEvent('import_restore_completed', <String, dynamic>{
           'accounts': accounts.length,
           'goals': savingGoals.length,
           'transactions': transactions.length,
           'categories': categories.length,
+          'creditPaymentGroups': creditPaymentGroups.length,
+          'creditPaymentSchedules': creditPaymentSchedules.length,
         });
       }
     } catch (error, stackTrace) {
@@ -270,64 +332,84 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
           'goals': savingGoals.length,
           'transactions': transactions.length,
           'categories': categories.length,
+          'creditPaymentGroups': creditPaymentGroups.length,
+          'creditPaymentSchedules': creditPaymentSchedules.length,
         });
       }
       rethrow;
     }
   }
 
-  Future<_ExistingImportSnapshot> _loadExistingSnapshot() async {
-    return _ExistingImportSnapshot(
-      accounts: await _accountDao.getAllAccounts(),
-      categories: await _categoryDao.getAllCategories(),
-      tags: await _tagDao.getAllTags(),
-      transactionTags: (await _transactionTagsDao.getAllTransactionTags())
-          .map(_transactionTagsDao.mapRowToEntity)
-          .toList(growable: false),
-      savingGoals: await _loadSavingGoalsWithStorageAccounts(),
-      credits: (await _creditDao.getAllCredits())
-          .map(_creditDao.mapRowToEntity)
-          .toList(growable: false),
-      creditCards: (await _creditCardDao.getAllCreditCards())
-          .map(_creditCardDao.mapRowToEntity)
-          .toList(growable: false),
-      debts: (await _debtDao.getAllDebts())
-          .map(_debtDao.mapRowToEntity)
-          .toList(growable: false),
-      budgets: await _budgetDao.getAllBudgets(),
-      budgetInstances: await _budgetInstanceDao.getAllInstances(),
-      upcomingPayments: await _upcomingPaymentsDao.getAll(),
-      paymentReminders: await _paymentRemindersDao.getAllIncludingDone(),
-      transactions: await _transactionDao.getAllTransactions(),
+  Future<void> _runIntegrityDiagnostics() async {
+    final LocalSyncIntegrityReport report = await _integrityDiagnosticsService
+        .run();
+    _integrityDebugReporter.logReport(
+      context: 'import_restore',
+      report: report,
     );
+    if (!report.hasIssues) {
+      _logger?.logInfo(
+        'ImportDataRepository: integrity diagnostics clean after restore.',
+      );
+      return;
+    }
+    _logger?.logError(
+      'ImportDataRepository: integrity diagnostics found '
+      '${report.issueCount} issue(s) after restore.',
+    );
+    if (_analytics == null) {
+      return;
+    }
+    await _analytics.logEvent('local_db_integrity_issues', <String, dynamic>{
+      'context': 'import_restore',
+      'dbSchemaVersion': _database.schemaVersion,
+      'issueCount': report.issueCount,
+      'distinctTypes': report.issues
+          .map((LocalSyncIntegrityIssue issue) => issue.type)
+          .toSet()
+          .length,
+      'staleSending': report.countByType(
+        LocalSyncIntegrityIssueType.staleSendingOutbox,
+      ),
+      'unsupportedOutbox': report.countByType(
+        LocalSyncIntegrityIssueType.unsupportedOutboxEntityType,
+      ),
+      'orphanTransactions':
+          report.countByType(
+            LocalSyncIntegrityIssueType.orphanTransactionAccount,
+          ) +
+          report.countByType(
+            LocalSyncIntegrityIssueType.orphanTransactionCategory,
+          ) +
+          report.countByType(LocalSyncIntegrityIssueType.invalidTransferLink),
+      'accountBalances': report.countByType(
+        LocalSyncIntegrityIssueType.accountBalanceMismatch,
+      ),
+      'savingGoals':
+          report.countByType(
+            LocalSyncIntegrityIssueType.invalidSavingGoalLink,
+          ) +
+          report.countByType(
+            LocalSyncIntegrityIssueType.savingGoalCurrentAmountMismatch,
+          ) +
+          report.countByType(
+            LocalSyncIntegrityIssueType.savingGoalMissingStorageAccount,
+          ),
+      'creditArtifacts':
+          report.countByType(
+            LocalSyncIntegrityIssueType.invalidCreditGroupLink,
+          ) +
+          report.countByType(LocalSyncIntegrityIssueType.invalidCreditSchedule),
+      'moneyFields': report.countByType(
+        LocalSyncIntegrityIssueType.invalidMoneyField,
+      ),
+    });
   }
 
-  Future<void> _clearImportedSnapshot() async {
-    await (_database.delete(_database.goalContributions)).go();
-    await (_database.delete(_database.goalAccountLinks)).go();
-    await (_database.delete(_database.creditPaymentGroups)).go();
-    await (_database.delete(_database.creditPaymentSchedules)).go();
-    await (_database.delete(_database.paymentReminders)).go();
-    await (_database.delete(_database.upcomingPayments)).go();
-    await (_database.delete(_database.budgetInstances)).go();
-    await (_database.delete(_database.budgets)).go();
-    await (_database.delete(_database.debts)).go();
-    await (_database.delete(_database.creditCards)).go();
-    await (_database.delete(_database.credits)).go();
-    await (_database.delete(_database.savingGoals)).go();
-    await (_database.delete(_database.transactionTags)).go();
-    await (_database.delete(_database.tags)).go();
-    await (_database.delete(_database.transactions)).go();
-    await (_database.delete(_database.categories)).go();
-    await (_database.delete(_database.accounts)).go();
-    await (_database.delete(_database.profiles)).go();
-    await (_database.delete(_database.outboxEntries)).go();
-  }
-
-  Future<void> _recalculateAccountBalances(
-    List<TransactionEntity> transactions,
-  ) async {
+  Future<void> _recalculateAccountBalances() async {
     final List<AccountEntity> accounts = await _accountDao.getAllAccounts();
+    final List<TransactionEntity> transactions = await _transactionDao
+        .getAllTransactions();
     final Map<String, MoneyAmount> deltas = <String, MoneyAmount>{
       for (final AccountEntity account in accounts)
         account.id: MoneyAmount(
@@ -482,6 +564,32 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
     }
   }
 
+  Future<void> _enqueueCreditPaymentGroups(
+    List<CreditPaymentGroupEntity> groups,
+  ) async {
+    for (final CreditPaymentGroupEntity group in groups) {
+      await _outboxDao.enqueue(
+        entityType: _creditPaymentGroupEntityType,
+        entityId: group.id,
+        operation: OutboxOperation.upsert,
+        payload: _mapCreditPaymentGroupPayload(group),
+      );
+    }
+  }
+
+  Future<void> _enqueueCreditPaymentSchedules(
+    List<CreditPaymentScheduleEntity> items,
+  ) async {
+    for (final CreditPaymentScheduleEntity item in items) {
+      await _outboxDao.enqueue(
+        entityType: _creditPaymentScheduleEntityType,
+        entityId: item.id,
+        operation: OutboxOperation.upsert,
+        payload: _mapCreditPaymentSchedulePayload(item),
+      );
+    }
+  }
+
   Future<void> _enqueueBudgets(List<Budget> budgets) async {
     for (final Budget budget in budgets) {
       await _outboxDao.enqueue(
@@ -559,7 +667,40 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
     );
   }
 
-  Future<ExportBundle> _buildImportedBundle(ExportBundle expected) async {
+  Future<ExportBundle> _buildImportedBundleForIds({
+    required ExportBundle expected,
+    required Iterable<String> accountIds,
+    required Iterable<String> categoryIds,
+    required Iterable<String> tagIds,
+    required Iterable<String> transactionTagKeys,
+    required Iterable<String> savingGoalIds,
+    required Iterable<String> creditIds,
+    required Iterable<String> creditCardIds,
+    required Iterable<String> debtIds,
+    required Iterable<String> creditPaymentGroupIds,
+    required Iterable<String> creditPaymentScheduleIds,
+    required Iterable<String> budgetIds,
+    required Iterable<String> budgetInstanceIds,
+    required Iterable<String> upcomingPaymentIds,
+    required Iterable<String> paymentReminderIds,
+    required Iterable<String> transactionIds,
+  }) async {
+    final Set<String> accountIdSet = accountIds.toSet();
+    final Set<String> categoryIdSet = categoryIds.toSet();
+    final Set<String> tagIdSet = tagIds.toSet();
+    final Set<String> transactionTagKeySet = transactionTagKeys.toSet();
+    final Set<String> savingGoalIdSet = savingGoalIds.toSet();
+    final Set<String> creditIdSet = creditIds.toSet();
+    final Set<String> creditCardIdSet = creditCardIds.toSet();
+    final Set<String> debtIdSet = debtIds.toSet();
+    final Set<String> creditPaymentGroupIdSet = creditPaymentGroupIds.toSet();
+    final Set<String> creditPaymentScheduleIdSet = creditPaymentScheduleIds
+        .toSet();
+    final Set<String> budgetIdSet = budgetIds.toSet();
+    final Set<String> budgetInstanceIdSet = budgetInstanceIds.toSet();
+    final Set<String> upcomingPaymentIdSet = upcomingPaymentIds.toSet();
+    final Set<String> paymentReminderIdSet = paymentReminderIds.toSet();
+    final Set<String> transactionIdSet = transactionIds.toSet();
     final List<AccountEntity> accounts = await _accountDao.getAllAccounts();
     final List<Category> categories = await _categoryDao.getAllCategories();
     final List<TagEntity> tags = await _tagDao.getAllTags();
@@ -579,6 +720,10 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
     final List<DebtEntity> debts = (await _debtDao.getAllDebts())
         .map(_debtDao.mapRowToEntity)
         .toList(growable: false);
+    final List<CreditPaymentGroupEntity> creditPaymentGroups =
+        await _creditPaymentDao.getAllPaymentGroups();
+    final List<CreditPaymentScheduleEntity> creditPaymentSchedules =
+        await _creditPaymentDao.getAllScheduleItems();
     final List<Budget> budgets = await _budgetDao.getAllBudgets();
     final List<BudgetInstance> budgetInstances = await _budgetInstanceDao
         .getAllInstances();
@@ -593,23 +738,84 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
         : await _profileDao.getProfile(expected.profile!.uid);
 
     return expected.copyWith(
-      accounts: accounts,
-      categories: categories,
-      tags: tags,
-      transactionTags: transactionTags,
-      savingGoals: savingGoals,
-      credits: credits,
-      creditCards: creditCards,
-      debts: debts,
-      budgets: budgets,
-      budgetInstances: budgetInstances,
-      upcomingPayments: upcomingPayments,
-      paymentReminders: paymentReminders,
-      transactions: transactions,
+      accounts: accounts
+          .where((AccountEntity account) => accountIdSet.contains(account.id))
+          .toList(growable: false),
+      categories: categories
+          .where((Category category) => categoryIdSet.contains(category.id))
+          .toList(growable: false),
+      tags: tags
+          .where((TagEntity tag) => tagIdSet.contains(tag.id))
+          .toList(growable: false),
+      transactionTags: transactionTags
+          .where(
+            (TransactionTagEntity link) =>
+                transactionTagKeySet.contains(_transactionTagKey(link)),
+          )
+          .toList(growable: false),
+      savingGoals: savingGoals
+          .where((SavingGoal goal) => savingGoalIdSet.contains(goal.id))
+          .toList(growable: false),
+      credits: credits
+          .where((CreditEntity credit) => creditIdSet.contains(credit.id))
+          .toList(growable: false),
+      creditCards: creditCards
+          .where(
+            (CreditCardEntity creditCard) =>
+                creditCardIdSet.contains(creditCard.id),
+          )
+          .toList(growable: false),
+      debts: debts
+          .where((DebtEntity debt) => debtIdSet.contains(debt.id))
+          .toList(growable: false),
+      creditPaymentGroups: creditPaymentGroups
+          .where(
+            (CreditPaymentGroupEntity group) =>
+                creditPaymentGroupIdSet.contains(group.id),
+          )
+          .toList(growable: false),
+      creditPaymentSchedules: creditPaymentSchedules
+          .where(
+            (CreditPaymentScheduleEntity item) =>
+                creditPaymentScheduleIdSet.contains(item.id),
+          )
+          .toList(growable: false),
+      budgets: budgets
+          .where((Budget budget) => budgetIdSet.contains(budget.id))
+          .toList(growable: false),
+      budgetInstances: budgetInstances
+          .where(
+            (BudgetInstance instance) =>
+                budgetInstanceIdSet.contains(instance.id),
+          )
+          .toList(growable: false),
+      upcomingPayments: upcomingPayments
+          .where(
+            (UpcomingPayment payment) =>
+                upcomingPaymentIdSet.contains(payment.id),
+          )
+          .toList(growable: false),
+      paymentReminders: paymentReminders
+          .where(
+            (PaymentReminder reminder) =>
+                paymentReminderIdSet.contains(reminder.id),
+          )
+          .toList(growable: false),
+      transactions: transactions
+          .where(
+            (TransactionEntity transaction) =>
+                transactionIdSet.contains(transaction.id),
+          )
+          .toList(growable: false),
       profile: profile,
       progress: _rebuildProgress(
         expectedProgress: expected.progress,
-        transactions: transactions,
+        transactions: transactions
+            .where(
+              (TransactionEntity transaction) =>
+                  transactionIdSet.contains(transaction.id),
+            )
+            .toList(growable: false),
       ),
       integrity: expected.integrity,
     );
@@ -635,218 +841,6 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
     );
   }
 
-  Future<void> _enqueueDeletedSnapshot({
-    required _ExistingImportSnapshot existingSnapshot,
-    required Iterable<String> importedAccountIds,
-    required Iterable<String> importedCategoryIds,
-    required Iterable<String> importedTagKeys,
-    required Iterable<String> importedTransactionTagKeys,
-    required Iterable<String> importedSavingGoalIds,
-    required Iterable<String> importedCreditIds,
-    required Iterable<String> importedCreditCardIds,
-    required Iterable<String> importedDebtIds,
-    required Iterable<String> importedBudgetIds,
-    required Iterable<String> importedBudgetInstanceIds,
-    required Iterable<String> importedUpcomingPaymentIds,
-    required Iterable<String> importedPaymentReminderIds,
-    required Iterable<String> importedTransactionIds,
-    required DateTime syncTimestamp,
-  }) async {
-    final Set<String> accountIds = importedAccountIds.toSet();
-    final Set<String> categoryIds = importedCategoryIds.toSet();
-    final Set<String> tagKeys = importedTagKeys.toSet();
-    final Set<String> transactionTagKeys = importedTransactionTagKeys.toSet();
-    final Set<String> savingGoalIds = importedSavingGoalIds.toSet();
-    final Set<String> creditIds = importedCreditIds.toSet();
-    final Set<String> creditCardIds = importedCreditCardIds.toSet();
-    final Set<String> debtIds = importedDebtIds.toSet();
-    final Set<String> budgetIds = importedBudgetIds.toSet();
-    final Set<String> budgetInstanceIds = importedBudgetInstanceIds.toSet();
-    final Set<String> upcomingPaymentIds = importedUpcomingPaymentIds.toSet();
-    final Set<String> paymentReminderIds = importedPaymentReminderIds.toSet();
-    final Set<String> transactionIds = importedTransactionIds.toSet();
-
-    for (final AccountEntity account in existingSnapshot.accounts) {
-      if (accountIds.contains(account.id)) continue;
-      final AccountEntity deleted = account.copyWith(
-        isDeleted: true,
-        updatedAt: syncTimestamp,
-      );
-      await _outboxDao.enqueue(
-        entityType: _accountEntityType,
-        entityId: deleted.id,
-        operation: OutboxOperation.delete,
-        payload: _mapAccountPayload(deleted),
-      );
-    }
-
-    for (final Category category in existingSnapshot.categories) {
-      if (categoryIds.contains(category.id)) continue;
-      final Category deleted = category.copyWith(
-        isDeleted: true,
-        updatedAt: syncTimestamp,
-      );
-      await _outboxDao.enqueue(
-        entityType: _categoryEntityType,
-        entityId: deleted.id,
-        operation: OutboxOperation.delete,
-        payload: _mapCategoryPayload(deleted),
-      );
-    }
-
-    for (final TagEntity tag in existingSnapshot.tags) {
-      if (tagKeys.contains(tag.id)) continue;
-      final TagEntity deleted = tag.copyWith(
-        isDeleted: true,
-        updatedAt: syncTimestamp,
-      );
-      await _outboxDao.enqueue(
-        entityType: _tagEntityType,
-        entityId: deleted.id,
-        operation: OutboxOperation.delete,
-        payload: _mapTagPayload(deleted),
-      );
-    }
-
-    for (final SavingGoal goal in existingSnapshot.savingGoals) {
-      if (savingGoalIds.contains(goal.id)) continue;
-      await _outboxDao.enqueue(
-        entityType: _savingGoalEntityType,
-        entityId: goal.id,
-        operation: OutboxOperation.delete,
-        payload: _mapGoalPayload(goal.copyWith(updatedAt: syncTimestamp)),
-      );
-    }
-
-    for (final CreditEntity credit in existingSnapshot.credits) {
-      if (creditIds.contains(credit.id)) continue;
-      final CreditEntity deleted = credit.copyWith(
-        isDeleted: true,
-        updatedAt: syncTimestamp,
-      );
-      await _outboxDao.enqueue(
-        entityType: _creditEntityType,
-        entityId: deleted.id,
-        operation: OutboxOperation.delete,
-        payload: _mapCreditPayload(deleted),
-      );
-    }
-
-    for (final CreditCardEntity creditCard in existingSnapshot.creditCards) {
-      if (creditCardIds.contains(creditCard.id)) continue;
-      final CreditCardEntity deleted = creditCard.copyWith(
-        isDeleted: true,
-        updatedAt: syncTimestamp,
-      );
-      await _outboxDao.enqueue(
-        entityType: _creditCardEntityType,
-        entityId: deleted.id,
-        operation: OutboxOperation.delete,
-        payload: _mapCreditCardPayload(deleted),
-      );
-    }
-
-    for (final DebtEntity debt in existingSnapshot.debts) {
-      if (debtIds.contains(debt.id)) continue;
-      final DebtEntity deleted = debt.copyWith(
-        isDeleted: true,
-        updatedAt: syncTimestamp,
-      );
-      await _outboxDao.enqueue(
-        entityType: _debtEntityType,
-        entityId: deleted.id,
-        operation: OutboxOperation.delete,
-        payload: _mapDebtPayload(deleted),
-      );
-    }
-
-    for (final Budget budget in existingSnapshot.budgets) {
-      if (budgetIds.contains(budget.id)) continue;
-      final Budget deleted = budget.copyWith(
-        isDeleted: true,
-        updatedAt: syncTimestamp,
-      );
-      await _outboxDao.enqueue(
-        entityType: _budgetEntityType,
-        entityId: deleted.id,
-        operation: OutboxOperation.delete,
-        payload: _mapBudgetPayload(deleted),
-      );
-    }
-
-    for (final BudgetInstance instance in existingSnapshot.budgetInstances) {
-      if (budgetInstanceIds.contains(instance.id)) continue;
-      final BudgetInstance deleted = instance.copyWith(
-        updatedAt: syncTimestamp,
-      );
-      await _outboxDao.enqueue(
-        entityType: _budgetInstanceEntityType,
-        entityId: deleted.id,
-        operation: OutboxOperation.delete,
-        payload: _mapBudgetInstancePayload(deleted, deleted: true),
-      );
-    }
-
-    for (final TransactionEntity transaction in existingSnapshot.transactions) {
-      if (transactionIds.contains(transaction.id)) continue;
-      final TransactionEntity deleted = transaction.copyWith(
-        isDeleted: true,
-        updatedAt: syncTimestamp,
-      );
-      await _outboxDao.enqueue(
-        entityType: _transactionEntityType,
-        entityId: deleted.id,
-        operation: OutboxOperation.delete,
-        payload: _mapTransactionPayload(deleted),
-      );
-    }
-
-    for (final TransactionTagEntity link in existingSnapshot.transactionTags) {
-      final String key = _transactionTagKey(link);
-      if (transactionTagKeys.contains(key)) continue;
-      final TransactionTagEntity deleted = link.copyWith(
-        isDeleted: true,
-        updatedAt: syncTimestamp,
-      );
-      await _outboxDao.enqueue(
-        entityType: _transactionTagEntityType,
-        entityId: key,
-        operation: OutboxOperation.delete,
-        payload: _mapTransactionTagPayload(deleted),
-      );
-    }
-
-    for (final UpcomingPayment payment in existingSnapshot.upcomingPayments) {
-      if (upcomingPaymentIds.contains(payment.id)) continue;
-      await _outboxDao.enqueue(
-        entityType: _upcomingPaymentEntityType,
-        entityId: payment.id,
-        operation: OutboxOperation.delete,
-        payload: payment
-            .copyWith(
-              isActive: false,
-              updatedAtMs: syncTimestamp.millisecondsSinceEpoch,
-            )
-            .toJson(),
-      );
-    }
-
-    for (final PaymentReminder reminder in existingSnapshot.paymentReminders) {
-      if (paymentReminderIds.contains(reminder.id)) continue;
-      await _outboxDao.enqueue(
-        entityType: _paymentReminderEntityType,
-        entityId: reminder.id,
-        operation: OutboxOperation.delete,
-        payload: reminder
-            .copyWith(
-              isDone: true,
-              updatedAtMs: syncTimestamp.millisecondsSinceEpoch,
-            )
-            .toJson(),
-      );
-    }
-  }
-
   MoneyAmount _resolveOpeningBalance({
     required AccountEntity account,
     required MoneyAmount netDelta,
@@ -863,10 +857,47 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
     if (opening.minor == BigInt.zero && netDelta.minor != BigInt.zero) {
       return MoneyAmount(minor: derivedMinor, scale: netDelta.scale);
     }
-    if (opening.minor == balance.minor && netDelta.minor != BigInt.zero) {
-      return MoneyAmount(minor: derivedMinor, scale: netDelta.scale);
-    }
     return opening;
+  }
+
+  TransactionEntity _normalizeImportedTransaction(
+    TransactionEntity transaction,
+    ExportBundleSchemaVersion version,
+  ) {
+    final TransactionEntity normalized =
+        SyncContract.normalizeTransactionForPortableSync(transaction);
+    if (!ExportBundleSchema.requiresCreditPaymentArtifacts(version)) {
+      return normalized.copyWith(groupId: null);
+    }
+    return normalized;
+  }
+
+  List<TransactionEntity> _validateImportedTransactionGroupReferences(
+    List<TransactionEntity> transactions, {
+    required ExportBundleSchemaVersion schemaVersion,
+    required Set<String> validGroupIds,
+  }) {
+    if (!ExportBundleSchema.requiresCreditPaymentArtifacts(schemaVersion) ||
+        transactions.isEmpty) {
+      return transactions;
+    }
+
+    return transactions
+        .map((TransactionEntity transaction) {
+          final String? groupId = transaction.groupId;
+          if (groupId == null || validGroupIds.contains(groupId)) {
+            return transaction;
+          }
+          if (transaction.isDeleted) {
+            return transaction.copyWith(groupId: null);
+          }
+          throw FormatException(
+            'Транзакция ${transaction.id} ссылается на отсутствующую '
+            'credit_payment_group $groupId в backup со схемой '
+            '${schemaVersion.raw}.',
+          );
+        })
+        .toList(growable: false);
   }
 
   Map<String, dynamic> _mapAccountPayload(AccountEntity account) {
@@ -960,6 +991,50 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
     return json;
   }
 
+  Map<String, dynamic> _mapCreditPaymentGroupPayload(
+    CreditPaymentGroupEntity group,
+  ) {
+    return <String, dynamic>{
+      'id': group.id,
+      'creditId': group.creditId,
+      'sourceAccountId': group.sourceAccountId,
+      'scheduleItemId': group.scheduleItemId,
+      'paidAt': group.paidAt.toIso8601String(),
+      'totalOutflowMinor': group.totalOutflow.minor.toString(),
+      'totalOutflowScale': group.totalOutflow.scale,
+      'principalPaidMinor': group.principalPaid.minor.toString(),
+      'interestPaidMinor': group.interestPaid.minor.toString(),
+      'feesPaidMinor': group.feesPaid.minor.toString(),
+      'note': group.note,
+      'idempotencyKey': group.idempotencyKey,
+      'createdAt': (group.createdAt ?? group.paidAt).toIso8601String(),
+      'updatedAt': (group.updatedAt ?? group.paidAt).toIso8601String(),
+      'isDeleted': group.isDeleted,
+    }..removeWhere((String key, Object? value) => value == null);
+  }
+
+  Map<String, dynamic> _mapCreditPaymentSchedulePayload(
+    CreditPaymentScheduleEntity item,
+  ) {
+    return <String, dynamic>{
+      'id': item.id,
+      'creditId': item.creditId,
+      'periodKey': item.periodKey,
+      'dueDate': item.dueDate.toIso8601String(),
+      'status': item.status.name,
+      'principalAmountMinor': item.principalAmount.minor.toString(),
+      'interestAmountMinor': item.interestAmount.minor.toString(),
+      'totalAmountMinor': item.totalAmount.minor.toString(),
+      'amountScale': item.totalAmount.scale,
+      'principalPaidMinor': item.principalPaid.minor.toString(),
+      'interestPaidMinor': item.interestPaid.minor.toString(),
+      'paidAt': item.paidAt?.toIso8601String(),
+      'createdAt': (item.createdAt ?? item.dueDate).toIso8601String(),
+      'updatedAt': (item.updatedAt ?? item.dueDate).toIso8601String(),
+      'isDeleted': item.isDeleted,
+    }..removeWhere((String key, Object? value) => value == null);
+  }
+
   Map<String, dynamic> _mapTransactionTagPayload(TransactionTagEntity link) {
     final Map<String, dynamic> json = link.toJson();
     json['createdAt'] = link.createdAt.toIso8601String();
@@ -1029,36 +1104,4 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
   String _transactionTagKey(TransactionTagEntity link) {
     return '${link.transactionId}::${link.tagId}';
   }
-}
-
-class _ExistingImportSnapshot {
-  const _ExistingImportSnapshot({
-    required this.accounts,
-    required this.categories,
-    required this.tags,
-    required this.transactionTags,
-    required this.savingGoals,
-    required this.credits,
-    required this.creditCards,
-    required this.debts,
-    required this.budgets,
-    required this.budgetInstances,
-    required this.upcomingPayments,
-    required this.paymentReminders,
-    required this.transactions,
-  });
-
-  final List<AccountEntity> accounts;
-  final List<Category> categories;
-  final List<TagEntity> tags;
-  final List<TransactionTagEntity> transactionTags;
-  final List<SavingGoal> savingGoals;
-  final List<CreditEntity> credits;
-  final List<CreditCardEntity> creditCards;
-  final List<DebtEntity> debts;
-  final List<Budget> budgets;
-  final List<BudgetInstance> budgetInstances;
-  final List<UpcomingPayment> upcomingPayments;
-  final List<PaymentReminder> paymentReminders;
-  final List<TransactionEntity> transactions;
 }

@@ -17,5 +17,8 @@ abstract class CreditPaymentGroupEntity with _$CreditPaymentGroupEntity {
     required Money feesPaid,
     String? note,
     String? idempotencyKey,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    @Default(false) bool isDeleted,
   }) = _CreditPaymentGroupEntity;
 }

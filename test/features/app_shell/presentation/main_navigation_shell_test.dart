@@ -514,22 +514,21 @@ void main() {
           (Ref ref) => Stream<List<Budget>>.value(const <Budget>[]),
         ),
         gettingStartedViewModelProvider.overrideWith(
-          (Ref ref) =>
-              const AsyncValue<GettingStartedViewModel>.data(
-                GettingStartedViewModel(
-                  preferences: GettingStartedPreferences(),
-                  progress: GettingStartedProgress(
-                    hasAccounts: false,
-                    hasUserCategories: false,
-                    hasTransactions: false,
-                    hasProfileName: false,
-                    hasSavingGoal: false,
-                    hasBudget: false,
-                  ),
-                  shouldAutoActivate: false,
-                  shouldDisplayOnHome: false,
-                ),
+          (Ref ref) => const AsyncValue<GettingStartedViewModel>.data(
+            GettingStartedViewModel(
+              preferences: GettingStartedPreferences(),
+              progress: GettingStartedProgress(
+                hasAccounts: false,
+                hasUserCategories: false,
+                hasTransactions: false,
+                hasProfileName: false,
+                hasSavingGoal: false,
+                hasBudget: false,
               ),
+              shouldAutoActivate: false,
+              shouldDisplayOnHome: false,
+            ),
+          ),
         ),
       ],
       child: child,

@@ -4375,6 +4375,21 @@ class $CreditPaymentSchedulesTable extends CreditPaymentSchedules
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _isDeletedMeta = const VerificationMeta(
+    'isDeleted',
+  );
+  @override
+  late final GeneratedColumn<bool> isDeleted = GeneratedColumn<bool>(
+    'is_deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant<bool>(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -4391,6 +4406,7 @@ class $CreditPaymentSchedulesTable extends CreditPaymentSchedules
     paidAt,
     createdAt,
     updatedAt,
+    isDeleted,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4519,6 +4535,12 @@ class $CreditPaymentSchedulesTable extends CreditPaymentSchedules
         updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
       );
     }
+    if (data.containsKey('is_deleted')) {
+      context.handle(
+        _isDeletedMeta,
+        isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
+      );
+    }
     return context;
   }
 
@@ -4587,6 +4609,10 @@ class $CreditPaymentSchedulesTable extends CreditPaymentSchedules
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
       )!,
+      isDeleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_deleted'],
+      )!,
     );
   }
 
@@ -4612,6 +4638,7 @@ class CreditPaymentScheduleRow extends DataClass
   final DateTime? paidAt;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final bool isDeleted;
   const CreditPaymentScheduleRow({
     required this.id,
     required this.creditId,
@@ -4627,6 +4654,7 @@ class CreditPaymentScheduleRow extends DataClass
     this.paidAt,
     required this.createdAt,
     required this.updatedAt,
+    required this.isDeleted,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -4647,6 +4675,7 @@ class CreditPaymentScheduleRow extends DataClass
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['is_deleted'] = Variable<bool>(isDeleted);
     return map;
   }
 
@@ -4668,6 +4697,7 @@ class CreditPaymentScheduleRow extends DataClass
           : Value(paidAt),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
+      isDeleted: Value(isDeleted),
     );
   }
 
@@ -4697,6 +4727,7 @@ class CreditPaymentScheduleRow extends DataClass
       paidAt: serializer.fromJson<DateTime?>(json['paidAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      isDeleted: serializer.fromJson<bool>(json['isDeleted']),
     );
   }
   @override
@@ -4717,6 +4748,7 @@ class CreditPaymentScheduleRow extends DataClass
       'paidAt': serializer.toJson<DateTime?>(paidAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'isDeleted': serializer.toJson<bool>(isDeleted),
     };
   }
 
@@ -4735,6 +4767,7 @@ class CreditPaymentScheduleRow extends DataClass
     Value<DateTime?> paidAt = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
+    bool? isDeleted,
   }) => CreditPaymentScheduleRow(
     id: id ?? this.id,
     creditId: creditId ?? this.creditId,
@@ -4750,6 +4783,7 @@ class CreditPaymentScheduleRow extends DataClass
     paidAt: paidAt.present ? paidAt.value : this.paidAt,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
+    isDeleted: isDeleted ?? this.isDeleted,
   );
   CreditPaymentScheduleRow copyWithCompanion(
     CreditPaymentSchedulesCompanion data,
@@ -4781,6 +4815,7 @@ class CreditPaymentScheduleRow extends DataClass
       paidAt: data.paidAt.present ? data.paidAt.value : this.paidAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
     );
   }
 
@@ -4800,7 +4835,8 @@ class CreditPaymentScheduleRow extends DataClass
           ..write('interestPaidMinor: $interestPaidMinor, ')
           ..write('paidAt: $paidAt, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('isDeleted: $isDeleted')
           ..write(')'))
         .toString();
   }
@@ -4821,6 +4857,7 @@ class CreditPaymentScheduleRow extends DataClass
     paidAt,
     createdAt,
     updatedAt,
+    isDeleted,
   );
   @override
   bool operator ==(Object other) =>
@@ -4839,7 +4876,8 @@ class CreditPaymentScheduleRow extends DataClass
           other.interestPaidMinor == this.interestPaidMinor &&
           other.paidAt == this.paidAt &&
           other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.isDeleted == this.isDeleted);
 }
 
 class CreditPaymentSchedulesCompanion
@@ -4858,6 +4896,7 @@ class CreditPaymentSchedulesCompanion
   final Value<DateTime?> paidAt;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
+  final Value<bool> isDeleted;
   final Value<int> rowid;
   const CreditPaymentSchedulesCompanion({
     this.id = const Value.absent(),
@@ -4874,6 +4913,7 @@ class CreditPaymentSchedulesCompanion
     this.paidAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.isDeleted = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   CreditPaymentSchedulesCompanion.insert({
@@ -4891,6 +4931,7 @@ class CreditPaymentSchedulesCompanion
     this.paidAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.isDeleted = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        creditId = Value(creditId),
@@ -4915,6 +4956,7 @@ class CreditPaymentSchedulesCompanion
     Expression<DateTime>? paidAt,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
+    Expression<bool>? isDeleted,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -4935,6 +4977,7 @@ class CreditPaymentSchedulesCompanion
       if (paidAt != null) 'paid_at': paidAt,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (isDeleted != null) 'is_deleted': isDeleted,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -4954,6 +4997,7 @@ class CreditPaymentSchedulesCompanion
     Value<DateTime?>? paidAt,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
+    Value<bool>? isDeleted,
     Value<int>? rowid,
   }) {
     return CreditPaymentSchedulesCompanion(
@@ -4971,6 +5015,7 @@ class CreditPaymentSchedulesCompanion
       paidAt: paidAt ?? this.paidAt,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      isDeleted: isDeleted ?? this.isDeleted,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -5024,6 +5069,9 @@ class CreditPaymentSchedulesCompanion
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
+    if (isDeleted.present) {
+      map['is_deleted'] = Variable<bool>(isDeleted.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -5047,6 +5095,7 @@ class CreditPaymentSchedulesCompanion
           ..write('paidAt: $paidAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('isDeleted: $isDeleted, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -5225,6 +5274,21 @@ class $CreditPaymentGroupsTable extends CreditPaymentGroups
     requiredDuringInsert: false,
     defaultValue: currentDateAndTime,
   );
+  static const VerificationMeta _isDeletedMeta = const VerificationMeta(
+    'isDeleted',
+  );
+  @override
+  late final GeneratedColumn<bool> isDeleted = GeneratedColumn<bool>(
+    'is_deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant<bool>(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -5241,6 +5305,7 @@ class $CreditPaymentGroupsTable extends CreditPaymentGroups
     idempotencyKey,
     createdAt,
     updatedAt,
+    isDeleted,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -5375,6 +5440,12 @@ class $CreditPaymentGroupsTable extends CreditPaymentGroups
         updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
       );
     }
+    if (data.containsKey('is_deleted')) {
+      context.handle(
+        _isDeletedMeta,
+        isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
+      );
+    }
     return context;
   }
 
@@ -5440,6 +5511,10 @@ class $CreditPaymentGroupsTable extends CreditPaymentGroups
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
       )!,
+      isDeleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_deleted'],
+      )!,
     );
   }
 
@@ -5465,6 +5540,7 @@ class CreditPaymentGroupRow extends DataClass
   final String? idempotencyKey;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final bool isDeleted;
   const CreditPaymentGroupRow({
     required this.id,
     required this.creditId,
@@ -5480,6 +5556,7 @@ class CreditPaymentGroupRow extends DataClass
     this.idempotencyKey,
     required this.createdAt,
     required this.updatedAt,
+    required this.isDeleted,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -5504,6 +5581,7 @@ class CreditPaymentGroupRow extends DataClass
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['is_deleted'] = Variable<bool>(isDeleted);
     return map;
   }
 
@@ -5527,6 +5605,7 @@ class CreditPaymentGroupRow extends DataClass
           : Value(idempotencyKey),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
+      isDeleted: Value(isDeleted),
     );
   }
 
@@ -5552,6 +5631,7 @@ class CreditPaymentGroupRow extends DataClass
       idempotencyKey: serializer.fromJson<String?>(json['idempotencyKey']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      isDeleted: serializer.fromJson<bool>(json['isDeleted']),
     );
   }
   @override
@@ -5572,6 +5652,7 @@ class CreditPaymentGroupRow extends DataClass
       'idempotencyKey': serializer.toJson<String?>(idempotencyKey),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'isDeleted': serializer.toJson<bool>(isDeleted),
     };
   }
 
@@ -5590,6 +5671,7 @@ class CreditPaymentGroupRow extends DataClass
     Value<String?> idempotencyKey = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
+    bool? isDeleted,
   }) => CreditPaymentGroupRow(
     id: id ?? this.id,
     creditId: creditId ?? this.creditId,
@@ -5609,6 +5691,7 @@ class CreditPaymentGroupRow extends DataClass
         : this.idempotencyKey,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
+    isDeleted: isDeleted ?? this.isDeleted,
   );
   CreditPaymentGroupRow copyWithCompanion(CreditPaymentGroupsCompanion data) {
     return CreditPaymentGroupRow(
@@ -5642,6 +5725,7 @@ class CreditPaymentGroupRow extends DataClass
           : this.idempotencyKey,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
     );
   }
 
@@ -5661,7 +5745,8 @@ class CreditPaymentGroupRow extends DataClass
           ..write('note: $note, ')
           ..write('idempotencyKey: $idempotencyKey, ')
           ..write('createdAt: $createdAt, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('isDeleted: $isDeleted')
           ..write(')'))
         .toString();
   }
@@ -5682,6 +5767,7 @@ class CreditPaymentGroupRow extends DataClass
     idempotencyKey,
     createdAt,
     updatedAt,
+    isDeleted,
   );
   @override
   bool operator ==(Object other) =>
@@ -5700,7 +5786,8 @@ class CreditPaymentGroupRow extends DataClass
           other.note == this.note &&
           other.idempotencyKey == this.idempotencyKey &&
           other.createdAt == this.createdAt &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.isDeleted == this.isDeleted);
 }
 
 class CreditPaymentGroupsCompanion
@@ -5719,6 +5806,7 @@ class CreditPaymentGroupsCompanion
   final Value<String?> idempotencyKey;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
+  final Value<bool> isDeleted;
   final Value<int> rowid;
   const CreditPaymentGroupsCompanion({
     this.id = const Value.absent(),
@@ -5735,6 +5823,7 @@ class CreditPaymentGroupsCompanion
     this.idempotencyKey = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.isDeleted = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   CreditPaymentGroupsCompanion.insert({
@@ -5752,6 +5841,7 @@ class CreditPaymentGroupsCompanion
     this.idempotencyKey = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.isDeleted = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        creditId = Value(creditId),
@@ -5776,6 +5866,7 @@ class CreditPaymentGroupsCompanion
     Expression<String>? idempotencyKey,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
+    Expression<bool>? isDeleted,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -5794,6 +5885,7 @@ class CreditPaymentGroupsCompanion
       if (idempotencyKey != null) 'idempotency_key': idempotencyKey,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (isDeleted != null) 'is_deleted': isDeleted,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -5813,6 +5905,7 @@ class CreditPaymentGroupsCompanion
     Value<String?>? idempotencyKey,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
+    Value<bool>? isDeleted,
     Value<int>? rowid,
   }) {
     return CreditPaymentGroupsCompanion(
@@ -5830,6 +5923,7 @@ class CreditPaymentGroupsCompanion
       idempotencyKey: idempotencyKey ?? this.idempotencyKey,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      isDeleted: isDeleted ?? this.isDeleted,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -5879,6 +5973,9 @@ class CreditPaymentGroupsCompanion
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
+    if (isDeleted.present) {
+      map['is_deleted'] = Variable<bool>(isDeleted.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -5902,6 +5999,7 @@ class CreditPaymentGroupsCompanion
           ..write('idempotencyKey: $idempotencyKey, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('isDeleted: $isDeleted, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -18694,6 +18792,7 @@ typedef $$CreditPaymentSchedulesTableCreateCompanionBuilder =
       Value<DateTime?> paidAt,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<bool> isDeleted,
       Value<int> rowid,
     });
 typedef $$CreditPaymentSchedulesTableUpdateCompanionBuilder =
@@ -18712,6 +18811,7 @@ typedef $$CreditPaymentSchedulesTableUpdateCompanionBuilder =
       Value<DateTime?> paidAt,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<bool> isDeleted,
       Value<int> rowid,
     });
 
@@ -18849,6 +18949,11 @@ class $$CreditPaymentSchedulesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$CreditsTableFilterComposer get creditId {
     final $$CreditsTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -18972,6 +19077,11 @@ class $$CreditPaymentSchedulesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$CreditsTableOrderingComposer get creditId {
     final $$CreditsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -19055,6 +19165,9 @@ class $$CreditPaymentSchedulesTableAnnotationComposer
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDeleted =>
+      $composableBuilder(column: $table.isDeleted, builder: (column) => column);
 
   $$CreditsTableAnnotationComposer get creditId {
     final $$CreditsTableAnnotationComposer composer = $composerBuilder(
@@ -19159,6 +19272,7 @@ class $$CreditPaymentSchedulesTableTableManager
                 Value<DateTime?> paidAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CreditPaymentSchedulesCompanion(
                 id: id,
@@ -19175,6 +19289,7 @@ class $$CreditPaymentSchedulesTableTableManager
                 paidAt: paidAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                isDeleted: isDeleted,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -19193,6 +19308,7 @@ class $$CreditPaymentSchedulesTableTableManager
                 Value<DateTime?> paidAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CreditPaymentSchedulesCompanion.insert(
                 id: id,
@@ -19209,6 +19325,7 @@ class $$CreditPaymentSchedulesTableTableManager
                 paidAt: paidAt,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                isDeleted: isDeleted,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -19322,6 +19439,7 @@ typedef $$CreditPaymentGroupsTableCreateCompanionBuilder =
       Value<String?> idempotencyKey,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<bool> isDeleted,
       Value<int> rowid,
     });
 typedef $$CreditPaymentGroupsTableUpdateCompanionBuilder =
@@ -19340,6 +19458,7 @@ typedef $$CreditPaymentGroupsTableUpdateCompanionBuilder =
       Value<String?> idempotencyKey,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
+      Value<bool> isDeleted,
       Value<int> rowid,
     });
 
@@ -19505,6 +19624,11 @@ class $$CreditPaymentGroupsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$CreditsTableFilterComposer get creditId {
     final $$CreditsTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -19665,6 +19789,11 @@ class $$CreditPaymentGroupsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$CreditsTableOrderingComposer get creditId {
     final $$CreditsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -19789,6 +19918,9 @@ class $$CreditPaymentGroupsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDeleted =>
+      $composableBuilder(column: $table.isDeleted, builder: (column) => column);
 
   $$CreditsTableAnnotationComposer get creditId {
     final $$CreditsTableAnnotationComposer composer = $composerBuilder(
@@ -19941,6 +20073,7 @@ class $$CreditPaymentGroupsTableTableManager
                 Value<String?> idempotencyKey = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CreditPaymentGroupsCompanion(
                 id: id,
@@ -19957,6 +20090,7 @@ class $$CreditPaymentGroupsTableTableManager
                 idempotencyKey: idempotencyKey,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                isDeleted: isDeleted,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -19975,6 +20109,7 @@ class $$CreditPaymentGroupsTableTableManager
                 Value<String?> idempotencyKey = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CreditPaymentGroupsCompanion.insert(
                 id: id,
@@ -19991,6 +20126,7 @@ class $$CreditPaymentGroupsTableTableManager
                 idempotencyKey: idempotencyKey,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
+                isDeleted: isDeleted,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
