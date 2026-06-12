@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:kopim/core/money/currency_scale.dart';
 import 'package:kopim/core/money/money.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
+import 'package:kopim/core/services/sync/sync_contract.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_category_allocation.dart';
@@ -458,26 +459,32 @@ class ExportBundleCsvDecoder {
         final BigInt resolvedMinor =
             amountMinor ??
             Money.fromDouble(legacyAmount, currency: 'XXX', scale: scale).minor;
-        return TransactionEntity(
-          id: _readRequired(header.columns, row, 'id'),
-          accountId: _readRequired(header.columns, row, 'account_id'),
-          transferAccountId: _readOptional(
-            header.columns,
-            row,
-            'transfer_account_id',
+        return SyncContract.normalizeTransactionForPortableSync(
+          TransactionEntity(
+            id: _readRequired(header.columns, row, 'id'),
+            accountId: _readRequired(header.columns, row, 'account_id'),
+            transferAccountId: _readOptional(
+              header.columns,
+              row,
+              'transfer_account_id',
+            ),
+            categoryId: _readOptional(header.columns, row, 'category_id'),
+            savingGoalId: _readOptional(header.columns, row, 'saving_goal_id'),
+            idempotencyKey: _readOptional(
+              header.columns,
+              row,
+              'idempotency_key',
+            ),
+            groupId: _readOptional(header.columns, row, 'group_id'),
+            amountMinor: resolvedMinor,
+            amountScale: scale,
+            date: _readDate(header.columns, row, 'date'),
+            note: _readOptional(header.columns, row, 'note'),
+            type: _readRequired(header.columns, row, 'type'),
+            createdAt: _readDate(header.columns, row, 'created_at'),
+            updatedAt: _readDate(header.columns, row, 'updated_at'),
+            isDeleted: _readBool(header.columns, row, 'is_deleted'),
           ),
-          categoryId: _readOptional(header.columns, row, 'category_id'),
-          savingGoalId: _readOptional(header.columns, row, 'saving_goal_id'),
-          idempotencyKey: _readOptional(header.columns, row, 'idempotency_key'),
-          groupId: _readOptional(header.columns, row, 'group_id'),
-          amountMinor: resolvedMinor,
-          amountScale: scale,
-          date: _readDate(header.columns, row, 'date'),
-          note: _readOptional(header.columns, row, 'note'),
-          type: _readRequired(header.columns, row, 'type'),
-          createdAt: _readDate(header.columns, row, 'created_at'),
-          updatedAt: _readDate(header.columns, row, 'updated_at'),
-          isDeleted: _readBool(header.columns, row, 'is_deleted'),
         );
       }());
       index += 1;

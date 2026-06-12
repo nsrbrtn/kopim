@@ -25,7 +25,6 @@ class AddAccountScreen extends ConsumerStatefulWidget {
 class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
   static const String _namePlaceholder = 'Основной';
   static const String _balancePlaceholder = 'Введите сумму';
-  static const String _currencyPlaceholder = 'Название валюты';
   late final TextEditingController _nameController;
   late final TextEditingController _balanceController;
   late final TextEditingController _currencySearchController;
@@ -275,7 +274,7 @@ class _AddAccountScreenState extends ConsumerState<AddAccountScreen> {
                           _currencyQuery = value;
                         });
                       },
-                      placeholder: _currencyPlaceholder,
+                      placeholder: strings.addAccountCurrencySearchPlaceholder,
                       selectedCurrency: state.currency,
                       strings: strings,
                       theme: theme,

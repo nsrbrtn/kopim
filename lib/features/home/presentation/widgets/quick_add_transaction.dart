@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -439,6 +441,30 @@ class _QuickTransactionSheetState
     }
   }
 
+  void _showSnackBarWithAutoDismiss({
+    required BuildContext context,
+    required Widget content,
+    SnackBarAction? action,
+    Duration duration = const Duration(seconds: 3),
+  }) {
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar();
+    final ScaffoldFeatureController<SnackBar, SnackBarClosedReason> controller =
+        messenger.showSnackBar(
+          SnackBar(content: content, duration: duration, action: action),
+        );
+    if (action != null) {
+      unawaited(
+        Future<void>.delayed(duration).then((_) {
+          if (!mounted) {
+            return;
+          }
+          controller.close();
+        }),
+      );
+    }
+  }
+
   Future<void> _submit() async {
     final TransactionEntity? created = await ref
         .read(quickTransactionControllerProvider.notifier)
@@ -450,35 +476,32 @@ class _QuickTransactionSheetState
 
     FocusScope.of(context).unfocus();
     Navigator.of(context).pop();
-    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar();
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(widget.strings.addTransactionSuccess),
-        duration: _kQuickAddSuccessSnackBarDuration,
-        action: SnackBarAction(
-          label: widget.strings.commonUndo,
-          onPressed: () {
-            ref
-                .read(transactionActionsControllerProvider.notifier)
-                .deleteTransaction(created.id)
-                .then((bool undone) {
-                  if (!mounted) return;
-                  ScaffoldMessenger.of(context)
-                    ..hideCurrentSnackBar()
-                    ..showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          undone
-                              ? widget.strings.addTransactionUndoSuccess
-                              : widget.strings.addTransactionUndoError,
-                        ),
-                        duration: const Duration(seconds: 3),
+    _showSnackBarWithAutoDismiss(
+      context: context,
+      content: Text(widget.strings.addTransactionSuccess),
+      duration: _kQuickAddSuccessSnackBarDuration,
+      action: SnackBarAction(
+        label: widget.strings.commonUndo,
+        onPressed: () {
+          ref
+              .read(transactionActionsControllerProvider.notifier)
+              .deleteTransaction(created.id)
+              .then((bool undone) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        undone
+                            ? widget.strings.addTransactionUndoSuccess
+                            : widget.strings.addTransactionUndoError,
                       ),
-                    );
-                });
-          },
-        ),
+                      duration: const Duration(seconds: 3),
+                    ),
+                  );
+              });
+        },
       ),
     );
   }

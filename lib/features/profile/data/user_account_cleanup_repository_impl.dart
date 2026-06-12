@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kopim/core/data/database.dart' as db;
+import 'package:kopim/core/services/sync/sync_contract.dart';
 import 'package:kopim/features/profile/domain/repositories/profile_avatar_repository.dart';
 import 'package:kopim/features/profile/domain/repositories/user_account_cleanup_repository.dart';
 
@@ -12,23 +13,8 @@ class UserAccountCleanupRepositoryImpl implements UserAccountCleanupRepository {
        _database = database,
        _profileAvatarRepository = profileAvatarRepository;
 
-  static const List<String> _userCollections = <String>[
-    'accounts',
-    'categories',
-    'tags',
-    'transaction_tags',
-    'transactions',
-    'credits',
-    'credit_cards',
-    'debts',
-    'profile',
-    'progress',
-    'budgets',
-    'budget_instances',
-    'saving_goals',
-    'recurring_payments',
-    'reminders',
-  ];
+  static const List<String> _userCollections =
+      SyncContract.remoteCleanupCollections;
 
   final FirebaseFirestore _firestore;
   final db.AppDatabase _database;

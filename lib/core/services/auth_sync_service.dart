@@ -1146,6 +1146,9 @@ class AuthSyncService {
         final Set<String> validSavingGoalIds = mergedSavingGoals
             .map((SavingGoal e) => e.id)
             .toSet();
+        final Set<String> validPaymentGroupIds = (await (_database.select(
+          _database.creditPaymentGroups,
+        )).get()).map((db.CreditPaymentGroupRow row) => row.id).toSet();
 
         // Tier 3: Core Entities (Transactions, Rules, Budgets)
         // Sanitize transactions
@@ -1155,6 +1158,7 @@ class AuthSyncService {
               validAccountIds: validAccountIds,
               validCategoryIds: validCategoryIds,
               validSavingGoalIds: validSavingGoalIds,
+              validPaymentGroupIds: validPaymentGroupIds,
             );
 
         final List<UpcomingPayment> sanitizedUpcomingPayments = _dataSanitizer

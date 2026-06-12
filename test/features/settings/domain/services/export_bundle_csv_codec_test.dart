@@ -293,4 +293,47 @@ id,name,balance,opening_balance,balance_minor,opening_balance_minor,currency_sca
       ),
     );
   });
+
+  test('normalizes legacy transaction group_id during CSV decode', () {
+    const String csv = '''
+#kopim-export
+#schema_version,1.7.0
+#generated_at,2024-02-10T12:30:00.000Z
+#accounts
+id,name,balance,opening_balance,balance_minor,opening_balance_minor,currency_scale,currency,type,type_version,created_at,updated_at,color,gradient_id,icon_name,icon_style,is_deleted,is_primary,is_hidden
+a1,Main,0,0,0,0,2,USD,card,1,2024-01-01T00:00:00.000Z,2024-02-01T00:00:00.000Z,,,,,false,false,false
+#categories
+id,name,type,parent_id,icon_name,icon_style,color,created_at,updated_at,is_system,is_hidden,is_favorite
+#tags
+id,name,color,created_at,updated_at,is_deleted
+#transaction_tags
+transaction_id,tag_id,created_at,updated_at,is_deleted
+#saving_goals
+id,user_id,name,account_id,target_date,target_amount,current_amount,note,created_at,updated_at,archived_at
+#credits
+id,account_id,category_id,interest_category_id,fees_category_id,total_amount,total_amount_minor,total_amount_scale,interest_rate,term_months,start_date,first_payment_date,payment_day,created_at,updated_at,is_deleted
+#credit_cards
+id,account_id,credit_limit,credit_limit_minor,credit_limit_scale,statement_day,payment_due_days,interest_rate_annual,created_at,updated_at,is_deleted
+#debts
+id,account_id,name,amount,amount_minor,amount_scale,due_date,note,created_at,updated_at,is_deleted
+#budgets
+id,title,amount,amount_minor,amount_scale,period,start_date,end_date,scope,categories,category_allocations,accounts,created_at,updated_at,is_deleted
+#budget_instances
+id,budget_id,period_start,period_end,amount,amount_minor,spent,spent_minor,amount_scale,status,created_at,updated_at
+#upcoming_payments
+id,title,account_id,category_id,amount,amount_minor,amount_scale,day_of_month,notify_days_before,notify_time_hhmm,auto_post,is_active,created_at_ms,updated_at_ms
+#payment_reminders
+id,title,amount,amount_minor,amount_scale,when_at_ms,is_done,created_at_ms,updated_at_ms
+#transactions
+id,account_id,transfer_account_id,category_id,saving_goal_id,idempotency_key,group_id,amount,amount_minor,amount_scale,date,note,type,created_at,updated_at,is_deleted
+tx-1,a1,,,,,legacy-group,12.4,1240,2,2024-02-09T00:00:00.000Z,,expense,2024-02-09T00:00:00.000Z,2024-02-09T00:00:00.000Z,false
+''';
+
+    final ExportBundle decoded = decoder.decode(
+      Uint8List.fromList(utf8.encode(csv)),
+    );
+
+    expect(decoded.transactions, hasLength(1));
+    expect(decoded.transactions.single.groupId, isNull);
+  });
 }

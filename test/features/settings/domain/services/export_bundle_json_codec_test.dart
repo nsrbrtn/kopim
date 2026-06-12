@@ -294,4 +294,63 @@ void main() {
       ),
     );
   });
+
+  test('normalizes legacy transaction groupId during JSON decode', () {
+    final Map<String, Object?> payload = <String, Object?>{
+      'schemaVersion': '1.6.0',
+      'generatedAt': '2024-02-10T12:30:00.000Z',
+      'accounts': <Object?>[
+        <String, Object?>{
+          'id': 'a1',
+          'name': 'Main',
+          'balance': 0,
+          'openingBalance': 0,
+          'balanceMinor': '0',
+          'openingBalanceMinor': '0',
+          'currency': 'USD',
+          'currencyScale': 2,
+          'type': 'card',
+          'typeVersion': 1,
+          'createdAt': '2024-01-01T00:00:00.000Z',
+          'updatedAt': '2024-02-01T00:00:00.000Z',
+          'isDeleted': false,
+          'isPrimary': false,
+          'isHidden': false,
+        },
+      ],
+      'categories': <Object?>[],
+      'tags': <Object?>[],
+      'transactionTags': <Object?>[],
+      'transactions': <Object?>[
+        <String, Object?>{
+          'id': 'tx-1',
+          'accountId': 'a1',
+          'groupId': 'legacy-group',
+          'amount': 12.4,
+          'amountMinor': '1240',
+          'amountScale': 2,
+          'date': '2024-02-09T00:00:00.000Z',
+          'type': 'expense',
+          'createdAt': '2024-02-09T00:00:00.000Z',
+          'updatedAt': '2024-02-09T00:00:00.000Z',
+          'isDeleted': false,
+        },
+      ],
+      'savingGoals': <Object?>[],
+      'credits': <Object?>[],
+      'creditCards': <Object?>[],
+      'debts': <Object?>[],
+      'budgets': <Object?>[],
+      'budgetInstances': <Object?>[],
+      'upcomingPayments': <Object?>[],
+      'paymentReminders': <Object?>[],
+    };
+
+    final ExportBundle decoded = decoder.decode(
+      Uint8List.fromList(utf8.encode(jsonEncode(payload))),
+    );
+
+    expect(decoded.transactions, hasLength(1));
+    expect(decoded.transactions.single.groupId, isNull);
+  });
 }

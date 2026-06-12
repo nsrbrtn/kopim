@@ -5,6 +5,7 @@ import 'package:kopim/core/money/currency_scale.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
+import 'package:kopim/core/services/sync/sync_contract.dart';
 import 'package:kopim/features/accounts/data/services/account_type_backfill_service.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
@@ -142,7 +143,8 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
     final List<BudgetInstance> budgetInstances = bundle.budgetInstances;
     final List<UpcomingPayment> upcomingPayments = bundle.upcomingPayments;
     final List<PaymentReminder> paymentReminders = bundle.paymentReminders;
-    final List<TransactionEntity> transactions = bundle.transactions;
+    final List<TransactionEntity> transactions =
+        SyncContract.normalizeTransactionsForPortableSync(bundle.transactions);
     _logger?.logInfo(
       'ImportDataRepository: start restore '
       'accounts=${accounts.length}, '

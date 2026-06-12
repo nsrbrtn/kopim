@@ -455,8 +455,11 @@ class _TransactionDraftState extends ConsumerState<_TransactionForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          _SectionHeader(label: 'Выбери счёт', labelStyle: labelStyle),
-          SizedBox(height: spacing.between / 2),
+          _SectionHeader(
+            label: strings.addTransactionAccountLabel,
+            labelStyle: labelStyle,
+          ),
+          SizedBox(height: spacing.between / 4),
           _AccountDropdownField(
             key: const ValueKey<String>('transaction_account_field'),
             accounts: widget.accounts,
@@ -828,6 +831,7 @@ class _AccountSelectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final Color? accountColor = parseHexColor(account.color);
+    final Color selectionColor = theme.colorScheme.primary;
     final _AccountSelectionCardPalette palette =
         _AccountSelectionCardPalette.fromTheme(
           theme.colorScheme,
@@ -860,8 +864,9 @@ class _AccountSelectionCard extends StatelessWidget {
       width: paddedWidth,
       height: paddedHeight,
       child: GlowingAccountCard(
-        glowColor: accountColor ?? theme.colorScheme.primary,
+        glowColor: selectionColor,
         borderRadius: cardRadius + outerInset,
+        strokeWidth: 8,
         enabled: isSelected,
         child: Padding(
           padding: outerPadding,
@@ -877,6 +882,9 @@ class _AccountSelectionCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: palette.background,
                     borderRadius: borderRadius,
+                    border: isSelected
+                        ? Border.all(color: selectionColor, width: 2)
+                        : null,
                   ),
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(minHeight: 54),
@@ -930,6 +938,7 @@ class GlowingAccountCard extends StatefulWidget {
     this.glowColor = const Color(0xFF00F7FF),
     this.duration = const Duration(milliseconds: 4400),
     this.borderRadius = 24.0,
+    this.strokeWidth = 4.0,
     this.enabled,
   });
 
@@ -937,6 +946,7 @@ class GlowingAccountCard extends StatefulWidget {
   final Color glowColor;
   final Duration duration;
   final double borderRadius;
+  final double strokeWidth;
   final bool? enabled;
 
   @override
@@ -990,7 +1000,6 @@ class _GlowingAccountCardState extends State<GlowingAccountCard>
         child: widget.child,
         builder: (BuildContext context, Widget? child) {
           final double t = _curve.value;
-          const double strokeWidth = 4.0;
 
           return Stack(
             clipBehavior: Clip.none,
@@ -1001,7 +1010,7 @@ class _GlowingAccountCardState extends State<GlowingAccountCard>
                     painter: _GlowBorderPainter(
                       color: widget.glowColor,
                       progress: t,
-                      thickness: strokeWidth,
+                      thickness: widget.strokeWidth,
                       borderRadius: widget.borderRadius,
                     ),
                   ),
@@ -1036,7 +1045,7 @@ class _GlowBorderPainter extends CustomPainter {
     }
 
     final Rect rect = Offset.zero & size;
-    final double guideThickness = math.min(thickness, 2.0);
+    final double guideThickness = math.min(thickness / 2, 4.0);
     final double waveInset = thickness / 2;
     final double guideInset = guideThickness / 2;
 

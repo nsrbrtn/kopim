@@ -4020,6 +4020,12 @@ abstract class AppLocalizations {
   /// **'Currency'**
   String get addAccountCurrencyLabel;
 
+  /// Placeholder for the currency search field on the add account screen
+  ///
+  /// In en, this message translates to:
+  /// **'Currency name'**
+  String get addAccountCurrencySearchPlaceholder;
+
   /// Label for the account type selector
   ///
   /// In en, this message translates to:
@@ -4996,6 +5002,18 @@ abstract class AppLocalizations {
   /// **'Enter the desired total amount'**
   String get savingsTargetHelper;
 
+  /// Validation error shown when the savings goal name is missing
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter the goal name'**
+  String get savingsGoalNameRequiredError;
+
+  /// Validation error shown when the savings goal amount is invalid
+  ///
+  /// In en, this message translates to:
+  /// **'Enter an amount greater than zero'**
+  String get savingsGoalTargetPositiveError;
+
   /// Label for the optional goal note
   ///
   /// In en, this message translates to:
@@ -5115,6 +5133,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Note (optional)'**
   String get savingsContributionNoteLabel;
+
+  /// Title for the storage accounts section on the savings goal form
+  ///
+  /// In en, this message translates to:
+  /// **'Storage accounts'**
+  String get savingsStorageAccountsTitle;
+
+  /// Description for the storage accounts section on the savings goal form
+  ///
+  /// In en, this message translates to:
+  /// **'Choose one or more accounts where this goal\'s money is actually kept. If the list is empty, you can create a new account.'**
+  String get savingsStorageAccountsDescription;
+
+  /// Message shown when there are no available storage accounts for a savings goal
+  ///
+  /// In en, this message translates to:
+  /// **'No storage accounts available.'**
+  String get savingsStorageAccountsEmpty;
+
+  /// Button for creating a new account from the storage accounts section
+  ///
+  /// In en, this message translates to:
+  /// **'Create new account'**
+  String get savingsStorageAccountsCreateButton;
+
+  /// Label shown when the target date is not selected
+  ///
+  /// In en, this message translates to:
+  /// **'Target date is not selected'**
+  String get savingsTargetDateEmpty;
+
+  /// Button label for picking the target date
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a date'**
+  String get savingsTargetDatePickButton;
+
+  /// Button label for clearing the target date
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get savingsTargetDateClearButton;
 
   /// Primary action button on contribute screen
   ///
@@ -5452,6 +5512,24 @@ abstract class AppLocalizations {
   /// **'Message copied'**
   String get assistantMessageCopied;
 
+  /// Title for the AI assistant usage terms screen
+  ///
+  /// In en, this message translates to:
+  /// **'Using the AI assistant'**
+  String get assistantUsageInfoTitle;
+
+  /// Body text for the AI assistant usage terms screen
+  ///
+  /// In en, this message translates to:
+  /// **'The app includes an AI assistant whose answers are generated automatically using artificial intelligence models through OpenRouter.\n\nAnswers may contain errors, be incomplete, or become outdated, and they do not constitute financial, legal, tax, or other professional advice. You make all decisions independently and at your own risk.\n\nDo not enter card numbers, passwords, CVV codes, SMS codes, passport data, or other sensitive personal information in the chat. Your prompt text is sent to a third-party service for processing.\n\nBy continuing, you confirm that you have read and agree to these terms.'**
+  String get assistantUsageInfoBody;
+
+  /// Button for accepting the AI assistant usage terms
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get assistantUsageInfoAcceptButton;
+
   /// Card title explaining the assistant capabilities
   ///
   /// In en, this message translates to:
@@ -5545,7 +5623,7 @@ abstract class AppLocalizations {
   /// FAQ answer with tips for better assistant queries
   ///
   /// In en, this message translates to:
-  /// **'Be specific—mention time ranges, accounts, or categories. Combine quick filters above the chat for extra context.'**
+  /// **'Be specific and mention time ranges, accounts, or categories. For a faster start, use the ready-made prompts below the chat.'**
   String get assistantFaqAnswerImproveResults;
 
   /// Overview screen title

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kopim/l10n/app_localizations.dart';
 
 class AnalyticsInfoButton extends StatelessWidget {
   const AnalyticsInfoButton({
@@ -14,11 +15,12 @@ class AnalyticsInfoButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colors = theme.colorScheme;
+    final AppLocalizations strings = AppLocalizations.of(context)!;
 
     return IconButton(
       onPressed: () => _showInfoDialog(context),
       icon: Icon(Icons.question_mark, size: 24, color: colors.outline),
-      tooltip: 'Информация',
+      tooltip: strings.analyticsInfoTitle,
       visualDensity: VisualDensity.compact,
       splashRadius: 20,
     );
@@ -27,6 +29,7 @@ class AnalyticsInfoButton extends StatelessWidget {
   Future<void> _showInfoDialog(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colors = theme.colorScheme;
+    final AppLocalizations strings = AppLocalizations.of(context)!;
 
     return showDialog<void>(
       context: context,
@@ -49,7 +52,7 @@ class AnalyticsInfoButton extends StatelessWidget {
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
               child: Text(
-                'Понятно',
+                strings.analyticsDialogClose,
                 style: theme.textTheme.labelLarge?.copyWith(
                   color: colors.primary,
                 ),

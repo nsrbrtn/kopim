@@ -17,6 +17,7 @@ class SyncDataSanitizer {
     required Set<String> validAccountIds,
     required Set<String> validCategoryIds,
     required Set<String> validSavingGoalIds,
+    required Set<String> validPaymentGroupIds,
   }) {
     if (transactions.isEmpty) return transactions;
 
@@ -32,7 +33,9 @@ class SyncDataSanitizer {
       }
 
       String? categoryId = tx.categoryId;
+      String? transferAccountId = tx.transferAccountId;
       String? savingGoalId = tx.savingGoalId;
+      String? groupId = tx.groupId;
       bool changed = false;
 
       // 2. Check optional Category dependency (Tier 1)
@@ -41,16 +44,34 @@ class SyncDataSanitizer {
         changed = true;
       }
 
-      // 3. Check optional Saving Goal dependency (Tier 2)
+      // 3. Check optional transfer Account dependency (Tier 1)
+      if (transferAccountId != null &&
+          !validAccountIds.contains(transferAccountId)) {
+        transferAccountId = null;
+        changed = true;
+      }
+
+      // 4. Check optional Saving Goal dependency (Tier 2)
       if (savingGoalId != null && !validSavingGoalIds.contains(savingGoalId)) {
         savingGoalId = null;
+        changed = true;
+      }
+
+      // 5. Check optional credit payment group dependency.
+      if (groupId != null && !validPaymentGroupIds.contains(groupId)) {
+        groupId = null;
         changed = true;
       }
 
       if (changed) {
         sanitizedCount++;
         sanitized.add(
-          tx.copyWith(categoryId: categoryId, savingGoalId: savingGoalId),
+          tx.copyWith(
+            categoryId: categoryId,
+            transferAccountId: transferAccountId,
+            savingGoalId: savingGoalId,
+            groupId: groupId,
+          ),
         );
       } else {
         sanitized.add(tx);
@@ -64,7 +85,8 @@ class SyncDataSanitizer {
     }
     if (sanitizedCount > 0) {
       logger.logInfo(
-        'SyncDataSanitizer: sanitized $sanitizedCount transactions (cleared missing categories/goals).',
+        'SyncDataSanitizer: sanitized $sanitizedCount transactions '
+        '(cleared missing category/account-transfer/goal/group references).',
       );
     }
 
@@ -192,7 +214,7 @@ class SyncDataSanitizer {
 
     final List<CreditEntity> sanitized = <CreditEntity>[];
     int skippedCount = 0;
-    int clearedCategories = 0;
+    int sanitizedCount = 0;
 
     for (final CreditEntity credit in credits) {
       if (!validAccountIds.contains(credit.accountId)) {
@@ -200,14 +222,38 @@ class SyncDataSanitizer {
         continue;
       }
 
-      final String? categoryId = credit.categoryId;
+      String? categoryId = credit.categoryId;
+      String? interestCategoryId = credit.interestCategoryId;
+      String? feesCategoryId = credit.feesCategoryId;
+      bool changed = false;
+
       if (categoryId != null && !validCategoryIds.contains(categoryId)) {
-        clearedCategories++;
-        sanitized.add(credit.copyWith(categoryId: null));
-        continue;
+        categoryId = null;
+        changed = true;
+      }
+      if (interestCategoryId != null &&
+          !validCategoryIds.contains(interestCategoryId)) {
+        interestCategoryId = null;
+        changed = true;
+      }
+      if (feesCategoryId != null &&
+          !validCategoryIds.contains(feesCategoryId)) {
+        feesCategoryId = null;
+        changed = true;
       }
 
-      sanitized.add(credit);
+      if (changed) {
+        sanitizedCount++;
+        sanitized.add(
+          credit.copyWith(
+            categoryId: categoryId,
+            interestCategoryId: interestCategoryId,
+            feesCategoryId: feesCategoryId,
+          ),
+        );
+      } else {
+        sanitized.add(credit);
+      }
     }
 
     if (skippedCount > 0) {
@@ -215,9 +261,10 @@ class SyncDataSanitizer {
         'SyncDataSanitizer: skipped $skippedCount credits due to missing accounts.',
       );
     }
-    if (clearedCategories > 0) {
+    if (sanitizedCount > 0) {
       logger.logInfo(
-        'SyncDataSanitizer: cleared $clearedCategories credit categories due to missing references.',
+        'SyncDataSanitizer: sanitized $sanitizedCount credits '
+        '(cleared missing category references).',
       );
     }
 

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/core/money/money_utils.dart';
+import 'package:kopim/core/services/sync/sync_contract.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_category_allocation.dart';
@@ -224,24 +225,26 @@ class ExportBundleCsvEncoder {
       ]);
 
     for (final TransactionEntity transaction in transactions) {
-      final MoneyAmount amount = transaction.amountValue.abs();
+      final TransactionEntity normalized =
+          SyncContract.normalizeTransactionForPortableSync(transaction);
+      final MoneyAmount amount = normalized.amountValue.abs();
       rows.add(<String>[
-        transaction.id,
-        transaction.accountId,
-        transaction.transferAccountId ?? '',
-        transaction.categoryId ?? '',
-        transaction.savingGoalId ?? '',
-        transaction.idempotencyKey ?? '',
-        transaction.groupId ?? '',
+        normalized.id,
+        normalized.accountId,
+        normalized.transferAccountId ?? '',
+        normalized.categoryId ?? '',
+        normalized.savingGoalId ?? '',
+        normalized.idempotencyKey ?? '',
+        '',
         amount.toDouble().toString(),
         amount.minor.toString(),
         amount.scale.toString(),
-        transaction.date.toIso8601String(),
-        transaction.note ?? '',
-        transaction.type,
-        transaction.createdAt.toIso8601String(),
-        transaction.updatedAt.toIso8601String(),
-        _bool(transaction.isDeleted),
+        normalized.date.toIso8601String(),
+        normalized.note ?? '',
+        normalized.type,
+        normalized.createdAt.toIso8601String(),
+        normalized.updatedAt.toIso8601String(),
+        _bool(normalized.isDeleted),
       ]);
     }
   }

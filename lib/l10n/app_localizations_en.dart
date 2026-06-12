@@ -2281,6 +2281,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addAccountCurrencyLabel => 'Currency';
 
   @override
+  String get addAccountCurrencySearchPlaceholder => 'Currency name';
+
+  @override
   String get addAccountTypeLabel => 'Account type';
 
   @override
@@ -2812,6 +2815,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get savingsTargetHelper => 'Enter the desired total amount';
 
   @override
+  String get savingsGoalNameRequiredError => 'Please enter the goal name';
+
+  @override
+  String get savingsGoalTargetPositiveError =>
+      'Enter an amount greater than zero';
+
+  @override
   String get savingsNoteLabel => 'Note';
 
   @override
@@ -2877,6 +2887,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get savingsContributionNoteLabel => 'Note (optional)';
+
+  @override
+  String get savingsStorageAccountsTitle => 'Storage accounts';
+
+  @override
+  String get savingsStorageAccountsDescription =>
+      'Choose one or more accounts where this goal\'s money is actually kept. If the list is empty, you can create a new account.';
+
+  @override
+  String get savingsStorageAccountsEmpty => 'No storage accounts available.';
+
+  @override
+  String get savingsStorageAccountsCreateButton => 'Create new account';
+
+  @override
+  String get savingsTargetDateEmpty => 'Target date is not selected';
+
+  @override
+  String get savingsTargetDatePickButton => 'Pick a date';
+
+  @override
+  String get savingsTargetDateClearButton => 'Clear';
 
   @override
   String get savingsSubmitContributionButton => 'Add contribution';
@@ -3075,6 +3107,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get assistantMessageCopied => 'Message copied';
 
   @override
+  String get assistantUsageInfoTitle => 'Using the AI assistant';
+
+  @override
+  String get assistantUsageInfoBody =>
+      'The app includes an AI assistant whose answers are generated automatically using artificial intelligence models through OpenRouter.\n\nAnswers may contain errors, be incomplete, or become outdated, and they do not constitute financial, legal, tax, or other professional advice. You make all decisions independently and at your own risk.\n\nDo not enter card numbers, passwords, CVV codes, SMS codes, passport data, or other sensitive personal information in the chat. Your prompt text is sent to a third-party service for processing.\n\nBy continuing, you confirm that you have read and agree to these terms.';
+
+  @override
+  String get assistantUsageInfoAcceptButton => 'Accept';
+
+  @override
   String get assistantOnboardingTitle => 'Get started with the assistant';
 
   @override
@@ -3133,7 +3175,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get assistantFaqAnswerImproveResults =>
-      'Be specific—mention time ranges, accounts, or categories. Combine quick filters above the chat for extra context.';
+      'Be specific and mention time ranges, accounts, or categories. For a faster start, use the ready-made prompts below the chat.';
 
   @override
   String get overviewScreenTitle => 'Overview';

@@ -2304,6 +2304,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get addAccountCurrencyLabel => 'Валюта';
 
   @override
+  String get addAccountCurrencySearchPlaceholder => 'Название валюты';
+
+  @override
   String get addAccountTypeLabel => 'Тип счёта';
 
   @override
@@ -2836,6 +2839,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get savingsTargetHelper => 'Введите желаемую сумму';
 
   @override
+  String get savingsGoalNameRequiredError => 'Введите название цели';
+
+  @override
+  String get savingsGoalTargetPositiveError => 'Введите сумму больше нуля';
+
+  @override
   String get savingsNoteLabel => 'Заметка';
 
   @override
@@ -2901,6 +2910,28 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get savingsContributionNoteLabel => 'Заметка (необязательно)';
+
+  @override
+  String get savingsStorageAccountsTitle => 'Счета хранения';
+
+  @override
+  String get savingsStorageAccountsDescription =>
+      'Выберите один или несколько счетов, на которых фактически хранится сумма цели. Если список пуст, можно создать новый счет.';
+
+  @override
+  String get savingsStorageAccountsEmpty => 'Нет доступных счетов хранения.';
+
+  @override
+  String get savingsStorageAccountsCreateButton => 'Создать новый счет';
+
+  @override
+  String get savingsTargetDateEmpty => 'Дата цели не выбрана';
+
+  @override
+  String get savingsTargetDatePickButton => 'Выбрать дату';
+
+  @override
+  String get savingsTargetDateClearButton => 'Очистить';
 
   @override
   String get savingsSubmitContributionButton => 'Добавить пополнение';
@@ -3098,6 +3129,16 @@ class AppLocalizationsRu extends AppLocalizations {
   String get assistantMessageCopied => 'Сообщение скопировано';
 
   @override
+  String get assistantUsageInfoTitle => 'Использование ИИ-ассистента';
+
+  @override
+  String get assistantUsageInfoBody =>
+      'В приложении доступен ИИ-ассистент, ответы которого формируются автоматически на основе моделей искусственного интеллекта (через сервис OpenRouter).\n\nОтветы могут содержать ошибки, быть неполными или устаревшими и не являются финансовой, юридической, налоговой или иной профессиональной консультацией. Все решения вы принимаете самостоятельно и на свой риск.\n\nНе вводите в чат номера карт, пароли, CVV, коды из SMS, паспортные данные и другую чувствительную личную информацию. Текст ваших запросов передаётся стороннему сервису для обработки.\n\nПродолжая, вы подтверждаете, что ознакомились с этими условиями и согласны с ними.';
+
+  @override
+  String get assistantUsageInfoAcceptButton => 'Принять';
+
+  @override
   String get assistantOnboardingTitle => 'Возможности ассистента';
 
   @override
@@ -3156,7 +3197,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get assistantFaqAnswerImproveResults =>
-      'Уточняйте период, счёт или категорию. Используйте фильтры над чатом, чтобы дать больше контекста.';
+      'Уточняйте период, счёт или категорию. Для быстрого старта используйте готовые запросы под чатом.';
 
   @override
   String get overviewScreenTitle => 'Обзор';

@@ -2936,6 +2936,10 @@
   "@addAccountCurrencyLabel": {
     "description": "Подпись выбора валюты"
   },
+  "addAccountCurrencySearchPlaceholder": "Название валюты",
+  "@addAccountCurrencySearchPlaceholder": {
+    "description": "Плейсхолдер поиска валюты на экране добавления счёта"
+  },
   "addAccountTypeLabel": "Тип счёта",
   "@addAccountTypeLabel": {
     "description": "Подпись выбора типа счёта"
@@ -3645,6 +3649,14 @@
   "@savingsTargetHelper": {
     "description": "Подсказка для поля целевой суммы"
   },
+  "savingsGoalNameRequiredError": "Введите название цели",
+  "@savingsGoalNameRequiredError": {
+    "description": "Ошибка валидации, когда не указано название цели накопления"
+  },
+  "savingsGoalTargetPositiveError": "Введите сумму больше нуля",
+  "@savingsGoalTargetPositiveError": {
+    "description": "Ошибка валидации, когда сумма цели накопления невалидна"
+  },
   "savingsNoteLabel": "Заметка",
   "@savingsNoteLabel": {
     "description": "Подпись поля заметки"
@@ -3739,6 +3751,34 @@
   "savingsContributionNoteLabel": "Заметка (необязательно)",
   "@savingsContributionNoteLabel": {
     "description": "Подпись поля заметки при пополнении"
+  },
+  "savingsStorageAccountsTitle": "Счета хранения",
+  "@savingsStorageAccountsTitle": {
+    "description": "Заголовок секции счетов хранения на форме накопления"
+  },
+  "savingsStorageAccountsDescription": "Выберите один или несколько счетов, на которых фактически хранится сумма цели. Если список пуст, можно создать новый счет.",
+  "@savingsStorageAccountsDescription": {
+    "description": "Описание секции счетов хранения на форме накопления"
+  },
+  "savingsStorageAccountsEmpty": "Нет доступных счетов хранения.",
+  "@savingsStorageAccountsEmpty": {
+    "description": "Сообщение, когда нет доступных счетов хранения для накопления"
+  },
+  "savingsStorageAccountsCreateButton": "Создать новый счет",
+  "@savingsStorageAccountsCreateButton": {
+    "description": "Кнопка создания нового счета из секции счетов хранения"
+  },
+  "savingsTargetDateEmpty": "Дата цели не выбрана",
+  "@savingsTargetDateEmpty": {
+    "description": "Подпись, когда дата цели не выбрана"
+  },
+  "savingsTargetDatePickButton": "Выбрать дату",
+  "@savingsTargetDatePickButton": {
+    "description": "Кнопка выбора даты цели"
+  },
+  "savingsTargetDateClearButton": "Очистить",
+  "@savingsTargetDateClearButton": {
+    "description": "Кнопка очистки даты цели"
   },
   "savingsSubmitContributionButton": "Добавить пополнение",
   "@savingsSubmitContributionButton": {
@@ -3994,6 +4034,18 @@
   "@assistantMessageCopied": {
     "description": "Сообщение тоста после копирования"
   },
+  "assistantUsageInfoTitle": "Использование ИИ-ассистента",
+  "@assistantUsageInfoTitle": {
+    "description": "Заголовок экрана с условиями использования ИИ-ассистента"
+  },
+  "assistantUsageInfoBody": "В приложении доступен ИИ-ассистент, ответы которого формируются автоматически на основе моделей искусственного интеллекта (через сервис OpenRouter).\n\nОтветы могут содержать ошибки, быть неполными или устаревшими и не являются финансовой, юридической, налоговой или иной профессиональной консультацией. Все решения вы принимаете самостоятельно и на свой риск.\n\nНе вводите в чат номера карт, пароли, CVV, коды из SMS, паспортные данные и другую чувствительную личную информацию. Текст ваших запросов передаётся стороннему сервису для обработки.\n\nПродолжая, вы подтверждаете, что ознакомились с этими условиями и согласны с ними.",
+  "@assistantUsageInfoBody": {
+    "description": "Текст экрана с условиями использования ИИ-ассистента"
+  },
+  "assistantUsageInfoAcceptButton": "Принять",
+  "@assistantUsageInfoAcceptButton": {
+    "description": "Кнопка принятия условий использования ИИ-ассистента"
+  },
   "assistantOnboardingTitle": "Возможности ассистента",
   "@assistantOnboardingTitle": {
     "description": "Заголовок карточки с описанием возможностей ассистента"
@@ -4054,7 +4106,7 @@
   "@assistantFaqQuestionImproveResults": {
     "description": "Вопрос FAQ о повышении качества ответов"
   },
-  "assistantFaqAnswerImproveResults": "Уточняйте период, счёт или категорию. Используйте фильтры над чатом, чтобы дать больше контекста.",
+  "assistantFaqAnswerImproveResults": "Уточняйте период, счёт или категорию. Для быстрого старта используйте готовые запросы под чатом.",
   "@assistantFaqAnswerImproveResults": {
     "description": "Ответ FAQ с советами по уточнению запроса"
   },

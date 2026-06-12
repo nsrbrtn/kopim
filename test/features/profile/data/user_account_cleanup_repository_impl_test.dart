@@ -46,45 +46,78 @@ void main() {
     await database.close();
   });
 
-  test('deleteRemoteUserData removes recurring_payments collection', () async {
-    const String uid = 'user-1';
-    await firestore
-        .collection('users')
-        .doc(uid)
-        .collection('recurring_payments')
-        .doc('pay-1')
-        .set(<String, dynamic>{'id': 'pay-1'});
-    await firestore
-        .collection('users')
-        .doc(uid)
-        .collection('reminders')
-        .doc('rem-1')
-        .set(<String, dynamic>{'id': 'rem-1'});
+  test(
+    'deleteRemoteUserData removes synced and legacy remote collections',
+    () async {
+      const String uid = 'user-1';
+      await firestore
+          .collection('users')
+          .doc(uid)
+          .collection('recurring_payments')
+          .doc('pay-1')
+          .set(<String, dynamic>{'id': 'pay-1'});
+      await firestore
+          .collection('users')
+          .doc(uid)
+          .collection('reminders')
+          .doc('rem-1')
+          .set(<String, dynamic>{'id': 'rem-1'});
+      await firestore
+          .collection('users')
+          .doc(uid)
+          .collection('credit_payment_groups')
+          .doc('group-1')
+          .set(<String, dynamic>{'id': 'group-1'});
+      await firestore
+          .collection('users')
+          .doc(uid)
+          .collection('credit_payment_schedules')
+          .doc('schedule-1')
+          .set(<String, dynamic>{'id': 'schedule-1'});
 
-    await repository.deleteRemoteUserData(uid);
+      await repository.deleteRemoteUserData(uid);
 
-    final int recurringCount =
-        (await firestore
-                .collection('users')
-                .doc(uid)
-                .collection('recurring_payments')
-                .get())
-            .docs
-            .length;
-    final int remindersCount =
-        (await firestore
-                .collection('users')
-                .doc(uid)
-                .collection('reminders')
-                .get())
-            .docs
-            .length;
-    final bool userExists =
-        (await firestore.collection('users').doc(uid).get()).exists;
+      final int recurringCount =
+          (await firestore
+                  .collection('users')
+                  .doc(uid)
+                  .collection('recurring_payments')
+                  .get())
+              .docs
+              .length;
+      final int remindersCount =
+          (await firestore
+                  .collection('users')
+                  .doc(uid)
+                  .collection('reminders')
+                  .get())
+              .docs
+              .length;
+      final int groupsCount =
+          (await firestore
+                  .collection('users')
+                  .doc(uid)
+                  .collection('credit_payment_groups')
+                  .get())
+              .docs
+              .length;
+      final int schedulesCount =
+          (await firestore
+                  .collection('users')
+                  .doc(uid)
+                  .collection('credit_payment_schedules')
+                  .get())
+              .docs
+              .length;
+      final bool userExists =
+          (await firestore.collection('users').doc(uid).get()).exists;
 
-    expect(recurringCount, 0);
-    expect(remindersCount, 0);
-    expect(userExists, isFalse);
-    expect(avatarRepository.deletedUid, uid);
-  });
+      expect(recurringCount, 0);
+      expect(remindersCount, 0);
+      expect(groupsCount, 0);
+      expect(schedulesCount, 0);
+      expect(userExists, isFalse);
+      expect(avatarRepository.deletedUid, uid);
+    },
+  );
 }

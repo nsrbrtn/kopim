@@ -15,6 +15,9 @@ import 'edit_goal_state.dart';
 
 part 'edit_goal_controller.g.dart';
 
+const String _kEditGoalNameRequiredError = 'edit_goal.name_required';
+const String _kEditGoalTargetPositiveError = 'edit_goal.target_positive';
+
 @riverpod
 class EditGoalController extends _$EditGoalController {
   StreamSubscription<List<AccountEntity>>? _subscription;
@@ -79,13 +82,13 @@ class EditGoalController extends _$EditGoalController {
   Future<void> submit() async {
     final String trimmedName = state.name.trim();
     if (trimmedName.isEmpty) {
-      state = state.copyWith(nameError: 'Введите название цели');
+      state = state.copyWith(nameError: _kEditGoalNameRequiredError);
       return;
     }
     final String normalizedTarget = state.targetInput.replaceAll(',', '.');
     final double? parsedTarget = double.tryParse(normalizedTarget);
     if (parsedTarget == null || parsedTarget <= 0) {
-      state = state.copyWith(targetError: 'Введите сумму больше нуля');
+      state = state.copyWith(targetError: _kEditGoalTargetPositiveError);
       return;
     }
     final Money targetMoney = Money.fromDouble(parsedTarget);

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kopim/core/widgets/collapsible_list/collapsible_list.dart';
 import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/features/app_shell/presentation/controllers/main_navigation_controller.dart';
 import 'package:kopim/features/ai/domain/entities/ai_user_query_entity.dart';
@@ -199,11 +198,6 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
         (AssistantSessionState state) => state.isOffline,
       ),
     );
-    final Set<AssistantFilter> activeFilters = ref.watch(
-      assistantSessionControllerProvider.select(
-        (AssistantSessionState state) => state.activeFilters,
-      ),
-    );
     final AssistantErrorType lastError = ref.watch(
       assistantSessionControllerProvider.select(
         (AssistantSessionState state) => state.lastError,
@@ -267,13 +261,6 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
                     onRetry: () => ref
                         .read(assistantSessionControllerProvider.notifier)
                         .retryPendingMessages(),
-                  ),
-                  const SizedBox(height: 8),
-                  _AssistantFiltersBar(
-                    activeFilters: activeFilters,
-                    onFilterTapped: (AssistantFilter filter) => ref
-                        .read(assistantSessionControllerProvider.notifier)
-                        .toggleFilter(filter),
                   ),
                   const SizedBox(height: 8),
                   Expanded(
@@ -492,24 +479,12 @@ class AssistantUsageInfoScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(
-              'Использование ИИ-ассистента',
+              strings.assistantUsageInfoTitle,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 16),
             Text(
-              'В приложении доступен ИИ-ассистент, ответы '
-              'которого формируются автоматически на основе моделей '
-              'искусственного интеллекта (через сервис OpenRouter).\n\n'
-              'Ответы могут содержать ошибки, быть неполными или '
-              'устаревшими и не являются финансовой, юридической, '
-              'налоговой или иной профессиональной консультацией. Все '
-              'решения вы принимаете самостоятельно и на свой риск.\n\n'
-              'Не вводите в чат номера карт, пароли, CVV, коды из SMS, '
-              'паспортные данные и другую чувствительную личную информацию. '
-              'Текст ваших запросов передаётся стороннему сервису для '
-              'обработки.\n\n'
-              'Продолжая, вы подтверждаете, что ознакомились с этими '
-              'условиями и согласны с ними.',
+              strings.assistantUsageInfoBody,
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             const Spacer(),
@@ -537,7 +512,7 @@ class AssistantUsageInfoScreen extends StatelessWidget {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      child: const Text('Отмена'),
+                      child: Text(strings.cancelButtonLabel),
                     ),
                   ),
                 ),
@@ -562,7 +537,7 @@ class AssistantUsageInfoScreen extends StatelessWidget {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      child: const Text('Принять'),
+                      child: Text(strings.assistantUsageInfoAcceptButton),
                     ),
                   ),
                 ),
@@ -570,62 +545,6 @@ class AssistantUsageInfoScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _AssistantFiltersBar extends StatelessWidget {
-  const _AssistantFiltersBar({
-    required this.activeFilters,
-    required this.onFilterTapped,
-  });
-
-  final Set<AssistantFilter> activeFilters;
-  final ValueChanged<AssistantFilter> onFilterTapped;
-
-  @override
-  Widget build(BuildContext context) {
-    final AppLocalizations strings = AppLocalizations.of(context)!;
-    final ThemeData theme = Theme.of(context);
-    return KopimExpandableSectionPlayful(
-      title: strings.assistantFiltersTitle,
-      child: Wrap(
-        spacing: 10,
-        runSpacing: 10,
-        children: _kAssistantFilters
-            .map((AssistantFilter filter) {
-              final bool selected = activeFilters.contains(filter);
-              final Color chipColor = selected
-                  ? theme.colorScheme.secondaryContainer
-                  : theme.colorScheme.surfaceContainerHighest;
-              final Color textColor = selected
-                  ? theme.colorScheme.onSecondaryContainer
-                  : theme.colorScheme.onSurface;
-              return InkWell(
-                borderRadius: BorderRadius.circular(16),
-                onTap: () => onFilterTapped(filter),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: chipColor,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    strings.assistantFilterLabel(filter),
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: textColor,
-                      letterSpacing: 0.5,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              );
-            })
-            .toList(growable: false),
       ),
     );
   }
@@ -1066,12 +985,6 @@ const List<_AssistantQuickActionConfig> _kAssistantQuickActions =
       ),
     ];
 
-const List<AssistantFilter> _kAssistantFilters = <AssistantFilter>[
-  AssistantFilter.currentMonth,
-  AssistantFilter.last30Days,
-  AssistantFilter.budgetsOnly,
-];
-
 extension _AssistantQuickActionStrings on AppLocalizations {
   String assistantQuickActionLabel(_AssistantQuickActionKind kind) {
     switch (kind) {
@@ -1092,17 +1005,6 @@ extension _AssistantQuickActionStrings on AppLocalizations {
         return assistantQuickActionBudgetPrompt;
       case _AssistantQuickActionKind.savings:
         return assistantQuickActionSavingsPrompt;
-    }
-  }
-
-  String assistantFilterLabel(AssistantFilter filter) {
-    switch (filter) {
-      case AssistantFilter.currentMonth:
-        return assistantFilterCurrentMonth;
-      case AssistantFilter.last30Days:
-        return assistantFilterLast30Days;
-      case AssistantFilter.budgetsOnly:
-        return assistantFilterBudgets;
     }
   }
 }

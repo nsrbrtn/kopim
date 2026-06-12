@@ -62,6 +62,7 @@ enum OutboxOperation {
 - Импорт CSV/JSON не ограничивается локальной записью в Drift.
 - Каноничный миграционный формат — `JSON`. CSV остается форматом совместимости, но не считается основным контрактом переноса между backend/runtime поколениями.
 - Backup покрывает пользовательский snapshot, который участвует в sync: `accounts`, `categories`, `transactions`, `saving_goals`, `credits`, `credit_cards`, `debts`, `tags`, `transaction_tags`, `budgets`, `budget_instances`, `upcoming_payments`, `payment_reminders`, `profile`, `progress`.
+- Список удалённых коллекций и локально-исключённых артефактов теперь централизован в `SyncContract`, чтобы login sync, cleanup и backup не расходились по составу данных.
 - Avatar binary не экспортируется. `photoUrl` профиля может переноситься как строковое поле, но это не гарантирует доступность старого Firebase Storage asset после миграции backend.
 - Импорт выполняется как восстановление локального snapshot, а не merge поверх существующей базы: перед записью очищаются таблицы импорта (`accounts`, `categories`, `transactions`, `saving_goals`, `credits`, `credit_cards`, `debts`, `tags`, `transaction_tags`, `budgets`, `budget_instances`, `upcoming_payments`, `payment_reminders` и связанные локальные derivation-таблицы).
 - Перед destructive restore импорт проверяет `schemaVersion` и обязательные секции backup; partial/unsupported backup отклоняется до очистки локальной БД.
@@ -144,6 +145,11 @@ Future<void> syncPending() async {
 3. Получение удалённых данных
    └─ Параллельно загрузить все коллекции из Firestore
    └─ Аккаунты, категории, транзакции, бюджеты и т.д.
+
+Примечание:
+- `credit_payment_groups` и `credit_payment_schedules` пока не входят в удалённый snapshot login sync.
+- Поэтому `groupId` не переносится через Firestore snapshot и backup/import, а старые payload с этим полем автоматически нормализуются до `groupId = null`, чтобы не ломать ссылочную целостность Drift и не ронять весь sync.
+- Аналогично для `credits` очищаются отсутствующие optional category references (`categoryId`, `interestCategoryId`, `feesCategoryId`) до записи merged snapshot в Drift.
 
 4. Слияние данных (Three-Way Merge)
    └─ Для каждой сущности:

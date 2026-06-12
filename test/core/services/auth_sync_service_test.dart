@@ -129,6 +129,87 @@ void main() {
 
   group('AuthSyncService', () {
     test(
+      'clears missing credit payment group references from remote transactions',
+      () async {
+        final AuthSyncService service = buildService();
+        const String userId = 'user-groups';
+        final DateTime createdAt = DateTime.utc(2024, 5, 3, 10);
+        final DateTime updatedAt = DateTime.utc(2024, 5, 3, 11);
+
+        await firestore
+            .collection('users')
+            .doc(userId)
+            .collection('accounts')
+            .doc('acc-1')
+            .set(<String, dynamic>{
+              'id': 'acc-1',
+              'name': 'Main',
+              'balance': 0,
+              'balanceMinor': '0',
+              'openingBalance': 0,
+              'openingBalanceMinor': '0',
+              'currency': 'RUB',
+              'currencyScale': 2,
+              'type': 'checking',
+              'createdAt': Timestamp.fromDate(createdAt),
+              'updatedAt': Timestamp.fromDate(updatedAt),
+              'isDeleted': false,
+            });
+
+        await firestore
+            .collection('users')
+            .doc(userId)
+            .collection('categories')
+            .doc('cat-1')
+            .set(<String, dynamic>{
+              'id': 'cat-1',
+              'name': 'Interest',
+              'type': 'expense',
+              'createdAt': Timestamp.fromDate(createdAt),
+              'updatedAt': Timestamp.fromDate(updatedAt),
+              'isDeleted': false,
+              'isSystem': false,
+              'isHidden': false,
+              'isFavorite': false,
+            });
+
+        await firestore
+            .collection('users')
+            .doc(userId)
+            .collection('transactions')
+            .doc('tx-1')
+            .set(<String, dynamic>{
+              'id': 'tx-1',
+              'accountId': 'acc-1',
+              'categoryId': 'cat-1',
+              'amount': 83.33,
+              'amountMinor': '8333',
+              'amountScale': 2,
+              'date': Timestamp.fromDate(createdAt),
+              'note': 'Платёж по кредиту: проценты',
+              'type': TransactionType.expense.storageValue,
+              'groupId': 'missing-group',
+              'createdAt': Timestamp.fromDate(createdAt),
+              'updatedAt': Timestamp.fromDate(updatedAt),
+              'isDeleted': true,
+            });
+
+        await service.synchronizeOnLogin(
+          user: const AuthUser(
+            uid: userId,
+            email: 'groups@example.com',
+            isAnonymous: false,
+          ),
+        );
+
+        final db.TransactionRow? row = await transactionDao.findById('tx-1');
+        expect(row, isNotNull);
+        expect(row!.groupId, isNull);
+        expect(row.categoryId, 'cat-1');
+      },
+    );
+
+    test(
       'replays outbox entries, merges remote data and profile on login',
       () async {
         final AuthSyncService service = buildService();

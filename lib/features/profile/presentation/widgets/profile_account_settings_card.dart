@@ -283,6 +283,7 @@ class _ProfileAccountFormState extends ConsumerState<_ProfileAccountForm> {
     final TextEditingController passwordController = TextEditingController();
     final String confirmationPhrase = strings.profileDeleteAccountPhrase;
     bool isSubmitting = false;
+    bool isPasswordObscured = true;
     String? errorText;
 
     await showDialog<void>(
@@ -333,10 +334,22 @@ class _ProfileAccountFormState extends ConsumerState<_ProfileAccountForm> {
                       const SizedBox(height: 12),
                       TextField(
                         controller: passwordController,
-                        obscureText: true,
+                        obscureText: isPasswordObscured,
                         onChanged: (_) => setState(() {}),
                         decoration: InputDecoration(
                           labelText: strings.profileDeleteAccountPasswordLabel,
+                          suffixIcon: IconButton(
+                            onPressed: () {
+                              setState(() {
+                                isPasswordObscured = !isPasswordObscured;
+                              });
+                            },
+                            icon: Icon(
+                              isPasswordObscured
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
+                            ),
+                          ),
                         ),
                       ),
                       if (errorText != null) ...<Widget>[

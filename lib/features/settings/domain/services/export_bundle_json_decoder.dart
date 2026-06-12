@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:kopim/core/money/currency_scale.dart';
 import 'package:kopim/core/money/money.dart';
+import 'package:kopim/core/services/sync/sync_contract.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_category_allocation.dart';
@@ -277,22 +278,24 @@ class ExportBundleJsonDecoder {
                 currency: 'XXX',
                 scale: scale,
               ).minor;
-          return TransactionEntity(
-            id: _readString(data, 'id'),
-            accountId: _readString(data, 'accountId'),
-            transferAccountId: _readOptionalString(data, 'transferAccountId'),
-            categoryId: _readOptionalString(data, 'categoryId'),
-            savingGoalId: _readOptionalString(data, 'savingGoalId'),
-            idempotencyKey: _readOptionalString(data, 'idempotencyKey'),
-            groupId: _readOptionalString(data, 'groupId'),
-            amountMinor: resolvedMinor,
-            amountScale: scale,
-            date: _readDate(data, 'date'),
-            note: _readOptionalString(data, 'note'),
-            type: _readString(data, 'type'),
-            createdAt: _readDate(data, 'createdAt'),
-            updatedAt: _readDate(data, 'updatedAt'),
-            isDeleted: _readBool(data, 'isDeleted'),
+          return SyncContract.normalizeTransactionForPortableSync(
+            TransactionEntity(
+              id: _readString(data, 'id'),
+              accountId: _readString(data, 'accountId'),
+              transferAccountId: _readOptionalString(data, 'transferAccountId'),
+              categoryId: _readOptionalString(data, 'categoryId'),
+              savingGoalId: _readOptionalString(data, 'savingGoalId'),
+              idempotencyKey: _readOptionalString(data, 'idempotencyKey'),
+              groupId: _readOptionalString(data, 'groupId'),
+              amountMinor: resolvedMinor,
+              amountScale: scale,
+              date: _readDate(data, 'date'),
+              note: _readOptionalString(data, 'note'),
+              type: _readString(data, 'type'),
+              createdAt: _readDate(data, 'createdAt'),
+              updatedAt: _readDate(data, 'updatedAt'),
+              isDeleted: _readBool(data, 'isDeleted'),
+            ),
           );
         })
         .toList(growable: false);

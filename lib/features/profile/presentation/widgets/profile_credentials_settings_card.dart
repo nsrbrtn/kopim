@@ -115,6 +115,7 @@ class _CredentialsBodyState extends ConsumerState<_CredentialsBody> {
         TextEditingController();
     final GlobalKey<FormState> formKey = GlobalKey<FormState>();
     bool isSubmitting = false;
+    bool isCurrentPasswordObscured = true;
     String? errorText;
 
     await showDialog<void>(
@@ -154,10 +155,23 @@ class _CredentialsBodyState extends ConsumerState<_CredentialsBody> {
                         const SizedBox(height: 12),
                         TextFormField(
                           controller: currentPasswordController,
-                          obscureText: true,
+                          obscureText: isCurrentPasswordObscured,
                           decoration: InputDecoration(
                             labelText:
                                 strings.profileCredentialsCurrentPasswordLabel,
+                            suffixIcon: IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  isCurrentPasswordObscured =
+                                      !isCurrentPasswordObscured;
+                                });
+                              },
+                              icon: Icon(
+                                isCurrentPasswordObscured
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                              ),
+                            ),
                           ),
                           validator: (String? value) {
                             if ((value ?? '').isEmpty) {
@@ -264,6 +278,9 @@ class _CredentialsBodyState extends ConsumerState<_CredentialsBody> {
         TextEditingController();
     final GlobalKey<FormState> formKey = GlobalKey<FormState>();
     bool isSubmitting = false;
+    bool isCurrentPasswordObscured = true;
+    bool isNewPasswordObscured = true;
+    bool isConfirmPasswordObscured = true;
     String? errorText;
 
     await showDialog<void>(
@@ -284,10 +301,23 @@ class _CredentialsBodyState extends ConsumerState<_CredentialsBody> {
                       children: <Widget>[
                         TextFormField(
                           controller: currentPasswordController,
-                          obscureText: true,
+                          obscureText: isCurrentPasswordObscured,
                           decoration: InputDecoration(
                             labelText:
                                 strings.profileCredentialsCurrentPasswordLabel,
+                            suffixIcon: IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  isCurrentPasswordObscured =
+                                      !isCurrentPasswordObscured;
+                                });
+                              },
+                              icon: Icon(
+                                isCurrentPasswordObscured
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                              ),
+                            ),
                           ),
                           validator: (String? value) {
                             if ((value ?? '').isEmpty) {
@@ -300,10 +330,23 @@ class _CredentialsBodyState extends ConsumerState<_CredentialsBody> {
                         const SizedBox(height: 12),
                         TextFormField(
                           controller: newPasswordController,
-                          obscureText: true,
+                          obscureText: isNewPasswordObscured,
                           decoration: InputDecoration(
                             labelText:
                                 strings.profileCredentialsNewPasswordLabel,
+                            suffixIcon: IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  isNewPasswordObscured =
+                                      !isNewPasswordObscured;
+                                });
+                              },
+                              icon: Icon(
+                                isNewPasswordObscured
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                              ),
+                            ),
                           ),
                           validator: (String? value) {
                             final String text = value ?? '';
@@ -320,10 +363,23 @@ class _CredentialsBodyState extends ConsumerState<_CredentialsBody> {
                         const SizedBox(height: 12),
                         TextFormField(
                           controller: confirmPasswordController,
-                          obscureText: true,
+                          obscureText: isConfirmPasswordObscured,
                           decoration: InputDecoration(
                             labelText:
                                 strings.profileCredentialsConfirmPasswordLabel,
+                            suffixIcon: IconButton(
+                              onPressed: () {
+                                setState(() {
+                                  isConfirmPasswordObscured =
+                                      !isConfirmPasswordObscured;
+                                });
+                              },
+                              icon: Icon(
+                                isConfirmPasswordObscured
+                                    ? Icons.visibility_off_outlined
+                                    : Icons.visibility_outlined,
+                              ),
+                            ),
                           ),
                           validator: (String? value) {
                             if ((value ?? '').isEmpty) {

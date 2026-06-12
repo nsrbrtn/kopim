@@ -334,6 +334,55 @@ void main() {
     expect(payload['typeVersion'], 1);
   });
 
+  test('очищает groupId у транзакций при restore из legacy backup', () async {
+    final DateTime now = DateTime.utc(2024, 6, 1);
+    final AccountEntity account = AccountEntity(
+      id: 'acc-1',
+      name: 'Main',
+      balanceMinor: BigInt.zero,
+      currency: 'USD',
+      currencyScale: 2,
+      type: 'card',
+      createdAt: now,
+      updatedAt: now,
+    );
+    final Category category = Category(
+      id: 'cat-1',
+      name: 'Credit',
+      type: 'expense',
+      createdAt: now,
+      updatedAt: now,
+    );
+    final TransactionEntity transaction = TransactionEntity(
+      id: 'tx-legacy-group',
+      accountId: account.id,
+      categoryId: category.id,
+      groupId: 'missing-group',
+      amountMinor: BigInt.from(8333),
+      amountScale: 2,
+      date: now,
+      type: TransactionType.expense.storageValue,
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    await repository.importData(
+      bundle: bundleFactory(
+        accounts: <AccountEntity>[account],
+        categories: <Category>[category],
+        transactions: <TransactionEntity>[transaction],
+      ),
+    );
+
+    final db.TransactionRow? row =
+        await (database.select(database.transactions)
+              ..where((db.Transactions tbl) => tbl.id.equals(transaction.id)))
+            .getSingleOrNull();
+
+    expect(row, isNotNull);
+    expect(row!.groupId, isNull);
+  });
+
   test(
     'restore запускает deferred backfill для legacy account types',
     () async {

@@ -113,7 +113,12 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
                       .updateName(value),
                 ),
                 if (state.nameError != null && state.nameError!.isNotEmpty)
-                  _FieldErrorText(message: state.nameError!),
+                  _FieldErrorText(
+                    message: _resolveEditGoalErrorMessage(
+                      state.nameError!,
+                      strings,
+                    ),
+                  ),
                 const SizedBox(height: 16),
                 KopimTextField(
                   controller: _targetController,
@@ -133,7 +138,12 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
                       .updateTarget(value),
                 ),
                 if (state.targetError != null && state.targetError!.isNotEmpty)
-                  _FieldErrorText(message: state.targetError!),
+                  _FieldErrorText(
+                    message: _resolveEditGoalErrorMessage(
+                      state.targetError!,
+                      strings,
+                    ),
+                  ),
                 const SizedBox(height: 16),
                 _StorageAccountsSection(state: state, goal: widget.goal),
                 if (state.storageAccountsError != null &&
@@ -181,6 +191,17 @@ class _AddEditGoalScreenState extends ConsumerState<AddEditGoalScreen> {
   }
 }
 
+String _resolveEditGoalErrorMessage(String rawError, AppLocalizations strings) {
+  switch (rawError) {
+    case 'edit_goal.name_required':
+      return strings.savingsGoalNameRequiredError;
+    case 'edit_goal.target_positive':
+      return strings.savingsGoalTargetPositiveError;
+    default:
+      return rawError;
+  }
+}
+
 class _StorageAccountsSection extends ConsumerWidget {
   const _StorageAccountsSection({required this.state, required this.goal});
 
@@ -190,6 +211,7 @@ class _StorageAccountsSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
+    final AppLocalizations strings = AppLocalizations.of(context)!;
     final EditGoalController controller = ref.read(
       editGoalControllerProvider(goal).notifier,
     );
@@ -197,16 +219,19 @@ class _StorageAccountsSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Text('Счета хранения', style: theme.textTheme.titleSmall),
+        Text(
+          strings.savingsStorageAccountsTitle,
+          style: theme.textTheme.titleSmall,
+        ),
         const SizedBox(height: 8),
         Text(
-          'Выберите один или несколько счетов, на которых фактически хранится сумма цели. Если список пуст, можно создать новый счет.',
+          strings.savingsStorageAccountsDescription,
           style: theme.textTheme.bodySmall,
         ),
         const SizedBox(height: 12),
         if (accounts.isEmpty)
           Text(
-            'Нет доступных счетов хранения.',
+            strings.savingsStorageAccountsEmpty,
             style: theme.textTheme.bodyMedium,
           )
         else
@@ -238,7 +263,7 @@ class _StorageAccountsSection extends ConsumerWidget {
               );
             },
             icon: const Icon(Icons.add),
-            label: const Text('Создать новый счет'),
+            label: Text(strings.savingsStorageAccountsCreateButton),
           ),
         ),
       ],
@@ -255,9 +280,10 @@ class _TargetDateField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
+    final AppLocalizations strings = AppLocalizations.of(context)!;
     final DateTime? targetDate = state.targetDate;
     final String label = targetDate == null
-        ? 'Дата цели не выбрана'
+        ? strings.savingsTargetDateEmpty
         : DateFormat.yMMMMd(
             Localizations.localeOf(context).toString(),
           ).format(targetDate);
@@ -282,7 +308,7 @@ class _TargetDateField extends ConsumerWidget {
                 .read(editGoalControllerProvider(goal).notifier)
                 .updateTargetDate(picked);
           },
-          child: const Text('Выбрать дату'),
+          child: Text(strings.savingsTargetDatePickButton),
         ),
         if (targetDate != null) ...<Widget>[
           const SizedBox(width: 8),
@@ -290,7 +316,7 @@ class _TargetDateField extends ConsumerWidget {
             onPressed: () => ref
                 .read(editGoalControllerProvider(goal).notifier)
                 .updateTargetDate(null),
-            child: const Text('Очистить'),
+            child: Text(strings.savingsTargetDateClearButton),
           ),
         ],
       ],

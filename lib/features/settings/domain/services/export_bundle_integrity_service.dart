@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:kopim/core/money/money_utils.dart';
+import 'package:kopim/core/services/sync/sync_contract.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_category_allocation.dart';
@@ -219,24 +220,25 @@ class ExportBundleIntegrityService {
   }
 
   Map<String, Object?> _mapTransaction(TransactionEntity transaction) {
-    final MoneyAmount amount = transaction.amountValue.abs();
+    final TransactionEntity normalized =
+        SyncContract.normalizeTransactionForPortableSync(transaction);
+    final MoneyAmount amount = normalized.amountValue.abs();
     return <String, Object?>{
-      'id': transaction.id,
-      'accountId': transaction.accountId,
-      'transferAccountId': transaction.transferAccountId,
-      'categoryId': transaction.categoryId,
-      'savingGoalId': transaction.savingGoalId,
-      'idempotencyKey': transaction.idempotencyKey,
-      'groupId': transaction.groupId,
+      'id': normalized.id,
+      'accountId': normalized.accountId,
+      'transferAccountId': normalized.transferAccountId,
+      'categoryId': normalized.categoryId,
+      'savingGoalId': normalized.savingGoalId,
+      'idempotencyKey': normalized.idempotencyKey,
       'amount': amount.toDouble(),
       'amountMinor': amount.minor.toString(),
       'amountScale': amount.scale,
-      'date': transaction.date.toIso8601String(),
-      'note': transaction.note,
-      'type': transaction.type,
-      'createdAt': transaction.createdAt.toIso8601String(),
-      'updatedAt': transaction.updatedAt.toIso8601String(),
-      'isDeleted': transaction.isDeleted,
+      'date': normalized.date.toIso8601String(),
+      'note': normalized.note,
+      'type': normalized.type,
+      'createdAt': normalized.createdAt.toIso8601String(),
+      'updatedAt': normalized.updatedAt.toIso8601String(),
+      'isDeleted': normalized.isDeleted,
     }..removeWhere((String key, Object? value) => value == null);
   }
 

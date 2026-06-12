@@ -165,6 +165,24 @@ class ExportBundleValidator {
           'Кредит ${credit.id} ссылается на отсутствующий accountId ${credit.accountId}.',
         );
       }
+      if (credit.categoryId != null &&
+          !categoryIds.contains(credit.categoryId)) {
+        issues.add(
+          'Кредит ${credit.id} ссылается на отсутствующий categoryId ${credit.categoryId}.',
+        );
+      }
+      if (credit.interestCategoryId != null &&
+          !categoryIds.contains(credit.interestCategoryId)) {
+        issues.add(
+          'Кредит ${credit.id} ссылается на отсутствующий interestCategoryId ${credit.interestCategoryId}.',
+        );
+      }
+      if (credit.feesCategoryId != null &&
+          !categoryIds.contains(credit.feesCategoryId)) {
+        issues.add(
+          'Кредит ${credit.id} ссылается на отсутствующий feesCategoryId ${credit.feesCategoryId}.',
+        );
+      }
     }
     for (final CreditCardEntity card in bundle.creditCards) {
       if (!accountIds.contains(card.accountId)) {

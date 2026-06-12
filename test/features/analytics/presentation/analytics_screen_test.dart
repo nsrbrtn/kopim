@@ -188,10 +188,9 @@ void main() {
                 ),
               ),
               analyticsTransferTransactionsProvider.overrideWith(
-                (Ref ref) =>
-                    Stream<List<TransactionEntity>>.value(
-                      const <TransactionEntity>[],
-                    ),
+                (Ref ref) => Stream<List<TransactionEntity>>.value(
+                  const <TransactionEntity>[],
+                ),
               ),
               analyticsCategoriesProvider.overrideWith(
                 (Ref ref) => Stream<List<Category>>.value(<Category>[
@@ -253,6 +252,7 @@ void main() {
           findsOneWidget,
         );
         expect(find.textContaining('₽'), findsWidgets);
+        expect(find.byIcon(Icons.donut_large), findsNothing);
 
         expect(find.text(strings.analyticsTitle), findsOneWidget);
       },
@@ -328,10 +328,9 @@ void main() {
               ),
             ),
             analyticsTransferTransactionsProvider.overrideWith(
-              (Ref ref) =>
-                  Stream<List<TransactionEntity>>.value(
-                    const <TransactionEntity>[],
-                  ),
+              (Ref ref) => Stream<List<TransactionEntity>>.value(
+                const <TransactionEntity>[],
+              ),
             ),
             analyticsCategoriesProvider.overrideWith(
               (Ref ref) => Stream<List<Category>>.value(<Category>[
@@ -432,10 +431,9 @@ void main() {
               ),
             ),
             analyticsTransferTransactionsProvider.overrideWith(
-              (Ref ref) =>
-                  Stream<List<TransactionEntity>>.value(
-                    const <TransactionEntity>[],
-                  ),
+              (Ref ref) => Stream<List<TransactionEntity>>.value(
+                const <TransactionEntity>[],
+              ),
             ),
             analyticsCategoriesProvider.overrideWith(
               (Ref ref) => Stream<List<Category>>.value(<Category>[
@@ -605,10 +603,9 @@ void main() {
               ),
             ),
             analyticsTransferTransactionsProvider.overrideWith(
-              (Ref ref) =>
-                  Stream<List<TransactionEntity>>.value(
-                    const <TransactionEntity>[],
-                  ),
+              (Ref ref) => Stream<List<TransactionEntity>>.value(
+                const <TransactionEntity>[],
+              ),
             ),
             analyticsCategoriesProvider.overrideWith(
               (Ref ref) => Stream<List<Category>>.value(<Category>[
@@ -658,6 +655,133 @@ void main() {
       expect(find.text('Books'), findsWidgets);
     });
 
+    testWidgets(
+      'выбранная категория сохраняется при переключении на другой месяц',
+      (WidgetTester tester) async {
+        final AnalyticsFilterState filterState = AnalyticsFilterState(
+          dateRange: DateTimeRange(
+            start: DateTime(2024, 5, 1),
+            end: DateTime(2024, 5, 31),
+          ),
+          period: AnalyticsPeriodPreset.customMonth,
+          monthAnchor: DateTime(2024, 5, 1),
+        );
+
+        final AnalyticsOverview overview = AnalyticsOverview(
+          totalIncome: _amount(0),
+          totalExpense: _amount(120),
+          netBalance: _amount(-120),
+          topExpenseCategories: <AnalyticsCategoryBreakdown>[
+            AnalyticsCategoryBreakdown(categoryId: 'food', amount: _amount(80)),
+            AnalyticsCategoryBreakdown(
+              categoryId: 'transport',
+              amount: _amount(40),
+            ),
+          ],
+          topIncomeCategories: const <AnalyticsCategoryBreakdown>[],
+        );
+
+        final Category foodCategory = Category(
+          id: 'food',
+          name: 'Food',
+          type: 'expense',
+          color: '#FF9800',
+          icon: null,
+          parentId: null,
+          createdAt: DateTime(2023, 1, 1),
+          updatedAt: DateTime(2023, 1, 1),
+        );
+        final Category transportCategory = Category(
+          id: 'transport',
+          name: 'Transport',
+          type: 'expense',
+          color: '#03A9F4',
+          icon: null,
+          parentId: null,
+          createdAt: DateTime(2023, 1, 1),
+          updatedAt: DateTime(2023, 1, 1),
+        );
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: <Override>[
+              transactionRepositoryProvider.overrideWithValue(
+                _EmptyTransactionRepository(),
+              ),
+              analyticsFilterControllerProvider.overrideWith(
+                () => _FakeAnalyticsFilterController(filterState),
+              ),
+              analyticsFilteredStatsProvider(
+                topCategoriesLimit: 5,
+              ).overrideWith(
+                (Ref ref) => Stream<AnalyticsOverview>.value(overview),
+              ),
+              analyticsCreditDebtOperationsProvider.overrideWith(
+                (Ref ref) => Stream<CreditDebtOperationsOverview>.value(
+                  CreditDebtOperationsOverview.empty(),
+                ),
+              ),
+              analyticsTransferTransactionsProvider.overrideWith(
+                (Ref ref) => Stream<List<TransactionEntity>>.value(
+                  const <TransactionEntity>[],
+                ),
+              ),
+              analyticsCategoriesProvider.overrideWith(
+                (Ref ref) => Stream<List<Category>>.value(<Category>[
+                  foodCategory,
+                  transportCategory,
+                ]),
+              ),
+              analyticsAccountsProvider.overrideWith(
+                (Ref ref) => Stream<List<AccountEntity>>.value(<AccountEntity>[
+                  AccountEntity(
+                    id: 'acc',
+                    name: 'Main',
+                    balanceMinor: BigInt.zero,
+                    currency: 'RUB',
+                    currencyScale: 2,
+                    type: 'checking',
+                    createdAt: DateTime(2023, 1, 1),
+                    updatedAt: DateTime(2023, 1, 1),
+                    isDeleted: false,
+                  ),
+                ]),
+              ),
+              activeCurrencyCodeProvider.overrideWithValue('RUB'),
+            ],
+            child: const MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: AnalyticsScreen(),
+            ),
+          ),
+        );
+
+        await tester.pumpAndSettle();
+
+        final BuildContext context = tester.element(
+          find.byType(AnalyticsScreen),
+        );
+        final AppLocalizations strings = AppLocalizations.of(context)!;
+
+        await tester.tap(find.text(strings.analyticsFilterCategoryAll).first);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.tap(find.text('Food').last);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(find.text('Food'), findsWidgets);
+
+        await tester.tap(find.byIcon(Icons.chevron_left_rounded).first);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(find.text('Food'), findsWidgets);
+        expect(find.byIcon(Icons.donut_large), findsNothing);
+      },
+    );
+
     testWidgets('во вкладке кредитов отображаются карточки долга', (
       WidgetTester tester,
     ) async {
@@ -694,10 +818,9 @@ void main() {
               ),
             ),
             analyticsTransferTransactionsProvider.overrideWith(
-              (Ref ref) =>
-                  Stream<List<TransactionEntity>>.value(
-                    const <TransactionEntity>[],
-                  ),
+              (Ref ref) => Stream<List<TransactionEntity>>.value(
+                const <TransactionEntity>[],
+              ),
             ),
             analyticsCategoriesProvider.overrideWith(
               (Ref ref) => Stream<List<Category>>.value(const <Category>[]),

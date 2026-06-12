@@ -2936,6 +2936,10 @@
   "@addAccountCurrencyLabel": {
     "description": "Label for the currency selector"
   },
+  "addAccountCurrencySearchPlaceholder": "Currency name",
+  "@addAccountCurrencySearchPlaceholder": {
+    "description": "Placeholder for the currency search field on the add account screen"
+  },
   "addAccountTypeLabel": "Account type",
   "@addAccountTypeLabel": {
     "description": "Label for the account type selector"
@@ -3645,6 +3649,14 @@
   "@savingsTargetHelper": {
     "description": "Helper text for the target amount field"
   },
+  "savingsGoalNameRequiredError": "Please enter the goal name",
+  "@savingsGoalNameRequiredError": {
+    "description": "Validation error shown when the savings goal name is missing"
+  },
+  "savingsGoalTargetPositiveError": "Enter an amount greater than zero",
+  "@savingsGoalTargetPositiveError": {
+    "description": "Validation error shown when the savings goal amount is invalid"
+  },
   "savingsNoteLabel": "Note",
   "@savingsNoteLabel": {
     "description": "Label for the optional goal note"
@@ -3739,6 +3751,34 @@
   "savingsContributionNoteLabel": "Note (optional)",
   "@savingsContributionNoteLabel": {
     "description": "Label for the optional contribution note"
+  },
+  "savingsStorageAccountsTitle": "Storage accounts",
+  "@savingsStorageAccountsTitle": {
+    "description": "Title for the storage accounts section on the savings goal form"
+  },
+  "savingsStorageAccountsDescription": "Choose one or more accounts where this goal's money is actually kept. If the list is empty, you can create a new account.",
+  "@savingsStorageAccountsDescription": {
+    "description": "Description for the storage accounts section on the savings goal form"
+  },
+  "savingsStorageAccountsEmpty": "No storage accounts available.",
+  "@savingsStorageAccountsEmpty": {
+    "description": "Message shown when there are no available storage accounts for a savings goal"
+  },
+  "savingsStorageAccountsCreateButton": "Create new account",
+  "@savingsStorageAccountsCreateButton": {
+    "description": "Button for creating a new account from the storage accounts section"
+  },
+  "savingsTargetDateEmpty": "Target date is not selected",
+  "@savingsTargetDateEmpty": {
+    "description": "Label shown when the target date is not selected"
+  },
+  "savingsTargetDatePickButton": "Pick a date",
+  "@savingsTargetDatePickButton": {
+    "description": "Button label for picking the target date"
+  },
+  "savingsTargetDateClearButton": "Clear",
+  "@savingsTargetDateClearButton": {
+    "description": "Button label for clearing the target date"
   },
   "savingsSubmitContributionButton": "Add contribution",
   "@savingsSubmitContributionButton": {
@@ -3994,6 +4034,18 @@
   "@assistantMessageCopied": {
     "description": "Snack bar message shown after copying an assistant message"
   },
+  "assistantUsageInfoTitle": "Using the AI assistant",
+  "@assistantUsageInfoTitle": {
+    "description": "Title for the AI assistant usage terms screen"
+  },
+  "assistantUsageInfoBody": "The app includes an AI assistant whose answers are generated automatically using artificial intelligence models through OpenRouter.\n\nAnswers may contain errors, be incomplete, or become outdated, and they do not constitute financial, legal, tax, or other professional advice. You make all decisions independently and at your own risk.\n\nDo not enter card numbers, passwords, CVV codes, SMS codes, passport data, or other sensitive personal information in the chat. Your prompt text is sent to a third-party service for processing.\n\nBy continuing, you confirm that you have read and agree to these terms.",
+  "@assistantUsageInfoBody": {
+    "description": "Body text for the AI assistant usage terms screen"
+  },
+  "assistantUsageInfoAcceptButton": "Accept",
+  "@assistantUsageInfoAcceptButton": {
+    "description": "Button for accepting the AI assistant usage terms"
+  },
   "assistantOnboardingTitle": "Get started with the assistant",
   "@assistantOnboardingTitle": {
     "description": "Card title explaining the assistant capabilities"
@@ -4054,7 +4106,7 @@
   "@assistantFaqQuestionImproveResults": {
     "description": "FAQ question about improving assistant responses"
   },
-  "assistantFaqAnswerImproveResults": "Be specific—mention time ranges, accounts, or categories. Combine quick filters above the chat for extra context.",
+  "assistantFaqAnswerImproveResults": "Be specific and mention time ranges, accounts, or categories. For a faster start, use the ready-made prompts below the chat.",
   "@assistantFaqAnswerImproveResults": {
     "description": "FAQ answer with tips for better assistant queries"
   },

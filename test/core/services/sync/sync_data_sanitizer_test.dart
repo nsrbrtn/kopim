@@ -3,6 +3,7 @@ import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/sync/sync_data_sanitizer.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance_status.dart';
+import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
@@ -32,6 +33,7 @@ void main() {
         validAccountIds: <String>{'acc1'},
         validCategoryIds: <String>{'cat1'},
         validSavingGoalIds: <String>{'goal1'},
+        validPaymentGroupIds: <String>{'group1'},
       );
 
       expect(result.length, 1);
@@ -46,6 +48,7 @@ void main() {
         validAccountIds: <String>{}, // No valid accounts
         validCategoryIds: <String>{},
         validSavingGoalIds: <String>{},
+        validPaymentGroupIds: <String>{},
       );
 
       expect(result, isEmpty);
@@ -63,6 +66,7 @@ void main() {
         validAccountIds: <String>{'acc1'},
         validCategoryIds: <String>{}, // Missing cat1
         validSavingGoalIds: <String>{},
+        validPaymentGroupIds: <String>{},
       );
 
       expect(result.length, 1);
@@ -81,12 +85,37 @@ void main() {
         validAccountIds: <String>{'acc1'},
         validCategoryIds: <String>{},
         validSavingGoalIds: <String>{}, // Missing goal1
+        validPaymentGroupIds: <String>{},
       );
 
       expect(result.length, 1);
       expect(result.first.savingGoalId, isNull);
       verify(() => logger.logInfo(any())).called(1);
     });
+
+    test(
+      'Should clear transfer account and group if references are missing',
+      () {
+        final TransactionEntity tx = _createTx(
+          id: '1',
+          accountId: 'acc1',
+          transferAccountId: 'acc2',
+          groupId: 'group1',
+        );
+        final List<TransactionEntity> result = sanitizer.sanitizeTransactions(
+          transactions: <TransactionEntity>[tx],
+          validAccountIds: <String>{'acc1'},
+          validCategoryIds: <String>{},
+          validSavingGoalIds: <String>{},
+          validPaymentGroupIds: <String>{},
+        );
+
+        expect(result.length, 1);
+        expect(result.first.transferAccountId, isNull);
+        expect(result.first.groupId, isNull);
+        verify(() => logger.logInfo(any())).called(1);
+      },
+    );
   });
 
   group('SyncDataSanitizer - UpcomingPayments', () {
@@ -152,19 +181,54 @@ void main() {
       verifyNever(() => logger.logInfo(any()));
     });
   });
+
+  group('SyncDataSanitizer - Credits', () {
+    test('Should clear missing credit category references', () {
+      final CreditEntity credit = CreditEntity(
+        id: 'credit-1',
+        accountId: 'acc1',
+        categoryId: 'cat-main',
+        interestCategoryId: 'cat-interest',
+        feesCategoryId: 'cat-fee',
+        totalAmountMinor: BigInt.from(100000),
+        totalAmountScale: 2,
+        interestRate: 12,
+        termMonths: 12,
+        startDate: DateTime.now(),
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      final List<CreditEntity> result = sanitizer.sanitizeCredits(
+        credits: <CreditEntity>[credit],
+        validAccountIds: <String>{'acc1'},
+        validCategoryIds: <String>{'cat-main'},
+      );
+
+      expect(result, hasLength(1));
+      expect(result.first.categoryId, 'cat-main');
+      expect(result.first.interestCategoryId, isNull);
+      expect(result.first.feesCategoryId, isNull);
+      verify(() => logger.logInfo(any())).called(1);
+    });
+  });
 }
 
 TransactionEntity _createTx({
   required String id,
   required String accountId,
+  String? transferAccountId,
   String? categoryId,
   String? savingGoalId,
+  String? groupId,
 }) {
   return TransactionEntity(
     id: id,
     accountId: accountId,
+    transferAccountId: transferAccountId,
     categoryId: categoryId,
     savingGoalId: savingGoalId,
+    groupId: groupId,
     amountMinor: BigInt.from(10000),
     amountScale: 2,
     date: DateTime.now(),

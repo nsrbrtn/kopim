@@ -9,6 +9,7 @@ import 'package:kopim/core/formatting/currency_symbols.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/core/widgets/animated_fab.dart';
+import 'package:kopim/core/widgets/collapsible_list/collapsible_list.dart';
 import 'package:kopim/core/widgets/kopim_glass_fab.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
@@ -407,28 +408,23 @@ class _FiltersPanel extends ConsumerWidget {
           .setCategory(selection);
     }
 
-    return Card(
-      margin: EdgeInsets.zero,
-      elevation: 0,
-      surfaceTintColor: Colors.transparent,
-      child: ExpansionTile(
-        tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-        leading: Icon(
-          Icons.filter_alt_outlined,
-          color: theme.colorScheme.primary,
-        ),
-        title: Text(
-          strings.allTransactionsFiltersTitle,
-          style: theme.textTheme.titleMedium,
-        ),
+    return KopimExpandableSectionPlayful(
+      title: strings.allTransactionsFiltersTitle,
+      leading: Icon(
+        Icons.filter_alt_outlined,
+        color: theme.colorScheme.primary,
+      ),
+      child: Column(
         children: <Widget>[
           ListTile(
+            contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.date_range_outlined),
             title: Text(strings.allTransactionsFiltersDate),
             subtitle: Text(dateSubtitle),
             onTap: selectDateRange,
           ),
           ListTile(
+            contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.account_balance_wallet_outlined),
             title: Text(strings.allTransactionsFiltersAccount),
             subtitle: Text(accountSubtitle),
@@ -436,6 +432,7 @@ class _FiltersPanel extends ConsumerWidget {
             onTap: accounts.isNotEmpty ? selectAccount : null,
           ),
           ListTile(
+            contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.category_outlined),
             title: Text(strings.allTransactionsFiltersCategory),
             subtitle: Text(categorySubtitle),

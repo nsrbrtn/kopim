@@ -34,6 +34,12 @@ const String _creditPaymentsCategoryKey = '_credit_payments';
 const String _creditPaymentAccountKeyPrefix = '_credit_payment_account:';
 const Object _clearCategorySelection = Object();
 const Object _customDateRangeSelection = Object();
+const Set<String> _localOnlyCategoryKeys = <String>{
+  _othersCategoryKey,
+  _uncategorizedCategoryKey,
+  _transfersCategoryKey,
+  _creditPaymentsCategoryKey,
+};
 
 class AnalyticsScreen extends ConsumerWidget {
   const AnalyticsScreen({super.key});
@@ -1144,6 +1150,7 @@ class _TopCategoriesTabContent extends StatelessWidget {
               selectedId: filterState.categoryId,
               strings: strings,
             ),
+            selectedCategoryId: filterState.categoryId,
             monthFilterLabel: _resolveDateChipLabel(
               state: filterState,
               strings: strings,
@@ -1564,6 +1571,7 @@ class _TopCategoriesPager extends StatefulWidget {
     required this.activeAnchor,
     required this.accountsFilterLabel,
     required this.categoryFilterLabel,
+    required this.selectedCategoryId,
     required this.monthFilterLabel,
     required this.isAccountsFilterActive,
     required this.isCategoryFilterActive,
@@ -1587,6 +1595,7 @@ class _TopCategoriesPager extends StatefulWidget {
   final DateTime activeAnchor;
   final String accountsFilterLabel;
   final String categoryFilterLabel;
+  final String? selectedCategoryId;
   final String monthFilterLabel;
   final bool isAccountsFilterActive;
   final bool isCategoryFilterActive;
@@ -1673,6 +1682,7 @@ class _TopCategoriesPagerState extends State<_TopCategoriesPager> {
                 totalIncome: widget.totalIncome,
                 accountsFilterLabel: widget.accountsFilterLabel,
                 categoryFilterLabel: widget.categoryFilterLabel,
+                selectedCategoryId: widget.selectedCategoryId,
                 monthFilterLabel: widget.monthFilterLabel,
                 isAccountsFilterActive: widget.isAccountsFilterActive,
                 isCategoryFilterActive: widget.isCategoryFilterActive,
@@ -1762,6 +1772,7 @@ class _TopCategoriesPage extends ConsumerStatefulWidget {
     required this.strings,
     required this.categoriesById,
     required this.accountsById,
+    required this.selectedCategoryId,
     required this.activeAnchor,
     required this.canGoNextRange,
     required this.canGoPreviousRange,
@@ -1784,6 +1795,7 @@ class _TopCategoriesPage extends ConsumerStatefulWidget {
   final AppLocalizations strings;
   final Map<String, Category> categoriesById;
   final Map<String, AccountEntity> accountsById;
+  final String? selectedCategoryId;
   final DateTime activeAnchor;
   final bool canGoNextRange;
   final bool canGoPreviousRange;
@@ -1802,8 +1814,6 @@ class _TopCategoriesPage extends ConsumerStatefulWidget {
   @override
   ConsumerState<_TopCategoriesPage> createState() => _TopCategoriesPageState();
 }
-
-enum _CategoriesChartMode { donut, bar }
 
 enum _OperationsBreakdownMode { expense, income }
 
@@ -1958,23 +1968,19 @@ class _TotalMetricText extends StatelessWidget {
 
 class _ChartBottomControls extends StatelessWidget {
   const _ChartBottomControls({
-    required this.mode,
     required this.breakdownMode,
     required this.strings,
     required this.canGoPreviousRange,
     required this.canGoNextRange,
-    required this.onModeChanged,
     required this.onBreakdownModeChanged,
     required this.onPreviousRange,
     required this.onNextRange,
   });
 
-  final _CategoriesChartMode mode;
   final _OperationsBreakdownMode breakdownMode;
   final AppLocalizations strings;
   final bool canGoPreviousRange;
   final bool canGoNextRange;
-  final ValueChanged<_CategoriesChartMode> onModeChanged;
   final ValueChanged<_OperationsBreakdownMode> onBreakdownModeChanged;
   final VoidCallback? onPreviousRange;
   final VoidCallback? onNextRange;
@@ -1989,11 +1995,6 @@ class _ChartBottomControls extends StatelessWidget {
           mode: breakdownMode,
           strings: strings,
           onModeChanged: onBreakdownModeChanged,
-        ),
-        _CategoriesChartModeToggle(
-          mode: mode,
-          strings: strings,
-          onModeChanged: onModeChanged,
         ),
       ],
     );
@@ -2103,7 +2104,6 @@ class _MonthArrowButton extends StatelessWidget {
 
 class _TopCategoriesPageState extends ConsumerState<_TopCategoriesPage> {
   String? _highlightKey;
-  _CategoriesChartMode _chartMode = _CategoriesChartMode.bar;
   _OperationsBreakdownMode _breakdownMode = _OperationsBreakdownMode.expense;
   bool _showTransfers = true;
 
@@ -2238,14 +2238,6 @@ class _TopCategoriesPageState extends ConsumerState<_TopCategoriesPage> {
       final ThemeData theme = Theme.of(context);
       final Color placeholderColor = theme.colorScheme.surfaceContainerHighest
           .withValues(alpha: 0.7);
-      final List<AnalyticsChartItem> placeholderItems = <AnalyticsChartItem>[
-        AnalyticsChartItem(
-          key: '_placeholder',
-          title: widget.strings.analyticsEmptyState,
-          amount: 1,
-          color: placeholderColor,
-        ),
-      ];
       content = Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2274,23 +2266,26 @@ class _TopCategoriesPageState extends ConsumerState<_TopCategoriesPage> {
             incomeTotal: incomeTotalForBadges,
           ),
           const SizedBox(height: 12),
-          const SizedBox(height: 20),
-          _EmptyMonthChart(items: placeholderItems, color: placeholderColor),
-          SizedBox(height: _chartMode == _CategoriesChartMode.bar ? 8 : 16),
+          Container(
+            height: 220,
+            decoration: BoxDecoration(
+              color: placeholderColor.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(24),
+            ),
+            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Text(
+              widget.strings.analyticsEmptyState,
+              style: Theme.of(context).textTheme.bodyMedium,
+              textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: 12),
           _ChartBottomControls(
-            mode: _chartMode,
             breakdownMode: _breakdownMode,
             strings: widget.strings,
             canGoPreviousRange: widget.canGoPreviousRange,
             canGoNextRange: widget.canGoNextRange,
-            onModeChanged: (_CategoriesChartMode mode) {
-              if (_chartMode == mode) {
-                return;
-              }
-              setState(() {
-                _chartMode = mode;
-              });
-            },
             onBreakdownModeChanged: (_OperationsBreakdownMode mode) {
               if (_breakdownMode == mode) {
                 return;
@@ -2319,12 +2314,15 @@ class _TopCategoriesPageState extends ConsumerState<_TopCategoriesPage> {
       final ThemeData theme = Theme.of(context);
       final Color backgroundColor = theme.colorScheme.surfaceContainerHighest
           .withValues(alpha: 0.32);
+      final String? persistentSelectionKey = widget.selectedCategoryId;
+      final String? effectiveSelectionKey =
+          persistentSelectionKey ?? _highlightKey;
 
       AnalyticsChartItem? focusedItem;
-      if (_highlightKey != null) {
+      if (effectiveSelectionKey != null) {
         final _FocusedItemResult? result = _findFocusedItem(
           chartItems,
-          _highlightKey!,
+          effectiveSelectionKey,
         );
         if (result != null) {
           focusedItem = result.item;
@@ -2340,9 +2338,9 @@ class _TopCategoriesPageState extends ConsumerState<_TopCategoriesPage> {
       final double displayTotal = display.total;
 
       int? selectedIndex;
-      if (_highlightKey != null) {
+      if (effectiveSelectionKey != null) {
         final int candidateIndex = displayItems.indexWhere(
-          (AnalyticsChartItem item) => item.key == _highlightKey,
+          (AnalyticsChartItem item) => item.key == effectiveSelectionKey,
         );
         if (candidateIndex >= 0) {
           selectedIndex = candidateIndex;
@@ -2362,9 +2360,9 @@ class _TopCategoriesPageState extends ConsumerState<_TopCategoriesPage> {
           _TopCategoriesHeaderFilters(
             strings: widget.strings,
             highlightedItem: focusedItem,
-            onClearHighlight: _highlightKey == null
+            onClearHighlight: effectiveSelectionKey == null
                 ? null
-                : () => setState(() => _highlightKey = null),
+                : () => _clearSelection(),
             accountLabel: widget.accountsFilterLabel,
             categoryLabel: widget.categoryFilterLabel,
             monthLabel: widget.monthFilterLabel,
@@ -2385,8 +2383,7 @@ class _TopCategoriesPageState extends ConsumerState<_TopCategoriesPage> {
             expenseTotal: expenseTotalForBadges,
             incomeTotal: incomeTotalForBadges,
           ),
-          const SizedBox(height: 12),
-          SizedBox(height: _chartMode == _CategoriesChartMode.donut ? 20 : 16),
+          const SizedBox(height: 16),
           LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
               final Size screenSize = MediaQuery.sizeOf(context);
@@ -2396,56 +2393,29 @@ class _TopCategoriesPageState extends ConsumerState<_TopCategoriesPage> {
                       constraints.maxWidth > 0
                   ? constraints.maxWidth
                   : screenSize.width;
-              final double baseExtent = availableWidth * 0.7;
-              final double donutExtent = baseExtent
-                  .clamp(220.0, 360.0)
-                  .toDouble();
               final double barExtent = (displayItems.length * 56.0 + 40.0)
                   .clamp(220.0, 640.0)
                   .toDouble();
-              final double chartExtent = _chartMode == _CategoriesChartMode.bar
-                  ? barExtent
-                  : donutExtent;
               final double targetWidth = availableWidth
                   .clamp(240.0, screenSize.width)
                   .toDouble();
 
-              final Widget chartWidget =
-                  _chartMode == _CategoriesChartMode.donut
-                  ? AnalyticsDonutChart(
-                      items: displayItems,
-                      backgroundColor: backgroundColor,
-                      totalAmount: displayTotal,
-                      selectedIndex: selectedIndex,
-                      animate: false,
-                      onSegmentSelected: (int index) {
-                        if (index >= 0 && index < displayItems.length) {
-                          setState(() {
-                            final String key = displayItems[index].key;
-                            _highlightKey = _highlightKey == key ? null : key;
-                          });
-                        }
-                      },
-                    )
-                  : AnalyticsBarChart(
-                      items: displayItems,
-                      backgroundColor: backgroundColor,
-                      totalAmount: displayTotal,
-                      amountFormatter: widget.currencyFormat.format,
-                      selectedIndex: selectedIndex,
-                      animate: false,
-                      onBarSelected: (int index) {
-                        if (index >= 0 && index < displayItems.length) {
-                          setState(() {
-                            final String key = displayItems[index].key;
-                            _highlightKey = _highlightKey == key ? null : key;
-                          });
-                        }
-                      },
-                    );
+              final Widget chartWidget = AnalyticsBarChart(
+                items: displayItems,
+                backgroundColor: backgroundColor,
+                totalAmount: displayTotal,
+                amountFormatter: widget.currencyFormat.format,
+                selectedIndex: selectedIndex,
+                animate: false,
+                onBarSelected: (int index) {
+                  if (index >= 0 && index < displayItems.length) {
+                    _handleToggle(displayItems[index]);
+                  }
+                },
+              );
 
               final Widget chart = RepaintBoundary(
-                child: SizedBox(height: chartExtent, child: chartWidget),
+                child: SizedBox(height: barExtent, child: chartWidget),
               );
 
               return Align(
@@ -2459,19 +2429,10 @@ class _TopCategoriesPageState extends ConsumerState<_TopCategoriesPage> {
           ),
           const SizedBox(height: 16),
           _ChartBottomControls(
-            mode: _chartMode,
             breakdownMode: _breakdownMode,
             strings: widget.strings,
             canGoPreviousRange: widget.canGoPreviousRange,
             canGoNextRange: widget.canGoNextRange,
-            onModeChanged: (_CategoriesChartMode mode) {
-              if (_chartMode == mode) {
-                return;
-              }
-              setState(() {
-                _chartMode = mode;
-              });
-            },
             onBreakdownModeChanged: (_OperationsBreakdownMode mode) {
               if (_breakdownMode == mode) {
                 return;
@@ -2491,7 +2452,7 @@ class _TopCategoriesPageState extends ConsumerState<_TopCategoriesPage> {
             items: displayItems,
             currencyFormat: widget.currencyFormat,
             total: displayTotal,
-            highlightedKey: _highlightKey,
+            highlightedKey: effectiveSelectionKey,
             onToggle: _handleToggle,
           ),
           AnimatedSize(
@@ -2531,8 +2492,36 @@ class _TopCategoriesPageState extends ConsumerState<_TopCategoriesPage> {
   }
 
   void _handleToggle(AnalyticsChartItem item) {
+    if (_isPersistentCategoryItem(item.key)) {
+      final AnalyticsFilterController notifier = ref.read(
+        analyticsFilterControllerProvider.notifier,
+      );
+      if (widget.selectedCategoryId == item.key) {
+        notifier.clearCategory();
+      } else {
+        notifier.updateCategory(item.key);
+      }
+      setState(() {
+        _highlightKey = null;
+      });
+      return;
+    }
     setState(() {
       _highlightKey = _highlightKey == item.key ? null : item.key;
+    });
+  }
+
+  void _clearSelection() {
+    final String? selectedCategoryId = widget.selectedCategoryId;
+    if (selectedCategoryId != null) {
+      ref.read(analyticsFilterControllerProvider.notifier).clearCategory();
+      setState(() {
+        _highlightKey = null;
+      });
+      return;
+    }
+    setState(() {
+      _highlightKey = null;
     });
   }
 
@@ -2668,6 +2657,19 @@ class _TopCategoriesPageState extends ConsumerState<_TopCategoriesPage> {
       total: focusedItem.absoluteAmount,
     );
   }
+}
+
+bool _isPersistentCategoryItem(String key) {
+  if (_localOnlyCategoryKeys.contains(key)) {
+    return false;
+  }
+  if (parseAnalyticsDirectCategoryParentId(key) != null) {
+    return false;
+  }
+  if (_parseCreditPaymentAccountId(key) != null) {
+    return false;
+  }
+  return true;
 }
 
 String? _parseCreditPaymentAccountId(String key) {
@@ -3107,52 +3109,6 @@ class _CreditPaymentsTransactionsSection extends StatelessWidget {
 
 enum _SelectionKind { category, transfers, creditPayments }
 
-class _EmptyMonthChart extends StatelessWidget {
-  const _EmptyMonthChart({required this.items, required this.color});
-
-  final List<AnalyticsChartItem> items;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (BuildContext context, BoxConstraints constraints) {
-        final Size screenSize = MediaQuery.sizeOf(context);
-        final double availableWidth =
-            constraints.hasBoundedWidth &&
-                constraints.maxWidth.isFinite &&
-                constraints.maxWidth > 0
-            ? constraints.maxWidth
-            : screenSize.width;
-        final double baseExtent = availableWidth * 0.7;
-        final double chartExtent = baseExtent.clamp(220.0, 360.0).toDouble();
-        final double targetWidth = availableWidth
-            .clamp(240.0, screenSize.width)
-            .toDouble();
-
-        return Align(
-          alignment: Alignment.center,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: targetWidth),
-            child: RepaintBoundary(
-              child: SizedBox(
-                height: chartExtent,
-                child: AnalyticsDonutChart(
-                  items: items,
-                  backgroundColor: color.withValues(alpha: 0.2),
-                  totalAmount: 1,
-                  selectedIndex: null,
-                  onSegmentSelected: null,
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
 class _TopCategoriesLegend extends StatelessWidget {
   const _TopCategoriesLegend({
     required this.items,
@@ -3360,48 +3316,6 @@ class _CategoryBreakdownList extends StatelessWidget {
             );
           })
           .toList(growable: false),
-    );
-  }
-}
-
-class _CategoriesChartModeToggle extends StatelessWidget {
-  const _CategoriesChartModeToggle({
-    required this.mode,
-    required this.strings,
-    required this.onModeChanged,
-  });
-
-  final _CategoriesChartMode mode;
-  final AppLocalizations strings;
-  final ValueChanged<_CategoriesChartMode> onModeChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final ColorScheme colors = theme.colorScheme;
-    return Container(
-      decoration: BoxDecoration(
-        color: colors.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      padding: const EdgeInsets.all(4),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          _ChartModeButton(
-            icon: Icons.donut_large,
-            tooltip: strings.analyticsChartTypeDonut,
-            selected: mode == _CategoriesChartMode.donut,
-            onTap: () => onModeChanged(_CategoriesChartMode.donut),
-          ),
-          _ChartModeButton(
-            icon: Icons.bar_chart_rounded,
-            tooltip: strings.analyticsChartTypeBar,
-            selected: mode == _CategoriesChartMode.bar,
-            onTap: () => onModeChanged(_CategoriesChartMode.bar),
-          ),
-        ],
-      ),
     );
   }
 }

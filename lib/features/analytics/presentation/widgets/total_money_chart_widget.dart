@@ -135,11 +135,9 @@ class _TotalMoneyChartWidgetState extends State<TotalMoneyChartWidget> {
                   ),
                 ),
               ),
-              const AnalyticsInfoButton(
-                title: 'Денег всего',
-                description:
-                    'График показывает динамику общей суммы денег по месяцам. '
-                    'Нажмите на точку, чтобы выбрать месяц для просмотра значения.',
+              AnalyticsInfoButton(
+                title: strings.analyticsTotalMoneyWidgetInfoTitle,
+                description: strings.analyticsTotalMoneyWidgetInfoBody,
               ),
             ],
           ),

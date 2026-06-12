@@ -65,6 +65,7 @@ class _MonthlyCashflowBarChartWidgetState
     final ThemeData theme = Theme.of(context);
     final ColorScheme colors = theme.colorScheme;
     final AppLocalizations strings = AppLocalizations.of(context)!;
+    final bool isDarkTheme = theme.brightness == Brightness.dark;
 
     final List<MonthlyCashflowData> effectiveData = widget.data.isEmpty
         ? _placeholderData()
@@ -128,11 +129,9 @@ class _MonthlyCashflowBarChartWidgetState
                   ),
                 ),
               ),
-              const AnalyticsInfoButton(
-                title: 'Остаток денег',
-                description:
-                    'График показывает траты, доходы и итоговый остаток по месяцам. '
-                    'Чипы сверху позволяют менять период и набор счетов.',
+              AnalyticsInfoButton(
+                title: strings.analyticsCashflowWidgetInfoTitle,
+                description: strings.analyticsCashflowWidgetInfoBody,
               ),
             ],
           ),
@@ -162,21 +161,21 @@ class _MonthlyCashflowBarChartWidgetState
                 value:
                     '${compact.format(displayData.expense)} ${widget.currencySymbol}',
                 background: colors.onErrorContainer,
-                foreground: colors.surface,
+                foreground: isDarkTheme ? colors.surface : Colors.white,
               ),
               _MetricChip(
                 label: strings.analyticsSummaryIncomeLabel,
                 value:
                     '${compact.format(displayData.income)} ${widget.currencySymbol}',
                 background: colors.onPrimaryContainer,
-                foreground: colors.onSurface,
+                foreground: isDarkTheme ? colors.onSurface : Colors.white,
               ),
               _MetricChip(
                 label: strings.analyticsSummaryNetLabel,
                 value:
                     '${compact.format(displayData.net)} ${widget.currencySymbol}',
                 background: colors.onTertiaryContainer,
-                foreground: colors.onSurface,
+                foreground: isDarkTheme ? colors.onSurface : Colors.white,
               ),
             ],
           ),

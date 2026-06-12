@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:kopim/core/config/theme_extensions.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
+import 'package:kopim/core/widgets/kopim_dropdown_field.dart';
+import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
-import 'package:kopim/features/accounts/domain/utils/account_type_utils.dart';
 import 'package:kopim/features/accounts/domain/use_cases/delete_account_use_case.dart';
+import 'package:kopim/features/accounts/domain/utils/account_type_utils.dart';
 import 'package:kopim/features/accounts/presentation/controllers/edit_account_form_controller.dart';
 import 'package:kopim/features/accounts/presentation/widgets/account_color_selector.dart';
 import 'package:kopim/features/accounts/presentation/widgets/account_icon_selector.dart';
@@ -59,32 +62,6 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
   late final TextEditingController _interestRateController;
   bool _isDeleting = false;
 
-  void _showHelpDialog(String title, String message) {
-    showDialog<void>(
-      context: context,
-      builder: (BuildContext context) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(MaterialLocalizations.of(context).okButtonLabel),
-          ),
-        ],
-      ),
-    );
-  }
-
-  PhosphorIconDescriptor? _resolveAccountIcon(String? name, String? style) {
-    if (name == null || name.isEmpty) {
-      return null;
-    }
-    return PhosphorIconDescriptor(
-      name: name,
-      style: PhosphorIconStyleX.fromName(style),
-    );
-  }
-
   @override
   void initState() {
     super.initState();
@@ -123,6 +100,32 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
     _paymentDueDaysController.dispose();
     _interestRateController.dispose();
     super.dispose();
+  }
+
+  PhosphorIconDescriptor? _resolveAccountIcon(String? name, String? style) {
+    if (name == null || name.isEmpty) {
+      return null;
+    }
+    return PhosphorIconDescriptor(
+      name: name,
+      style: PhosphorIconStyleX.fromName(style),
+    );
+  }
+
+  void _showHelpDialog(String title, String message) {
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(MaterialLocalizations.of(context).okButtonLabel),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -214,12 +217,12 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
     };
 
     final ThemeData theme = Theme.of(context);
-    final bool showTypeError =
-        state.typeError == EditAccountFieldError.emptyType;
-    final String? dropdownErrorText = showTypeError
+    final ColorScheme colorScheme = theme.colorScheme;
+    final KopimLayout layout = theme.kopimLayout;
+    final bool isCreditCard = state.resolvedType == 'credit_card';
+    final String? typeError = state.typeError == EditAccountFieldError.emptyType
         ? strings.editAccountTypeRequired
         : null;
-    final bool isCreditCard = state.resolvedType == 'credit_card';
 
     return Scaffold(
       appBar: AppBar(title: Text(strings.editAccountTitle)),
@@ -230,44 +233,45 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               if (state.isSaving) const LinearProgressIndicator(),
-              const SizedBox(height: 16),
-              TextFormField(
+              SizedBox(height: layout.spacing.section),
+              _EditTextField(
                 controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: strings.editAccountNameLabel,
-                  errorText: state.nameError == EditAccountFieldError.emptyName
-                      ? strings.editAccountNameRequired
-                      : null,
-                ),
-                enabled: !state.isSaving,
+                label: strings.editAccountNameLabel,
+                placeholder: strings.editAccountNameLabel,
+                isSaving: state.isSaving,
+                colorScheme: colorScheme,
+                layout: layout,
                 textInputAction: TextInputAction.next,
+                errorText: state.nameError == EditAccountFieldError.emptyName
+                    ? strings.editAccountNameRequired
+                    : null,
                 onChanged: controller.updateName,
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: layout.spacing.section),
               if (!isCreditCard) ...<Widget>[
-                TextFormField(
+                _EditTextField(
                   controller: _balanceController,
-                  decoration: InputDecoration(
-                    labelText: strings.editAccountBalanceLabel,
-                    errorText:
-                        state.balanceError ==
-                            EditAccountFieldError.invalidBalance
-                        ? strings.editAccountBalanceInvalid
-                        : null,
-                  ),
-                  enabled: !state.isSaving,
+                  label: strings.editAccountBalanceLabel,
+                  placeholder: strings.editAccountBalanceLabel,
+                  isSaving: state.isSaving,
+                  colorScheme: colorScheme,
+                  layout: layout,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
+                  errorText:
+                      state.balanceError == EditAccountFieldError.invalidBalance
+                      ? strings.editAccountBalanceInvalid
+                      : null,
                   onChanged: controller.updateBalance,
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: layout.spacing.section),
               ],
-              DropdownButtonFormField<String>(
-                initialValue: state.currency,
-                decoration: InputDecoration(
-                  labelText: strings.editAccountCurrencyLabel,
-                ),
+              _EditDropdownField<String>(
+                label: strings.editAccountCurrencyLabel,
+                value: state.currency,
+                isSaving: state.isSaving,
+                colorScheme: colorScheme,
                 items: currencyOptions
                     .map(
                       (String code) => DropdownMenuItem<String>(
@@ -276,22 +280,20 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
                       ),
                     )
                     .toList(),
-                onChanged: state.isSaving
-                    ? null
-                    : (String? value) {
-                        if (value != null) {
-                          controller.updateCurrency(value);
-                        }
-                      },
+                valueLabelBuilder: (String? value) => value ?? '',
+                onChanged: (String? value) {
+                  if (value != null) {
+                    controller.updateCurrency(value);
+                  }
+                },
               ),
-              const SizedBox(height: 24),
-              DropdownButtonFormField<String>(
+              SizedBox(height: layout.spacing.sectionLarge),
+              _EditDropdownField<String>(
                 key: ValueKey<String>('edit-type-${state.type}'),
-                initialValue: state.type.isEmpty ? null : state.type,
-                decoration: InputDecoration(
-                  labelText: strings.editAccountTypeLabel,
-                  errorText: dropdownErrorText,
-                ),
+                label: strings.editAccountTypeLabel,
+                value: state.type.isEmpty ? null : state.type,
+                isSaving: state.isSaving,
+                colorScheme: colorScheme,
                 items: <DropdownMenuItem<String>>[
                   ...accountTypeLabels.entries.map(
                     (MapEntry<String, String> entry) =>
@@ -301,96 +303,107 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
                         ),
                   ),
                 ],
-                onChanged: state.isSaving
-                    ? null
-                    : (String? value) {
-                        if (value == null) {
-                          return;
-                        }
-                        controller.updateType(value);
-                      },
+                errorText: typeError,
+                valueLabelBuilder: (String? value) {
+                  if (value == null) {
+                    return '';
+                  }
+                  return accountTypeLabels[value] ?? value;
+                },
+                onChanged: (String? value) {
+                  if (value != null) {
+                    controller.updateType(value);
+                  }
+                },
               ),
               if (isCreditCard) ...<Widget>[
-                const SizedBox(height: 16),
-                TextFormField(
+                SizedBox(height: layout.spacing.section),
+                _EditTextField(
                   controller: _creditLimitController,
-                  decoration: InputDecoration(
-                    labelText: strings.addAccountCreditCardLimitLabel,
-                    errorText: state.creditLimitError != null
-                        ? strings.addAccountCreditCardLimitError
-                        : null,
-                  ),
-                  enabled: !state.isSaving,
+                  label: strings.addAccountCreditCardLimitLabel,
+                  placeholder: strings.addAccountCreditCardLimitPlaceholder,
+                  isSaving: state.isSaving,
+                  colorScheme: colorScheme,
+                  layout: layout,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
+                  errorText: state.creditLimitError != null
+                      ? strings.addAccountCreditCardLimitError
+                      : null,
                   onChanged: controller.updateCreditLimit,
                 ),
-                const SizedBox(height: 16),
-                TextFormField(
+                SizedBox(height: layout.spacing.section),
+                _EditTextField(
                   controller: _statementDayController,
-                  decoration: InputDecoration(
-                    labelText: strings.addAccountCreditCardStatementDayLabel,
-                    errorText: state.statementDayError != null
-                        ? strings.addAccountCreditCardStatementDayError
-                        : null,
-                    suffixIcon: IconButton(
-                      onPressed: () => _showHelpDialog(
-                        strings.addAccountCreditCardStatementDayLabel,
-                        strings.addAccountCreditCardStatementDayHelp,
-                      ),
-                      icon: const Icon(Icons.question_mark, size: 18),
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  enabled: !state.isSaving,
+                  label: strings.addAccountCreditCardStatementDayLabel,
+                  placeholder:
+                      strings.addAccountCreditCardStatementDayPlaceholder,
+                  isSaving: state.isSaving,
+                  colorScheme: colorScheme,
+                  layout: layout,
                   keyboardType: TextInputType.number,
+                  errorText: state.statementDayError != null
+                      ? strings.addAccountCreditCardStatementDayError
+                      : null,
+                  suffixIcon: IconButton(
+                    onPressed: () => _showHelpDialog(
+                      strings.addAccountCreditCardStatementDayLabel,
+                      strings.addAccountCreditCardStatementDayHelp,
+                    ),
+                    icon: const Icon(Icons.question_mark, size: 18),
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                   onChanged: controller.updateStatementDay,
                 ),
-                const SizedBox(height: 16),
-                TextFormField(
+                SizedBox(height: layout.spacing.section),
+                _EditTextField(
                   controller: _paymentDueDaysController,
-                  decoration: InputDecoration(
-                    labelText: strings.addAccountCreditCardPaymentDueDaysLabel,
-                    errorText: state.paymentDueDaysError != null
-                        ? strings.addAccountCreditCardPaymentDueDaysError
-                        : null,
-                    suffixIcon: IconButton(
-                      onPressed: () => _showHelpDialog(
-                        strings.addAccountCreditCardPaymentDueDaysLabel,
-                        strings.addAccountCreditCardPaymentDueDaysHelp,
-                      ),
-                      icon: const Icon(Icons.question_mark, size: 18),
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  enabled: !state.isSaving,
+                  label: strings.addAccountCreditCardPaymentDueDaysLabel,
+                  placeholder:
+                      strings.addAccountCreditCardPaymentDueDaysPlaceholder,
+                  isSaving: state.isSaving,
+                  colorScheme: colorScheme,
+                  layout: layout,
                   keyboardType: TextInputType.number,
+                  errorText: state.paymentDueDaysError != null
+                      ? strings.addAccountCreditCardPaymentDueDaysError
+                      : null,
+                  suffixIcon: IconButton(
+                    onPressed: () => _showHelpDialog(
+                      strings.addAccountCreditCardPaymentDueDaysLabel,
+                      strings.addAccountCreditCardPaymentDueDaysHelp,
+                    ),
+                    icon: const Icon(Icons.question_mark, size: 18),
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                   onChanged: controller.updatePaymentDueDays,
                 ),
-                const SizedBox(height: 16),
-                TextFormField(
+                SizedBox(height: layout.spacing.section),
+                _EditTextField(
                   controller: _interestRateController,
-                  decoration: InputDecoration(
-                    labelText: strings.addAccountCreditCardInterestRateLabel,
-                    errorText: state.interestRateError != null
-                        ? strings.addAccountCreditCardInterestRateError
-                        : null,
-                  ),
-                  enabled: !state.isSaving,
+                  label: strings.addAccountCreditCardInterestRateLabel,
+                  placeholder:
+                      strings.addAccountCreditCardInterestRatePlaceholder,
+                  isSaving: state.isSaving,
+                  colorScheme: colorScheme,
+                  layout: layout,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
+                  errorText: state.interestRateError != null
+                      ? strings.addAccountCreditCardInterestRateError
+                      : null,
                   onChanged: controller.updateInterestRate,
                 ),
               ],
-              const SizedBox(height: 16),
+              SizedBox(height: layout.spacing.section),
               AccountIconSelector(
                 icon: selectedIcon,
                 enabled: !state.isSaving,
                 onIconChanged: controller.updateIcon,
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: layout.spacing.section),
               AccountColorSelector(
                 color: state.color,
                 gradientId: state.gradientId,
@@ -402,15 +415,15 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
                 },
               ),
               if (state.useCustomType) ...<Widget>[
-                const SizedBox(height: 16),
+                SizedBox(height: layout.spacing.section),
                 Text(
                   state.customType,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
-              const SizedBox(height: 16),
+              SizedBox(height: layout.spacing.section),
               SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
                 value: state.isPrimary,
@@ -419,22 +432,22 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
                 subtitle: Text(strings.accountPrimaryToggleSubtitle),
               ),
               if (state.errorMessage != null) ...<Widget>[
-                const SizedBox(height: 16),
+                SizedBox(height: layout.spacing.section),
                 Text(
                   strings.editAccountGenericError,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.error,
+                    color: colorScheme.error,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: layout.spacing.between),
                 Text(
                   state.errorMessage!,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.error,
+                    color: colorScheme.error,
                   ),
                 ),
               ],
-              const SizedBox(height: 24),
+              SizedBox(height: layout.spacing.sectionLarge),
               ElevatedButton(
                 onPressed: state.isSaving
                     ? null
@@ -450,7 +463,7 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
                       )
                     : Text(strings.editAccountSaveCta),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: layout.spacing.section),
               TextButton.icon(
                 onPressed: state.isSaving || _isDeleting
                     ? null
@@ -524,5 +537,126 @@ class _EditAccountScreenState extends ConsumerState<EditAccountScreen> {
           ),
         );
     }
+  }
+}
+
+class _EditTextField extends StatelessWidget {
+  const _EditTextField({
+    required this.controller,
+    required this.label,
+    required this.placeholder,
+    required this.isSaving,
+    required this.colorScheme,
+    required this.layout,
+    required this.onChanged,
+    this.errorText,
+    this.keyboardType,
+    this.textInputAction,
+    this.suffixIcon,
+  });
+
+  final TextEditingController controller;
+  final String label;
+  final String placeholder;
+  final bool isSaving;
+  final ColorScheme colorScheme;
+  final KopimLayout layout;
+  final ValueChanged<String> onChanged;
+  final String? errorText;
+  final TextInputType? keyboardType;
+  final TextInputAction? textInputAction;
+  final Widget? suffixIcon;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          label,
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: colorScheme.onSurface,
+          ),
+        ),
+        SizedBox(height: layout.spacing.between),
+        KopimTextField(
+          controller: controller,
+          placeholder: placeholder,
+          enabled: !isSaving,
+          keyboardType: keyboardType,
+          textInputAction: textInputAction,
+          onChanged: onChanged,
+          suffixIcon: suffixIcon,
+          fillColor: colorScheme.surfaceContainerHigh,
+          placeholderColor: colorScheme.onSurfaceVariant,
+          hasError: errorText != null,
+        ),
+        if (errorText != null)
+          Padding(
+            padding: EdgeInsets.only(top: layout.spacing.between),
+            child: Text(
+              errorText!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.error,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _EditDropdownField<T> extends StatelessWidget {
+  const _EditDropdownField({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.items,
+    required this.isSaving,
+    required this.colorScheme,
+    required this.onChanged,
+    this.errorText,
+    this.valueLabelBuilder,
+  });
+
+  final String label;
+  final T? value;
+  final List<DropdownMenuItem<T>> items;
+  final bool isSaving;
+  final ColorScheme colorScheme;
+  final ValueChanged<T?> onChanged;
+  final String? errorText;
+  final String Function(T?)? valueLabelBuilder;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final KopimLayout layout = theme.kopimLayout;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        KopimDropdownField<T>(
+          key: key,
+          label: label,
+          value: value,
+          items: items,
+          enabled: !isSaving,
+          onChanged: isSaving ? null : (T value) => onChanged(value),
+          valueLabelBuilder: valueLabelBuilder,
+          fillColor: colorScheme.surfaceContainerHigh,
+        ),
+        if (errorText != null)
+          Padding(
+            padding: EdgeInsets.only(top: layout.spacing.between),
+            child: Text(
+              errorText!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.error,
+              ),
+            ),
+          ),
+      ],
+    );
   }
 }
