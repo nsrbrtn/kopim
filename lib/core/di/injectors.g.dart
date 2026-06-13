@@ -560,6 +560,48 @@ final class OutboxDaoProvider
 
 String _$outboxDaoHash() => r'c134f94b8f94f536107cb7b8dd8fc6a853733b6a';
 
+@ProviderFor(syncConflictDao)
+final syncConflictDaoProvider = SyncConflictDaoProvider._();
+
+final class SyncConflictDaoProvider
+    extends
+        $FunctionalProvider<SyncConflictDao, SyncConflictDao, SyncConflictDao>
+    with $Provider<SyncConflictDao> {
+  SyncConflictDaoProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'syncConflictDaoProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$syncConflictDaoHash();
+
+  @$internal
+  @override
+  $ProviderElement<SyncConflictDao> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  SyncConflictDao create(Ref ref) {
+    return syncConflictDao(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SyncConflictDao value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SyncConflictDao>(value),
+    );
+  }
+}
+
+String _$syncConflictDaoHash() => r'75174c2eda041cb8e935e3f817ffd1832f945b22';
+
 @ProviderFor(accountDao)
 final accountDaoProvider = AccountDaoProvider._();
 
@@ -3421,7 +3463,7 @@ final class DeleteCreditUseCaseProvider
 }
 
 String _$deleteCreditUseCaseHash() =>
-    r'23ca6824b1916f02ccef784b16e2dae99b74d8f4';
+    r'bdd55d8e06a37b0631d3589c2c4555a006627f3a';
 
 @ProviderFor(makeCreditPaymentUseCase)
 final makeCreditPaymentUseCaseProvider = MakeCreditPaymentUseCaseProvider._();

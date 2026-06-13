@@ -347,7 +347,7 @@ void main() {
             transactions: <TransactionEntity>[
               validTransaction.copyWith(
                 transferAccountId: null,
-                categoryId: null,
+                categoryId: 'missing-category',
               ),
             ],
           ),
@@ -365,7 +365,7 @@ void main() {
             transactions: <TransactionEntity>[
               validTransaction.copyWith(
                 transferAccountId: null,
-                categoryId: null,
+                categoryId: 'missing-category',
               ),
             ],
           ),

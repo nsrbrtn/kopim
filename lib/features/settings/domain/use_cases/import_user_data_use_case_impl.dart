@@ -95,9 +95,6 @@ class ImportUserDataUseCaseImpl implements ImportUserDataUseCase {
     final Set<String> importedAccountIds = bundle.accounts
         .map((AccountEntity account) => account.id)
         .toSet();
-    final Set<String> importedCategoryIds = bundle.categories
-        .map((Category category) => category.id)
-        .toSet();
     final Set<String> importedSavingGoalIds = bundle.savingGoals
         .map((SavingGoal goal) => goal.id)
         .toSet();
@@ -113,11 +110,7 @@ class ImportUserDataUseCaseImpl implements ImportUserDataUseCase {
                   importedAccountIds.contains(transaction.transferAccountId)
               ? transaction.transferAccountId
               : null;
-          final String? categoryId =
-              transaction.categoryId != null &&
-                  importedCategoryIds.contains(transaction.categoryId)
-              ? transaction.categoryId
-              : null;
+          final String? categoryId = transaction.categoryId;
           final String? savingGoalId =
               transaction.savingGoalId != null &&
                   importedSavingGoalIds.contains(transaction.savingGoalId)

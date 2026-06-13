@@ -16,6 +16,7 @@ import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/data/database.dart';
 import 'package:kopim/core/data/database/database_factory.dart';
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
+import 'package:kopim/core/data/sync/sync_conflict_dao.dart';
 import 'package:kopim/core/config/app_config.dart';
 import 'package:kopim/core/config/firebase_environment.dart';
 import 'package:kopim/core/utils/web_platform_utils.dart';
@@ -380,6 +381,10 @@ AppDatabase appDatabase(Ref ref) {
 
 @riverpod
 OutboxDao outboxDao(Ref ref) => OutboxDao(ref.watch(appDatabaseProvider));
+
+@riverpod
+SyncConflictDao syncConflictDao(Ref ref) =>
+    SyncConflictDao(ref.watch(appDatabaseProvider));
 
 @riverpod
 AccountDao accountDao(Ref ref) => AccountDao(ref.watch(appDatabaseProvider));

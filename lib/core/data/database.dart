@@ -445,6 +445,24 @@ class CreditCards extends Table {
   Set<Column<Object>> get primaryKey => <Column<Object>>{id};
 }
 
+@DataClassName('SyncConflictRow')
+class SyncConflicts extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get conflictKey => text().unique()();
+  TextColumn get entityType => text()();
+  TextColumn get entityId => text()();
+  TextColumn get conflictType => text()();
+  TextColumn get severity => text()();
+  TextColumn get status => text()();
+  TextColumn get localPayloadJson => text().nullable()();
+  TextColumn get remotePayloadJson => text().nullable()();
+  TextColumn get metadataJson => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get resolvedAt => dateTime().nullable()();
+  TextColumn get resolution => text().nullable()();
+}
+
 @DriftDatabase(
   tables: <Type>[
     Accounts,
@@ -466,6 +484,7 @@ class CreditCards extends Table {
     CreditCards,
     CreditPaymentSchedules,
     CreditPaymentGroups,
+    SyncConflicts,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -474,7 +493,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 46;
+  int get schemaVersion => 47;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -1486,6 +1505,9 @@ LEFT JOIN accounts acc ON up.account_id = acc.id
         if (!await _columnExists('categories', 'is_hidden')) {
           await m.addColumn(categories, categories.isHidden);
         }
+      }
+      if (from < 47) {
+        await m.createTable(syncConflicts);
       }
     },
     beforeOpen: (OpeningDetails details) async {

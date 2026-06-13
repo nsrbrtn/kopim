@@ -63,7 +63,9 @@ class ExportBundleIntegrityService {
     final Map<String, int> entityCounts = <String, int>{
       'accounts': source.accounts.length,
       'transactions': source.transactions.length,
-      'categories': source.categories.length,
+      'categories': source.categories
+          .where((Category c) => !c.isMissingReferencePlaceholder)
+          .length,
       'tags': source.tags.length,
       'transactionTags': source.transactionTags.length,
       'savingGoals': source.savingGoals.length,
@@ -166,6 +168,7 @@ class ExportBundleIntegrityService {
           .map(_mapTransaction)
           .toList(growable: false),
       'categories': bundle.categories
+          .where((Category category) => !category.isMissingReferencePlaceholder)
           .map((Category category) => category.toJson())
           .toList(growable: false),
       'tags': bundle.tags

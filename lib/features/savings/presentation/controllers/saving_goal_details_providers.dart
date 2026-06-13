@@ -53,7 +53,9 @@ Stream<List<TransactionEntity>> savingGoalTransactions(Ref ref, String goalId) {
   return ref.watch(transactionRepositoryProvider).watchTransactions().map((
     List<TransactionEntity> transactions,
   ) {
-    return transactions.where((TransactionEntity t) => t.savingGoalId == goalId).toList();
+    return transactions
+        .where((TransactionEntity t) => t.savingGoalId == goalId)
+        .toList();
   });
 }
 
@@ -146,6 +148,8 @@ Stream<List<AccountEntity>> savingGoalAccounts(Ref ref, String goalId) {
   return ref.watch(watchAccountsUseCaseProvider).call().map((
     List<AccountEntity> accounts,
   ) {
-    return accounts.where((AccountEntity account) => storageIds.contains(account.id)).toList();
+    return accounts
+        .where((AccountEntity account) => storageIds.contains(account.id))
+        .toList();
   });
 }

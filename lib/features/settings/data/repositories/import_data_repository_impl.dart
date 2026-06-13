@@ -1,4 +1,5 @@
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
+import 'package:kopim/core/data/sync/sync_conflict_dao.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/core/money/currency_scale.dart';
@@ -192,6 +193,44 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
     final Set<String> importedCreditPaymentGroupIds = creditPaymentGroups
         .map((CreditPaymentGroupEntity group) => group.id)
         .toSet();
+    final List<Category> localCategories = await _categoryDao
+        .getAllCategories();
+    final Set<String> existingCategoryIds = <String>{
+      ...categories.map((Category c) => c.id),
+      ...localCategories.map((Category c) => c.id),
+    };
+    final Set<String> usedCategoryIds = transactions
+        .map((TransactionEntity tx) => tx.categoryId)
+        .whereType<String>()
+        .toSet();
+
+    final List<Category> placeholdersToInsert = <Category>[];
+    final List<String> missingCategoryIds = <String>[];
+
+    for (final String catId in usedCategoryIds) {
+      if (!existingCategoryIds.contains(catId)) {
+        missingCategoryIds.add(catId);
+        placeholdersToInsert.add(
+          Category(
+            id: catId,
+            name: 'Категория недоступна ($catId)',
+            type: 'expense',
+            isSystem: true,
+            isDeleted: true,
+            isHidden: true,
+            isFavorite: false,
+            createdAt: DateTime.fromMillisecondsSinceEpoch(0),
+            updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
+          ),
+        );
+      }
+    }
+
+    final List<Category> finalCategories = <Category>[
+      ...categories,
+      ...placeholdersToInsert,
+    ];
+
     _logger?.logInfo(
       'ImportDataRepository: start restore '
       'accounts=${accounts.length}, '
@@ -203,8 +242,32 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
         _integrityService.verify(bundle);
       }
       await _database.transaction(() async {
+        final SyncConflictDao conflictDao = SyncConflictDao(_database);
+        for (final String catId in missingCategoryIds) {
+          final String conflictKey = 'missing_category_$catId';
+          await conflictDao.upsertConflict(
+            conflictKey: conflictKey,
+            entityType: 'category',
+            entityId: catId,
+            conflictType: 'missingOptionalReference',
+            severity: 'warning',
+            status: 'pending',
+            metadataJson:
+                '{"missingEntityType":"category","missingEntityId":"$catId"}',
+          );
+        }
+
+        final List<String> importedCategoryIds = categories
+            .where((Category c) => !c.isMissingReferencePlaceholder)
+            .map((Category c) => c.id)
+            .toList();
+        await conflictDao.resolvePendingMissingReferences(
+          'category',
+          importedCategoryIds,
+        );
+
         await _accountDao.upsertAll(accounts);
-        await _categoryDao.upsertAll(categories);
+        await _categoryDao.upsertAll(finalCategories);
         await _tagDao.upsertAll(tags);
         await _creditDao.upsertAll(credits);
         await _creditCardDao.upsertAll(creditCards);
@@ -239,7 +302,7 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
         final List<AccountEntity> persistedAccounts =
             await _loadImportedAccounts(accounts);
         await _enqueueAccounts(persistedAccounts);
-        await _enqueueCategories(categories);
+        await _enqueueCategories(finalCategories);
         await _enqueueTags(tags);
         await _enqueueCredits(credits);
         await _enqueueCreditCards(creditCards);
@@ -500,6 +563,9 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
 
   Future<void> _enqueueCategories(List<Category> categories) async {
     for (final Category category in categories) {
+      if (category.isMissingReferencePlaceholder) {
+        continue;
+      }
       await _outboxDao.enqueue(
         entityType: _categoryEntityType,
         entityId: category.id,

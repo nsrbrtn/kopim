@@ -25,4 +25,7 @@ abstract class Category with _$Category {
 
   factory Category.fromJson(Map<String, Object?> json) =>
       _$CategoryFromJson(json);
+
+  bool get isMissingReferencePlaceholder =>
+      isSystem && isDeleted && name.startsWith('Категория недоступна');
 }

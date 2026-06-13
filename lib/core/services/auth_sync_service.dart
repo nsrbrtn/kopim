@@ -9,6 +9,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kopim/core/data/database.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
+import 'package:kopim/core/data/sync/sync_conflict_dao.dart';
 import 'package:kopim/core/data/outbox/outbox_payload_normalizer.dart';
 import 'package:kopim/core/money/currency_scale.dart';
 import 'package:kopim/core/money/money.dart';
@@ -1351,6 +1352,41 @@ class AuthSyncService {
                 DateTime.fromMillisecondsSinceEpoch(reminder.updatedAtMs),
           );
 
+      final Set<String> usedCategoryIds = normalizedTransactions
+          .map((TransactionEntity tx) => tx.categoryId)
+          .whereType<String>()
+          .toSet();
+      final Set<String> existingCategoryIds = normalizedCategories
+          .map((Category c) => c.id)
+          .toSet();
+
+      final List<Category> placeholdersToInsert = <Category>[];
+      final List<String> missingCategoryIds = <String>[];
+
+      for (final String catId in usedCategoryIds) {
+        if (!existingCategoryIds.contains(catId)) {
+          missingCategoryIds.add(catId);
+          placeholdersToInsert.add(
+            Category(
+              id: catId,
+              name: 'Категория недоступна ($catId)',
+              type: 'expense',
+              isSystem: true,
+              isDeleted: true,
+              isHidden: true,
+              isFavorite: false,
+              createdAt: DateTime.fromMillisecondsSinceEpoch(0),
+              updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
+            ),
+          );
+        }
+      }
+
+      final List<Category> finalCategories = <Category>[
+        ...normalizedCategories,
+        ...placeholdersToInsert,
+      ];
+
       final Profile? mergedProfile = _mergeProfile(
         await _profileDao.getProfile(userId),
         remoteSnapshot.profile,
@@ -1359,15 +1395,39 @@ class AuthSyncService {
       // --- Tiered Insertion Strategy ---
 
       await _database.transaction(() async {
+        final SyncConflictDao conflictDao = SyncConflictDao(_database);
+        for (final String catId in missingCategoryIds) {
+          final String conflictKey = 'missing_category_$catId';
+          await conflictDao.upsertConflict(
+            conflictKey: conflictKey,
+            entityType: 'category',
+            entityId: catId,
+            conflictType: 'missingOptionalReference',
+            severity: 'warning',
+            status: 'pending',
+            metadataJson:
+                '{"missingEntityType":"category","missingEntityId":"$catId"}',
+          );
+        }
+
+        final List<String> restoredCategoryIds = remoteSnapshot.categories
+            .where((Category c) => !c.isMissingReferencePlaceholder)
+            .map((Category c) => c.id)
+            .toList();
+        await conflictDao.resolvePendingMissingReferences(
+          'category',
+          restoredCategoryIds,
+        );
+
         // Tier 1: Base Entities (Accounts, Categories, Tags)
         await _accountDao.upsertAll(mergedAccounts);
-        await _categoryDao.upsertAll(normalizedCategories);
+        await _categoryDao.upsertAll(finalCategories);
         await _tagDao.upsertAll(mergedTags);
 
         final Set<String> validAccountIds = mergedAccounts
             .map((AccountEntity e) => e.id)
             .toSet();
-        final Set<String> validCategoryIds = normalizedCategories
+        final Set<String> validCategoryIds = finalCategories
             .map((Category e) => e.id)
             .toSet();
         final Set<String> validTagIds = mergedTags
@@ -1861,14 +1921,19 @@ class AuthSyncService {
 
     final Map<String, List<Category>> groupedByName =
         <String, List<Category>>{};
-    for (final Category category in categories) {
-      final String key = category.name.trim().toLowerCase();
-      groupedByName.putIfAbsent(key, () => <Category>[]).add(category);
-    }
-
     final Map<String, String> idMapping = <String, String>{};
     final List<Category> sanitized = <Category>[];
     final Set<String> deduplicatedNames = <String>{};
+
+    for (final Category category in categories) {
+      if (category.isMissingReferencePlaceholder) {
+        sanitized.add(category);
+        idMapping[category.id] = category.id;
+        continue;
+      }
+      final String key = category.name.trim().toLowerCase();
+      groupedByName.putIfAbsent(key, () => <Category>[]).add(category);
+    }
 
     for (final List<Category> group in groupedByName.values) {
       if (group.isEmpty) {
@@ -1993,8 +2058,8 @@ class AuthSyncService {
 
       final String? canonicalId = categoryIdMapping[categoryId];
       if (canonicalId == null) {
-        cleared[categoryId] = (cleared[categoryId] ?? 0) + 1;
-        normalized.add(transaction.copyWith(categoryId: null));
+        // Сохраняем оригинальный categoryId, отсутствующие ссылки обработаем позже
+        normalized.add(transaction);
         continue;
       }
 

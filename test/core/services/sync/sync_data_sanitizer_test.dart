@@ -55,7 +55,7 @@ void main() {
       verify(() => logger.logInfo(any())).called(1);
     });
 
-    test('Should clear category if missing', () {
+    test('Should keep category even if missing', () {
       final TransactionEntity tx = _createTx(
         id: '1',
         accountId: 'acc1',
@@ -70,8 +70,8 @@ void main() {
       );
 
       expect(result.length, 1);
-      expect(result.first.categoryId, isNull);
-      verify(() => logger.logInfo(any())).called(1);
+      expect(result.first.categoryId, 'cat1');
+      verifyNever(() => logger.logInfo(any()));
     });
 
     test('Should clear saving goal if missing', () {
@@ -94,7 +94,7 @@ void main() {
     });
 
     test(
-      'Should clear transfer account and group if references are missing',
+      'Should clear transfer account but not group if references are missing on active transaction',
       () {
         final TransactionEntity tx = _createTx(
           id: '1',
@@ -112,6 +112,28 @@ void main() {
 
         expect(result.length, 1);
         expect(result.first.transferAccountId, isNull);
+        expect(result.first.groupId, 'group1');
+        verify(() => logger.logInfo(any())).called(1);
+      },
+    );
+
+    test(
+      'Should clear group if references are missing on deleted transaction',
+      () {
+        final TransactionEntity tx = _createTx(
+          id: '1',
+          accountId: 'acc1',
+          groupId: 'group1',
+        ).copyWith(isDeleted: true);
+        final List<TransactionEntity> result = sanitizer.sanitizeTransactions(
+          transactions: <TransactionEntity>[tx],
+          validAccountIds: <String>{'acc1'},
+          validCategoryIds: <String>{},
+          validSavingGoalIds: <String>{},
+          validPaymentGroupIds: <String>{},
+        );
+
+        expect(result.length, 1);
         expect(result.first.groupId, isNull);
         verify(() => logger.logInfo(any())).called(1);
       },

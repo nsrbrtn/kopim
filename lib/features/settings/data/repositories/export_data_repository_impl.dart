@@ -105,8 +105,9 @@ class ExportDataRepositoryImpl implements ExportDataRepository {
   }
 
   @override
-  Future<List<Category>> fetchCategories() {
-    return _categoryDao.getAllCategories();
+  Future<List<Category>> fetchCategories() async {
+    final List<Category> all = await _categoryDao.getAllCategories();
+    return all.where((Category c) => !c.isMissingReferencePlaceholder).toList();
   }
 
   @override

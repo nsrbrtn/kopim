@@ -34,17 +34,15 @@ class SyncDataSanitizer {
         continue;
       }
 
-      String? categoryId = tx.categoryId;
+      final String? categoryId = tx.categoryId;
       String? transferAccountId = tx.transferAccountId;
       String? savingGoalId = tx.savingGoalId;
       String? groupId = tx.groupId;
       bool changed = false;
 
       // 2. Check optional Category dependency (Tier 1)
-      if (categoryId != null && !validCategoryIds.contains(categoryId)) {
-        categoryId = null;
-        changed = true;
-      }
+      // Внимание (TASK-001B): Не зануляем categoryId для транзакций,
+      // чтобы избежать потери данных. Целостность проверяется через sync_conflicts.
 
       // 3. Check optional transfer Account dependency (Tier 1)
       if (transferAccountId != null &&
