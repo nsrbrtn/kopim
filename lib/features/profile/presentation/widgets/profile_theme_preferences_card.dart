@@ -20,9 +20,6 @@ class ProfileThemePreferencesCard extends ConsumerWidget {
     final ThemeData theme = Theme.of(context);
     final bool isDark = mode.maybeWhen(dark: () => true, orElse: () => false);
     final Color iconColor = theme.colorScheme.onSurfaceVariant;
-    final String subtitle = isDark
-        ? strings.profileThemeDarkDescription
-        : strings.profileThemeLightDescription;
 
     void handleToggle(bool value) {
       final AppThemeMode target = value
@@ -35,26 +32,14 @@ class ProfileThemePreferencesCard extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             Icon(Icons.dark_mode_outlined, color: iconColor),
             const SizedBox(width: 12),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    strings.profileThemeHeader,
-                    style: theme.textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ],
+              child: Text(
+                strings.profileDarkModeLabel,
+                style: theme.textTheme.titleMedium,
               ),
             ),
             Switch.adaptive(value: isDark, onChanged: handleToggle),

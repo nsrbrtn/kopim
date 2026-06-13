@@ -196,6 +196,45 @@ void main() {
   });
 
   test(
+    'upsert does not reactivate deleted account via outbox balance update',
+    () async {
+      await seedAccount(id: 'acc-deleted', balance: 100);
+      await accountDao.markDeleted('acc-deleted', now);
+
+      final TransactionEntity transaction = TransactionEntity(
+        id: 'tx-deleted-account',
+        accountId: 'acc-deleted',
+        amountMinor: BigInt.from(4000),
+        amountScale: 2,
+        date: now,
+        type: TransactionType.expense.storageValue,
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      await repository.upsert(transaction);
+
+      final db.AccountRow? updated = await accountDao.findById('acc-deleted');
+      expect(updated, isNotNull);
+      expect(updated!.isDeleted, isTrue);
+      expect(updated.balance, closeTo(100, 1e-9));
+
+      final List<db.OutboxEntryRow> entries = await outboxDao.fetchPending();
+      expect(
+        entries.where((db.OutboxEntryRow row) => row.entityType == 'account'),
+        isEmpty,
+      );
+      expect(
+        entries.where(
+          (db.OutboxEntryRow row) =>
+              row.entityType == 'transaction' && row.entityId == transaction.id,
+        ),
+        isNotEmpty,
+      );
+    },
+  );
+
+  test(
     'softDelete still marks transaction deleted when source account is missing',
     () async {
       final TransactionEntity brokenImportedTransaction = TransactionEntity(

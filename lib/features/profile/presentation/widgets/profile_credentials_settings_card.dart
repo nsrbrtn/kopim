@@ -7,14 +7,36 @@ import 'package:kopim/features/profile/presentation/controllers/auth_controller.
 import 'package:kopim/features/profile/presentation/utils/auth_error_mapper.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
-class ProfileCredentialsSettingsCard extends ConsumerWidget {
+class ProfileCredentialsSettingsCard extends ConsumerStatefulWidget {
   const ProfileCredentialsSettingsCard({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileCredentialsSettingsCard> createState() =>
+      _ProfileCredentialsSettingsCardState();
+}
+
+class _ProfileCredentialsSettingsCardState
+    extends ConsumerState<ProfileCredentialsSettingsCard> {
+  AuthUser? _lastResolvedUser;
+
+  @override
+  Widget build(BuildContext context) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
     final ThemeData theme = Theme.of(context);
     final AsyncValue<AuthUser?> authState = ref.watch(authControllerProvider);
+    final AuthUser? liveUser = authState.asData?.value;
+
+    if (authState.hasValue) {
+      _lastResolvedUser = liveUser != null && !liveUser.isAnonymous
+          ? liveUser
+          : null;
+    }
+
+    final AuthUser? visibleUser = liveUser ?? _lastResolvedUser;
+
+    if (visibleUser != null && !visibleUser.isAnonymous) {
+      return _CredentialsBody(user: visibleUser);
+    }
 
     return authState.when(
       loading: () => const Center(
@@ -72,8 +94,6 @@ class _CredentialsBody extends ConsumerStatefulWidget {
 }
 
 class _CredentialsBodyState extends ConsumerState<_CredentialsBody> {
-  static const String _passwordMask = '••••••••';
-
   @override
   Widget build(BuildContext context) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
@@ -82,25 +102,23 @@ class _CredentialsBodyState extends ConsumerState<_CredentialsBody> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         _Header(strings: strings),
-        const SizedBox(height: 16),
+        const SizedBox(height: 24),
         _CredentialsRow(
           label: strings.signInEmailLabel,
           value: widget.user.email ?? '-',
+          trailing: IconButton(
+            onPressed: () => _showChangeEmailDialog(context),
+            icon: const Icon(Icons.edit_outlined),
+            tooltip: strings.profileCredentialsChangeLoginCta,
+          ),
         ),
-        const SizedBox(height: 12),
-        _CredentialsRow(
-          label: strings.signInPasswordLabel,
-          value: _passwordMask,
-        ),
-        const SizedBox(height: 16),
-        TextButton(
-          onPressed: () => _showChangeEmailDialog(context),
-          child: Text(strings.profileCredentialsChangeLoginCta),
-        ),
-        const SizedBox(height: 8),
-        TextButton(
-          onPressed: () => _showChangePasswordDialog(context),
-          child: Text(strings.profileCredentialsChangePasswordCta),
+        const SizedBox(height: 24),
+        Align(
+          alignment: Alignment.centerRight,
+          child: FilledButton(
+            onPressed: () => _showChangePasswordDialog(context),
+            child: Text(strings.profileCredentialsChangePasswordCta),
+          ),
         ),
       ],
     );
@@ -509,10 +527,15 @@ class _Header extends StatelessWidget {
 }
 
 class _CredentialsRow extends StatelessWidget {
-  const _CredentialsRow({required this.label, required this.value});
+  const _CredentialsRow({
+    required this.label,
+    required this.value,
+    this.trailing,
+  });
 
   final String label;
   final String value;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -528,7 +551,18 @@ class _CredentialsRow extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        SelectableText(value, style: theme.textTheme.bodyLarge),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            Expanded(
+              child: SelectableText(value, style: theme.textTheme.bodyLarge),
+            ),
+            if (trailing != null) ...<Widget>[
+              const SizedBox(width: 8),
+              trailing!,
+            ],
+          ],
+        ),
       ],
     );
   }

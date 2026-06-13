@@ -17,7 +17,7 @@
     "description": "Message shown above the register button for anonymous users"
   },
   "profileSectionAccount": "Account",
-  "profileCredentialsSectionTitle": "Login and Password",
+  "profileCredentialsSectionTitle": "Login Details",
   "@profileCredentialsSectionTitle": {
     "description": "Title of login and password section in profile settings"
   },
@@ -3860,6 +3860,65 @@
         "type": "String"
       }
     }
+  },
+  "savingsGoalDetailsForecastTitle": "Savings forecast",
+  "@savingsGoalDetailsForecastTitle": {
+    "description": "Title for the savings forecast block"
+  },
+  "savingsGoalDetailsAverageContribution": "Avg. monthly contribution: {amount}",
+  "@savingsGoalDetailsAverageContribution": {
+    "description": "Average monthly contribution text",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsGoalDetailsEstimatedDate": "Target reached by {date}",
+  "@savingsGoalDetailsEstimatedDate": {
+    "description": "Estimated target completion date",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsGoalDetailsEstimatedNever": "Target won't be reached at current rate",
+  "@savingsGoalDetailsEstimatedNever": {
+    "description": "Text shown when target cannot be reached at current savings rate"
+  },
+  "savingsGoalDetailsRecommendedContribution": "Recommended to save {amount}/mo",
+  "@savingsGoalDetailsRecommendedContribution": {
+    "description": "Recommended monthly savings amount",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsGoalDetailsRecommendedNoTarget": "Target date not set",
+  "@savingsGoalDetailsRecommendedNoTarget": {
+    "description": "Shown when no target date is set for a savings goal"
+  },
+  "savingsGoalDetailsStorageAccounts": "Storage accounts",
+  "@savingsGoalDetailsStorageAccounts": {
+    "description": "Header for storage accounts block in details"
+  },
+  "savingsGoalDetailsHistoryTitle": "Top-up history",
+  "@savingsGoalDetailsHistoryTitle": {
+    "description": "Title for contribution history list"
+  },
+  "savingsGoalDetailsHistoryEmpty": "No contributions made yet",
+  "@savingsGoalDetailsHistoryEmpty": {
+    "description": "Shown when contribution history is empty"
+  },
+  "savingsGoalDetailsDeleteContributionTitle": "Delete contribution?",
+  "@savingsGoalDetailsDeleteContributionTitle": {
+    "description": "Title for the delete contribution confirmation dialog"
+  },
+  "savingsGoalDetailsDeleteContributionConfirm": "Are you sure you want to delete this contribution? The related account balance will be adjusted.",
+  "@savingsGoalDetailsDeleteContributionConfirm": {
+    "description": "Confirmation message for deleting a contribution"
   },
   "transactionDefaultTitle": "Transaction",
   "@transactionDefaultTitle": {

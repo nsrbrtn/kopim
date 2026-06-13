@@ -158,7 +158,6 @@ class AuthController extends _$AuthController {
   }) async {
     _exitOfflineMode();
     final AuthUser? previousUser = state.value;
-    state = const AsyncValue<AuthUser?>.loading();
     try {
       final AuthUser user = await ref
           .read(authRepositoryProvider)
@@ -179,7 +178,6 @@ class AuthController extends _$AuthController {
   }) async {
     _exitOfflineMode();
     final AuthUser? previousUser = state.value;
-    state = const AsyncValue<AuthUser?>.loading();
     try {
       await ref
           .read(authRepositoryProvider)

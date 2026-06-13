@@ -208,14 +208,9 @@ class _MyAppState extends ConsumerState<MyApp> {
 /// Фейковый роутер для состояния загрузки, чтобы не пересоздавать MaterialApp.
 class _LoadingRouter {
   _LoadingRouter._();
-  static final GoRouter instance = GoRouter(
-    routes: <RouteBase>[
-      GoRoute(
-        path: '/',
-        builder: (BuildContext context, GoRouterState state) =>
-            const Scaffold(body: AppSplashPlaceholder()),
-      ),
-    ],
+  static final GoRouter instance = _buildTransientRouter(
+    builder: (BuildContext context) =>
+        const Scaffold(body: AppSplashPlaceholder()),
   );
 }
 
@@ -224,40 +219,51 @@ class _ErrorRouter {
   _ErrorRouter({required this.onRetry});
   final VoidCallback onRetry;
 
-  late final GoRouter instance = GoRouter(
-    routes: <RouteBase>[
-      GoRoute(
-        path: '/',
-        builder: (BuildContext context, GoRouterState state) => Scaffold(
-          body: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 400),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    const Text(
-                      'Не удалось инициализировать приложение.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    FilledButton(
-                      onPressed: onRetry,
-                      child: const Text('Повторить попытку'),
-                    ),
-                  ],
+  late final GoRouter instance = _buildTransientRouter(
+    builder: (BuildContext context) => Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                const Text(
+                  'Не удалось инициализировать приложение.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                 ),
-              ),
+                const SizedBox(height: 24),
+                FilledButton(
+                  onPressed: onRetry,
+                  child: const Text('Повторить попытку'),
+                ),
+              ],
             ),
           ),
         ),
       ),
+    ),
+  );
+}
+
+GoRouter _buildTransientRouter({required WidgetBuilder builder}) {
+  return GoRouter(
+    routes: <RouteBase>[
+      GoRoute(
+        path: '/',
+        builder: (BuildContext context, GoRouterState state) =>
+            builder(context),
+      ),
+      GoRoute(
+        path: '/:rest(.*)',
+        builder: (BuildContext context, GoRouterState state) =>
+            builder(context),
+      ),
     ],
+    errorBuilder: (BuildContext context, GoRouterState state) =>
+        builder(context),
   );
 }

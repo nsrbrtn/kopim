@@ -577,6 +577,9 @@ class TransactionRepositoryImpl implements TransactionRepository {
     if (row == null) {
       throw StateError('Account not found for id $accountId');
     }
+    if (row.isDeleted) {
+      return;
+    }
     final int scale = row.currencyScale;
     final MoneyAmount normalized = rescaleMoneyAmount(delta, scale);
     final BigInt updatedMinor =

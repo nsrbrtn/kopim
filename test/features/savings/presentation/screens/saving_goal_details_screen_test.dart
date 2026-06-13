@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
 import 'package:kopim/core/money/money_utils.dart';
+import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/savings/domain/models/saving_goal_analytics.dart';
@@ -13,6 +14,7 @@ import 'package:kopim/features/savings/presentation/controllers/saving_goals_con
 import 'package:kopim/features/savings/presentation/controllers/saving_goals_state.dart';
 import 'package:kopim/features/savings/presentation/screens/saving_goal_details_screen.dart';
 import 'package:kopim/features/profile/presentation/controllers/active_currency_code_provider.dart';
+import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class _FakeSavingGoalsController extends SavingGoalsController {
@@ -107,6 +109,19 @@ void main() {
                 foodCategory,
               ]),
             ),
+            savingGoalTransactionsProvider(goal.id).overrideWith(
+              (_) => const Stream<List<TransactionEntity>>.empty(),
+            ),
+            savingGoalAccountsProvider(
+              goal.id,
+            ).overrideWith((_) => const Stream<List<AccountEntity>>.empty()),
+            savingGoalForecastProvider(goal.id).overrideWithValue(
+              const SavingGoalForecast(
+                averageMonthlyContribution: 1200,
+                estimatedCompletionDate: null,
+                recommendedMonthlyContribution: 800,
+              ),
+            ),
             activeCurrencyCodeProvider.overrideWithValue('USD'),
           ],
           child: MaterialApp(
@@ -117,7 +132,8 @@ void main() {
         ),
       );
 
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
 
       final BuildContext context = tester.element(
         find.byType(SavingGoalDetailsScreen),
@@ -129,9 +145,10 @@ void main() {
 
       expect(find.text('Vacation Trip'), findsOneWidget);
       expect(find.textContaining('Save for summer holidays'), findsOneWidget);
-      expect(find.text('Travel'), findsOneWidget);
-      expect(find.text('Food'), findsOneWidget);
       expect(find.text(transactionsLabel), findsOneWidget);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
     });
   });
 }

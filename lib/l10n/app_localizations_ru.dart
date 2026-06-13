@@ -26,7 +26,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get profileSectionAccount => 'Учетная запись';
 
   @override
-  String get profileCredentialsSectionTitle => 'Логин и пароль';
+  String get profileCredentialsSectionTitle => 'Данные входа';
 
   @override
   String get profileCredentialsAnonymousHint =>
@@ -2985,6 +2985,48 @@ class AppLocalizationsRu extends AppLocalizations {
   String savingsGoalDetailsAnalyticsTotal(String amount) {
     return 'Всего внесено: $amount';
   }
+
+  @override
+  String get savingsGoalDetailsForecastTitle => 'Прогноз накопления';
+
+  @override
+  String savingsGoalDetailsAverageContribution(String amount) {
+    return 'Ср. пополнение в месяц: $amount';
+  }
+
+  @override
+  String savingsGoalDetailsEstimatedDate(String date) {
+    return 'Будет накоплено к $date';
+  }
+
+  @override
+  String get savingsGoalDetailsEstimatedNever =>
+      'При текущем темпе цель не будет достигнута';
+
+  @override
+  String savingsGoalDetailsRecommendedContribution(String amount) {
+    return 'Рекомендуется откладывать $amount/мес.';
+  }
+
+  @override
+  String get savingsGoalDetailsRecommendedNoTarget =>
+      'Целевая дата не установлена';
+
+  @override
+  String get savingsGoalDetailsStorageAccounts => 'Счета накопления';
+
+  @override
+  String get savingsGoalDetailsHistoryTitle => 'История пополнений';
+
+  @override
+  String get savingsGoalDetailsHistoryEmpty => 'Вкладов пока не совершалось';
+
+  @override
+  String get savingsGoalDetailsDeleteContributionTitle => 'Удалить вклад?';
+
+  @override
+  String get savingsGoalDetailsDeleteContributionConfirm =>
+      'Вы уверены, что хотите удалить эту операцию пополнения? Баланс связанного счета будет скорректирован.';
 
   @override
   String get transactionDefaultTitle => 'Транзакция';

@@ -292,6 +292,30 @@ void main() {
     );
   });
 
+  test(
+    'detects orphan liability account without active domain entity',
+    () async {
+      await database
+          .into(database.accounts)
+          .insert(
+            AccountsCompanion.insert(
+              id: 'acc-orphan-credit',
+              name: 'Orphan credit',
+              balance: -1000,
+              currency: 'RUB',
+              type: 'credit',
+            ),
+          );
+
+      final LocalSyncIntegrityReport report = await service.run();
+
+      expect(
+        report.countByType(LocalSyncIntegrityIssueType.orphanLiabilityAccount),
+        1,
+      );
+    },
+  );
+
   test('formats developer-facing integrity report summary', () {
     const LocalSyncIntegrityReportFormatter formatter =
         LocalSyncIntegrityReportFormatter();

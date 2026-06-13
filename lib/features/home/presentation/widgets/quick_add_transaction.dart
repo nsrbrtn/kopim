@@ -21,6 +21,7 @@ import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 const Duration _kQuickAddSuccessSnackBarDuration = Duration(seconds: 1);
+const Duration _kSnackBarCloseSafetyDelay = Duration(seconds: 3);
 
 class QuickAddTransactionCard extends ConsumerWidget {
   const QuickAddTransactionCard({super.key, required this.strings});
@@ -272,7 +273,6 @@ class _QuickTransactionSheetState
   late final TextEditingController _amountController;
   late final FocusNode _amountFocusNode;
   ProviderSubscription<QuickTransactionState>? _stateSubscription;
-  Timer? _snackBarDismissTimer;
 
   @override
   void initState() {
@@ -305,7 +305,6 @@ class _QuickTransactionSheetState
 
   @override
   void dispose() {
-    _snackBarDismissTimer?.cancel();
     _stateSubscription?.close();
     _amountFocusNode.dispose();
     _amountController.dispose();
@@ -449,7 +448,6 @@ class _QuickTransactionSheetState
     SnackBarAction? action,
     Duration duration = const Duration(seconds: 3),
   }) {
-    _snackBarDismissTimer?.cancel();
     final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar();
     final ScaffoldFeatureController<SnackBar, SnackBarClosedReason> controller =
@@ -457,12 +455,11 @@ class _QuickTransactionSheetState
           SnackBar(content: content, duration: duration, action: action),
         );
     if (action != null) {
-      _snackBarDismissTimer = Timer(duration, () {
-        if (!mounted) {
-          return;
-        }
-        controller.close();
-      });
+      unawaited(
+        Future<void>.delayed(duration + _kSnackBarCloseSafetyDelay).then((_) {
+          controller.close();
+        }),
+      );
     }
   }
 

@@ -22,6 +22,7 @@ import 'package:kopim/features/accounts/data/services/account_type_backfill_serv
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/data/sources/remote/account_remote_data_source.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/accounts/domain/utils/liability_account_links.dart';
 import 'package:kopim/features/accounts/domain/utils/account_type_utils.dart';
 import 'package:kopim/features/budgets/data/sources/local/budget_dao.dart';
 import 'package:kopim/features/budgets/data/sources/remote/budget_instance_remote_data_source.dart';
@@ -1394,6 +1395,15 @@ class AuthSyncService {
           validAccountIds: validAccountIds,
         );
         await _debtDao.upsertAll(sanitizedDebts);
+        final List<AccountEntity> repairedAccounts =
+            markOrphanedLiabilityAccountsDeleted(
+              accounts: mergedAccounts,
+              activeLiabilityAccountIds: collectActiveLiabilityAccountIds(
+                credits: sanitizedCredits,
+                creditCards: sanitizedCreditCards,
+                debts: sanitizedDebts,
+              ),
+            );
 
         await _savingGoalDao.upsertAll(mergedSavingGoals);
         await _goalAccountLinkDao.replaceLinksByGoal(
@@ -1463,7 +1473,7 @@ class AuthSyncService {
         await _transactionDao.upsertAll(sanitizedTransactions);
         final List<AccountEntity> recalculatedAccounts =
             await _recalculateBalances(
-              accounts: mergedAccounts,
+              accounts: repairedAccounts,
               transactions: sanitizedTransactions,
             );
         await _accountDao.upsertAll(recalculatedAccounts);
@@ -1690,6 +1700,9 @@ class AuthSyncService {
     List<AccountEntity> local,
     List<AccountEntity> remote,
   ) {
+    // TODO(credit-sync): Усилить merge account/entity pair:
+    // простой LWW по updatedAt недостаточен для связки credit + account,
+    // потому что orphaned active account может победить tombstone удаленного кредита.
     final _AccountMergeObservability observability =
         _AccountMergeObservability();
     _collectAccountNormalizationObservability(

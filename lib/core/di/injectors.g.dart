@@ -3132,7 +3132,7 @@ final class WatchHomeOverviewSummaryUseCaseProvider
 }
 
 String _$watchHomeOverviewSummaryUseCaseHash() =>
-    r'9ca286484285a61d74bc3519116994c075ae4ed3';
+    r'6dd357f737395ac5801247cd5eb049c90e0f87bf';
 
 @ProviderFor(addCreditUseCase)
 final addCreditUseCaseProvider = AddCreditUseCaseProvider._();

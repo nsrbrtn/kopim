@@ -1682,7 +1682,7 @@ class _CreditCardContent extends ConsumerWidget {
             minHeight: 6,
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 14),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
@@ -1842,7 +1842,6 @@ class _AccountCardLayout {
           theme.textTheme.bodyLarge ??
           const TextStyle(fontSize: 14),
     );
-
     const double padding = 24 * 2;
     const double gaps = 8 + 16 + 8;
     // Карточки копилок и кредитов содержат дополнительные строки/отступы,

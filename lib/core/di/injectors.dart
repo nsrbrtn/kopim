@@ -768,6 +768,9 @@ WatchHomeOverviewSummaryUseCase watchHomeOverviewSummaryUseCase(Ref ref) =>
       accountRepository: ref.watch(accountRepositoryProvider),
       transactionRepository: ref.watch(transactionRepositoryProvider),
       categoryRepository: ref.watch(categoryRepositoryProvider),
+      creditRepository: ref.watch(creditRepositoryProvider),
+      creditCardRepository: ref.watch(creditCardRepositoryProvider),
+      debtRepository: ref.watch(debtRepositoryProvider),
     );
 
 final rp.Provider<WatchFinancialIndexUseCase>
@@ -859,6 +862,7 @@ final rp.Provider<UpdateCreditUseCase> updateCreditUseCaseProvider =
 @riverpod
 DeleteCreditUseCase deleteCreditUseCase(Ref ref) => DeleteCreditUseCase(
   ref.watch(creditRepositoryProvider),
+  ref.watch(transactionRepositoryProvider),
   ref.watch(deleteAccountUseCaseProvider),
   ref.watch(deleteCategoryUseCaseProvider),
   ref.watch(upcomingPaymentsRepositoryProvider),

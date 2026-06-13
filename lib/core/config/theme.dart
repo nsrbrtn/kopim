@@ -97,6 +97,23 @@ ThemeData buildAppTheme({
   final Map<String, double> borderWidth = tokens.shape.borderWidth;
   final Map<String, double> touchSizes = tokens.sizes.touch;
   final Map<String, double> iconSizes = tokens.sizes.icon;
+  final double buttonHeight = touchSizes['comfortable'] ?? 56.0;
+  final EdgeInsetsGeometry buttonPadding = EdgeInsets.symmetric(
+    horizontal: _spacing(spacing, '24', 24),
+    vertical: _spacing(spacing, '16', 16),
+  );
+  final WidgetStatePropertyAll<EdgeInsetsGeometry> buttonPaddingProperty =
+      WidgetStatePropertyAll<EdgeInsetsGeometry>(buttonPadding);
+  final WidgetStatePropertyAll<Size> buttonMinimumSize =
+      WidgetStatePropertyAll<Size>(Size(0, buttonHeight));
+  final WidgetStatePropertyAll<OutlinedBorder> buttonShape =
+      WidgetStatePropertyAll<OutlinedBorder>(
+        RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+      );
+  final WidgetStatePropertyAll<TextStyle> buttonTextStyle =
+      WidgetStatePropertyAll<TextStyle>(
+        textTheme.titleMedium ?? const TextStyle(),
+      );
 
   final KopimLayout layoutExtension = KopimLayout(
     divider: KopimDividerTokens(thickness: _spacing(borderWidth, 'thin', 1)),
@@ -229,20 +246,10 @@ ThemeData buildAppTheme({
     filledButtonTheme: FilledButtonThemeData(
       style: ButtonStyle(
         elevation: const WidgetStatePropertyAll<double>(0),
-        padding: WidgetStatePropertyAll<EdgeInsets>(
-          EdgeInsets.symmetric(
-            horizontal: _spacing(spacing, '16', 16),
-            vertical: _spacing(spacing, '12', 12),
-          ),
-        ),
-        shape: WidgetStatePropertyAll<OutlinedBorder>(
-          RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(_spacing(radius, 'lg', 16)),
-          ),
-        ),
-        textStyle: WidgetStatePropertyAll<TextStyle>(
-          textTheme.labelLarge ?? const TextStyle(),
-        ),
+        minimumSize: buttonMinimumSize,
+        padding: buttonPaddingProperty,
+        shape: buttonShape,
+        textStyle: buttonTextStyle,
         backgroundColor: WidgetStateProperty.resolveWith((
           Set<WidgetState> states,
         ) {
@@ -269,6 +276,77 @@ ThemeData buildAppTheme({
               states.contains(WidgetState.focused)) {
             return colorScheme.onPrimary.withAlpha(
               _scaledAlpha(colorScheme.onPrimary, 0.12),
+            );
+          }
+          return null;
+        }),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: ButtonStyle(
+        elevation: const WidgetStatePropertyAll<double>(0),
+        minimumSize: buttonMinimumSize,
+        padding: buttonPaddingProperty,
+        shape: buttonShape,
+        textStyle: buttonTextStyle,
+        side: WidgetStateProperty.resolveWith((Set<WidgetState> states) {
+          final Color color = states.contains(WidgetState.disabled)
+              ? colorScheme.outlineVariant
+              : colorScheme.outline;
+          return BorderSide(
+            color: color,
+            width: _spacing(borderWidth, 'thin', 1),
+          );
+        }),
+        foregroundColor: WidgetStateProperty.resolveWith((
+          Set<WidgetState> states,
+        ) {
+          if (states.contains(WidgetState.disabled)) {
+            return colorScheme.onSurface.withAlpha(
+              _scaledAlpha(colorScheme.onSurface, 0.38),
+            );
+          }
+          return colorScheme.onSurface;
+        }),
+        overlayColor: WidgetStateProperty.resolveWith((
+          Set<WidgetState> states,
+        ) {
+          if (states.contains(WidgetState.pressed) ||
+              states.contains(WidgetState.hovered) ||
+              states.contains(WidgetState.focused)) {
+            return colorScheme.onSurface.withAlpha(
+              _scaledAlpha(colorScheme.onSurface, 0.08),
+            );
+          }
+          return null;
+        }),
+      ),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: ButtonStyle(
+        elevation: const WidgetStatePropertyAll<double>(0),
+        minimumSize: buttonMinimumSize,
+        padding: buttonPaddingProperty,
+        shape: buttonShape,
+        textStyle: buttonTextStyle,
+        foregroundColor: WidgetStateProperty.resolveWith((
+          Set<WidgetState> states,
+        ) {
+          if (states.contains(WidgetState.disabled)) {
+            return colorScheme.onSurface.withAlpha(
+              _scaledAlpha(colorScheme.onSurface, 0.38),
+            );
+          }
+          return colorScheme.primary;
+        }),
+        overlayColor: WidgetStateProperty.resolveWith((
+          Set<WidgetState> states,
+        ) {
+          if (states.contains(WidgetState.pressed) ||
+              states.contains(WidgetState.hovered) ||
+              states.contains(WidgetState.focused)) {
+            return colorScheme.primary.withAlpha(
+              _scaledAlpha(colorScheme.primary, 0.08),
             );
           }
           return null;

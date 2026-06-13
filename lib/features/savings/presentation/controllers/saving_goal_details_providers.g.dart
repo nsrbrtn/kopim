@@ -203,3 +203,244 @@ final class SavingGoalCategoriesProvider
 
 String _$savingGoalCategoriesHash() =>
     r'34a6b5c9392d000986342e7a5171c6821a04daf5';
+
+@ProviderFor(savingGoalTransactions)
+final savingGoalTransactionsProvider = SavingGoalTransactionsFamily._();
+
+final class SavingGoalTransactionsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<TransactionEntity>>,
+          List<TransactionEntity>,
+          Stream<List<TransactionEntity>>
+        >
+    with
+        $FutureModifier<List<TransactionEntity>>,
+        $StreamProvider<List<TransactionEntity>> {
+  SavingGoalTransactionsProvider._({
+    required SavingGoalTransactionsFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'savingGoalTransactionsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$savingGoalTransactionsHash();
+
+  @override
+  String toString() {
+    return r'savingGoalTransactionsProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<List<TransactionEntity>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<TransactionEntity>> create(Ref ref) {
+    final argument = this.argument as String;
+    return savingGoalTransactions(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is SavingGoalTransactionsProvider &&
+        other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$savingGoalTransactionsHash() =>
+    r'107d34d3d305c0c04b39f32eeccb85a38204dd10';
+
+final class SavingGoalTransactionsFamily extends $Family
+    with $FunctionalFamilyOverride<Stream<List<TransactionEntity>>, String> {
+  SavingGoalTransactionsFamily._()
+    : super(
+        retry: null,
+        name: r'savingGoalTransactionsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  SavingGoalTransactionsProvider call(String goalId) =>
+      SavingGoalTransactionsProvider._(argument: goalId, from: this);
+
+  @override
+  String toString() => r'savingGoalTransactionsProvider';
+}
+
+@ProviderFor(savingGoalForecast)
+final savingGoalForecastProvider = SavingGoalForecastFamily._();
+
+final class SavingGoalForecastProvider
+    extends
+        $FunctionalProvider<
+          SavingGoalForecast?,
+          SavingGoalForecast?,
+          SavingGoalForecast?
+        >
+    with $Provider<SavingGoalForecast?> {
+  SavingGoalForecastProvider._({
+    required SavingGoalForecastFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'savingGoalForecastProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$savingGoalForecastHash();
+
+  @override
+  String toString() {
+    return r'savingGoalForecastProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $ProviderElement<SavingGoalForecast?> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  SavingGoalForecast? create(Ref ref) {
+    final argument = this.argument as String;
+    return savingGoalForecast(ref, argument);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SavingGoalForecast? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SavingGoalForecast?>(value),
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is SavingGoalForecastProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$savingGoalForecastHash() =>
+    r'0688f512690edfc23273d6da3ad5deba33ab79bf';
+
+final class SavingGoalForecastFamily extends $Family
+    with $FunctionalFamilyOverride<SavingGoalForecast?, String> {
+  SavingGoalForecastFamily._()
+    : super(
+        retry: null,
+        name: r'savingGoalForecastProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  SavingGoalForecastProvider call(String goalId) =>
+      SavingGoalForecastProvider._(argument: goalId, from: this);
+
+  @override
+  String toString() => r'savingGoalForecastProvider';
+}
+
+@ProviderFor(savingGoalAccounts)
+final savingGoalAccountsProvider = SavingGoalAccountsFamily._();
+
+final class SavingGoalAccountsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<AccountEntity>>,
+          List<AccountEntity>,
+          Stream<List<AccountEntity>>
+        >
+    with
+        $FutureModifier<List<AccountEntity>>,
+        $StreamProvider<List<AccountEntity>> {
+  SavingGoalAccountsProvider._({
+    required SavingGoalAccountsFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'savingGoalAccountsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$savingGoalAccountsHash();
+
+  @override
+  String toString() {
+    return r'savingGoalAccountsProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<List<AccountEntity>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<AccountEntity>> create(Ref ref) {
+    final argument = this.argument as String;
+    return savingGoalAccounts(ref, argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is SavingGoalAccountsProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$savingGoalAccountsHash() =>
+    r'a6ef51718476091af81ae8fe6a15e65a32f66b7f';
+
+final class SavingGoalAccountsFamily extends $Family
+    with $FunctionalFamilyOverride<Stream<List<AccountEntity>>, String> {
+  SavingGoalAccountsFamily._()
+    : super(
+        retry: null,
+        name: r'savingGoalAccountsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  SavingGoalAccountsProvider call(String goalId) =>
+      SavingGoalAccountsProvider._(argument: goalId, from: this);
+
+  @override
+  String toString() => r'savingGoalAccountsProvider';
+}

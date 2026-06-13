@@ -25,7 +25,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileSectionAccount => 'Account';
 
   @override
-  String get profileCredentialsSectionTitle => 'Login and Password';
+  String get profileCredentialsSectionTitle => 'Login Details';
 
   @override
   String get profileCredentialsAnonymousHint =>
@@ -2962,6 +2962,48 @@ class AppLocalizationsEn extends AppLocalizations {
   String savingsGoalDetailsAnalyticsTotal(String amount) {
     return 'Total contributions: $amount';
   }
+
+  @override
+  String get savingsGoalDetailsForecastTitle => 'Savings forecast';
+
+  @override
+  String savingsGoalDetailsAverageContribution(String amount) {
+    return 'Avg. monthly contribution: $amount';
+  }
+
+  @override
+  String savingsGoalDetailsEstimatedDate(String date) {
+    return 'Target reached by $date';
+  }
+
+  @override
+  String get savingsGoalDetailsEstimatedNever =>
+      'Target won\'t be reached at current rate';
+
+  @override
+  String savingsGoalDetailsRecommendedContribution(String amount) {
+    return 'Recommended to save $amount/mo';
+  }
+
+  @override
+  String get savingsGoalDetailsRecommendedNoTarget => 'Target date not set';
+
+  @override
+  String get savingsGoalDetailsStorageAccounts => 'Storage accounts';
+
+  @override
+  String get savingsGoalDetailsHistoryTitle => 'Top-up history';
+
+  @override
+  String get savingsGoalDetailsHistoryEmpty => 'No contributions made yet';
+
+  @override
+  String get savingsGoalDetailsDeleteContributionTitle =>
+      'Delete contribution?';
+
+  @override
+  String get savingsGoalDetailsDeleteContributionConfirm =>
+      'Are you sure you want to delete this contribution? The related account balance will be adjusted.';
 
   @override
   String get transactionDefaultTitle => 'Transaction';

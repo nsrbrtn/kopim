@@ -13,10 +13,16 @@ import 'package:kopim/features/analytics/presentation/controllers/analytics_prov
 import 'package:kopim/features/analytics/domain/models/monthly_balance_data.dart';
 import 'package:kopim/features/analytics/presentation/models/monthly_cashflow_data.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_payment_group.dart';
 import 'package:kopim/features/credits/domain/entities/credit_payment_schedule.dart';
+import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
+import 'package:kopim/features/credits/domain/repositories/credit_card_repository.dart';
 import 'package:kopim/features/credits/domain/repositories/credit_repository.dart';
+import 'package:kopim/features/credits/domain/repositories/debt_repository.dart';
+import 'package:kopim/features/credits/domain/use_cases/watch_credit_cards_use_case.dart';
 import 'package:kopim/features/credits/domain/use_cases/watch_credits_use_case.dart';
+import 'package:kopim/features/credits/domain/use_cases/watch_debts_use_case.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
 import 'package:kopim/features/transactions/domain/models/account_monthly_totals.dart';
@@ -497,6 +503,64 @@ class _StaticCreditRepository implements CreditRepository {
   @override
   Stream<List<CreditPaymentScheduleEntity>> watchSchedule(String creditId) {
     return const Stream<List<CreditPaymentScheduleEntity>>.empty();
+  }
+}
+
+class _StaticCreditCardRepository implements CreditCardRepository {
+  _StaticCreditCardRepository(this._creditCards);
+
+  final List<CreditCardEntity> _creditCards;
+
+  @override
+  Future<void> addCreditCard(CreditCardEntity creditCard) async {}
+
+  @override
+  Future<void> deleteCreditCard(String id) async {}
+
+  @override
+  Future<CreditCardEntity?> getByAccountId(String accountId) async {
+    for (final CreditCardEntity creditCard in _creditCards) {
+      if (creditCard.accountId == accountId) {
+        return creditCard;
+      }
+    }
+    return null;
+  }
+
+  @override
+  Future<List<CreditCardEntity>> getCreditCards() async => _creditCards;
+
+  @override
+  Future<void> updateCreditCard(CreditCardEntity creditCard) async {}
+
+  @override
+  Stream<List<CreditCardEntity>> watchCreditCards() async* {
+    yield _creditCards;
+    await Completer<void>().future;
+  }
+}
+
+class _StaticDebtRepository implements DebtRepository {
+  _StaticDebtRepository(this._debts);
+
+  final List<DebtEntity> _debts;
+
+  @override
+  Future<void> addDebt(DebtEntity debt) async {}
+
+  @override
+  Future<void> deleteDebt(String id) async {}
+
+  @override
+  Future<List<DebtEntity>> getDebts() async => _debts;
+
+  @override
+  Future<void> updateDebt(DebtEntity debt) async {}
+
+  @override
+  Stream<List<DebtEntity>> watchDebts() async* {
+    yield _debts;
+    await Completer<void>().future;
   }
 }
 
@@ -1004,8 +1068,24 @@ void main() {
               updatedAt: now,
             ),
           ]);
-      final _StaticCreditRepository creditRepository = _StaticCreditRepository(
-        const <CreditEntity>[],
+      final _StaticCreditRepository creditRepository =
+          _StaticCreditRepository(<CreditEntity>[
+            CreditEntity(
+              id: 'credit-1-entity',
+              accountId: 'credit-1',
+              totalAmountMinor: BigInt.from(100000),
+              totalAmountScale: 2,
+              interestRate: 10,
+              termMonths: 12,
+              startDate: now.subtract(const Duration(days: 30)),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          ]);
+      final _StaticCreditCardRepository creditCardRepository =
+          _StaticCreditCardRepository(const <CreditCardEntity>[]);
+      final _StaticDebtRepository debtRepository = _StaticDebtRepository(
+        const <DebtEntity>[],
       );
 
       final ProviderContainer container = ProviderContainer(
@@ -1018,6 +1098,12 @@ void main() {
           ),
           watchCreditsUseCaseProvider.overrideWithValue(
             WatchCreditsUseCase(creditRepository),
+          ),
+          watchCreditCardsUseCaseProvider.overrideWithValue(
+            WatchCreditCardsUseCase(creditCardRepository),
+          ),
+          watchDebtsUseCaseProvider.overrideWithValue(
+            WatchDebtsUseCase(debtRepository),
           ),
           analyticsFilterControllerProvider.overrideWith(
             () => _FakeAnalyticsFilterController(
@@ -1153,6 +1239,11 @@ void main() {
               updatedAt: now,
             ),
           ]);
+      final _StaticCreditCardRepository creditCardRepository =
+          _StaticCreditCardRepository(const <CreditCardEntity>[]);
+      final _StaticDebtRepository debtRepository = _StaticDebtRepository(
+        const <DebtEntity>[],
+      );
 
       final ProviderContainer container = ProviderContainer(
         overrides: <Override>[
@@ -1164,6 +1255,12 @@ void main() {
           ),
           watchCreditsUseCaseProvider.overrideWithValue(
             WatchCreditsUseCase(creditRepository),
+          ),
+          watchCreditCardsUseCaseProvider.overrideWithValue(
+            WatchCreditCardsUseCase(creditCardRepository),
+          ),
+          watchDebtsUseCaseProvider.overrideWithValue(
+            WatchDebtsUseCase(debtRepository),
           ),
           analyticsFilterControllerProvider.overrideWith(
             () => _FakeAnalyticsFilterController(
@@ -1273,6 +1370,11 @@ void main() {
               updatedAt: now,
             ),
           ]);
+      final _StaticCreditCardRepository creditCardRepository =
+          _StaticCreditCardRepository(const <CreditCardEntity>[]);
+      final _StaticDebtRepository debtRepository = _StaticDebtRepository(
+        const <DebtEntity>[],
+      );
 
       final ProviderContainer container = ProviderContainer(
         overrides: <Override>[
@@ -1284,6 +1386,12 @@ void main() {
           ),
           watchCreditsUseCaseProvider.overrideWithValue(
             WatchCreditsUseCase(creditRepository),
+          ),
+          watchCreditCardsUseCaseProvider.overrideWithValue(
+            WatchCreditCardsUseCase(creditCardRepository),
+          ),
+          watchDebtsUseCaseProvider.overrideWithValue(
+            WatchDebtsUseCase(debtRepository),
           ),
         ],
       );
@@ -1314,6 +1422,135 @@ void main() {
 
       expect(overview.totalDebt.toDouble(), closeTo(975.0, 0.001));
       expect(overview.trend, isNotEmpty);
+    },
+  );
+
+  test(
+    'analyticsDebtOverviewProvider игнорирует orphaned credit account без активной credit-сущности',
+    () async {
+      final DateTime now = DateTime.now();
+      final DateTime txDate = now.subtract(const Duration(days: 3));
+
+      final TransactionEntity creditPayment = TransactionEntity(
+        id: 'payment-orphan',
+        accountId: 'cash-1',
+        transferAccountId: 'loan-orphan',
+        amountMinor: BigInt.from(2500),
+        amountScale: 2,
+        date: txDate,
+        type: TransactionType.transfer.storageValue,
+        createdAt: txDate,
+        updatedAt: txDate,
+      );
+
+      final _FakeTransactionRepository transactionRepository =
+          _FakeTransactionRepository(
+            Stream<List<TransactionEntity>>.value(<TransactionEntity>[
+              creditPayment,
+            ]),
+            openingBalances: <String, MoneyAmount>{
+              'cash-1': MoneyAmount(minor: BigInt.zero, scale: 2),
+              'loan-orphan': MoneyAmount(minor: BigInt.from(-100000), scale: 2),
+            },
+          );
+
+      final _StaticAccountRepository accountRepository =
+          _StaticAccountRepository(<AccountEntity>[
+            AccountEntity(
+              id: 'cash-1',
+              name: 'Cash 1',
+              balanceMinor: BigInt.zero,
+              openingBalanceMinor: BigInt.zero,
+              currency: 'USD',
+              currencyScale: 2,
+              type: 'checking',
+              createdAt: now,
+              updatedAt: now,
+            ),
+            AccountEntity(
+              id: 'loan-orphan',
+              name: 'Orphan loan',
+              balanceMinor: BigInt.from(-97500),
+              openingBalanceMinor: BigInt.from(-100000),
+              currency: 'USD',
+              currencyScale: 2,
+              type: 'credit',
+              createdAt: now,
+              updatedAt: now,
+            ),
+          ]);
+      final _StaticCreditRepository creditRepository =
+          _StaticCreditRepository(<CreditEntity>[
+            CreditEntity(
+              id: 'credit-payment-entity',
+              accountId: 'credit-1',
+              totalAmountMinor: BigInt.from(100000),
+              totalAmountScale: 2,
+              interestRate: 10,
+              termMonths: 12,
+              startDate: now.subtract(const Duration(days: 30)),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          ]);
+      final _StaticCreditCardRepository creditCardRepository =
+          _StaticCreditCardRepository(const <CreditCardEntity>[]);
+      final _StaticDebtRepository debtRepository = _StaticDebtRepository(
+        const <DebtEntity>[],
+      );
+
+      final ProviderContainer container = ProviderContainer(
+        overrides: <Override>[
+          transactionRepositoryProvider.overrideWithValue(
+            transactionRepository,
+          ),
+          watchAccountsUseCaseProvider.overrideWithValue(
+            WatchAccountsUseCase(accountRepository),
+          ),
+          watchCreditsUseCaseProvider.overrideWithValue(
+            WatchCreditsUseCase(creditRepository),
+          ),
+          watchCreditCardsUseCaseProvider.overrideWithValue(
+            WatchCreditCardsUseCase(creditCardRepository),
+          ),
+          watchDebtsUseCaseProvider.overrideWithValue(
+            WatchDebtsUseCase(debtRepository),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final Completer<AnalyticsDebtOverview> result =
+          Completer<AnalyticsDebtOverview>();
+      final ProviderSubscription<AsyncValue<AnalyticsDebtOverview>> sub =
+          container.listen<AsyncValue<AnalyticsDebtOverview>>(
+            analyticsDebtOverviewProvider,
+            (
+              AsyncValue<AnalyticsDebtOverview>? previous,
+              AsyncValue<AnalyticsDebtOverview> next,
+            ) {
+              next.whenData((AnalyticsDebtOverview value) {
+                if (!result.isCompleted) {
+                  result.complete(value);
+                }
+              });
+            },
+            fireImmediately: true,
+          );
+      addTearDown(sub.close);
+
+      final AnalyticsDebtOverview overview = await result.future.timeout(
+        const Duration(seconds: 2),
+      );
+
+      expect(overview.totalDebt.minor, BigInt.zero);
+      expect(
+        overview.trend.every(
+          (AnalyticsDebtTrendPoint point) =>
+              point.totalDebt.minor == BigInt.zero,
+        ),
+        isTrue,
+      );
     },
   );
 
@@ -1372,8 +1609,24 @@ void main() {
             ),
           ]);
 
-      final _StaticCreditRepository creditRepository = _StaticCreditRepository(
-        const <CreditEntity>[],
+      final _StaticCreditRepository creditRepository =
+          _StaticCreditRepository(<CreditEntity>[
+            CreditEntity(
+              id: 'credit-outflow-entity',
+              accountId: 'credit-1',
+              totalAmountMinor: BigInt.from(100000),
+              totalAmountScale: 2,
+              interestRate: 10,
+              termMonths: 12,
+              startDate: now.subtract(const Duration(days: 30)),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          ]);
+      final _StaticCreditCardRepository creditCardRepository =
+          _StaticCreditCardRepository(const <CreditCardEntity>[]);
+      final _StaticDebtRepository debtRepository = _StaticDebtRepository(
+        const <DebtEntity>[],
       );
 
       final ProviderContainer container = ProviderContainer(
@@ -1386,6 +1639,12 @@ void main() {
           ),
           watchCreditsUseCaseProvider.overrideWithValue(
             WatchCreditsUseCase(creditRepository),
+          ),
+          watchCreditCardsUseCaseProvider.overrideWithValue(
+            WatchCreditCardsUseCase(creditCardRepository),
+          ),
+          watchDebtsUseCaseProvider.overrideWithValue(
+            WatchDebtsUseCase(debtRepository),
           ),
           analyticsFilterControllerProvider.overrideWith(
             () => _FakeAnalyticsFilterController(

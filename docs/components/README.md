@@ -37,6 +37,7 @@
 - [BudgetMetric](BudgetMetric.md) — метрика бюджета (лейбл + значение)
 - [DebtCard](DebtCard.md) — карточка долга с суммой, счетом и датой платежа
 - [CreditPaymentDetailsScreen](CreditPaymentDetailsScreen.md) — экран деталей группового платежа по кредиту
+- [SavingGoalDetailsScreen](SavingGoalDetailsScreen.md) — экран деталей копилки с прогрессом, прогнозом, аналитикой и историей вкладов
 - [HomeOverviewSummaryCard](HomeOverviewSummaryCard.md) — карточка сводки на главном экране
 - [QuickAddTransactionCard](QuickAddTransactionCard.md) — карточка быстрой операции на главном экране
 - [ReminderListItem](ReminderListItem.md) — элемент списка напоминаний

@@ -288,6 +288,78 @@ void main() {
       expect(summary.topExpenseCategory!.categoryId, 'food');
       expect(summary.topExpenseCategory!.amount, _amount(110));
     });
+
+    test('исключает orphaned liability accounts из баланса и расходов', () {
+      final DateTime now = DateTime(2024, 6, 10, 12);
+      final List<AccountEntity> accounts = <AccountEntity>[
+        AccountEntity(
+          id: 'acc-cash',
+          name: 'Wallet',
+          balanceMinor: BigInt.from(10000),
+          currency: 'RUB',
+          currencyScale: 2,
+          type: 'cash',
+          createdAt: now,
+          updatedAt: now,
+        ),
+        AccountEntity(
+          id: 'acc-orphan-credit',
+          name: 'Deleted loan shell',
+          balanceMinor: BigInt.from(-20000),
+          currency: 'RUB',
+          currencyScale: 2,
+          type: 'credit',
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ];
+
+      final Category food = Category(
+        id: 'food',
+        name: 'Food',
+        type: 'expense',
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      final List<TransactionEntity> transactions = <TransactionEntity>[
+        TransactionEntity(
+          id: 'tx-expense-cash',
+          accountId: 'acc-cash',
+          categoryId: 'food',
+          amountMinor: BigInt.from(-3000),
+          amountScale: 2,
+          date: now,
+          type: TransactionType.expense.storageValue,
+          createdAt: now,
+          updatedAt: now,
+        ),
+        TransactionEntity(
+          id: 'tx-expense-orphan',
+          accountId: 'acc-orphan-credit',
+          categoryId: 'food',
+          amountMinor: BigInt.from(-7000),
+          amountScale: 2,
+          date: now,
+          type: TransactionType.expense.storageValue,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ];
+
+      final HomeOverviewSummary summary = computeHomeOverviewSummary(
+        accounts: accounts,
+        transactions: transactions,
+        categories: <Category>[food],
+        activeLiabilityAccountIds: const <String>{},
+        reference: now,
+      );
+
+      expect(summary.totalBalance, _amount(100));
+      expect(summary.todayExpense, _amount(30));
+      expect(summary.topExpenseCategory, isNotNull);
+      expect(summary.topExpenseCategory!.amount, _amount(30));
+    });
   });
 }
 

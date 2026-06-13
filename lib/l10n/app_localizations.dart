@@ -131,7 +131,7 @@ abstract class AppLocalizations {
   /// Title of login and password section in profile settings
   ///
   /// In en, this message translates to:
-  /// **'Login and Password'**
+  /// **'Login Details'**
   String get profileCredentialsSectionTitle;
 
   /// Hint shown to anonymous users in credentials section
@@ -5259,6 +5259,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total contributions: {amount}'**
   String savingsGoalDetailsAnalyticsTotal(String amount);
+
+  /// Title for the savings forecast block
+  ///
+  /// In en, this message translates to:
+  /// **'Savings forecast'**
+  String get savingsGoalDetailsForecastTitle;
+
+  /// Average monthly contribution text
+  ///
+  /// In en, this message translates to:
+  /// **'Avg. monthly contribution: {amount}'**
+  String savingsGoalDetailsAverageContribution(String amount);
+
+  /// Estimated target completion date
+  ///
+  /// In en, this message translates to:
+  /// **'Target reached by {date}'**
+  String savingsGoalDetailsEstimatedDate(String date);
+
+  /// Text shown when target cannot be reached at current savings rate
+  ///
+  /// In en, this message translates to:
+  /// **'Target won\'t be reached at current rate'**
+  String get savingsGoalDetailsEstimatedNever;
+
+  /// Recommended monthly savings amount
+  ///
+  /// In en, this message translates to:
+  /// **'Recommended to save {amount}/mo'**
+  String savingsGoalDetailsRecommendedContribution(String amount);
+
+  /// Shown when no target date is set for a savings goal
+  ///
+  /// In en, this message translates to:
+  /// **'Target date not set'**
+  String get savingsGoalDetailsRecommendedNoTarget;
+
+  /// Header for storage accounts block in details
+  ///
+  /// In en, this message translates to:
+  /// **'Storage accounts'**
+  String get savingsGoalDetailsStorageAccounts;
+
+  /// Title for contribution history list
+  ///
+  /// In en, this message translates to:
+  /// **'Top-up history'**
+  String get savingsGoalDetailsHistoryTitle;
+
+  /// Shown when contribution history is empty
+  ///
+  /// In en, this message translates to:
+  /// **'No contributions made yet'**
+  String get savingsGoalDetailsHistoryEmpty;
+
+  /// Title for the delete contribution confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Delete contribution?'**
+  String get savingsGoalDetailsDeleteContributionTitle;
+
+  /// Confirmation message for deleting a contribution
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this contribution? The related account balance will be adjusted.'**
+  String get savingsGoalDetailsDeleteContributionConfirm;
 
   /// Fallback title for transactions without a note
   ///

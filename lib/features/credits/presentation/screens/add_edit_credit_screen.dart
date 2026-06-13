@@ -15,6 +15,7 @@ import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/core/widgets/phosphor_icon_picker.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
 import 'package:kopim/features/credits/domain/utils/credit_calculations.dart';
+import 'package:kopim/features/credits/domain/utils/credit_schedule_dates.dart';
 import 'package:kopim/features/accounts/presentation/widgets/account_color_selector.dart';
 import 'package:kopim/features/upcoming_payments/presentation/screens/edit_upcoming_payment_screen.dart';
 
@@ -185,14 +186,10 @@ class _AddEditCreditScreenState extends ConsumerState<AddEditCreditScreen> {
   }
 
   DateTime _resolveFirstPaymentDate(int paymentDay) {
-    final DateTime now = DateTime.now();
-    final DateTime nextMonth = DateTime(now.year, now.month + 1, 1);
-    final int maxDay = DateUtils.getDaysInMonth(
-      nextMonth.year,
-      nextMonth.month,
+    return resolveFirstCreditPaymentDate(
+      from: DateTime.now(),
+      paymentDay: paymentDay,
     );
-    final int safeDay = paymentDay.clamp(1, maxDay);
-    return DateTime(nextMonth.year, nextMonth.month, safeDay);
   }
 
   Future<void> _save() async {

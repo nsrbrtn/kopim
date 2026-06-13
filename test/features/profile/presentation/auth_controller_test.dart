@@ -115,13 +115,47 @@ class FakeAuthRepository implements AuthRepository {
   Future<AuthUser> updateEmail({
     required String newEmail,
     required String currentPassword,
-  }) => Future<AuthUser>.error(UnimplementedError());
+  }) {
+    final Future<AuthUser> Function({
+      required String newEmail,
+      required String currentPassword,
+    })?
+    handler = onUpdateEmail;
+    if (handler != null) {
+      return handler(newEmail: newEmail, currentPassword: currentPassword);
+    }
+    return Future<AuthUser>.error(UnimplementedError());
+  }
 
   @override
   Future<void> updatePassword({
     required String currentPassword,
     required String newPassword,
-  }) => Future<void>.error(UnimplementedError());
+  }) {
+    final Future<void> Function({
+      required String currentPassword,
+      required String newPassword,
+    })?
+    handler = onUpdatePassword;
+    if (handler != null) {
+      return handler(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      );
+    }
+    return Future<void>.error(UnimplementedError());
+  }
+
+  Future<AuthUser> Function({
+    required String newEmail,
+    required String currentPassword,
+  })?
+  onUpdateEmail;
+  Future<void> Function({
+    required String currentPassword,
+    required String newPassword,
+  })?
+  onUpdatePassword;
 
   void dispose() {
     _controller.close();

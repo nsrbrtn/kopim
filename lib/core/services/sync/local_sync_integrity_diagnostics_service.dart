@@ -2,6 +2,11 @@ import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/services/sync/sync_contract.dart';
+import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/accounts/domain/utils/liability_account_links.dart';
+import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
+import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
 import 'package:kopim/features/transactions/data/services/transaction_balance_helper.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
@@ -20,6 +25,7 @@ enum LocalSyncIntegrityIssueType {
   invalidCreditSchedule,
   staleSendingOutbox,
   unsupportedOutboxEntityType,
+  orphanLiabilityAccount,
 }
 
 class LocalSyncIntegrityIssue {
@@ -142,6 +148,12 @@ class LocalSyncIntegrityDiagnosticsService {
     final List<db.CreditRow> creditRows = await _database
         .select(_database.credits)
         .get();
+    final List<db.CreditCardRow> creditCardRows = await _database
+        .select(_database.creditCards)
+        .get();
+    final List<db.DebtRow> debtRows = await _database
+        .select(_database.debts)
+        .get();
     final List<db.OutboxEntryRow> outboxRows = await _database
         .select(_database.outboxEntries)
         .get();
@@ -178,6 +190,32 @@ class LocalSyncIntegrityDiagnosticsService {
           ),
         );
       }
+    }
+
+    final Set<String> activeLiabilityAccountIds =
+        collectActiveLiabilityAccountIds(
+          credits: creditRows.map(_mapCreditRow),
+          creditCards: creditCardRows.map(_mapCreditCardRow),
+          debts: debtRows.map(_mapDebtRow),
+        );
+    for (final db.AccountRow row in accountRows) {
+      final AccountEntity account = _mapAccountRow(row);
+      if (account.isDeleted ||
+          !isOrphanedLiabilityAccount(
+            account,
+            activeLiabilityAccountIds: activeLiabilityAccountIds,
+          )) {
+        continue;
+      }
+      issues.add(
+        LocalSyncIntegrityIssue(
+          type: LocalSyncIntegrityIssueType.orphanLiabilityAccount,
+          entityType: 'account',
+          entityId: row.id,
+          message:
+              'Liability account не имеет активной credit/debt/credit_card сущности.',
+        ),
+      );
     }
 
     for (final db.TransactionRow row in transactionRows) {
@@ -441,6 +479,78 @@ class LocalSyncIntegrityDiagnosticsService {
       date: row.date,
       note: row.note,
       type: row.type,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      isDeleted: row.isDeleted,
+    );
+  }
+
+  AccountEntity _mapAccountRow(db.AccountRow row) {
+    return AccountEntity(
+      id: row.id,
+      name: row.name,
+      balanceMinor: BigInt.tryParse(row.balanceMinor) ?? BigInt.zero,
+      openingBalanceMinor:
+          BigInt.tryParse(row.openingBalanceMinor) ?? BigInt.zero,
+      currency: row.currency,
+      currencyScale: row.currencyScale,
+      type: row.type,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      color: row.color,
+      gradientId: row.gradientId,
+      isDeleted: row.isDeleted,
+      isPrimary: row.isPrimary,
+      isHidden: row.isHidden,
+      iconName: row.iconName,
+      iconStyle: row.iconStyle,
+    );
+  }
+
+  CreditEntity _mapCreditRow(db.CreditRow row) {
+    return CreditEntity(
+      id: row.id,
+      accountId: row.accountId,
+      categoryId: row.categoryId,
+      interestCategoryId: row.interestCategoryId,
+      feesCategoryId: row.feesCategoryId,
+      totalAmountMinor: BigInt.tryParse(row.totalAmountMinor),
+      totalAmountScale: row.totalAmountScale,
+      interestRate: row.interestRate,
+      termMonths: row.termMonths,
+      startDate: row.startDate,
+      firstPaymentDate: row.firstPaymentDate,
+      paymentDay: row.paymentDay,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      isDeleted: row.isDeleted,
+    );
+  }
+
+  CreditCardEntity _mapCreditCardRow(db.CreditCardRow row) {
+    return CreditCardEntity(
+      id: row.id,
+      accountId: row.accountId,
+      creditLimitMinor: BigInt.tryParse(row.creditLimitMinor),
+      creditLimitScale: row.creditLimitScale,
+      statementDay: row.statementDay,
+      paymentDueDays: row.paymentDueDays,
+      interestRateAnnual: row.interestRateAnnual,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      isDeleted: row.isDeleted,
+    );
+  }
+
+  DebtEntity _mapDebtRow(db.DebtRow row) {
+    return DebtEntity(
+      id: row.id,
+      accountId: row.accountId,
+      name: row.name ?? '',
+      amountMinor: BigInt.tryParse(row.amountMinor),
+      amountScale: row.amountScale,
+      dueDate: row.dueDate,
+      note: row.note,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
       isDeleted: row.isDeleted,

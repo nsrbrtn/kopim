@@ -17,7 +17,7 @@
     "description": "Подсказка над кнопкой регистрации для анонимных пользователей"
   },
   "profileSectionAccount": "Учетная запись",
-  "profileCredentialsSectionTitle": "Логин и пароль",
+  "profileCredentialsSectionTitle": "Данные входа",
   "@profileCredentialsSectionTitle": {
     "description": "Заголовок секции логина и пароля в настройках профиля"
   },
@@ -3860,6 +3860,65 @@
         "type": "String"
       }
     }
+  },
+  "savingsGoalDetailsForecastTitle": "Прогноз накопления",
+  "@savingsGoalDetailsForecastTitle": {
+    "description": "Заголовок блока с прогнозом достижения цели"
+  },
+  "savingsGoalDetailsAverageContribution": "Ср. пополнение в месяц: {amount}",
+  "@savingsGoalDetailsAverageContribution": {
+    "description": "Текст среднего пополнения в месяц",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsGoalDetailsEstimatedDate": "Будет накоплено к {date}",
+  "@savingsGoalDetailsEstimatedDate": {
+    "description": "Текст прогнозируемой даты достижения цели",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsGoalDetailsEstimatedNever": "При текущем темпе цель не будет достигнута",
+  "@savingsGoalDetailsEstimatedNever": {
+    "description": "Текст при невозможности спрогнозировать достижение цели"
+  },
+  "savingsGoalDetailsRecommendedContribution": "Рекомендуется откладывать {amount}/мес.",
+  "@savingsGoalDetailsRecommendedContribution": {
+    "description": "Рекомендуемое пополнение для достижения цели к дате",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "savingsGoalDetailsRecommendedNoTarget": "Целевая дата не установлена",
+  "@savingsGoalDetailsRecommendedNoTarget": {
+    "description": "Текст о том, что целевая дата не установлена"
+  },
+  "savingsGoalDetailsStorageAccounts": "Счета накопления",
+  "@savingsGoalDetailsStorageAccounts": {
+    "description": "Заголовок блока со связанными счетами хранения"
+  },
+  "savingsGoalDetailsHistoryTitle": "История пополнений",
+  "@savingsGoalDetailsHistoryTitle": {
+    "description": "Заголовок истории пополнений"
+  },
+  "savingsGoalDetailsHistoryEmpty": "Вкладов пока не совершалось",
+  "@savingsGoalDetailsHistoryEmpty": {
+    "description": "Текст при пустой истории вкладов"
+  },
+  "savingsGoalDetailsDeleteContributionTitle": "Удалить вклад?",
+  "@savingsGoalDetailsDeleteContributionTitle": {
+    "description": "Заголовок диалога удаления вклада"
+  },
+  "savingsGoalDetailsDeleteContributionConfirm": "Вы уверены, что хотите удалить эту операцию пополнения? Баланс связанного счета будет скорректирован.",
+  "@savingsGoalDetailsDeleteContributionConfirm": {
+    "description": "Текст подтверждения удаления вклада"
   },
   "transactionDefaultTitle": "Транзакция",
   "@transactionDefaultTitle": {

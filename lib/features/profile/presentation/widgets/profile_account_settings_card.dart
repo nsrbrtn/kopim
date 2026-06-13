@@ -12,7 +12,6 @@ import 'package:kopim/features/profile/presentation/controllers/profile_controll
 import 'package:kopim/features/profile/presentation/controllers/profile_form_controller.dart';
 import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
 import 'package:kopim/features/profile/presentation/utils/auth_error_mapper.dart';
-import 'package:kopim/features/profile/presentation/widgets/settings_button_theme.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class ProfileAccountSettingsCard extends ConsumerWidget {
@@ -147,129 +146,126 @@ class _ProfileAccountFormState extends ConsumerState<_ProfileAccountForm> {
     final int initialKey =
         initialProfile?.updatedAt.millisecondsSinceEpoch ?? 0;
 
-    return Theme(
-      data: buildSettingsButtonTheme(theme),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              Icon(
-                Icons.person_outline,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  strings.profileSectionAccount,
-                  style: theme.textTheme.titleMedium,
-                ),
-              ),
-            ],
-          ),
-          if (widget.isAnonymous && !AppRuntimeConfig.isOffline) ...<Widget>[
-            const SizedBox(height: 16),
-            _AnonymousUpgradeBanner(strings: strings),
-          ],
-          const SizedBox(height: 16),
-          Text(strings.profileNameLabel, style: theme.textTheme.labelLarge),
-          const SizedBox(height: 8),
-          KopimTextField(
-            key: ValueKey<String>('profile-name-$initialKey'),
-            controller: _nameController,
-            placeholder: strings.profileNameLabel,
-            fillColor: theme.colorScheme.surfaceContainerHigh,
-            onChanged: formController.updateName,
-          ),
-          const SizedBox(height: 16),
-          KopimDropdownField<ProfileCurrency>(
-            key: ValueKey<String>(
-              'profile-currency-$initialKey-${currency.name}',
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            Icon(
+              Icons.person_outline,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
-            value: currency,
-            label: strings.profileCurrencyLabel,
-            items: ProfileCurrency.values
-                .map(
-                  (ProfileCurrency value) => DropdownMenuItem<ProfileCurrency>(
-                    value: value,
-                    child: Text(value.name.toUpperCase()),
-                  ),
-                )
-                .toList(growable: false),
-            onChanged: formController.updateCurrency,
-            fillColor: theme.colorScheme.surfaceContainerHigh,
-            valueLabelBuilder: (ProfileCurrency? value) =>
-                value?.name.toUpperCase() ?? '',
-          ),
-          const SizedBox(height: 16),
-          KopimDropdownField<String>(
-            key: ValueKey<String>('profile-locale-$initialKey-$locale'),
-            value: locale,
-            label: strings.profileLocaleLabel,
-            items: locales
-                .map(
-                  (String code) => DropdownMenuItem<String>(
-                    value: code,
-                    child: Text(code.toUpperCase()),
-                  ),
-                )
-                .toList(growable: false),
-            onChanged: (String? value) {
-              if (value != null) {
-                formController.updateLocale(value);
-              }
-            },
-            fillColor: theme.colorScheme.surfaceContainerHigh,
-            valueLabelBuilder: (String? value) => value?.toUpperCase() ?? '',
-          ),
-          if (widget.profileAsync.hasError) ...<Widget>[
-            const SizedBox(height: 12),
-            _InlineError(
-              message: strings.profileLoadError(
-                widget.profileAsync.error.toString(),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                strings.profileSectionAccount,
+                style: theme.textTheme.titleMedium,
               ),
             ),
           ],
-          if (errorMessage != null) ...<Widget>[
-            const SizedBox(height: 12),
-            _InlineError(message: errorMessage),
-          ],
+        ),
+        if (widget.isAnonymous && !AppRuntimeConfig.isOffline) ...<Widget>[
           const SizedBox(height: 16),
-          FilledButton.icon(
-            onPressed: !isSaving && hasChanges ? formController.submit : null,
-            style: FilledButton.styleFrom(
-              backgroundColor: theme.colorScheme.primary,
-              foregroundColor: theme.colorScheme.onPrimary,
-            ),
-            icon: isSaving
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.save_outlined),
-            label: Text(strings.profileSaveCta),
-          ),
-          if (!widget.isAnonymous) ...<Widget>[
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: isSaving
-                  ? null
-                  : () => _showDeleteAccountDialog(context, ref, strings),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: theme.colorScheme.error,
-                side: BorderSide(color: theme.colorScheme.error),
-              ),
-              icon: const Icon(Icons.delete_forever_outlined),
-              label: Text(strings.profileDeleteAccountCta),
-            ),
-          ],
-          if (widget.profileAsync.isLoading) ...<Widget>[
-            const SizedBox(height: 12),
-            const _CenteredProgress(size: 20),
-          ],
+          _AnonymousUpgradeBanner(strings: strings),
         ],
-      ),
+        const SizedBox(height: 16),
+        Text(strings.profileNameLabel, style: theme.textTheme.labelLarge),
+        const SizedBox(height: 8),
+        KopimTextField(
+          key: ValueKey<String>('profile-name-$initialKey'),
+          controller: _nameController,
+          placeholder: strings.profileNameLabel,
+          fillColor: theme.colorScheme.surfaceContainerHigh,
+          onChanged: formController.updateName,
+        ),
+        const SizedBox(height: 16),
+        KopimDropdownField<ProfileCurrency>(
+          key: ValueKey<String>(
+            'profile-currency-$initialKey-${currency.name}',
+          ),
+          value: currency,
+          label: strings.profileCurrencyLabel,
+          items: ProfileCurrency.values
+              .map(
+                (ProfileCurrency value) => DropdownMenuItem<ProfileCurrency>(
+                  value: value,
+                  child: Text(value.name.toUpperCase()),
+                ),
+              )
+              .toList(growable: false),
+          onChanged: formController.updateCurrency,
+          fillColor: theme.colorScheme.surfaceContainerHigh,
+          valueLabelBuilder: (ProfileCurrency? value) =>
+              value?.name.toUpperCase() ?? '',
+        ),
+        const SizedBox(height: 16),
+        KopimDropdownField<String>(
+          key: ValueKey<String>('profile-locale-$initialKey-$locale'),
+          value: locale,
+          label: strings.profileLocaleLabel,
+          items: locales
+              .map(
+                (String code) => DropdownMenuItem<String>(
+                  value: code,
+                  child: Text(code.toUpperCase()),
+                ),
+              )
+              .toList(growable: false),
+          onChanged: (String? value) {
+            if (value != null) {
+              formController.updateLocale(value);
+            }
+          },
+          fillColor: theme.colorScheme.surfaceContainerHigh,
+          valueLabelBuilder: (String? value) => value?.toUpperCase() ?? '',
+        ),
+        if (widget.profileAsync.hasError) ...<Widget>[
+          const SizedBox(height: 12),
+          _InlineError(
+            message: strings.profileLoadError(
+              widget.profileAsync.error.toString(),
+            ),
+          ),
+        ],
+        if (errorMessage != null) ...<Widget>[
+          const SizedBox(height: 12),
+          _InlineError(message: errorMessage),
+        ],
+        const SizedBox(height: 16),
+        FilledButton.icon(
+          onPressed: !isSaving && hasChanges ? formController.submit : null,
+          icon: isSaving
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.save_outlined),
+          label: Text(strings.profileSaveCta),
+        ),
+        if (!widget.isAnonymous) ...<Widget>[
+          const SizedBox(height: 12),
+          FilledButton.icon(
+            onPressed: isSaving
+                ? null
+                : () => _showDeleteAccountDialog(context, ref, strings),
+            style: ButtonStyle(
+              backgroundColor: WidgetStatePropertyAll<Color>(
+                theme.colorScheme.errorContainer,
+              ),
+              foregroundColor: WidgetStatePropertyAll<Color>(
+                theme.colorScheme.onErrorContainer,
+              ),
+            ),
+            icon: const Icon(Icons.delete_forever_outlined),
+            label: Text(strings.profileDeleteAccountCta),
+          ),
+        ],
+        if (widget.profileAsync.isLoading) ...<Widget>[
+          const SizedBox(height: 12),
+          const _CenteredProgress(size: 20),
+        ],
+      ],
     );
   }
 
@@ -411,13 +407,13 @@ class _ProfileAccountFormState extends ConsumerState<_ProfileAccountForm> {
                               }
                             }
                           : null,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: Theme.of(
-                          dialogBodyContext,
-                        ).colorScheme.error,
-                        foregroundColor: Theme.of(
-                          dialogBodyContext,
-                        ).colorScheme.onError,
+                      style: ButtonStyle(
+                        backgroundColor: WidgetStatePropertyAll<Color>(
+                          Theme.of(dialogBodyContext).colorScheme.error,
+                        ),
+                        foregroundColor: WidgetStatePropertyAll<Color>(
+                          Theme.of(dialogBodyContext).colorScheme.onError,
+                        ),
                       ),
                       child: isSubmitting
                           ? const SizedBox(

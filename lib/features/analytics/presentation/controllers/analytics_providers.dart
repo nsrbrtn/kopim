@@ -1,11 +1,12 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart' show immutable, listEquals;
+import 'package:flutter/foundation.dart' show immutable, listEquals, mapEquals;
 import 'package:flutter/material.dart' show DateTimeRange, DateUtils;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show StreamProviderFamily;
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
+import 'package:kopim/features/accounts/domain/utils/liability_account_links.dart';
 import 'package:kopim/features/accounts/domain/utils/account_type_utils.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_filter.dart';
 import 'package:kopim/features/analytics/domain/models/analytics_overview.dart';
@@ -14,7 +15,9 @@ import 'package:kopim/features/analytics/presentation/models/monthly_cashflow_da
 import 'package:kopim/features/analytics/presentation/controllers/analytics_filter_controller.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/core/money/money_utils.dart';
+import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
+import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/transactions/domain/models/monthly_balance_totals.dart';
 import 'package:kopim/features/transactions/domain/models/monthly_cashflow_totals.dart';
@@ -377,24 +380,17 @@ analyticsTransferTransactionsProvider = StreamProvider<List<TransactionEntity>>(
     final SortedIds selectedAccountIds = ref.watch(
       analyticsSelectedAccountIdsProvider,
     );
-    return _combineLatest3<
+    return _combineLatest2<
           List<TransactionEntity>,
-          List<AccountEntity>,
-          List<CreditEntity>,
+          _LiabilityAccountContext,
           List<TransactionEntity>
         >(
           ref.watch(transactionRepositoryProvider).watchTransactions(),
-          ref.watch(watchAccountsUseCaseProvider).call(),
-          ref.watch(watchCreditsUseCaseProvider).call(),
+          _watchLiabilityAccountContext(ref),
           (
             List<TransactionEntity> transactions,
-            List<AccountEntity> accounts,
-            List<CreditEntity> credits,
+            _LiabilityAccountContext context,
           ) {
-            final Set<String> liabilityAccountIds = _collectLiabilityAccountIds(
-              accounts: accounts,
-              credits: credits,
-            );
             return transactions
                 .where((TransactionEntity transaction) {
                   if (parseTransactionType(transaction.type) !=
@@ -407,12 +403,12 @@ analyticsTransferTransactionsProvider = StreamProvider<List<TransactionEntity>>(
                   }
                   final String? transferAccountId =
                       transaction.transferAccountId;
-                  final bool sourceIsLiability = liabilityAccountIds.contains(
+                  final bool sourceIsLiability = context.accountIds.contains(
                     transaction.accountId,
                   );
                   final bool targetIsLiability =
                       transferAccountId != null &&
-                      liabilityAccountIds.contains(transferAccountId);
+                      context.accountIds.contains(transferAccountId);
                   if (sourceIsLiability || targetIsLiability) {
                     return false;
                   }
@@ -709,22 +705,19 @@ analyticsCreditDebtOperationsProvider =
             },
           ).distinct(_listEqualsTransactions);
 
-      return _combineLatest4<
+      return _combineLatest3<
             List<TransactionEntity>,
             List<TransactionEntity>,
-            List<AccountEntity>,
-            List<CreditEntity>,
+            _LiabilityAccountContext,
             CreditDebtOperationsOverview
           >(
             transferTransactionsStream,
             serviceExpenseTransactionsStream,
-            ref.watch(watchAccountsUseCaseProvider).call(),
-            ref.watch(watchCreditsUseCaseProvider).call(),
+            _watchLiabilityAccountContext(ref),
             (
               List<TransactionEntity> transferTransactions,
               List<TransactionEntity> serviceExpenseTransactions,
-              List<AccountEntity> accounts,
-              List<CreditEntity> credits,
+              _LiabilityAccountContext context,
             ) {
               final List<TransactionEntity> transactions = <TransactionEntity>[
                 ...transferTransactions,
@@ -732,8 +725,7 @@ analyticsCreditDebtOperationsProvider =
               ];
               return _buildCreditDebtOperationsOverview(
                 transactions: transactions,
-                accounts: accounts,
-                credits: credits,
+                context: context,
                 dateWindow: window,
                 selectedAccountIds: selectedAccountIds,
               );
@@ -749,28 +741,21 @@ analyticsDebtOverviewProvider = StreamProvider<AnalyticsDebtOverview>((
   final TransactionRepository transactionRepository = ref.watch(
     transactionRepositoryProvider,
   );
-  return _combineLatest3<
+  return _combineLatest2<
         List<TransactionEntity>,
-        List<AccountEntity>,
-        List<CreditEntity>,
+        _LiabilityAccountContext,
         AnalyticsDebtOverview
       >(
         transactionRepository.watchTransactions(),
-        ref.watch(watchAccountsUseCaseProvider).call(),
-        ref.watch(watchCreditsUseCaseProvider).call(),
+        _watchLiabilityAccountContext(ref),
         (
           List<TransactionEntity> transactions,
-          List<AccountEntity> accounts,
-          List<CreditEntity> credits,
+          _LiabilityAccountContext context,
         ) {
-          final Set<String> liabilityAccountIds = _collectLiabilityAccountIds(
-            accounts: accounts,
-            credits: credits,
-          );
-          final List<AccountEntity> liabilityAccounts = accounts
+          final List<AccountEntity> liabilityAccounts = context.accounts
               .where(
                 (AccountEntity account) =>
-                    liabilityAccountIds.contains(account.id),
+                    context.accountIds.contains(account.id),
               )
               .toList(growable: false);
           if (liabilityAccounts.isEmpty) {
@@ -849,33 +834,18 @@ analyticsDebtOverviewProvider = StreamProvider<AnalyticsDebtOverview>((
 
 CreditDebtOperationsOverview _buildCreditDebtOperationsOverview({
   required List<TransactionEntity> transactions,
-  required List<AccountEntity> accounts,
-  required List<CreditEntity> credits,
+  required _LiabilityAccountContext context,
   required AnalyticsDateWindow dateWindow,
   required SortedIds selectedAccountIds,
 }) {
-  final Set<String> liabilityAccountIds = _collectLiabilityAccountIds(
-    accounts: accounts,
-    credits: credits,
-  );
+  final Set<String> liabilityAccountIds = context.accountIds;
 
   if (liabilityAccountIds.isEmpty) {
     return CreditDebtOperationsOverview.empty();
   }
 
   final Map<String, String> serviceCategoryToLiabilityAccount =
-      <String, String>{};
-  for (final CreditEntity credit in credits) {
-    final String accountId = credit.accountId;
-    final String? interestCategoryId = credit.interestCategoryId;
-    if (interestCategoryId != null && interestCategoryId.isNotEmpty) {
-      serviceCategoryToLiabilityAccount[interestCategoryId] = accountId;
-    }
-    final String? feesCategoryId = credit.feesCategoryId;
-    if (feesCategoryId != null && feesCategoryId.isNotEmpty) {
-      serviceCategoryToLiabilityAccount[feesCategoryId] = accountId;
-    }
-  }
+      context.serviceCategoryToLiabilityAccount;
 
   final MoneyAccumulator principalRepayment = MoneyAccumulator();
   final MoneyAccumulator principalInflow = MoneyAccumulator();
@@ -1546,22 +1516,6 @@ bool _listEqualsMonthlyCashflow(
   return true;
 }
 
-Set<String> _collectLiabilityAccountIds({
-  required List<AccountEntity> accounts,
-  required List<CreditEntity> credits,
-}) {
-  final Set<String> accountIds = accounts
-      .where((AccountEntity account) => isLiabilityAccountType(account.type))
-      .map((AccountEntity account) => account.id)
-      .toSet();
-  for (final CreditEntity credit in credits) {
-    if (credit.accountId.isNotEmpty) {
-      accountIds.add(credit.accountId);
-    }
-  }
-  return accountIds;
-}
-
 List<String> _sortedIds(Set<String> values) {
   final List<String> list = values.toList(growable: false);
   final List<String> mutable = List<String>.from(list)..sort();
@@ -1589,4 +1543,91 @@ class SortedIds {
 
   @override
   int get hashCode => Object.hashAll(ids);
+}
+
+class _LiabilityAccountContext {
+  const _LiabilityAccountContext({
+    required this.accounts,
+    required this.accountIds,
+    required this.serviceCategoryToLiabilityAccount,
+  });
+
+  final List<AccountEntity> accounts;
+  final Set<String> accountIds;
+  final Map<String, String> serviceCategoryToLiabilityAccount;
+}
+
+Stream<_LiabilityAccountContext> _watchLiabilityAccountContext(Ref ref) {
+  return _combineLatest4<
+        List<AccountEntity>,
+        List<CreditEntity>,
+        List<CreditCardEntity>,
+        List<DebtEntity>,
+        _LiabilityAccountContext
+      >(
+        ref.watch(watchAccountsUseCaseProvider).call(),
+        ref.watch(watchCreditsUseCaseProvider).call(),
+        ref.watch(watchCreditCardsUseCaseProvider).call(),
+        ref.watch(watchDebtsUseCaseProvider).call(),
+        (
+          List<AccountEntity> accounts,
+          List<CreditEntity> credits,
+          List<CreditCardEntity> creditCards,
+          List<DebtEntity> debts,
+        ) {
+          final Set<String> activeLiabilityAccountIds =
+              collectActiveLiabilityAccountIds(
+                credits: credits,
+                creditCards: creditCards,
+                debts: debts,
+              );
+          final List<AccountEntity> filteredAccounts =
+              excludeOrphanedLiabilityAccounts(
+                accounts: accounts,
+                activeLiabilityAccountIds: activeLiabilityAccountIds,
+              );
+          final Map<String, String> serviceCategoryToLiabilityAccount =
+              <String, String>{};
+          for (final CreditEntity credit in credits) {
+            if (credit.isDeleted || credit.accountId.isEmpty) {
+              continue;
+            }
+            final String? interestCategoryId = credit.interestCategoryId;
+            if (interestCategoryId != null && interestCategoryId.isNotEmpty) {
+              serviceCategoryToLiabilityAccount[interestCategoryId] =
+                  credit.accountId;
+            }
+            final String? feesCategoryId = credit.feesCategoryId;
+            if (feesCategoryId != null && feesCategoryId.isNotEmpty) {
+              serviceCategoryToLiabilityAccount[feesCategoryId] =
+                  credit.accountId;
+            }
+          }
+          return _LiabilityAccountContext(
+            accounts: filteredAccounts,
+            accountIds: activeLiabilityAccountIds,
+            serviceCategoryToLiabilityAccount: Map<String, String>.unmodifiable(
+              serviceCategoryToLiabilityAccount,
+            ),
+          );
+        },
+      )
+      .distinct(_liabilityAccountContextEquals);
+}
+
+bool _liabilityAccountContextEquals(
+  _LiabilityAccountContext first,
+  _LiabilityAccountContext second,
+) {
+  if (!_listEqualsAccounts(first.accounts, second.accounts)) {
+    return false;
+  }
+  if (first.accountIds.length != second.accountIds.length ||
+      !first.accountIds.containsAll(second.accountIds)) {
+    return false;
+  }
+  return mapEquals(
+    first.serviceCategoryToLiabilityAccount,
+    second.serviceCategoryToLiabilityAccount,
+  );
 }
