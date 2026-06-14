@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:convert';
 
 import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:intl/intl.dart';
+import 'package:kopim/core/services/sync/sync_conflict_types.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kopim/core/data/database.dart';
@@ -179,9 +181,36 @@ class AuthSyncService {
        _dataSanitizer = dataSanitizer,
        _payloadNormalizer = payloadNormalizer;
 
+  static const String entityTypeTransaction = 'transaction';
+  static const String entityTypeTransactionTag = 'transaction_tag';
+  static const String entityTypeCategory = 'category';
+  static const String entityTypeAccount = 'account';
+  static const String entityTypeTag = 'tag';
+  static const String entityTypeCredit = 'credit';
+  static const String entityTypeCreditCard = 'credit_card';
+  static const String entityTypeDebt = 'debt';
+  static const String entityTypeCreditPaymentGroup = 'credit_payment_group';
+  static const String entityTypeCreditPaymentSchedule =
+      'credit_payment_schedule';
+  static const String entityTypeBudget = 'budget';
+  static const String entityTypeBudgetInstance = 'budget_instance';
+  static const String entityTypeSavingGoal = 'saving_goal';
+  static const String entityTypeUpcomingPayment = 'upcoming_payment';
+  static const String entityTypePaymentReminder = 'payment_reminder';
+  static const String entityTypeProfile = 'profile';
+
+  late final SyncConflictDao _syncConflictDao = SyncConflictDao(_database);
+  int _pushBatchSize = 200;
+
+  int get pushBatchSize => _pushBatchSize;
+  set pushBatchSize(int value) {
+    _pushBatchSize = value.clamp(50, 300);
+  }
+
   static const Duration _staleSendingRecoveryWindow = Duration(minutes: 5);
 
   static const int _outboxBatchSize = 500;
+  static const int maxRegistryEntriesPerShardSoftLimit = 3000;
 
   final AppDatabase _database;
   final OutboxDao _outboxDao;
@@ -260,16 +289,259 @@ class AuthSyncService {
     );
 
     List<db.OutboxEntryRow> preparedEntries = <db.OutboxEntryRow>[];
+    bool wasFallbackUsed = false;
     try {
-      preparedEntries = await _applyAllPendingOutbox(user.uid);
+      // 1. recoverStaleSending()
+      await _outboxDao.resetStaleSendingToPending(
+        cutoff: DateTime.now().subtract(_staleSendingRecoveryWindow),
+      );
+
+      // 2. pullRemoteRegistry()
+      final _RemoteRegistryPullResult registryResult =
+          await _pullRemoteRegistry(user.uid);
+      final Map<String, Map<String, _RemoteEntityMetadata>> remoteMetadata =
+          registryResult.metadata;
+      wasFallbackUsed = registryResult.wasFallbackUsed;
+
+      // 3. readOutbox()
+      final List<db.OutboxEntryRow> allPending = await _outboxDao.fetchPending(
+        limit: 10000,
+      );
+
+      // 4. classifyOutboxEntries()
+      final List<db.OutboxEntryRow> safeEntries = <db.OutboxEntryRow>[];
+      final List<db.OutboxEntryRow> conflictedEntries = <db.OutboxEntryRow>[];
+      final List<db.OutboxEntryRow> staleEntries = <db.OutboxEntryRow>[];
+
+      for (final db.OutboxEntryRow entry in allPending) {
+        final Map<String, dynamic> payload = _payloadNormalizer.normalize(
+          entry.entityType,
+          _outboxDao.decodePayload(entry),
+        );
+
+        if (entry.entityType == entityTypeCategory) {
+          final Category category = Category.fromJson(payload);
+          if (category.isMissingReferencePlaceholder) {
+            continue;
+          }
+        }
+
+        final _RemoteEntityMetadata? remoteMeta =
+            remoteMetadata[entry.entityType]?[_registryEntityKey(
+              entityType: entry.entityType,
+              entityId: entry.entityId,
+            )];
+
+        if (remoteMeta != null) {
+          final DateTime? localUpdatedAt = _extractOutboxUpdatedAt(
+            entry.entityType,
+            payload,
+          );
+          bool isStale = false;
+
+          if (entry.entityType == entityTypeAccount) {
+            final int localTypeVersion = _extractAccountTypeVersion(payload);
+            final int remoteTypeVersion = remoteMeta.typeVersion ?? 0;
+            if (localTypeVersion < remoteTypeVersion) {
+              isStale = true;
+              _logger.logInfo(
+                'AuthSyncService: prevented legacy rollback for account '
+                '${entry.entityId} (local=$localTypeVersion, remote=$remoteTypeVersion).',
+              );
+              unawaited(
+                _analyticsService.logEvent(
+                  'account_type_rollback_prevented',
+                  <String, dynamic>{
+                    'localTypeVersion': localTypeVersion,
+                    'remoteTypeVersion': remoteTypeVersion,
+                  },
+                ),
+              );
+            }
+          }
+
+          if (!isStale && localUpdatedAt != null) {
+            if (localUpdatedAt.isBefore(remoteMeta.updatedAt)) {
+              isStale = true;
+            }
+          }
+
+          if (isStale) {
+            staleEntries.add(entry);
+            continue;
+          }
+        }
+
+        if (_hasRemoteChangedSinceBase(
+          remote: remoteMeta,
+          outboxEntry: entry,
+        )) {
+          conflictedEntries.add(entry);
+        } else {
+          safeEntries.add(entry);
+        }
+      }
+
+      // 5. persistConflicts()
+      for (final db.OutboxEntryRow entry in conflictedEntries) {
+        final Map<String, dynamic> payload = _payloadNormalizer.normalize(
+          entry.entityType,
+          _outboxDao.decodePayload(entry),
+        );
+        final DateTime localUpdatedAt =
+            _extractOutboxUpdatedAt(entry.entityType, payload) ??
+            DateTime.now();
+        final _RemoteEntityMetadata? remoteMeta =
+            remoteMetadata[entry.entityType]?[_registryEntityKey(
+              entityType: entry.entityType,
+              entityId: entry.entityId,
+            )];
+
+        final SyncConflictType conflictType =
+            (entry.operation == 'delete' || (remoteMeta?.isDeleted ?? false))
+            ? SyncConflictType.deleteUpdate
+            : SyncConflictType.updateUpdate;
+
+        final String conflictKey =
+            '${entry.entityType}_${entry.entityId}_${conflictType.value}';
+        final Map<String, String> metadata = <String, String>{
+          'localUpdatedAt': localUpdatedAt.toIso8601String(),
+          'operation': entry.operation,
+        };
+        if (remoteMeta != null) {
+          metadata['remoteUpdatedAt'] = remoteMeta.updatedAt.toIso8601String();
+        }
+
+        await _syncConflictDao.upsertConflict(
+          conflictKey: conflictKey,
+          entityType: entry.entityType,
+          entityId: entry.entityId,
+          conflictType: conflictType.value,
+          severity: 'warning',
+          status: 'pending',
+          localPayloadJson: jsonEncode(payload),
+          metadataJson: jsonEncode(metadata),
+        );
+      }
+
+      // 6. pushSafeEntriesInChunks()
+      final List<db.OutboxEntryRow> successfullyPushed = <db.OutboxEntryRow>[];
+
+      if (staleEntries.isNotEmpty) {
+        final List<int> staleIds = staleEntries
+            .map((db.OutboxEntryRow e) => e.id)
+            .toList();
+        await _outboxDao.markBatchAsSent(staleIds);
+        await _outboxDao.pruneSent();
+        successfullyPushed.addAll(staleEntries);
+      }
+
+      int currentBatchSize = pushBatchSize;
+      int chunkIdx = 0;
+
+      while (chunkIdx < safeEntries.length) {
+        final int chunkSize = (chunkIdx + currentBatchSize > safeEntries.length)
+            ? safeEntries.length - chunkIdx
+            : currentBatchSize;
+        final List<db.OutboxEntryRow> chunk = safeEntries.sublist(
+          chunkIdx,
+          chunkIdx + chunkSize,
+        );
+
+        final List<int> chunkIds = chunk
+            .map((db.OutboxEntryRow e) => e.id)
+            .toList();
+        await _database.transaction(() async {
+          for (final db.OutboxEntryRow entry in chunk) {
+            await _outboxDao.prepareForSend(entry);
+          }
+        });
+
+        try {
+          final _PushChunkResult result = await _pushSafeChunkWithRegistryGuard(
+            user.uid,
+            chunk,
+          );
+
+          if (result.conflicted.isNotEmpty) {
+            final List<int> conflictedIds = result.conflicted
+                .map((db.OutboxEntryRow e) => e.id)
+                .toList();
+            await _outboxDao.resetAllToPending(conflictedIds);
+
+            for (final db.OutboxEntryRow entry in result.conflicted) {
+              final Map<String, dynamic> payload = _payloadNormalizer.normalize(
+                entry.entityType,
+                _outboxDao.decodePayload(entry),
+              );
+              final DateTime localUpdatedAt =
+                  _extractOutboxUpdatedAt(entry.entityType, payload) ??
+                  DateTime.now();
+              const SyncConflictType conflictType =
+                  SyncConflictType.updateUpdate;
+              final String conflictKey =
+                  '${entry.entityType}_${entry.entityId}_${conflictType.value}';
+              final Map<String, String> metadata = <String, String>{
+                'localUpdatedAt': localUpdatedAt.toIso8601String(),
+                'operation': entry.operation,
+                'note': 'Registry changed during transaction',
+              };
+
+              await _syncConflictDao.upsertConflict(
+                conflictKey: conflictKey,
+                entityType: entry.entityType,
+                entityId: entry.entityId,
+                conflictType: conflictType.value,
+                severity: 'warning',
+                status: 'pending',
+                localPayloadJson: jsonEncode(payload),
+                metadataJson: jsonEncode(metadata),
+              );
+            }
+          }
+
+          if (result.pushed.isNotEmpty) {
+            successfullyPushed.addAll(result.pushed);
+            final List<int> pushedIds = result.pushed
+                .map((db.OutboxEntryRow e) => e.id)
+                .toList();
+            await _outboxDao.markBatchAsSent(pushedIds);
+            await _outboxDao.pruneSent();
+          }
+
+          chunkIdx += chunkSize;
+        } catch (e) {
+          final bool isRetryable =
+              e.toString().contains('RESOURCE_EXHAUSTED') ||
+              e.toString().contains('ABORTED') ||
+              e.toString().contains('ResourceExhausted');
+
+          if (isRetryable && currentBatchSize > 50) {
+            currentBatchSize = (currentBatchSize / 2).floor().clamp(50, 300);
+            _logger.logInfo(
+              'AuthSyncService: Resource exhausted or aborted, retrying chunk with batch size: $currentBatchSize',
+            );
+            await _outboxDao.resetAllToPending(chunkIds);
+            continue;
+          } else {
+            await _outboxDao.resetAllToPending(chunkIds);
+            rethrow;
+          }
+        }
+      }
+
+      preparedEntries = successfullyPushed;
+
+      // 8. fullPullAndMerge()
       final _RemoteSnapshot remoteSnapshot = await _fetchRemoteSnapshot(
         user.uid,
       );
       await _persistMergedState(
         remoteSnapshot: remoteSnapshot,
-        processedEntries: preparedEntries,
+        processedEntries: successfullyPushed,
         user: user,
       );
+
       final List<db.OutboxEntryRow> backfillEntries =
           await _runDeferredAccountTypeBackfill(user.uid);
       if (backfillEntries.isNotEmpty) {
@@ -278,6 +550,12 @@ class AuthSyncService {
           ...backfillEntries,
         ];
       }
+
+      // 9. bootstrapRegistry()
+      if (wasFallbackUsed) {
+        await _bootstrapRegistry(user.uid);
+      }
+
       await _runIntegrityDiagnostics(context: 'auth_sync');
       await _analyticsService.logEvent('auth_sync_success', <String, dynamic>{
         ...syncContext,
@@ -296,20 +574,12 @@ class AuthSyncService {
         'remoteSavingGoals': remoteSnapshot.savingGoals.length,
         'remoteRecurringPayments': remoteSnapshot.upcomingPayments.length,
       });
+
       _logger.logInfo(
         'AuthSyncService: login sync completed for ${user.uid}. '
         'Accounts: ${remoteSnapshot.accounts.length}, '
         'Categories: ${remoteSnapshot.categories.length}, '
-        'Transactions: ${remoteSnapshot.transactions.length}, '
-        'Credits: ${remoteSnapshot.credits.length}, '
-        'Credit cards: ${remoteSnapshot.creditCards.length}, '
-        'Debts: ${remoteSnapshot.debts.length}, '
-        'Credit payment groups: ${remoteSnapshot.creditPaymentGroups.length}, '
-        'Credit payment schedules: '
-        '${remoteSnapshot.creditPaymentSchedules.length}, '
-        'Budgets: ${remoteSnapshot.budgets.length}, '
-        'Savings goals: ${remoteSnapshot.savingGoals.length}, '
-        'Recurring payments: ${remoteSnapshot.upcomingPayments.length}.',
+        'Transactions: ${remoteSnapshot.transactions.length}.',
       );
     } catch (error, stackTrace) {
       _logger.logError(
@@ -321,9 +591,11 @@ class AuthSyncService {
       // ignore: avoid_print
       print(stackTrace);
       _analyticsService.reportError(error, stackTrace);
-      await _outboxDao.resetAllToPending(
-        preparedEntries.map((OutboxEntryRow entry) => entry.id),
-      );
+      if (preparedEntries.isNotEmpty) {
+        await _outboxDao.resetAllToPending(
+          preparedEntries.map((db.OutboxEntryRow entry) => entry.id),
+        );
+      }
       throw const AuthFailure(
         code: 'sync-failed',
         message: 'Failed to synchronize data. Please try again later.',
@@ -475,326 +747,514 @@ class AuthSyncService {
 
   Future<void> _applyOutboxToFirestore(
     String userId,
-    List<db.OutboxEntryRow> entries,
-  ) async {
+    List<db.OutboxEntryRow> entries, {
+    Transaction? transaction,
+    bool useRegistryFreshnessCheck = false,
+  }) async {
     if (entries.isEmpty) return;
+
+    if (transaction == null) {
+      await _firestore.runTransaction((Transaction tx) async {
+        await _applyOutboxToFirestore(
+          userId,
+          entries,
+          transaction: tx,
+          useRegistryFreshnessCheck: useRegistryFreshnessCheck,
+        );
+      });
+      return;
+    }
 
     final Map<int, Map<String, dynamic>> normalizedPayloads =
         <int, Map<String, dynamic>>{};
-    final Map<int, bool> shouldApplyByEntryId = <int, bool>{};
     for (final OutboxEntryRow entry in entries) {
-      final Map<String, dynamic> payload = _payloadNormalizer.normalize(
+      normalizedPayloads[entry.id] = _payloadNormalizer.normalize(
         entry.entityType,
         _outboxDao.decodePayload(entry),
       );
-      normalizedPayloads[entry.id] = payload;
-      shouldApplyByEntryId[entry.id] = await _shouldApplyOutboxEntry(
-        userId: userId,
-        entry: entry,
-        payload: payload,
+    }
+
+    final Map<int, bool> shouldApplyByEntryId = <int, bool>{};
+
+    if (useRegistryFreshnessCheck) {
+      final Set<String> affectedShardIds = <String>{};
+      for (final db.OutboxEntryRow entry in entries) {
+        if (entry.entityType == entityTypeCategory) {
+          final Map<String, dynamic> payload = normalizedPayloads[entry.id]!;
+          final Category category = Category.fromJson(payload);
+          if (category.isMissingReferencePlaceholder) {
+            continue;
+          }
+        }
+        affectedShardIds.add(
+          _registryShardId(
+            entityType: entry.entityType,
+            entityId: entry.entityId,
+          ),
+        );
+      }
+
+      final Map<String, Map<String, dynamic>> currentRegistryData =
+          <String, Map<String, dynamic>>{};
+      for (final String shardId in affectedShardIds) {
+        final DocumentReference<Map<String, dynamic>> docRef = _firestore
+            .collection('users')
+            .doc(userId)
+            .collection('sync_registry')
+            .doc(shardId);
+        final DocumentSnapshot<Map<String, dynamic>> docSnap = await transaction
+            .get(docRef);
+        final Map<String, dynamic>? data = docSnap.data();
+        final Map<String, dynamic> metadata =
+            data?['metadata'] as Map<String, dynamic>? ?? <String, dynamic>{};
+        currentRegistryData[shardId] = metadata;
+      }
+
+      for (final db.OutboxEntryRow entry in entries) {
+        if (entry.entityType == entityTypeCategory) {
+          final Map<String, dynamic> payload = normalizedPayloads[entry.id]!;
+          final Category category = Category.fromJson(payload);
+          if (category.isMissingReferencePlaceholder) {
+            shouldApplyByEntryId[entry.id] = false;
+            continue;
+          }
+        }
+
+        final String shardId = _registryShardId(
+          entityType: entry.entityType,
+          entityId: entry.entityId,
+        );
+        final Map<String, dynamic>? remoteMetaMap =
+            currentRegistryData[shardId]?[_registryEntityKey(
+                  entityType: entry.entityType,
+                  entityId: entry.entityId,
+                )]
+                as Map<String, dynamic>?;
+        if (remoteMetaMap != null) {
+          final dynamic remoteUpdatedAtVal = remoteMetaMap['updatedAt'];
+          DateTime? remoteUpdatedAt;
+          if (remoteUpdatedAtVal is Timestamp) {
+            remoteUpdatedAt = remoteUpdatedAtVal.toDate().toUtc();
+          } else if (remoteUpdatedAtVal is String) {
+            remoteUpdatedAt = DateTime.tryParse(remoteUpdatedAtVal)?.toUtc();
+          }
+
+          if (remoteUpdatedAt != null) {
+            final DateTime? baseRemoteUpdatedAt = entry.baseRemoteUpdatedAt;
+            if (baseRemoteUpdatedAt == null) {
+              throw RegistryConflictException(
+                'Registry changed unexpectedly (legacy base was null, but remote document exists) for ${entry.entityType} ${entry.entityId}',
+              );
+            }
+            if (remoteUpdatedAt != baseRemoteUpdatedAt) {
+              throw RegistryConflictException(
+                'Registry changed unexpectedly for ${entry.entityType} ${entry.entityId}. '
+                'Base: $baseRemoteUpdatedAt, Server: $remoteUpdatedAt',
+              );
+            }
+          }
+        }
+        shouldApplyByEntryId[entry.id] = true;
+      }
+    } else {
+      for (final OutboxEntryRow entry in entries) {
+        shouldApplyByEntryId[entry.id] = await _shouldApplyOutboxEntry(
+          userId: userId,
+          entry: entry,
+          payload: normalizedPayloads[entry.id]!,
+        );
+      }
+    }
+
+    final Map<String, Map<String, dynamic>> registryUpdates =
+        <String, Map<String, dynamic>>{};
+
+    for (final OutboxEntryRow entry in entries) {
+      final Map<String, dynamic> payload = normalizedPayloads[entry.id]!;
+      final bool shouldApply = shouldApplyByEntryId[entry.id] ?? true;
+      if (!shouldApply) {
+        continue;
+      }
+      final OutboxOperation operation = OutboxOperation.values.byName(
+        entry.operation,
+      );
+      switch (entry.entityType) {
+        case 'account':
+          final AccountEntity account = _applyAccountMoney(
+            AccountEntity.fromJson(payload),
+            payload,
+          );
+          if (operation == OutboxOperation.delete) {
+            _accountRemoteDataSource.deleteInTransaction(
+              transaction,
+              userId,
+              account,
+            );
+          } else {
+            _accountRemoteDataSource.upsertInTransaction(
+              transaction,
+              userId,
+              account,
+            );
+          }
+          break;
+        case 'category':
+          final Category category = Category.fromJson(payload);
+          if (operation == OutboxOperation.delete) {
+            _categoryRemoteDataSource.deleteInTransaction(
+              transaction,
+              userId,
+              category,
+            );
+          } else {
+            _categoryRemoteDataSource.upsertInTransaction(
+              transaction,
+              userId,
+              category,
+            );
+          }
+          break;
+        case 'tag':
+          final TagEntity tag = TagEntity.fromJson(payload);
+          if (operation == OutboxOperation.delete) {
+            _tagRemoteDataSource.deleteInTransaction(transaction, userId, tag);
+          } else {
+            _tagRemoteDataSource.upsertInTransaction(transaction, userId, tag);
+          }
+          break;
+        case 'transaction':
+          final TransactionEntity transactionEntity = _applyTransactionMoney(
+            TransactionEntity.fromJson(payload),
+            payload,
+          );
+          if (operation == OutboxOperation.delete) {
+            _transactionRemoteDataSource.deleteInTransaction(
+              transaction,
+              userId,
+              transactionEntity,
+            );
+          } else {
+            _transactionRemoteDataSource.upsertInTransaction(
+              transaction,
+              userId,
+              transactionEntity,
+            );
+          }
+          break;
+        case 'transaction_tag':
+          final TransactionTagEntity link = TransactionTagEntity.fromJson(
+            payload,
+          );
+          if (operation == OutboxOperation.delete) {
+            _transactionTagRemoteDataSource.deleteInTransaction(
+              transaction,
+              userId,
+              link,
+            );
+          } else {
+            _transactionTagRemoteDataSource.upsertInTransaction(
+              transaction,
+              userId,
+              link,
+            );
+          }
+          break;
+        case 'credit':
+          final CreditEntity credit = _applyCreditMoney(
+            CreditEntity.fromJson(payload),
+            payload,
+          );
+          if (operation == OutboxOperation.delete) {
+            _creditRemoteDataSource.deleteInTransaction(
+              transaction,
+              userId,
+              credit,
+            );
+          } else {
+            _creditRemoteDataSource.upsertInTransaction(
+              transaction,
+              userId,
+              credit,
+            );
+          }
+          break;
+        case 'credit_card':
+          final CreditCardEntity creditCard = _applyCreditCardMoney(
+            CreditCardEntity.fromJson(payload),
+            payload,
+          );
+          if (operation == OutboxOperation.delete) {
+            _creditCardRemoteDataSource.deleteInTransaction(
+              transaction,
+              userId,
+              creditCard,
+            );
+          } else {
+            _creditCardRemoteDataSource.upsertInTransaction(
+              transaction,
+              userId,
+              creditCard,
+            );
+          }
+          break;
+        case 'debt':
+          final DebtEntity debt = _applyDebtMoney(
+            DebtEntity.fromJson(payload),
+            payload,
+          );
+          if (operation == OutboxOperation.delete) {
+            _debtRemoteDataSource.deleteInTransaction(
+              transaction,
+              userId,
+              debt,
+            );
+          } else {
+            _debtRemoteDataSource.upsertInTransaction(
+              transaction,
+              userId,
+              debt,
+            );
+          }
+          break;
+        case 'credit_payment_group':
+          final CreditPaymentGroupEntity group = _groupFromPayload(payload);
+          if (operation == OutboxOperation.delete) {
+            _creditPaymentGroupRemoteDataSource.deleteInTransaction(
+              transaction,
+              userId,
+              group.copyWith(isDeleted: true),
+            );
+          } else {
+            _creditPaymentGroupRemoteDataSource.upsertInTransaction(
+              transaction,
+              userId,
+              group.copyWith(isDeleted: false),
+            );
+          }
+          break;
+        case 'credit_payment_schedule':
+          final CreditPaymentScheduleEntity schedule = _scheduleFromPayload(
+            payload,
+          );
+          if (operation == OutboxOperation.delete) {
+            _creditPaymentScheduleRemoteDataSource.deleteInTransaction(
+              transaction,
+              userId,
+              schedule.copyWith(isDeleted: true),
+            );
+          } else {
+            _creditPaymentScheduleRemoteDataSource.upsertInTransaction(
+              transaction,
+              userId,
+              schedule.copyWith(isDeleted: false),
+            );
+          }
+          break;
+        case 'profile':
+          if (operation == OutboxOperation.delete) {
+            continue;
+          }
+          final Profile profile = Profile.fromJson(payload);
+          _profileRemoteDataSource.upsertInTransaction(
+            transaction,
+            userId,
+            profile,
+          );
+          break;
+        case 'budget':
+          final Budget budget = _applyBudgetMoney(
+            Budget.fromJson(payload),
+            payload,
+          );
+          if (operation == OutboxOperation.delete) {
+            _budgetRemoteDataSource.deleteInTransaction(
+              transaction,
+              userId,
+              budget,
+            );
+          } else {
+            _budgetRemoteDataSource.upsertInTransaction(
+              transaction,
+              userId,
+              budget,
+            );
+          }
+          break;
+        case 'budget_instance':
+          final BudgetInstance instance = _applyBudgetInstanceMoney(
+            BudgetInstance.fromJson(payload),
+            payload,
+          );
+          if (operation == OutboxOperation.delete) {
+            _budgetInstanceRemoteDataSource.deleteInTransaction(
+              transaction,
+              userId,
+              instance,
+            );
+          } else {
+            _budgetInstanceRemoteDataSource.upsertInTransaction(
+              transaction,
+              userId,
+              instance,
+            );
+          }
+          break;
+        case 'saving_goal':
+          final SavingGoal goal = SavingGoal.fromJson(payload);
+          if (operation == OutboxOperation.delete) {
+            _savingGoalRemoteDataSource.deleteInTransaction(
+              transaction,
+              userId,
+              goal,
+            );
+          } else {
+            _savingGoalRemoteDataSource.upsertInTransaction(
+              transaction,
+              userId,
+              goal,
+            );
+          }
+          break;
+        case 'upcoming_payment':
+          final UpcomingPayment payment = _applyUpcomingPaymentMoney(
+            UpcomingPayment.fromJson(payload),
+            payload,
+          );
+          if (operation == OutboxOperation.delete) {
+            _upcomingPaymentRemoteDataSource.deleteInTransaction(
+              transaction,
+              userId,
+              payment,
+            );
+          } else {
+            _upcomingPaymentRemoteDataSource.upsertInTransaction(
+              transaction,
+              userId,
+              payment,
+            );
+          }
+          break;
+        case 'payment_reminder':
+          final PaymentReminder reminder = _applyPaymentReminderMoney(
+            PaymentReminder.fromJson(payload),
+            payload,
+          );
+          if (operation == OutboxOperation.delete) {
+            _paymentReminderRemoteDataSource.deleteInTransaction(
+              transaction,
+              userId,
+              reminder,
+            );
+          } else {
+            _paymentReminderRemoteDataSource.upsertInTransaction(
+              transaction,
+              userId,
+              reminder,
+            );
+          }
+          break;
+        default:
+          throw UnsupportedError(
+            'Unsupported outbox entity type ${entry.entityType}',
+          );
+      }
+
+      final DateTime? localUpdatedAt = _extractOutboxUpdatedAt(
+        entry.entityType,
+        payload,
+      );
+      if (localUpdatedAt != null) {
+        bool skipRegistry = false;
+        if (entry.entityType == entityTypeCategory) {
+          final Category category = Category.fromJson(payload);
+          if (category.isMissingReferencePlaceholder) {
+            skipRegistry = true;
+          }
+        }
+        if (!skipRegistry) {
+          final String shardId = _registryShardId(
+            entityType: entry.entityType,
+            entityId: entry.entityId,
+          );
+          final Map<String, dynamic> shardUpdates = registryUpdates.putIfAbsent(
+            shardId,
+            () => <String, dynamic>{},
+          );
+          final bool isDeleted = operation == OutboxOperation.delete;
+          int? typeVersion;
+          if (entry.entityType == entityTypeAccount) {
+            typeVersion = _extractAccountTypeVersion(payload);
+          }
+
+          final Map<String, dynamic> updateData = <String, dynamic>{
+            'updatedAt': Timestamp.fromDate(localUpdatedAt),
+            'isDeleted': isDeleted,
+          };
+          if (typeVersion != null) {
+            updateData['typeVersion'] = typeVersion;
+          }
+          shardUpdates[_registryEntityKey(
+                entityType: entry.entityType,
+                entityId: entry.entityId,
+              )] =
+              updateData;
+        }
+      }
+    }
+
+    registryUpdates.forEach((String shardId, Map<String, dynamic> metadataMap) {
+      if (metadataMap.length > maxRegistryEntriesPerShardSoftLimit) {
+        _logger.logWarning(
+          'AuthSyncService: sync_registry shard $shardId exceeds soft limit of $maxRegistryEntriesPerShardSoftLimit entries (${metadataMap.length})',
+        );
+      }
+      final DocumentReference<Map<String, dynamic>> docRef = _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('sync_registry')
+          .doc(shardId);
+      transaction.set(docRef, <String, dynamic>{
+        'metadata': metadataMap,
+      }, SetOptions(merge: true));
+    });
+  }
+
+  Future<_PushChunkResult> _pushSafeChunkWithRegistryGuard(
+    String userId,
+    List<db.OutboxEntryRow> entries,
+  ) async {
+    if (entries.isEmpty) {
+      return _PushChunkResult(
+        pushed: const <db.OutboxEntryRow>[],
+        conflicted: const <db.OutboxEntryRow>[],
       );
     }
 
-    await _firestore.runTransaction((Transaction transaction) async {
-      for (final OutboxEntryRow entry in entries) {
-        final Map<String, dynamic> payload = normalizedPayloads[entry.id]!;
-        final bool shouldApply = shouldApplyByEntryId[entry.id] ?? true;
-        if (!shouldApply) {
-          continue;
-        }
-        final OutboxOperation operation = OutboxOperation.values.byName(
-          entry.operation,
+    try {
+      await _firestore.runTransaction((Transaction tx) async {
+        await _applyOutboxToFirestore(
+          userId,
+          entries,
+          transaction: tx,
+          useRegistryFreshnessCheck: true,
         );
-        switch (entry.entityType) {
-          case 'account':
-            final AccountEntity account = _applyAccountMoney(
-              AccountEntity.fromJson(payload),
-              payload,
-            );
-            if (operation == OutboxOperation.delete) {
-              _accountRemoteDataSource.deleteInTransaction(
-                transaction,
-                userId,
-                account,
-              );
-            } else {
-              _accountRemoteDataSource.upsertInTransaction(
-                transaction,
-                userId,
-                account,
-              );
-            }
-            break;
-          case 'category':
-            final Category category = Category.fromJson(payload);
-            if (operation == OutboxOperation.delete) {
-              _categoryRemoteDataSource.deleteInTransaction(
-                transaction,
-                userId,
-                category,
-              );
-            } else {
-              _categoryRemoteDataSource.upsertInTransaction(
-                transaction,
-                userId,
-                category,
-              );
-            }
-            break;
-          case 'tag':
-            final TagEntity tag = TagEntity.fromJson(payload);
-            if (operation == OutboxOperation.delete) {
-              _tagRemoteDataSource.deleteInTransaction(
-                transaction,
-                userId,
-                tag,
-              );
-            } else {
-              _tagRemoteDataSource.upsertInTransaction(
-                transaction,
-                userId,
-                tag,
-              );
-            }
-            break;
-          case 'transaction':
-            final TransactionEntity transactionEntity = _applyTransactionMoney(
-              TransactionEntity.fromJson(payload),
-              payload,
-            );
-            if (operation == OutboxOperation.delete) {
-              _transactionRemoteDataSource.deleteInTransaction(
-                transaction,
-                userId,
-                transactionEntity,
-              );
-            } else {
-              _transactionRemoteDataSource.upsertInTransaction(
-                transaction,
-                userId,
-                transactionEntity,
-              );
-            }
-            break;
-          case 'transaction_tag':
-            final TransactionTagEntity link = TransactionTagEntity.fromJson(
-              payload,
-            );
-            if (operation == OutboxOperation.delete) {
-              _transactionTagRemoteDataSource.deleteInTransaction(
-                transaction,
-                userId,
-                link,
-              );
-            } else {
-              _transactionTagRemoteDataSource.upsertInTransaction(
-                transaction,
-                userId,
-                link,
-              );
-            }
-            break;
-          case 'credit':
-            final CreditEntity credit = _applyCreditMoney(
-              CreditEntity.fromJson(payload),
-              payload,
-            );
-            if (operation == OutboxOperation.delete) {
-              _creditRemoteDataSource.deleteInTransaction(
-                transaction,
-                userId,
-                credit,
-              );
-            } else {
-              _creditRemoteDataSource.upsertInTransaction(
-                transaction,
-                userId,
-                credit,
-              );
-            }
-            break;
-          case 'credit_card':
-            final CreditCardEntity creditCard = _applyCreditCardMoney(
-              CreditCardEntity.fromJson(payload),
-              payload,
-            );
-            if (operation == OutboxOperation.delete) {
-              _creditCardRemoteDataSource.deleteInTransaction(
-                transaction,
-                userId,
-                creditCard,
-              );
-            } else {
-              _creditCardRemoteDataSource.upsertInTransaction(
-                transaction,
-                userId,
-                creditCard,
-              );
-            }
-            break;
-          case 'debt':
-            final DebtEntity debt = _applyDebtMoney(
-              DebtEntity.fromJson(payload),
-              payload,
-            );
-            if (operation == OutboxOperation.delete) {
-              _debtRemoteDataSource.deleteInTransaction(
-                transaction,
-                userId,
-                debt,
-              );
-            } else {
-              _debtRemoteDataSource.upsertInTransaction(
-                transaction,
-                userId,
-                debt,
-              );
-            }
-            break;
-          case 'credit_payment_group':
-            final CreditPaymentGroupEntity group = _groupFromPayload(payload);
-            if (operation == OutboxOperation.delete) {
-              _creditPaymentGroupRemoteDataSource.deleteInTransaction(
-                transaction,
-                userId,
-                group.copyWith(isDeleted: true),
-              );
-            } else {
-              _creditPaymentGroupRemoteDataSource.upsertInTransaction(
-                transaction,
-                userId,
-                group.copyWith(isDeleted: false),
-              );
-            }
-            break;
-          case 'credit_payment_schedule':
-            final CreditPaymentScheduleEntity schedule = _scheduleFromPayload(
-              payload,
-            );
-            if (operation == OutboxOperation.delete) {
-              _creditPaymentScheduleRemoteDataSource.deleteInTransaction(
-                transaction,
-                userId,
-                schedule.copyWith(isDeleted: true),
-              );
-            } else {
-              _creditPaymentScheduleRemoteDataSource.upsertInTransaction(
-                transaction,
-                userId,
-                schedule.copyWith(isDeleted: false),
-              );
-            }
-            break;
-          case 'profile':
-            if (operation == OutboxOperation.delete) {
-              continue;
-            }
-            final Profile profile = Profile.fromJson(payload);
-            _profileRemoteDataSource.upsertInTransaction(
-              transaction,
-              userId,
-              profile,
-            );
-            break;
-          case 'budget':
-            final Budget budget = _applyBudgetMoney(
-              Budget.fromJson(payload),
-              payload,
-            );
-            if (operation == OutboxOperation.delete) {
-              _budgetRemoteDataSource.deleteInTransaction(
-                transaction,
-                userId,
-                budget,
-              );
-            } else {
-              _budgetRemoteDataSource.upsertInTransaction(
-                transaction,
-                userId,
-                budget,
-              );
-            }
-            break;
-          case 'budget_instance':
-            final BudgetInstance instance = _applyBudgetInstanceMoney(
-              BudgetInstance.fromJson(payload),
-              payload,
-            );
-            if (operation == OutboxOperation.delete) {
-              _budgetInstanceRemoteDataSource.deleteInTransaction(
-                transaction,
-                userId,
-                instance,
-              );
-            } else {
-              _budgetInstanceRemoteDataSource.upsertInTransaction(
-                transaction,
-                userId,
-                instance,
-              );
-            }
-            break;
-          case 'saving_goal':
-            final SavingGoal goal = SavingGoal.fromJson(payload);
-            if (operation == OutboxOperation.delete) {
-              _savingGoalRemoteDataSource.deleteInTransaction(
-                transaction,
-                userId,
-                goal,
-              );
-            } else {
-              _savingGoalRemoteDataSource.upsertInTransaction(
-                transaction,
-                userId,
-                goal,
-              );
-            }
-            break;
-          case 'upcoming_payment':
-            final UpcomingPayment payment = _applyUpcomingPaymentMoney(
-              UpcomingPayment.fromJson(payload),
-              payload,
-            );
-            if (operation == OutboxOperation.delete) {
-              _upcomingPaymentRemoteDataSource.deleteInTransaction(
-                transaction,
-                userId,
-                payment,
-              );
-            } else {
-              _upcomingPaymentRemoteDataSource.upsertInTransaction(
-                transaction,
-                userId,
-                payment,
-              );
-            }
-            break;
-          case 'payment_reminder':
-            final PaymentReminder reminder = _applyPaymentReminderMoney(
-              PaymentReminder.fromJson(payload),
-              payload,
-            );
-            if (operation == OutboxOperation.delete) {
-              _paymentReminderRemoteDataSource.deleteInTransaction(
-                transaction,
-                userId,
-                reminder,
-              );
-            } else {
-              _paymentReminderRemoteDataSource.upsertInTransaction(
-                transaction,
-                userId,
-                reminder,
-              );
-            }
-            break;
-          default:
-            throw UnsupportedError(
-              'Unsupported outbox entity type ${entry.entityType}',
-            );
-        }
+      });
+      return _PushChunkResult(
+        pushed: entries,
+        conflicted: const <db.OutboxEntryRow>[],
+      );
+    } catch (e) {
+      if (e is RegistryConflictException) {
+        _logger.logInfo(
+          'AuthSyncService: registry conflict detected during push: $e',
+        );
+        return _PushChunkResult(
+          pushed: const <db.OutboxEntryRow>[],
+          conflicted: entries,
+        );
       }
-    });
+      rethrow;
+    }
   }
 
   Future<bool> _shouldApplyOutboxEntry({
@@ -951,6 +1411,539 @@ class AuthSyncService {
       default:
         return _coerceDateTime(payload['updatedAt']);
     }
+  }
+
+  int _stableHash(String value) {
+    int hash = 0;
+    for (int i = 0; i < value.length; i++) {
+      hash = (31 * hash + value.codeUnitAt(i)) & 0x7fffffff;
+    }
+    return hash;
+  }
+
+  String _registryShardId({
+    required String entityType,
+    required String entityId,
+  }) {
+    if (entityType == entityTypeTransaction ||
+        entityType == entityTypeTransactionTag) {
+      const int shardCount = 16;
+      final int shardIndex = _stableHash(entityId) % shardCount;
+      final String suffix = shardIndex.toString().padLeft(2, '0');
+      return '${entityType}s_$suffix';
+    }
+    return entityType;
+  }
+
+  String _registryEntityKey({
+    required String entityType,
+    required String entityId,
+  }) {
+    if (entityType == entityTypeProfile) {
+      return 'profile';
+    }
+    return entityId;
+  }
+
+  bool _hasRemoteChangedSinceBase({
+    required _RemoteEntityMetadata? remote,
+    required db.OutboxEntryRow outboxEntry,
+  }) {
+    if (remote == null) {
+      return false;
+    }
+
+    if (outboxEntry.baseRemoteUpdatedAt == null) {
+      if (remote != null) {
+        try {
+          final Map<String, dynamic> payload = _payloadNormalizer.normalize(
+            outboxEntry.entityType,
+            _outboxDao.decodePayload(outboxEntry),
+          );
+          final DateTime? localUpdatedAt = _extractOutboxUpdatedAt(
+            outboxEntry.entityType,
+            payload,
+          );
+          if (localUpdatedAt != null &&
+              localUpdatedAt.isAfter(remote.updatedAt)) {
+            if (outboxEntry.entityType == entityTypeAccount) {
+              final int localTypeVersion = _extractAccountTypeVersion(payload);
+              final int remoteTypeVersion = remote.typeVersion ?? 0;
+              if (localTypeVersion < remoteTypeVersion) {
+                return true;
+              }
+              if (localTypeVersion > remoteTypeVersion) {
+                return false;
+              }
+            }
+            return false; // LWW побеждает, конфликта нет
+          }
+        } catch (_) {}
+      }
+      return true; // Равенство дат или ошибка разбора -> считаем конфликтом
+    }
+
+    final bool isDeletedDiff =
+        (outboxEntry.baseRemoteIsDeleted ?? false) != remote.isDeleted;
+    final bool typeVersionDiff =
+        outboxEntry.entityType == entityTypeAccount &&
+        outboxEntry.baseRemoteTypeVersion != null &&
+        outboxEntry.baseRemoteTypeVersion != remote.typeVersion;
+    final bool updatedAtDiff =
+        outboxEntry.baseRemoteUpdatedAt != remote.updatedAt;
+
+    return isDeletedDiff || typeVersionDiff || updatedAtDiff;
+  }
+
+  @visibleForTesting
+  Future<void> bootstrapRegistryForTest(String userId) =>
+      _bootstrapRegistry(userId);
+
+  Future<void> _bootstrapRegistry(String userId) async {
+    _logger.logInfo('AuthSyncService: starting sync_registry bootstrap...');
+
+    final List<AccountEntity> accounts = await _accountDao.getAllAccounts();
+    final List<Category> categories = await _categoryDao.getAllCategories();
+    final List<TagEntity> tags = await _tagDao.getAllTags();
+    final List<TransactionEntity> transactions = await _transactionDao
+        .getAllTransactions();
+    final List<TransactionTagEntity> transactionTags =
+        (await _transactionTagsDao.getAllTransactionTags())
+            .map(_transactionTagsDao.mapRowToEntity)
+            .toList();
+    final List<CreditEntity> credits = (await _creditDao.getAllCredits())
+        .map(_creditDao.mapRowToEntity)
+        .toList();
+    final List<CreditCardEntity> creditCards =
+        (await _creditCardDao.getAllCreditCards())
+            .map(_creditCardDao.mapRowToEntity)
+            .toList();
+    final List<DebtEntity> debts = (await _debtDao.getAllDebts())
+        .map(_debtDao.mapRowToEntity)
+        .toList();
+    final List<CreditPaymentGroupEntity> creditPaymentGroups =
+        await _creditPaymentDao.getAllPaymentGroups();
+    final List<CreditPaymentScheduleEntity> creditPaymentSchedules =
+        await _creditPaymentDao.getAllScheduleItems();
+    final List<Budget> budgets = await _budgetDao.getAllBudgets();
+    final List<BudgetInstance> budgetInstances = await _budgetInstanceDao
+        .getAllInstances();
+    final List<SavingGoal> savingGoals =
+        await _loadLocalSavingGoalsWithStorageAccounts();
+    final List<UpcomingPayment> upcomingPayments = await _upcomingPaymentsDao
+        .getAll();
+    final List<PaymentReminder> paymentReminders = await _paymentRemindersDao
+        .getAll();
+    final Profile? profile = await _profileDao.getProfile(userId);
+
+    final List<db.OutboxEntryRow> outboxEntries = await _outboxDao.fetchPending(
+      limit: 10000,
+    );
+    final Map<String, db.OutboxEntryRow>
+    outboxMap = <String, db.OutboxEntryRow>{
+      for (final db.OutboxEntryRow entry in outboxEntries)
+        '${entry.entityType}_${_registryEntityKey(entityType: entry.entityType, entityId: entry.entityId)}':
+            entry,
+    };
+
+    final Map<String, Map<String, dynamic>> shardMetadata =
+        <String, Map<String, dynamic>>{};
+
+    void add(
+      String entityType,
+      String id,
+      DateTime updatedAt, {
+      int? typeVersion,
+      bool isDeleted = false,
+    }) {
+      final String entityKey = _registryEntityKey(
+        entityType: entityType,
+        entityId: id,
+      );
+      final String key = '${entityType}_$entityKey';
+      final db.OutboxEntryRow? outboxEntry = outboxMap[key];
+
+      if (outboxEntry != null) {
+        final DateTime? baseUpdatedAt = outboxEntry.baseRemoteUpdatedAt;
+        if (baseUpdatedAt == null) {
+          // If the entry is new locally (no base remote metadata), it shouldn't
+          // be in the remote registry yet because it hasn't been pushed.
+          return;
+        }
+
+        final String shardId = _registryShardId(
+          entityType: entityType,
+          entityId: id,
+        );
+        final Map<String, dynamic> shardMap = shardMetadata.putIfAbsent(
+          shardId,
+          () => <String, dynamic>{},
+        );
+        final Map<String, dynamic> entryData = <String, dynamic>{
+          'updatedAt': Timestamp.fromDate(baseUpdatedAt),
+          'isDeleted': outboxEntry.baseRemoteIsDeleted ?? false,
+        };
+        if (outboxEntry.baseRemoteTypeVersion != null) {
+          entryData['typeVersion'] = outboxEntry.baseRemoteTypeVersion;
+        }
+        shardMap[entityKey] = entryData;
+        return;
+      }
+
+      final String shardId = _registryShardId(
+        entityType: entityType,
+        entityId: id,
+      );
+      final Map<String, dynamic> shardMap = shardMetadata.putIfAbsent(
+        shardId,
+        () => <String, dynamic>{},
+      );
+      final Map<String, dynamic> entryData = <String, dynamic>{
+        'updatedAt': Timestamp.fromDate(updatedAt),
+        'isDeleted': isDeleted,
+      };
+      if (typeVersion != null) {
+        entryData['typeVersion'] = typeVersion;
+      }
+      shardMap[entityKey] = entryData;
+    }
+
+    for (final AccountEntity e in accounts) {
+      add(
+        entityTypeAccount,
+        e.id,
+        e.updatedAt,
+        typeVersion: e.typeVersion,
+        isDeleted: e.isDeleted,
+      );
+    }
+    for (final Category e in categories) {
+      if (e.isSystem && e.isDeleted) {
+        continue; // Пропускаем missingOptionalReference плейсхолдеры
+      }
+      add(entityTypeCategory, e.id, e.updatedAt, isDeleted: e.isDeleted);
+    }
+    for (final TagEntity e in tags) {
+      add(entityTypeTag, e.id, e.updatedAt, isDeleted: e.isDeleted);
+    }
+    for (final TransactionEntity e in transactions) {
+      add(entityTypeTransaction, e.id, e.updatedAt, isDeleted: e.isDeleted);
+    }
+    for (final TransactionTagEntity e in transactionTags) {
+      add(
+        entityTypeTransactionTag,
+        _transactionTagKey(e),
+        e.updatedAt,
+        isDeleted: e.isDeleted,
+      );
+    }
+    for (final CreditEntity e in credits) {
+      add(entityTypeCredit, e.id, e.updatedAt, isDeleted: e.isDeleted);
+    }
+    for (final CreditCardEntity e in creditCards) {
+      add(entityTypeCreditCard, e.id, e.updatedAt, isDeleted: e.isDeleted);
+    }
+    for (final DebtEntity e in debts) {
+      add(entityTypeDebt, e.id, e.updatedAt, isDeleted: e.isDeleted);
+    }
+    for (final CreditPaymentGroupEntity e in creditPaymentGroups) {
+      add(
+        entityTypeCreditPaymentGroup,
+        e.id,
+        e.updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0),
+        isDeleted: e.isDeleted,
+      );
+    }
+    for (final CreditPaymentScheduleEntity e in creditPaymentSchedules) {
+      add(
+        entityTypeCreditPaymentSchedule,
+        e.id,
+        e.updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0),
+        isDeleted: e.isDeleted,
+      );
+    }
+    for (final Budget e in budgets) {
+      add(entityTypeBudget, e.id, e.updatedAt, isDeleted: e.isDeleted);
+    }
+    for (final BudgetInstance e in budgetInstances) {
+      add(entityTypeBudgetInstance, e.id, e.updatedAt);
+    }
+    for (final SavingGoal e in savingGoals) {
+      add(entityTypeSavingGoal, e.id, e.updatedAt);
+    }
+    for (final UpcomingPayment e in upcomingPayments) {
+      add(
+        entityTypeUpcomingPayment,
+        e.id,
+        DateTime.fromMillisecondsSinceEpoch(e.updatedAtMs),
+      );
+    }
+    for (final PaymentReminder e in paymentReminders) {
+      add(
+        entityTypePaymentReminder,
+        e.id,
+        DateTime.fromMillisecondsSinceEpoch(e.updatedAtMs),
+      );
+    }
+    if (profile != null) {
+      add(entityTypeProfile, 'profile', profile.updatedAt);
+    }
+
+    final WriteBatch batch = _firestore.batch();
+    shardMetadata.forEach((String shardId, Map<String, dynamic> metadataMap) {
+      if (metadataMap.length > maxRegistryEntriesPerShardSoftLimit) {
+        _logger.logWarning(
+          'AuthSyncService: sync_registry shard $shardId during bootstrap exceeds soft limit of $maxRegistryEntriesPerShardSoftLimit entries (${metadataMap.length})',
+        );
+      }
+      final DocumentReference<Map<String, dynamic>> docRef = _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('sync_registry')
+          .doc(shardId);
+      batch.set(docRef, <String, dynamic>{
+        'metadata': metadataMap,
+      }, SetOptions(merge: true));
+    });
+
+    await batch.commit();
+    _logger.logInfo(
+      'AuthSyncService: sync_registry bootstrap completed successfully.',
+    );
+  }
+
+  Future<_RemoteRegistryPullResult> _pullRemoteRegistry(String userId) async {
+    try {
+      final QuerySnapshot<Map<String, dynamic>> registrySnapshot =
+          await _firestore
+              .collection('users')
+              .doc(userId)
+              .collection('sync_registry')
+              .get();
+
+      if (registrySnapshot.docs.isEmpty) {
+        _logger.logInfo(
+          'AuthSyncService: sync_registry is empty, falling back to full fetchRemoteSnapshot',
+        );
+        final _RemoteSnapshot fullSnapshot = await _fetchRemoteSnapshot(userId);
+        return _RemoteRegistryPullResult(
+          metadata: _buildMetadataFromRemoteSnapshot(fullSnapshot),
+          wasFallbackUsed: true,
+        );
+      }
+
+      final Map<String, Map<String, _RemoteEntityMetadata>> result =
+          <String, Map<String, _RemoteEntityMetadata>>{};
+      for (final QueryDocumentSnapshot<Map<String, dynamic>> doc
+          in registrySnapshot.docs) {
+        final String docId = doc.id;
+        final Map<String, dynamic> data = doc.data();
+        final Map<String, dynamic>? metadataMap =
+            data['metadata'] as Map<String, dynamic>?;
+        if (metadataMap == null) continue;
+
+        String entityType = docId;
+        if (docId.contains('_')) {
+          final List<String> parts = docId.split('_');
+          if (parts[0] == 'transactions') {
+            entityType = entityTypeTransaction;
+          } else if (parts[0] == 'transaction' && parts[1] == 'tags') {
+            entityType = entityTypeTransactionTag;
+          }
+        } else {
+          entityType = docId;
+        }
+
+        final Map<String, _RemoteEntityMetadata> typeMeta = result.putIfAbsent(
+          entityType,
+          () => <String, _RemoteEntityMetadata>{},
+        );
+        metadataMap.forEach((String id, dynamic val) {
+          if (val is Map<String, dynamic>) {
+            final dynamic updatedAtVal = val['updatedAt'];
+            DateTime? updatedAt;
+            if (updatedAtVal is Timestamp) {
+              updatedAt = updatedAtVal.toDate().toUtc();
+            } else if (updatedAtVal is String) {
+              updatedAt = DateTime.tryParse(updatedAtVal)?.toUtc();
+            }
+            if (updatedAt != null) {
+              typeMeta[id] = _RemoteEntityMetadata(
+                id: id,
+                entityType: entityType,
+                updatedAt: updatedAt,
+                typeVersion: val['typeVersion'] as int?,
+                isDeleted: val['isDeleted'] as bool? ?? false,
+              );
+            }
+          }
+        });
+      }
+      return _RemoteRegistryPullResult(
+        metadata: result,
+        wasFallbackUsed: false,
+      );
+    } catch (e, stackTrace) {
+      _logger.logError(
+        'AuthSyncService: error loading sync_registry, falling back to full fetchRemoteSnapshot',
+        e,
+      );
+      _analyticsService.reportError(e, stackTrace);
+      final _RemoteSnapshot fullSnapshot = await _fetchRemoteSnapshot(userId);
+      return _RemoteRegistryPullResult(
+        metadata: _buildMetadataFromRemoteSnapshot(fullSnapshot),
+        wasFallbackUsed: true,
+      );
+    }
+  }
+
+  Map<String, Map<String, _RemoteEntityMetadata>>
+  _buildMetadataFromRemoteSnapshot(_RemoteSnapshot snapshot) {
+    final Map<String, Map<String, _RemoteEntityMetadata>> result =
+        <String, Map<String, _RemoteEntityMetadata>>{};
+
+    void add<T>({
+      required List<T> entities,
+      required String entityType,
+      required String Function(T) getId,
+      required DateTime Function(T) getUpdatedAt,
+      int Function(T)? getTypeVersion,
+      bool Function(T)? getIsDeleted,
+    }) {
+      final Map<String, _RemoteEntityMetadata> typeMeta = result.putIfAbsent(
+        entityType,
+        () => <String, _RemoteEntityMetadata>{},
+      );
+      for (final T entity in entities) {
+        final String id = getId(entity);
+        typeMeta[id] = _RemoteEntityMetadata(
+          id: id,
+          entityType: entityType,
+          updatedAt: getUpdatedAt(entity),
+          typeVersion: getTypeVersion?.call(entity),
+          isDeleted: getIsDeleted?.call(entity) ?? false,
+        );
+      }
+    }
+
+    add<AccountEntity>(
+      entities: snapshot.accounts,
+      entityType: entityTypeAccount,
+      getId: (AccountEntity e) => e.id,
+      getUpdatedAt: (AccountEntity e) => e.updatedAt,
+      getTypeVersion: (AccountEntity e) => e.typeVersion,
+      getIsDeleted: (AccountEntity e) => e.isDeleted,
+    );
+    add<Category>(
+      entities: snapshot.categories,
+      entityType: entityTypeCategory,
+      getId: (Category e) => e.id,
+      getUpdatedAt: (Category e) => e.updatedAt,
+      getIsDeleted: (Category e) => e.isDeleted,
+    );
+    add<TagEntity>(
+      entities: snapshot.tags,
+      entityType: entityTypeTag,
+      getId: (TagEntity e) => e.id,
+      getUpdatedAt: (TagEntity e) => e.updatedAt,
+      getIsDeleted: (TagEntity e) => e.isDeleted,
+    );
+    add<TransactionEntity>(
+      entities: snapshot.transactions,
+      entityType: entityTypeTransaction,
+      getId: (TransactionEntity e) => e.id,
+      getUpdatedAt: (TransactionEntity e) => e.updatedAt,
+      getIsDeleted: (TransactionEntity e) => e.isDeleted,
+    );
+    add<TransactionTagEntity>(
+      entities: snapshot.transactionTags,
+      entityType: entityTypeTransactionTag,
+      getId: _transactionTagKey,
+      getUpdatedAt: (TransactionTagEntity e) => e.updatedAt,
+      getIsDeleted: (TransactionTagEntity e) => e.isDeleted,
+    );
+    add<CreditEntity>(
+      entities: snapshot.credits,
+      entityType: entityTypeCredit,
+      getId: (CreditEntity e) => e.id,
+      getUpdatedAt: (CreditEntity e) => e.updatedAt,
+      getIsDeleted: (CreditEntity e) => e.isDeleted,
+    );
+    add<CreditCardEntity>(
+      entities: snapshot.creditCards,
+      entityType: entityTypeCreditCard,
+      getId: (CreditCardEntity e) => e.id,
+      getUpdatedAt: (CreditCardEntity e) => e.updatedAt,
+      getIsDeleted: (CreditCardEntity e) => e.isDeleted,
+    );
+    add<DebtEntity>(
+      entities: snapshot.debts,
+      entityType: entityTypeDebt,
+      getId: (DebtEntity e) => e.id,
+      getUpdatedAt: (DebtEntity e) => e.updatedAt,
+      getIsDeleted: (DebtEntity e) => e.isDeleted,
+    );
+    add<CreditPaymentGroupEntity>(
+      entities: snapshot.creditPaymentGroups,
+      entityType: entityTypeCreditPaymentGroup,
+      getId: (CreditPaymentGroupEntity e) => e.id,
+      getUpdatedAt: (CreditPaymentGroupEntity e) =>
+          e.updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0),
+      getIsDeleted: (CreditPaymentGroupEntity e) => e.isDeleted,
+    );
+    add<CreditPaymentScheduleEntity>(
+      entities: snapshot.creditPaymentSchedules,
+      entityType: entityTypeCreditPaymentSchedule,
+      getId: (CreditPaymentScheduleEntity e) => e.id,
+      getUpdatedAt: (CreditPaymentScheduleEntity e) =>
+          e.updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0),
+      getIsDeleted: (CreditPaymentScheduleEntity e) => e.isDeleted,
+    );
+    add<Budget>(
+      entities: snapshot.budgets,
+      entityType: entityTypeBudget,
+      getId: (Budget e) => e.id,
+      getUpdatedAt: (Budget e) => e.updatedAt,
+      getIsDeleted: (Budget e) => e.isDeleted,
+    );
+    add<BudgetInstance>(
+      entities: snapshot.budgetInstances,
+      entityType: entityTypeBudgetInstance,
+      getId: (BudgetInstance e) => e.id,
+      getUpdatedAt: (BudgetInstance e) => e.updatedAt,
+    );
+    add<SavingGoal>(
+      entities: snapshot.savingGoals,
+      entityType: entityTypeSavingGoal,
+      getId: (SavingGoal e) => e.id,
+      getUpdatedAt: (SavingGoal e) => e.updatedAt,
+    );
+    add<UpcomingPayment>(
+      entities: snapshot.upcomingPayments,
+      entityType: entityTypeUpcomingPayment,
+      getId: (UpcomingPayment e) => e.id,
+      getUpdatedAt: (UpcomingPayment e) =>
+          DateTime.fromMillisecondsSinceEpoch(e.updatedAtMs),
+    );
+    add<PaymentReminder>(
+      entities: snapshot.paymentReminders,
+      entityType: entityTypePaymentReminder,
+      getId: (PaymentReminder e) => e.id,
+      getUpdatedAt: (PaymentReminder e) =>
+          DateTime.fromMillisecondsSinceEpoch(e.updatedAtMs),
+    );
+
+    if (snapshot.profile != null) {
+      result[entityTypeProfile] = <String, _RemoteEntityMetadata>{
+        'profile': _RemoteEntityMetadata(
+          id: 'profile',
+          entityType: entityTypeProfile,
+          updatedAt: snapshot.profile!.updatedAt,
+        ),
+      };
+    }
+
+    return result;
   }
 
   DateTime? _coerceDateTime(Object? value) {
@@ -2254,4 +3247,46 @@ class _RemoteSnapshot {
   final List<UpcomingPayment> upcomingPayments;
   final List<PaymentReminder> paymentReminders;
   final Profile? profile;
+}
+
+class RegistryConflictException implements Exception {
+  RegistryConflictException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => 'RegistryConflictException: $message';
+}
+
+class _RemoteEntityMetadata {
+  _RemoteEntityMetadata({
+    required this.id,
+    required this.entityType,
+    required this.updatedAt,
+    this.typeVersion,
+    this.isDeleted = false,
+  });
+
+  final String id;
+  final String entityType;
+  final DateTime updatedAt;
+  final int? typeVersion;
+  final bool isDeleted;
+}
+
+class _RemoteRegistryPullResult {
+  _RemoteRegistryPullResult({
+    required this.metadata,
+    required this.wasFallbackUsed,
+  });
+
+  final Map<String, Map<String, _RemoteEntityMetadata>> metadata;
+  final bool wasFallbackUsed;
+}
+
+class _PushChunkResult {
+  _PushChunkResult({required this.pushed, required this.conflicted});
+
+  final List<db.OutboxEntryRow> pushed;
+  final List<db.OutboxEntryRow> conflicted;
 }

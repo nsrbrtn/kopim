@@ -152,6 +152,9 @@ class OutboxEntries extends Table {
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get sentAt => dateTime().nullable()();
   TextColumn get lastError => text().nullable()();
+  DateTimeColumn get baseRemoteUpdatedAt => dateTime().nullable()();
+  BoolColumn get baseRemoteIsDeleted => boolean().nullable()();
+  IntColumn get baseRemoteTypeVersion => integer().nullable()();
 }
 
 @DataClassName('ProfileRow')
@@ -493,7 +496,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 47;
+  int get schemaVersion => 48;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -1508,6 +1511,20 @@ LEFT JOIN accounts acc ON up.account_id = acc.id
       }
       if (from < 47) {
         await m.createTable(syncConflicts);
+      }
+      if (from < 48) {
+        if (!await _columnExists('outbox_entries', 'base_remote_updated_at')) {
+          await m.addColumn(outboxEntries, outboxEntries.baseRemoteUpdatedAt);
+        }
+        if (!await _columnExists('outbox_entries', 'base_remote_is_deleted')) {
+          await m.addColumn(outboxEntries, outboxEntries.baseRemoteIsDeleted);
+        }
+        if (!await _columnExists(
+          'outbox_entries',
+          'base_remote_type_version',
+        )) {
+          await m.addColumn(outboxEntries, outboxEntries.baseRemoteTypeVersion);
+        }
       }
     },
     beforeOpen: (OpeningDetails details) async {

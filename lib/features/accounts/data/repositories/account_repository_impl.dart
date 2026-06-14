@@ -64,6 +64,9 @@ class AccountRepositoryImpl implements AccountRepository {
         entityId: toPersist.id,
         operation: OutboxOperation.upsert,
         payload: _mapAccountPayload(toPersist),
+        baseRemoteUpdatedAt: account.updatedAt,
+        baseRemoteIsDeleted: account.isDeleted,
+        baseRemoteTypeVersion: account.typeVersion,
       );
     });
   }
@@ -72,6 +75,10 @@ class AccountRepositoryImpl implements AccountRepository {
   Future<void> softDelete(String id) async {
     final DateTime now = DateTime.now();
     await _database.transaction(() async {
+      final db.AccountRow? originalRow = await _accountDao.findById(id);
+      if (originalRow == null) return;
+      final AccountEntity original = _mapToDomain(originalRow);
+
       await _accountDao.markDeleted(id, now);
       final db.AccountRow? row = await _accountDao.findById(id);
       if (row == null) return;
@@ -83,6 +90,9 @@ class AccountRepositoryImpl implements AccountRepository {
         entityId: id,
         operation: OutboxOperation.delete,
         payload: payload,
+        baseRemoteUpdatedAt: original.updatedAt,
+        baseRemoteIsDeleted: original.isDeleted,
+        baseRemoteTypeVersion: original.typeVersion,
       );
     });
   }

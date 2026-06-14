@@ -71,6 +71,8 @@ class CategoryRepositoryImpl implements CategoryRepository {
         entityId: toPersist.id,
         operation: OutboxOperation.upsert,
         payload: _mapCategoryPayload(toPersist),
+        baseRemoteUpdatedAt: category.updatedAt,
+        baseRemoteIsDeleted: category.isDeleted,
       );
     });
   }
@@ -79,6 +81,10 @@ class CategoryRepositoryImpl implements CategoryRepository {
   Future<void> softDelete(String id) async {
     final DateTime now = DateTime.now();
     await _database.transaction(() async {
+      final db.CategoryRow? originalRow = await _categoryDao.findById(id);
+      if (originalRow == null) return;
+      final Category original = _mapToDomain(originalRow);
+
       await _categoryDao.markDeleted(id, now);
       final db.CategoryRow? row = await _categoryDao.findById(id);
       if (row == null) return;
@@ -101,6 +107,8 @@ class CategoryRepositoryImpl implements CategoryRepository {
           entityId: child.id,
           operation: OutboxOperation.delete,
           payload: childPayload,
+          baseRemoteUpdatedAt: child.updatedAt,
+          baseRemoteIsDeleted: child.isDeleted,
         );
       }
       await _outboxDao.enqueue(
@@ -108,6 +116,8 @@ class CategoryRepositoryImpl implements CategoryRepository {
         entityId: id,
         operation: OutboxOperation.delete,
         payload: _mapCategoryPayload(deleted),
+        baseRemoteUpdatedAt: original.updatedAt,
+        baseRemoteIsDeleted: original.isDeleted,
       );
     });
   }

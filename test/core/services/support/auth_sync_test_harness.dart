@@ -61,6 +61,10 @@ import 'package:kopim/features/upcoming_payments/domain/entities/payment_reminde
 import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
 import 'package:mocktail/mocktail.dart';
 
+class FakeTransaction extends Fake implements Transaction {}
+
+class FakeCategory extends Fake implements Category {}
+
 class MockLoggerService extends Mock implements LoggerService {}
 
 class MockAnalyticsService extends Mock implements AnalyticsService {}
@@ -183,6 +187,8 @@ class AuthSyncTestHarness {
     if (_fallbacksRegistered) return;
     registerFallbackValue(<String, dynamic>{});
     registerFallbackValue(StackTrace.empty);
+    registerFallbackValue(FakeTransaction());
+    registerFallbackValue(FakeCategory());
     _fallbacksRegistered = true;
   }
 
@@ -192,6 +198,7 @@ class AuthSyncTestHarness {
 
   AuthSyncService buildService({
     AccountRemoteDataSource? accountRemoteDataSource,
+    CategoryRemoteDataSource? categoryRemoteDataSource,
     BudgetRemoteDataSource? budgetRemoteDataSource,
     BudgetInstanceRemoteDataSource? budgetInstanceRemoteDataSource,
     SavingGoalRemoteDataSource? savingGoalRemoteDataSource,
@@ -219,7 +226,8 @@ class AuthSyncTestHarness {
       profileDao: profileDao,
       accountRemoteDataSource:
           accountRemoteDataSource ?? AccountRemoteDataSource(firestore),
-      categoryRemoteDataSource: CategoryRemoteDataSource(firestore),
+      categoryRemoteDataSource:
+          categoryRemoteDataSource ?? CategoryRemoteDataSource(firestore),
       tagRemoteDataSource: TagRemoteDataSource(firestore),
       transactionRemoteDataSource: TransactionRemoteDataSource(firestore),
       transactionTagRemoteDataSource: TransactionTagRemoteDataSource(firestore),

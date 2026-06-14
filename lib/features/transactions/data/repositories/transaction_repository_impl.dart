@@ -274,6 +274,8 @@ class TransactionRepositoryImpl implements TransactionRepository {
         entityId: toPersist.id,
         operation: OutboxOperation.upsert,
         payload: _mapTransactionPayload(toPersist),
+        baseRemoteUpdatedAt: previous?.updatedAt,
+        baseRemoteIsDeleted: previous?.isDeleted,
       );
       await _reconcileSavingGoalContribution(
         previous: previous,
@@ -310,6 +312,8 @@ class TransactionRepositoryImpl implements TransactionRepository {
         entityId: id,
         operation: OutboxOperation.delete,
         payload: payload,
+        baseRemoteUpdatedAt: previous.updatedAt,
+        baseRemoteIsDeleted: previous.isDeleted,
       );
       await _runDeleteSideEffectsBestEffort(
         previous: previous,

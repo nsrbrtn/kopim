@@ -7462,6 +7462,40 @@ class $OutboxEntriesTable extends OutboxEntries
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _baseRemoteUpdatedAtMeta =
+      const VerificationMeta('baseRemoteUpdatedAt');
+  @override
+  late final GeneratedColumn<DateTime> baseRemoteUpdatedAt =
+      GeneratedColumn<DateTime>(
+        'base_remote_updated_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _baseRemoteIsDeletedMeta =
+      const VerificationMeta('baseRemoteIsDeleted');
+  @override
+  late final GeneratedColumn<bool> baseRemoteIsDeleted = GeneratedColumn<bool>(
+    'base_remote_is_deleted',
+    aliasedName,
+    true,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("base_remote_is_deleted" IN (0, 1))',
+    ),
+  );
+  static const VerificationMeta _baseRemoteTypeVersionMeta =
+      const VerificationMeta('baseRemoteTypeVersion');
+  @override
+  late final GeneratedColumn<int> baseRemoteTypeVersion = GeneratedColumn<int>(
+    'base_remote_type_version',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -7475,6 +7509,9 @@ class $OutboxEntriesTable extends OutboxEntries
     updatedAt,
     sentAt,
     lastError,
+    baseRemoteUpdatedAt,
+    baseRemoteIsDeleted,
+    baseRemoteTypeVersion,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -7562,6 +7599,33 @@ class $OutboxEntriesTable extends OutboxEntries
         lastError.isAcceptableOrUnknown(data['last_error']!, _lastErrorMeta),
       );
     }
+    if (data.containsKey('base_remote_updated_at')) {
+      context.handle(
+        _baseRemoteUpdatedAtMeta,
+        baseRemoteUpdatedAt.isAcceptableOrUnknown(
+          data['base_remote_updated_at']!,
+          _baseRemoteUpdatedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('base_remote_is_deleted')) {
+      context.handle(
+        _baseRemoteIsDeletedMeta,
+        baseRemoteIsDeleted.isAcceptableOrUnknown(
+          data['base_remote_is_deleted']!,
+          _baseRemoteIsDeletedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('base_remote_type_version')) {
+      context.handle(
+        _baseRemoteTypeVersionMeta,
+        baseRemoteTypeVersion.isAcceptableOrUnknown(
+          data['base_remote_type_version']!,
+          _baseRemoteTypeVersionMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -7615,6 +7679,18 @@ class $OutboxEntriesTable extends OutboxEntries
         DriftSqlType.string,
         data['${effectivePrefix}last_error'],
       ),
+      baseRemoteUpdatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}base_remote_updated_at'],
+      ),
+      baseRemoteIsDeleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}base_remote_is_deleted'],
+      ),
+      baseRemoteTypeVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}base_remote_type_version'],
+      ),
     );
   }
 
@@ -7636,6 +7712,9 @@ class OutboxEntryRow extends DataClass implements Insertable<OutboxEntryRow> {
   final DateTime updatedAt;
   final DateTime? sentAt;
   final String? lastError;
+  final DateTime? baseRemoteUpdatedAt;
+  final bool? baseRemoteIsDeleted;
+  final int? baseRemoteTypeVersion;
   const OutboxEntryRow({
     required this.id,
     required this.entityType,
@@ -7648,6 +7727,9 @@ class OutboxEntryRow extends DataClass implements Insertable<OutboxEntryRow> {
     required this.updatedAt,
     this.sentAt,
     this.lastError,
+    this.baseRemoteUpdatedAt,
+    this.baseRemoteIsDeleted,
+    this.baseRemoteTypeVersion,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -7666,6 +7748,15 @@ class OutboxEntryRow extends DataClass implements Insertable<OutboxEntryRow> {
     }
     if (!nullToAbsent || lastError != null) {
       map['last_error'] = Variable<String>(lastError);
+    }
+    if (!nullToAbsent || baseRemoteUpdatedAt != null) {
+      map['base_remote_updated_at'] = Variable<DateTime>(baseRemoteUpdatedAt);
+    }
+    if (!nullToAbsent || baseRemoteIsDeleted != null) {
+      map['base_remote_is_deleted'] = Variable<bool>(baseRemoteIsDeleted);
+    }
+    if (!nullToAbsent || baseRemoteTypeVersion != null) {
+      map['base_remote_type_version'] = Variable<int>(baseRemoteTypeVersion);
     }
     return map;
   }
@@ -7687,6 +7778,15 @@ class OutboxEntryRow extends DataClass implements Insertable<OutboxEntryRow> {
       lastError: lastError == null && nullToAbsent
           ? const Value.absent()
           : Value(lastError),
+      baseRemoteUpdatedAt: baseRemoteUpdatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(baseRemoteUpdatedAt),
+      baseRemoteIsDeleted: baseRemoteIsDeleted == null && nullToAbsent
+          ? const Value.absent()
+          : Value(baseRemoteIsDeleted),
+      baseRemoteTypeVersion: baseRemoteTypeVersion == null && nullToAbsent
+          ? const Value.absent()
+          : Value(baseRemoteTypeVersion),
     );
   }
 
@@ -7707,6 +7807,15 @@ class OutboxEntryRow extends DataClass implements Insertable<OutboxEntryRow> {
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       sentAt: serializer.fromJson<DateTime?>(json['sentAt']),
       lastError: serializer.fromJson<String?>(json['lastError']),
+      baseRemoteUpdatedAt: serializer.fromJson<DateTime?>(
+        json['baseRemoteUpdatedAt'],
+      ),
+      baseRemoteIsDeleted: serializer.fromJson<bool?>(
+        json['baseRemoteIsDeleted'],
+      ),
+      baseRemoteTypeVersion: serializer.fromJson<int?>(
+        json['baseRemoteTypeVersion'],
+      ),
     );
   }
   @override
@@ -7724,6 +7833,9 @@ class OutboxEntryRow extends DataClass implements Insertable<OutboxEntryRow> {
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'sentAt': serializer.toJson<DateTime?>(sentAt),
       'lastError': serializer.toJson<String?>(lastError),
+      'baseRemoteUpdatedAt': serializer.toJson<DateTime?>(baseRemoteUpdatedAt),
+      'baseRemoteIsDeleted': serializer.toJson<bool?>(baseRemoteIsDeleted),
+      'baseRemoteTypeVersion': serializer.toJson<int?>(baseRemoteTypeVersion),
     };
   }
 
@@ -7739,6 +7851,9 @@ class OutboxEntryRow extends DataClass implements Insertable<OutboxEntryRow> {
     DateTime? updatedAt,
     Value<DateTime?> sentAt = const Value.absent(),
     Value<String?> lastError = const Value.absent(),
+    Value<DateTime?> baseRemoteUpdatedAt = const Value.absent(),
+    Value<bool?> baseRemoteIsDeleted = const Value.absent(),
+    Value<int?> baseRemoteTypeVersion = const Value.absent(),
   }) => OutboxEntryRow(
     id: id ?? this.id,
     entityType: entityType ?? this.entityType,
@@ -7751,6 +7866,15 @@ class OutboxEntryRow extends DataClass implements Insertable<OutboxEntryRow> {
     updatedAt: updatedAt ?? this.updatedAt,
     sentAt: sentAt.present ? sentAt.value : this.sentAt,
     lastError: lastError.present ? lastError.value : this.lastError,
+    baseRemoteUpdatedAt: baseRemoteUpdatedAt.present
+        ? baseRemoteUpdatedAt.value
+        : this.baseRemoteUpdatedAt,
+    baseRemoteIsDeleted: baseRemoteIsDeleted.present
+        ? baseRemoteIsDeleted.value
+        : this.baseRemoteIsDeleted,
+    baseRemoteTypeVersion: baseRemoteTypeVersion.present
+        ? baseRemoteTypeVersion.value
+        : this.baseRemoteTypeVersion,
   );
   OutboxEntryRow copyWithCompanion(OutboxEntriesCompanion data) {
     return OutboxEntryRow(
@@ -7769,6 +7893,15 @@ class OutboxEntryRow extends DataClass implements Insertable<OutboxEntryRow> {
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       sentAt: data.sentAt.present ? data.sentAt.value : this.sentAt,
       lastError: data.lastError.present ? data.lastError.value : this.lastError,
+      baseRemoteUpdatedAt: data.baseRemoteUpdatedAt.present
+          ? data.baseRemoteUpdatedAt.value
+          : this.baseRemoteUpdatedAt,
+      baseRemoteIsDeleted: data.baseRemoteIsDeleted.present
+          ? data.baseRemoteIsDeleted.value
+          : this.baseRemoteIsDeleted,
+      baseRemoteTypeVersion: data.baseRemoteTypeVersion.present
+          ? data.baseRemoteTypeVersion.value
+          : this.baseRemoteTypeVersion,
     );
   }
 
@@ -7785,7 +7918,10 @@ class OutboxEntryRow extends DataClass implements Insertable<OutboxEntryRow> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('sentAt: $sentAt, ')
-          ..write('lastError: $lastError')
+          ..write('lastError: $lastError, ')
+          ..write('baseRemoteUpdatedAt: $baseRemoteUpdatedAt, ')
+          ..write('baseRemoteIsDeleted: $baseRemoteIsDeleted, ')
+          ..write('baseRemoteTypeVersion: $baseRemoteTypeVersion')
           ..write(')'))
         .toString();
   }
@@ -7803,6 +7939,9 @@ class OutboxEntryRow extends DataClass implements Insertable<OutboxEntryRow> {
     updatedAt,
     sentAt,
     lastError,
+    baseRemoteUpdatedAt,
+    baseRemoteIsDeleted,
+    baseRemoteTypeVersion,
   );
   @override
   bool operator ==(Object other) =>
@@ -7818,7 +7957,10 @@ class OutboxEntryRow extends DataClass implements Insertable<OutboxEntryRow> {
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.sentAt == this.sentAt &&
-          other.lastError == this.lastError);
+          other.lastError == this.lastError &&
+          other.baseRemoteUpdatedAt == this.baseRemoteUpdatedAt &&
+          other.baseRemoteIsDeleted == this.baseRemoteIsDeleted &&
+          other.baseRemoteTypeVersion == this.baseRemoteTypeVersion);
 }
 
 class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntryRow> {
@@ -7833,6 +7975,9 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntryRow> {
   final Value<DateTime> updatedAt;
   final Value<DateTime?> sentAt;
   final Value<String?> lastError;
+  final Value<DateTime?> baseRemoteUpdatedAt;
+  final Value<bool?> baseRemoteIsDeleted;
+  final Value<int?> baseRemoteTypeVersion;
   const OutboxEntriesCompanion({
     this.id = const Value.absent(),
     this.entityType = const Value.absent(),
@@ -7845,6 +7990,9 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntryRow> {
     this.updatedAt = const Value.absent(),
     this.sentAt = const Value.absent(),
     this.lastError = const Value.absent(),
+    this.baseRemoteUpdatedAt = const Value.absent(),
+    this.baseRemoteIsDeleted = const Value.absent(),
+    this.baseRemoteTypeVersion = const Value.absent(),
   });
   OutboxEntriesCompanion.insert({
     this.id = const Value.absent(),
@@ -7858,6 +8006,9 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntryRow> {
     this.updatedAt = const Value.absent(),
     this.sentAt = const Value.absent(),
     this.lastError = const Value.absent(),
+    this.baseRemoteUpdatedAt = const Value.absent(),
+    this.baseRemoteIsDeleted = const Value.absent(),
+    this.baseRemoteTypeVersion = const Value.absent(),
   }) : entityType = Value(entityType),
        entityId = Value(entityId),
        operation = Value(operation),
@@ -7874,6 +8025,9 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntryRow> {
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? sentAt,
     Expression<String>? lastError,
+    Expression<DateTime>? baseRemoteUpdatedAt,
+    Expression<bool>? baseRemoteIsDeleted,
+    Expression<int>? baseRemoteTypeVersion,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -7887,6 +8041,12 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntryRow> {
       if (updatedAt != null) 'updated_at': updatedAt,
       if (sentAt != null) 'sent_at': sentAt,
       if (lastError != null) 'last_error': lastError,
+      if (baseRemoteUpdatedAt != null)
+        'base_remote_updated_at': baseRemoteUpdatedAt,
+      if (baseRemoteIsDeleted != null)
+        'base_remote_is_deleted': baseRemoteIsDeleted,
+      if (baseRemoteTypeVersion != null)
+        'base_remote_type_version': baseRemoteTypeVersion,
     });
   }
 
@@ -7902,6 +8062,9 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntryRow> {
     Value<DateTime>? updatedAt,
     Value<DateTime?>? sentAt,
     Value<String?>? lastError,
+    Value<DateTime?>? baseRemoteUpdatedAt,
+    Value<bool?>? baseRemoteIsDeleted,
+    Value<int?>? baseRemoteTypeVersion,
   }) {
     return OutboxEntriesCompanion(
       id: id ?? this.id,
@@ -7915,6 +8078,10 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntryRow> {
       updatedAt: updatedAt ?? this.updatedAt,
       sentAt: sentAt ?? this.sentAt,
       lastError: lastError ?? this.lastError,
+      baseRemoteUpdatedAt: baseRemoteUpdatedAt ?? this.baseRemoteUpdatedAt,
+      baseRemoteIsDeleted: baseRemoteIsDeleted ?? this.baseRemoteIsDeleted,
+      baseRemoteTypeVersion:
+          baseRemoteTypeVersion ?? this.baseRemoteTypeVersion,
     );
   }
 
@@ -7954,6 +8121,19 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntryRow> {
     if (lastError.present) {
       map['last_error'] = Variable<String>(lastError.value);
     }
+    if (baseRemoteUpdatedAt.present) {
+      map['base_remote_updated_at'] = Variable<DateTime>(
+        baseRemoteUpdatedAt.value,
+      );
+    }
+    if (baseRemoteIsDeleted.present) {
+      map['base_remote_is_deleted'] = Variable<bool>(baseRemoteIsDeleted.value);
+    }
+    if (baseRemoteTypeVersion.present) {
+      map['base_remote_type_version'] = Variable<int>(
+        baseRemoteTypeVersion.value,
+      );
+    }
     return map;
   }
 
@@ -7970,7 +8150,10 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntryRow> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('sentAt: $sentAt, ')
-          ..write('lastError: $lastError')
+          ..write('lastError: $lastError, ')
+          ..write('baseRemoteUpdatedAt: $baseRemoteUpdatedAt, ')
+          ..write('baseRemoteIsDeleted: $baseRemoteIsDeleted, ')
+          ..write('baseRemoteTypeVersion: $baseRemoteTypeVersion')
           ..write(')'))
         .toString();
   }
@@ -22650,6 +22833,9 @@ typedef $$OutboxEntriesTableCreateCompanionBuilder =
       Value<DateTime> updatedAt,
       Value<DateTime?> sentAt,
       Value<String?> lastError,
+      Value<DateTime?> baseRemoteUpdatedAt,
+      Value<bool?> baseRemoteIsDeleted,
+      Value<int?> baseRemoteTypeVersion,
     });
 typedef $$OutboxEntriesTableUpdateCompanionBuilder =
     OutboxEntriesCompanion Function({
@@ -22664,6 +22850,9 @@ typedef $$OutboxEntriesTableUpdateCompanionBuilder =
       Value<DateTime> updatedAt,
       Value<DateTime?> sentAt,
       Value<String?> lastError,
+      Value<DateTime?> baseRemoteUpdatedAt,
+      Value<bool?> baseRemoteIsDeleted,
+      Value<int?> baseRemoteTypeVersion,
     });
 
 class $$OutboxEntriesTableFilterComposer
@@ -22727,6 +22916,21 @@ class $$OutboxEntriesTableFilterComposer
 
   ColumnFilters<String> get lastError => $composableBuilder(
     column: $table.lastError,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get baseRemoteUpdatedAt => $composableBuilder(
+    column: $table.baseRemoteUpdatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get baseRemoteIsDeleted => $composableBuilder(
+    column: $table.baseRemoteIsDeleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get baseRemoteTypeVersion => $composableBuilder(
+    column: $table.baseRemoteTypeVersion,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -22794,6 +22998,21 @@ class $$OutboxEntriesTableOrderingComposer
     column: $table.lastError,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<DateTime> get baseRemoteUpdatedAt => $composableBuilder(
+    column: $table.baseRemoteUpdatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get baseRemoteIsDeleted => $composableBuilder(
+    column: $table.baseRemoteIsDeleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get baseRemoteTypeVersion => $composableBuilder(
+    column: $table.baseRemoteTypeVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$OutboxEntriesTableAnnotationComposer
@@ -22841,6 +23060,21 @@ class $$OutboxEntriesTableAnnotationComposer
 
   GeneratedColumn<String> get lastError =>
       $composableBuilder(column: $table.lastError, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get baseRemoteUpdatedAt => $composableBuilder(
+    column: $table.baseRemoteUpdatedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get baseRemoteIsDeleted => $composableBuilder(
+    column: $table.baseRemoteIsDeleted,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get baseRemoteTypeVersion => $composableBuilder(
+    column: $table.baseRemoteTypeVersion,
+    builder: (column) => column,
+  );
 }
 
 class $$OutboxEntriesTableTableManager
@@ -22885,6 +23119,9 @@ class $$OutboxEntriesTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> sentAt = const Value.absent(),
                 Value<String?> lastError = const Value.absent(),
+                Value<DateTime?> baseRemoteUpdatedAt = const Value.absent(),
+                Value<bool?> baseRemoteIsDeleted = const Value.absent(),
+                Value<int?> baseRemoteTypeVersion = const Value.absent(),
               }) => OutboxEntriesCompanion(
                 id: id,
                 entityType: entityType,
@@ -22897,6 +23134,9 @@ class $$OutboxEntriesTableTableManager
                 updatedAt: updatedAt,
                 sentAt: sentAt,
                 lastError: lastError,
+                baseRemoteUpdatedAt: baseRemoteUpdatedAt,
+                baseRemoteIsDeleted: baseRemoteIsDeleted,
+                baseRemoteTypeVersion: baseRemoteTypeVersion,
               ),
           createCompanionCallback:
               ({
@@ -22911,6 +23151,9 @@ class $$OutboxEntriesTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime?> sentAt = const Value.absent(),
                 Value<String?> lastError = const Value.absent(),
+                Value<DateTime?> baseRemoteUpdatedAt = const Value.absent(),
+                Value<bool?> baseRemoteIsDeleted = const Value.absent(),
+                Value<int?> baseRemoteTypeVersion = const Value.absent(),
               }) => OutboxEntriesCompanion.insert(
                 id: id,
                 entityType: entityType,
@@ -22923,6 +23166,9 @@ class $$OutboxEntriesTableTableManager
                 updatedAt: updatedAt,
                 sentAt: sentAt,
                 lastError: lastError,
+                baseRemoteUpdatedAt: baseRemoteUpdatedAt,
+                baseRemoteIsDeleted: baseRemoteIsDeleted,
+                baseRemoteTypeVersion: baseRemoteTypeVersion,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

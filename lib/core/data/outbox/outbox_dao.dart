@@ -37,6 +37,9 @@ class OutboxDao {
     required String entityId,
     required OutboxOperation operation,
     required Map<String, dynamic> payload,
+    DateTime? baseRemoteUpdatedAt,
+    bool? baseRemoteIsDeleted,
+    int? baseRemoteTypeVersion,
   }) async {
     final DateTime now = DateTime.now();
     final String encodedPayload = jsonEncode(payload);
@@ -57,6 +60,9 @@ class OutboxDao {
               updatedAt: Value<DateTime>(now),
               sentAt: const Value<DateTime?>.absent(),
               lastError: const Value<String?>.absent(),
+              baseRemoteUpdatedAt: Value<DateTime?>(baseRemoteUpdatedAt),
+              baseRemoteIsDeleted: Value<bool?>(baseRemoteIsDeleted),
+              baseRemoteTypeVersion: Value<int?>(baseRemoteTypeVersion),
             ),
           );
       return compacted.id;
@@ -73,6 +79,9 @@ class OutboxDao {
             attemptCount: const Value<int>(0),
             createdAt: Value<DateTime>(now),
             updatedAt: Value<DateTime>(now),
+            baseRemoteUpdatedAt: Value<DateTime?>(baseRemoteUpdatedAt),
+            baseRemoteIsDeleted: Value<bool?>(baseRemoteIsDeleted),
+            baseRemoteTypeVersion: Value<int?>(baseRemoteTypeVersion),
           ),
         );
   }
