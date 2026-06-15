@@ -26,6 +26,28 @@ class SavingGoalForecast {
   final double recommendedMonthlyContribution;
 }
 
+double _calculateRecommendedMonthlyContribution({
+  required double remainingAmount,
+  required DateTime? targetDate,
+  required DateTime now,
+}) {
+  if (remainingAmount <= 0 || targetDate == null || !targetDate.isAfter(now)) {
+    return 0;
+  }
+
+  final int daysUntilTarget = targetDate.difference(now).inDays;
+  if (daysUntilTarget <= 30) {
+    return remainingAmount;
+  }
+
+  final double monthsUntilTarget = daysUntilTarget / 30.44;
+  if (monthsUntilTarget <= 0.1) {
+    return remainingAmount;
+  }
+
+  return remainingAmount / monthsUntilTarget;
+}
+
 @riverpod
 SavingGoal? savingGoalById(Ref ref, String goalId) {
   final List<SavingGoal> goals = ref.watch(
@@ -73,16 +95,12 @@ SavingGoalForecast? savingGoalForecast(Ref ref, String goalId) {
       transactionsAsync.value ?? const <TransactionEntity>[];
 
   if (transactions.isEmpty) {
-    double recommended = 0;
-    if (goal.targetDate != null && goal.targetDate!.isAfter(DateTime.now())) {
-      final int days = goal.targetDate!.difference(DateTime.now()).inDays;
-      final double months = days / 30.44;
-      if (months > 0.1) {
-        recommended = (goal.remainingAmount / 100) / months;
-      } else {
-        recommended = goal.remainingAmount / 100;
-      }
-    }
+    final DateTime now = DateTime.now();
+    final double recommended = _calculateRecommendedMonthlyContribution(
+      remainingAmount: goal.remainingAmount / 100,
+      targetDate: goal.targetDate,
+      now: now,
+    );
     return SavingGoalForecast(
       averageMonthlyContribution: 0,
       estimatedCompletionDate: null,
@@ -115,16 +133,11 @@ SavingGoalForecast? savingGoalForecast(Ref ref, String goalId) {
     }
   }
 
-  double recommended = 0;
-  if (goal.targetDate != null && goal.targetDate!.isAfter(now)) {
-    final int days = goal.targetDate!.difference(now).inDays;
-    final double months = days / 30.44;
-    if (months > 0.1) {
-      recommended = remaining / months;
-    } else {
-      recommended = remaining;
-    }
-  }
+  final double recommended = _calculateRecommendedMonthlyContribution(
+    remainingAmount: remaining,
+    targetDate: goal.targetDate,
+    now: now,
+  );
 
   return SavingGoalForecast(
     averageMonthlyContribution: averageMonthly,
