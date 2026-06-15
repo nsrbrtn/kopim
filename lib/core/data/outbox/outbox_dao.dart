@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 
 import 'package:drift/drift.dart';
 import 'package:kopim/core/data/database.dart' as db;
+import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/sync/sync_contract.dart';
 
 enum OutboxOperation { upsert, delete }
@@ -9,9 +11,10 @@ enum OutboxOperation { upsert, delete }
 enum OutboxStatus { pending, sending, sent, failed }
 
 class OutboxDao {
-  OutboxDao(this._db);
+  OutboxDao(this._db, [this._logger]);
 
   final db.AppDatabase _db;
+  final LoggerService? _logger;
   static const List<OutboxStatus> _compactableStatuses = <OutboxStatus>[
     OutboxStatus.pending,
     OutboxStatus.failed,
@@ -272,28 +275,234 @@ class OutboxDao {
     List<db.OutboxEntryRow> entries, {
     int? limit,
   }) {
-    final List<db.OutboxEntryRow> sorted = List<db.OutboxEntryRow>.from(entries)
-      ..sort((db.OutboxEntryRow a, db.OutboxEntryRow b) {
-        final int dependencyCompare = _dependencyOrderFor(
-          a.entityType,
-        ).compareTo(_dependencyOrderFor(b.entityType));
-        if (dependencyCompare != 0) {
-          return dependencyCompare;
-        }
-        final int createdAtCompare = a.createdAt.compareTo(b.createdAt);
-        if (createdAtCompare != 0) {
-          return createdAtCompare;
-        }
-        return a.id.compareTo(b.id);
-      });
-    if (limit == null || sorted.length <= limit) {
-      return sorted;
+    if (entries.isEmpty) return entries;
+
+    // 1. Предварительная сортировка по fallback-приоритету
+    final List<db.OutboxEntryRow> sortedCandidates =
+        List<db.OutboxEntryRow>.from(entries)
+          ..sort((db.OutboxEntryRow a, db.OutboxEntryRow b) {
+            final int dependencyCompare = _dependencyOrderFor(
+              a.entityType,
+            ).compareTo(_dependencyOrderFor(b.entityType));
+            if (dependencyCompare != 0) return dependencyCompare;
+
+            final int createdAtCompare = a.createdAt.compareTo(b.createdAt);
+            if (createdAtCompare != 0) return createdAtCompare;
+
+            return a.id.compareTo(b.id);
+          });
+
+    final int n = sortedCandidates.length;
+
+    // 2. Построение индексов: entityType -> entityId -> list of indices in sortedCandidates
+    final Map<String, Map<String, List<int>>> entityMap =
+        <String, Map<String, List<int>>>{};
+    for (int i = 0; i < n; i++) {
+      final db.OutboxEntryRow entry = sortedCandidates[i];
+      entityMap
+          .putIfAbsent(entry.entityType, () => <String, List<int>>{})
+          .putIfAbsent(entry.entityId, () => <int>[])
+          .add(i);
     }
-    return sorted.take(limit).toList(growable: false);
+
+    // 3. Декодирование payloads и определение tombstone-статуса для каждого элемента
+    final List<Map<String, dynamic>> payloads =
+        List<Map<String, dynamic>>.generate(n, (int i) {
+          try {
+            return jsonDecode(sortedCandidates[i].payload)
+                as Map<String, dynamic>;
+          } catch (_) {
+            return const <String, dynamic>{};
+          }
+        });
+
+    final List<bool> isTombstone = List<bool>.generate(
+      n,
+      (int i) => _isTombstoneEntry(sortedCandidates[i], payloads[i]),
+    );
+
+    // 4. Построение графа (списки смежности и входящие степени)
+    final List<List<int>> adj = List<List<int>>.generate(n, (_) => <int>[]);
+    final List<int> indegree = List<int>.filled(n, 0);
+    final Set<String> addedEdges = <String>{};
+
+    void addEdge(int from, int to) {
+      final String key = '$from->$to';
+      if (addedEdges.add(key)) {
+        adj[from].add(to);
+        indegree[to]++;
+      }
+    }
+
+    // а) Очередность операций над одной и той же сущностью (same entity older -> newer)
+    entityMap.forEach((String entityType, Map<String, List<int>> ids) {
+      ids.forEach((String entityId, List<int> indices) {
+        for (int k = 0; k < indices.length - 1; k++) {
+          addEdge(indices[k], indices[k + 1]);
+        }
+      });
+    });
+
+    // б) Зависимости родитель-ребенок на основе SyncContract
+    for (int childIdx = 0; childIdx < n; childIdx++) {
+      final String childType = sortedCandidates[childIdx].entityType;
+      final Map<String, dynamic> childPayload = payloads[childIdx];
+
+      final List<_ParentRef> parentRefs = _getParentReferences(
+        childType,
+        childPayload,
+      );
+      for (final _ParentRef ref in parentRefs) {
+        final String parentType = ref.type;
+        final String parentId = ref.id;
+
+        final List<int>? parentIndices = entityMap[parentType]?[parentId];
+        if (parentIndices == null || parentIndices.isEmpty) {
+          continue;
+        }
+
+        // Проверяем, не является ли родитель missing reference placeholder'ом
+        bool parentIsPlaceholder = false;
+        for (final int pIdx in parentIndices) {
+          if (_isMissingReferencePlaceholder(parentType, payloads[pIdx])) {
+            parentIsPlaceholder = true;
+            break;
+          }
+        }
+        if (parentIsPlaceholder) {
+          continue;
+        }
+
+        final SyncEntityManifestEntry? parentManifest =
+            SyncContract.manifestByOutboxType[parentType];
+        final SyncReferencePolicy policy =
+            parentManifest?.referencePolicy ??
+            SyncReferencePolicy.independentTombstone;
+
+        for (final int parentIdx in parentIndices) {
+          if (parentIdx == childIdx) continue;
+
+          if (!isTombstone[parentIdx]) {
+            // Родитель активный -> сначала родитель, потом ребенок
+            addEdge(parentIdx, childIdx);
+          } else {
+            // Родитель удален (tombstone) -> зависит от политики родителя
+            switch (policy) {
+              case SyncReferencePolicy.keepReferenceAfterParentTombstone:
+                // Сначала tombstone родителя, потом ребенок
+                addEdge(parentIdx, childIdx);
+                break;
+              case SyncReferencePolicy.childMustBeInactiveBeforeParentTombstone:
+                // Сначала ребенок (upsert/delete), потом tombstone родителя
+                addEdge(childIdx, parentIdx);
+                break;
+              case SyncReferencePolicy.independentTombstone:
+                break;
+            }
+          }
+        }
+      }
+    }
+
+    // 5. Алгоритм Кана (топологическая сортировка)
+    final List<int> candidates = <int>[];
+    for (int i = 0; i < n; i++) {
+      if (indegree[i] == 0) {
+        candidates.add(i);
+      }
+    }
+
+    final List<db.OutboxEntryRow> result = <db.OutboxEntryRow>[];
+    final Set<int> visited = <int>{};
+
+    while (candidates.isNotEmpty) {
+      final int u = candidates.removeAt(0);
+      result.add(sortedCandidates[u]);
+      visited.add(u);
+
+      for (final int v in adj[u]) {
+        indegree[v]--;
+        if (indegree[v] == 0) {
+          candidates.add(v);
+        }
+      }
+      candidates.sort();
+    }
+
+    // 6. Обработка циклов (Graceful recovery)
+    if (result.length < n) {
+      const String warningMsg =
+          'OutboxDao: detected a dependency cycle in outbox entries! '
+          'Graceful recovery: falling back to static priority order for remaining nodes.';
+      if (_logger != null) {
+        _logger.logWarning(warningMsg);
+      } else {
+        // Избегаем avoid_print через developer.log
+        developer.log('WARNING: $warningMsg', name: 'OutboxDao');
+      }
+
+      for (int i = 0; i < n; i++) {
+        if (!visited.contains(i)) {
+          result.add(sortedCandidates[i]);
+        }
+      }
+    }
+
+    if (limit == null || result.length <= limit) {
+      return result;
+    }
+    return result.take(limit).toList(growable: false);
+  }
+
+  bool _isTombstoneEntry(
+    db.OutboxEntryRow entry,
+    Map<String, dynamic> payload,
+  ) {
+    if (entry.operation == 'delete') return true;
+    final dynamic isDeleted = payload['isDeleted'] ?? payload['is_deleted'];
+    if (isDeleted == true || isDeleted == 'true') return true;
+    return false;
+  }
+
+  List<_ParentRef> _getParentReferences(
+    String entityType,
+    Map<String, dynamic> payload,
+  ) {
+    final List<_ParentRef> refs = <_ParentRef>[];
+    final SyncEntityManifestEntry? entryManifest =
+        SyncContract.manifestByOutboxType[entityType];
+    if (entryManifest == null) return refs;
+
+    for (final SyncReferenceDescriptor desc in entryManifest.references) {
+      final dynamic val = payload[desc.fieldName];
+      if (val is String && val.isNotEmpty) {
+        refs.add(_ParentRef(desc.parentEntityType, val));
+      }
+    }
+    return refs;
+  }
+
+  bool _isMissingReferencePlaceholder(
+    String entityType,
+    Map<String, dynamic> payload,
+  ) {
+    if (entityType != 'category') return false;
+    final bool isSystem =
+        payload['isSystem'] == true || payload['is_system'] == true;
+    final bool isDeleted =
+        payload['isDeleted'] == true || payload['is_deleted'] == true;
+    final String name = payload['name'] as String? ?? '';
+    return isSystem && isDeleted && name.startsWith('Категория недоступна');
   }
 
   int _dependencyOrderFor(String entityType) {
     return SyncContract.manifestByOutboxType[entityType]?.dependencyOrder ??
         1 << 20;
   }
+}
+
+class _ParentRef {
+  const _ParentRef(this.type, this.id);
+  final String type;
+  final String id;
 }

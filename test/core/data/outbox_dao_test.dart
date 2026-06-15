@@ -236,4 +236,182 @@ void main() {
       expect(rowsAfterExpiredPrune, isEmpty);
     },
   );
+
+  group('OutboxDao - Topological Sort (TASK-003)', () {
+    test('1. Same entity operation order (chronological)', () async {
+      final int id1 = await outboxDao.enqueue(
+        entityType: 'category',
+        entityId: 'cat-a',
+        operation: OutboxOperation.upsert,
+        payload: <String, dynamic>{'id': 'cat-a', 'name': 'Category A'},
+      );
+
+      final int id2 = await outboxDao.enqueue(
+        entityType: 'category',
+        entityId: 'cat-a',
+        operation: OutboxOperation.delete,
+        payload: <String, dynamic>{'id': 'cat-a', 'isDeleted': true},
+      );
+
+      final List<OutboxEntryRow> sorted = await outboxDao.fetchPending();
+      expect(sorted, hasLength(2));
+      expect(sorted[0].id, id1);
+      expect(sorted[1].id, id2);
+    });
+
+    test('2. Parent upsert before child delete', () async {
+      final int txId = await outboxDao.enqueue(
+        entityType: 'transaction',
+        entityId: 'tx-1',
+        operation: OutboxOperation.delete,
+        payload: <String, dynamic>{
+          'id': 'tx-1',
+          'categoryId': 'cat-a',
+          'isDeleted': true,
+        },
+      );
+
+      final DateTime now = DateTime.now();
+      await (database.update(
+        database.outboxEntries,
+      )..where((OutboxEntries tbl) => tbl.id.equals(txId))).write(
+        OutboxEntriesCompanion(
+          createdAt: Value<DateTime>(now.subtract(const Duration(minutes: 10))),
+        ),
+      );
+
+      final int catId = await outboxDao.enqueue(
+        entityType: 'category',
+        entityId: 'cat-a',
+        operation: OutboxOperation.upsert,
+        payload: <String, dynamic>{'id': 'cat-a', 'name': 'Category A'},
+      );
+
+      await (database.update(database.outboxEntries)
+            ..where((OutboxEntries tbl) => tbl.id.equals(catId)))
+          .write(OutboxEntriesCompanion(createdAt: Value<DateTime>(now)));
+
+      final List<OutboxEntryRow> sorted = await outboxDao.fetchPending();
+      final int txIdx = sorted.indexWhere((OutboxEntryRow e) => e.id == txId);
+      final int catIdx = sorted.indexWhere((OutboxEntryRow e) => e.id == catId);
+
+      // Даже при том, что транзакция создана раньше, родитель должен идти ПЕРЕД дочерним элементом
+      expect(catIdx, lessThan(txIdx));
+    });
+
+    test('3. Multi-level dependency (Upsert & Cascade Delete)', () async {
+      final int creditId = await outboxDao.enqueue(
+        entityType: 'credit',
+        entityId: 'credit-1',
+        operation: OutboxOperation.delete,
+        payload: <String, dynamic>{'id': 'credit-1', 'isDeleted': true},
+      );
+
+      final int groupId = await outboxDao.enqueue(
+        entityType: 'credit_payment_group',
+        entityId: 'group-1',
+        operation: OutboxOperation.delete,
+        payload: <String, dynamic>{
+          'id': 'group-1',
+          'creditId': 'credit-1',
+          'isDeleted': true,
+        },
+      );
+
+      final int scheduleId = await outboxDao.enqueue(
+        entityType: 'credit_payment_schedule',
+        entityId: 'schedule-1',
+        operation: OutboxOperation.delete,
+        payload: <String, dynamic>{
+          'id': 'schedule-1',
+          'creditId': 'credit-1',
+          'isDeleted': true,
+        },
+      );
+
+      final List<OutboxEntryRow> sorted = await outboxDao.fetchPending();
+      final int creditIdx = sorted.indexWhere(
+        (OutboxEntryRow e) => e.id == creditId,
+      );
+      final int groupIdx = sorted.indexWhere(
+        (OutboxEntryRow e) => e.id == groupId,
+      );
+      final int scheduleIdx = sorted.indexWhere(
+        (OutboxEntryRow e) => e.id == scheduleId,
+      );
+
+      // Из-за политики childMustBeInactiveBeforeParentTombstone дети должны быть удалены ПЕРЕД родителем
+      expect(groupIdx, lessThan(creditIdx));
+      expect(scheduleIdx, lessThan(creditIdx));
+    });
+
+    test('4. Missing-reference placeholder invariant', () async {
+      final int childId = await outboxDao.enqueue(
+        entityType: 'category',
+        entityId: 'cat-b',
+        operation: OutboxOperation.upsert,
+        payload: <String, dynamic>{'id': 'cat-b', 'parentId': 'cat-missing-1'},
+      );
+
+      final DateTime now = DateTime.now();
+      await (database.update(
+        database.outboxEntries,
+      )..where((OutboxEntries tbl) => tbl.id.equals(childId))).write(
+        OutboxEntriesCompanion(
+          createdAt: Value<DateTime>(now.subtract(const Duration(minutes: 10))),
+        ),
+      );
+
+      final int parentId = await outboxDao.enqueue(
+        entityType: 'category',
+        entityId: 'cat-missing-1',
+        operation: OutboxOperation.upsert,
+        payload: <String, dynamic>{
+          'id': 'cat-missing-1',
+          'name': 'Категория недоступна (cat-missing-1)',
+          'isSystem': true,
+          'isDeleted': true,
+        },
+      );
+
+      await (database.update(database.outboxEntries)
+            ..where((OutboxEntries tbl) => tbl.id.equals(parentId)))
+          .write(OutboxEntriesCompanion(createdAt: Value<DateTime>(now)));
+
+      final List<OutboxEntryRow> sorted = await outboxDao.fetchPending();
+      final int childIdx = sorted.indexWhere(
+        (OutboxEntryRow e) => e.id == childId,
+      );
+      final int parentIdx = sorted.indexWhere(
+        (OutboxEntryRow e) => e.id == parentId,
+      );
+
+      // Из-за плейсхолдера ребро зависимости не строится, и дочерняя категория идет ПЕРВОЙ по createdAt
+      expect(childIdx, lessThan(parentIdx));
+    });
+
+    test('5. Cycle Tolerance', () async {
+      final int catAId = await outboxDao.enqueue(
+        entityType: 'category',
+        entityId: 'cat-a',
+        operation: OutboxOperation.upsert,
+        payload: <String, dynamic>{'id': 'cat-a', 'parentId': 'cat-b'},
+      );
+
+      final int catBId = await outboxDao.enqueue(
+        entityType: 'category',
+        entityId: 'cat-b',
+        operation: OutboxOperation.upsert,
+        payload: <String, dynamic>{'id': 'cat-b', 'parentId': 'cat-a'},
+      );
+
+      final List<OutboxEntryRow> sorted = await outboxDao.fetchPending();
+      expect(sorted, hasLength(2));
+      // Должны успешно вернуть элементы без бесконечного цикла/краша
+      expect(sorted.map((OutboxEntryRow e) => e.id).toSet(), <int>{
+        catAId,
+        catBId,
+      });
+    });
+  });
 }

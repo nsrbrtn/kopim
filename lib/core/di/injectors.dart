@@ -380,7 +380,8 @@ AppDatabase appDatabase(Ref ref) {
 }
 
 @riverpod
-OutboxDao outboxDao(Ref ref) => OutboxDao(ref.watch(appDatabaseProvider));
+OutboxDao outboxDao(Ref ref) =>
+    OutboxDao(ref.watch(appDatabaseProvider), ref.watch(loggerServiceProvider));
 
 @riverpod
 SyncConflictDao syncConflictDao(Ref ref) =>
