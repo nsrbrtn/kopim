@@ -32,6 +32,7 @@ import 'package:kopim/core/services/push_permission_service.dart';
 import 'package:kopim/core/services/sync/local_sync_integrity_debug_reporter.dart';
 import 'package:kopim/core/services/sync/local_sync_integrity_diagnostics_service.dart';
 import 'package:kopim/core/services/sync/sync_data_sanitizer.dart';
+import 'package:kopim/core/services/sync/sync_metadata_repository.dart';
 import 'package:kopim/core/services/sync_service.dart';
 import 'package:kopim/features/ai/data/local/ai_assistant_tool_dao.dart';
 import 'package:kopim/features/ai/data/repositories/ai_assistant_repository_impl.dart';
@@ -215,6 +216,10 @@ const List<String> _kDefaultAiModelFallbacks = <String>[];
 
 @riverpod
 LoggerService loggerService(Ref ref) => LoggerService();
+
+@Riverpod(keepAlive: true)
+SyncMetadataRepository syncMetadataRepository(Ref ref) =>
+    SyncMetadataRepository();
 
 @riverpod
 AnalyticsService analyticsService(Ref ref) => const AnalyticsService();
@@ -1228,6 +1233,7 @@ userAccountCleanupRepositoryProvider =
         firestore: ref.watch(firestoreProvider),
         database: ref.watch(appDatabaseProvider),
         profileAvatarRepository: ref.watch(profileAvatarRepositoryProvider),
+        syncMetadataRepository: ref.watch(syncMetadataRepositoryProvider),
       );
     });
 
@@ -1328,6 +1334,7 @@ SyncService syncService(Ref ref) {
       paymentReminderRemoteDataSourceProvider,
     ),
     firebaseAuth: ref.watch(firebaseAuthProvider),
+    authSyncService: ref.watch(authSyncServiceProvider),
     connectivity: ref.watch(connectivityProvider),
   );
   ref.onDispose(service.dispose);
@@ -1437,6 +1444,7 @@ AuthSyncService authSyncService(Ref ref) => AuthSyncService(
   loggerService: ref.watch(loggerServiceProvider),
   analyticsService: ref.watch(analyticsServiceProvider),
   dataSanitizer: ref.watch(syncDataSanitizerProvider),
+  syncMetadataRepository: ref.watch(syncMetadataRepositoryProvider),
   accountTypeBackfillService: ref.watch(accountTypeBackfillServiceProvider),
   integrityDiagnosticsService: ref.watch(
     localSyncIntegrityDiagnosticsServiceProvider,

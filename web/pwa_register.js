@@ -54,9 +54,42 @@
     }
   };
 
+  const unregisterOldFlutterServiceWorker = async () => {
+    if ('serviceWorker' in navigator) {
+      try {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const registration of registrations) {
+          if (registration.active && registration.active.scriptURL.includes('flutter_service_worker.js')) {
+            console.info('[kopim-sw] Найдена старая версия Flutter SW. Разрегистрируем...', registration.active.scriptURL);
+            await registration.unregister();
+          }
+        }
+      } catch (e) {
+        console.error('[kopim-sw] Ошибка при удалении старого Flutter SW', e);
+      }
+    }
+  };
+
+  const cleanOldFlutterCaches = async () => {
+    if ('caches' in window) {
+      try {
+        const keys = await caches.keys();
+        for (const key of keys) {
+          if (key.startsWith('flutter-app-') || key.startsWith('flutter-resources-')) {
+            console.info('[kopim-sw] Удаляем старый кэш Flutter:', key);
+            await caches.delete(key);
+          }
+        }
+      } catch (e) {
+        console.error('[kopim-sw] Ошибка при очистке кэша Flutter', e);
+      }
+    }
+  };
+
   const register = async () => {
+    await unregisterOldFlutterServiceWorker();
+    await cleanOldFlutterCaches();
     await registerAppServiceWorker();
-    await registerFirebaseMessagingWorker();
   };
 
   if (document.readyState === 'complete') {

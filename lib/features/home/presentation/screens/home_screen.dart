@@ -340,16 +340,42 @@ class _HomeBody extends ConsumerWidget {
 
   Future<void> _handleRefresh(BuildContext context, WidgetRef ref) async {
     final SyncService syncService = ref.read(syncServiceProvider);
-    final SyncActionResult result = await syncService.triggerSync();
+    final IncrementalSyncStatus status = await syncService.triggerManualSync();
     if (!context.mounted) return;
-    final AppLocalizations strings = AppLocalizations.of(context)!;
-    final String message = switch (result) {
-      SyncActionResult.synced => strings.homeSyncStatusSuccess,
-      SyncActionResult.offline => strings.homeSyncStatusOffline,
-      SyncActionResult.unauthenticated => strings.homeSyncStatusAuthRequired,
-      SyncActionResult.alreadySyncing => strings.homeSyncStatusInProgress,
-      SyncActionResult.noChanges => strings.homeSyncStatusNoChanges,
+
+    final bool isRu = Localizations.localeOf(context).languageCode == 'ru';
+
+    final String message = switch (status.result) {
+      IncrementalSyncResult.success =>
+        isRu
+            ? 'Синхронизация успешна: получено ${status.pulledCount} изменений.'
+            : 'Sync successful: received ${status.pulledCount} changes.',
+      IncrementalSyncResult.noChanges =>
+        isRu ? 'Нет новых изменений.' : 'No new changes.',
+      IncrementalSyncResult.pushFailed =>
+        isRu
+            ? 'Не удалось отправить локальные изменения. Попробуйте позже.'
+            : 'Failed to send local changes. Please try again later.',
+      IncrementalSyncResult.offline =>
+        isRu
+            ? 'Вы находитесь в автономном режиме.'
+            : 'You are offline. Sync is unavailable.',
+      IncrementalSyncResult.unauthenticated =>
+        isRu
+            ? 'Войдите, чтобы синхронизировать данные.'
+            : 'Sign in to sync your data.',
+      IncrementalSyncResult.alreadySyncing =>
+        isRu ? 'Синхронизация уже выполняется.' : 'Sync is already running.',
+      IncrementalSyncResult.error =>
+        isRu
+            ? (status.errorMessage == 'full_sync_required'
+                  ? 'Требуется полная синхронизация. Пожалуйста, перезапустите приложение.'
+                  : 'Ошибка синхронизации: ${status.errorMessage}')
+            : (status.errorMessage == 'full_sync_required'
+                  ? 'Full sync required. Please restart the app.'
+                  : 'Sync error: ${status.errorMessage}'),
     };
+
     final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar();
     messenger.showSnackBar(

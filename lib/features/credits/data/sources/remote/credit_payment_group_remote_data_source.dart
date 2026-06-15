@@ -57,7 +57,7 @@ class CreditPaymentGroupRemoteDataSource {
     final QuerySnapshot<Map<String, dynamic>> snapshot = await _collection(
       userId,
     ).get();
-    return snapshot.docs.map(_fromDocument).toList(growable: false);
+    return snapshot.docs.map(fromDocument).toList(growable: false);
   }
 
   Map<String, dynamic> _mapGroup(CreditPaymentGroupEntity group) {
@@ -88,7 +88,7 @@ class CreditPaymentGroupRemoteDataSource {
     }..removeWhere((String key, Object? value) => value == null);
   }
 
-  CreditPaymentGroupEntity _fromDocument(
+  CreditPaymentGroupEntity fromDocument(
     QueryDocumentSnapshot<Map<String, dynamic>> doc,
   ) {
     final Map<String, dynamic> data = doc.data();

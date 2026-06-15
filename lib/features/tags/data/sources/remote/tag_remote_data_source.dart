@@ -56,7 +56,7 @@ class TagRemoteDataSource {
     final QuerySnapshot<Map<String, dynamic>> snapshot = await _collection(
       userId,
     ).get();
-    return snapshot.docs.map(_fromDocument).toList();
+    return snapshot.docs.map(fromDocument).toList();
   }
 
   Map<String, dynamic> mapTag(TagEntity tag) {
@@ -70,7 +70,7 @@ class TagRemoteDataSource {
     };
   }
 
-  TagEntity _fromDocument(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+  TagEntity fromDocument(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
     final Map<String, dynamic> data = doc.data();
     return TagEntity(
       id: data['id'] as String? ?? doc.id,

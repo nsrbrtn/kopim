@@ -49,7 +49,7 @@ class SavingGoalRemoteDataSource {
     final QuerySnapshot<Map<String, dynamic>> snapshot = await _collection(
       userId,
     ).get();
-    return snapshot.docs.map(_fromDocument).toList(growable: false);
+    return snapshot.docs.map(fromDocument).toList(growable: false);
   }
 
   Map<String, dynamic> _mapGoal(SavingGoal goal) {
@@ -73,7 +73,7 @@ class SavingGoalRemoteDataSource {
     }..removeWhere((String key, Object? value) => value == null);
   }
 
-  SavingGoal _fromDocument(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+  SavingGoal fromDocument(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
     final Map<String, dynamic> data = doc.data();
     final List<String> storageAccountIds =
         (data['storageAccountIds'] as List<dynamic>? ?? const <dynamic>[])

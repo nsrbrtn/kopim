@@ -11,6 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/services/sync_service.dart';
+import 'package:kopim/core/services/auth_sync_service.dart';
 import 'package:kopim/features/accounts/data/sources/remote/account_remote_data_source.dart';
 import 'package:kopim/features/budgets/data/sources/remote/budget_instance_remote_data_source.dart';
 import 'package:kopim/features/budgets/data/sources/remote/budget_remote_data_source.dart';
@@ -37,6 +38,8 @@ class _MockFirebaseAuth extends Mock implements FirebaseAuth {}
 class _MockUser extends Mock implements User {}
 
 class _MockConnectivity extends Mock implements Connectivity {}
+
+class _MockAuthSyncService extends Mock implements AuthSyncService {}
 
 void main() {
   setUpAll(() {
@@ -113,6 +116,7 @@ void main() {
       ),
       profileRemoteDataSource: profileRemote,
       firebaseAuth: firebaseAuth,
+      authSyncService: _MockAuthSyncService(),
       connectivity: connectivity,
     );
 

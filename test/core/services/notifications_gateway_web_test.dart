@@ -22,6 +22,9 @@ class _FakePushPermissionService implements PushPermissionService {
 
   @override
   bool get isSupported => true;
+
+  @override
+  String get permissionStatus => initialValue ? 'granted' : 'default';
 }
 
 class _DummyLogger extends LoggerService {

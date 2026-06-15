@@ -50,6 +50,54 @@ final class LoggerServiceProvider
 
 String _$loggerServiceHash() => r'2c6dbe326747f3ecf81511ea71202cb7c7a10dfd';
 
+@ProviderFor(syncMetadataRepository)
+final syncMetadataRepositoryProvider = SyncMetadataRepositoryProvider._();
+
+final class SyncMetadataRepositoryProvider
+    extends
+        $FunctionalProvider<
+          SyncMetadataRepository,
+          SyncMetadataRepository,
+          SyncMetadataRepository
+        >
+    with $Provider<SyncMetadataRepository> {
+  SyncMetadataRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'syncMetadataRepositoryProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$syncMetadataRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<SyncMetadataRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  SyncMetadataRepository create(Ref ref) {
+    return syncMetadataRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SyncMetadataRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SyncMetadataRepository>(value),
+    );
+  }
+}
+
+String _$syncMetadataRepositoryHash() =>
+    r'56b534a2b88dca074a96a06f905f945f219a317d';
+
 @ProviderFor(analyticsService)
 final analyticsServiceProvider = AnalyticsServiceProvider._();
 
@@ -558,7 +606,7 @@ final class OutboxDaoProvider
   }
 }
 
-String _$outboxDaoHash() => r'c134f94b8f94f536107cb7b8dd8fc6a853733b6a';
+String _$outboxDaoHash() => r'31a692ddefd8636173ff49d782d01fa08b40d438';
 
 @ProviderFor(syncConflictDao)
 final syncConflictDaoProvider = SyncConflictDaoProvider._();
@@ -5826,7 +5874,7 @@ final class SyncServiceProvider
   }
 }
 
-String _$syncServiceHash() => r'e810dd0dbaa7a4b216bba21b7c0eaf6c62ddee46';
+String _$syncServiceHash() => r'1a77b3fe0c38b711487776a1512ca3e025bfcacf';
 
 @ProviderFor(authRepository)
 final authRepositoryProvider = AuthRepositoryProvider._();
@@ -6110,4 +6158,4 @@ final class AuthSyncServiceProvider
   }
 }
 
-String _$authSyncServiceHash() => r'f49bd41816fbe07de339bbb4570c429ae9361967';
+String _$authSyncServiceHash() => r'2b3cb14831c11eb49853806c59e684faef1d1db7';

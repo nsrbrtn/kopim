@@ -9,6 +9,8 @@ import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/auth_sync_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/sync/sync_data_sanitizer.dart';
+import 'package:kopim/core/services/sync/sync_metadata_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kopim/features/accounts/data/services/account_type_backfill_service.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/data/sources/remote/account_remote_data_source.dart';
@@ -106,6 +108,7 @@ class AuthSyncTestHarness {
   late PaymentReminderRemoteDataSource paymentReminderRemote;
   late SyncDataSanitizer sanitizer;
   late ImportDataRepositoryImpl importRepository;
+  late SyncMetadataRepository syncMetadataRepository;
 
   Future<void> setUp() async {
     _registerFallbacks();
@@ -181,6 +184,8 @@ class AuthSyncTestHarness {
     when(() => analytics.reportError(any(), any())).thenReturn(null);
     when(() => logger.logInfo(any())).thenReturn(null);
     when(() => logger.logError(any(), any())).thenReturn(null);
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    syncMetadataRepository = SyncMetadataRepository();
   }
 
   static void _registerFallbacks() {
@@ -250,6 +255,7 @@ class AuthSyncTestHarness {
       loggerService: logger,
       analyticsService: analytics,
       dataSanitizer: sanitizer,
+      syncMetadataRepository: syncMetadataRepository,
       accountTypeBackfillService: accountTypeBackfillService,
     );
   }

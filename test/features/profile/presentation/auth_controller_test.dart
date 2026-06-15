@@ -32,7 +32,7 @@ class FakeUserAccountCleanupRepository implements UserAccountCleanupRepository {
   }
 
   @override
-  Future<void> deleteLocalUserData() async {
+  Future<void> deleteLocalUserData(String uid) async {
     final Future<void> Function()? handler = onDeleteLocalUserData;
     if (handler != null) {
       await handler();

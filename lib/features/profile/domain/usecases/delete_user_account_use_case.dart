@@ -28,6 +28,6 @@ class DeleteUserAccountUseCase {
     );
     await _cleanupRepository.deleteRemoteUserData(authUser.uid);
     await _authRepository.deleteCurrentUser();
-    await _cleanupRepository.deleteLocalUserData();
+    await _cleanupRepository.deleteLocalUserData(authUser.uid);
   }
 }

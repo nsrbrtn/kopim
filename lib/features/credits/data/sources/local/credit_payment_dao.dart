@@ -117,15 +117,19 @@ class CreditPaymentDao {
     bool includeDeleted = false,
   }) async {
     final String currency = await _resolveCreditCurrency(creditId);
-    final SimpleSelectStatement<db.$CreditPaymentGroupsTable,
-            db.CreditPaymentGroupRow> query =
-        _db.select(_db.creditPaymentGroups)
-          ..where((db.$CreditPaymentGroupsTable tbl) =>
-              tbl.creditId.equals(creditId));
+    final SimpleSelectStatement<
+      db.$CreditPaymentGroupsTable,
+      db.CreditPaymentGroupRow
+    >
+    query = _db.select(_db.creditPaymentGroups)
+      ..where(
+        (db.$CreditPaymentGroupsTable tbl) => tbl.creditId.equals(creditId),
+      );
 
     if (!includeDeleted) {
       query.where(
-          (db.$CreditPaymentGroupsTable tbl) => tbl.isDeleted.equals(false));
+        (db.$CreditPaymentGroupsTable tbl) => tbl.isDeleted.equals(false),
+      );
     }
 
     final List<db.CreditPaymentGroupRow> rows = await query.get();

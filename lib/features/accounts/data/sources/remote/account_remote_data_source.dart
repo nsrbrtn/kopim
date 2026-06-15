@@ -59,7 +59,7 @@ class AccountRemoteDataSource {
     final QuerySnapshot<Map<String, dynamic>> snapshot = await _collection(
       userId,
     ).get();
-    return snapshot.docs.map(_fromDocument).toList();
+    return snapshot.docs.map(fromDocument).toList();
   }
 
   Map<String, dynamic> mapAccount(AccountEntity account) {
@@ -88,7 +88,7 @@ class AccountRemoteDataSource {
     };
   }
 
-  AccountEntity _fromDocument(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+  AccountEntity fromDocument(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
     final Map<String, dynamic> data = doc.data();
     final String currency = data['currency'] as String? ?? 'RUB';
     final int scale =

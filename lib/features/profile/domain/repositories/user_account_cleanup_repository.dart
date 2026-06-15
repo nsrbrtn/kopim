@@ -1,4 +1,4 @@
 abstract class UserAccountCleanupRepository {
   Future<void> deleteRemoteUserData(String uid);
-  Future<void> deleteLocalUserData();
+  Future<void> deleteLocalUserData(String uid);
 }

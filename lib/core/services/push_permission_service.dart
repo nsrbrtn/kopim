@@ -9,6 +9,8 @@ abstract class PushPermissionService {
 
   bool get isSupported;
 
+  String get permissionStatus;
+
   Future<bool> ensurePermission({bool requestIfNeeded = true});
 }
 

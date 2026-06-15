@@ -10,6 +10,9 @@ class MobilePushPermissionService implements PushPermissionService {
   const MobilePushPermissionService();
 
   @override
+  String get permissionStatus => 'granted';
+
+  @override
   Future<bool> ensurePermission({bool requestIfNeeded = true}) async {
     return true;
   }

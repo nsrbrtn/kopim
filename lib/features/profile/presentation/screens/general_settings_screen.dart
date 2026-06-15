@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kopim/features/profile/presentation/widgets/profile_exact_alarm_preferences_card.dart';
 import 'package:kopim/features/profile/presentation/widgets/profile_theme_preferences_card.dart';
+import 'package:kopim/features/profile/presentation/widgets/web_notification_preferences_card.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class GeneralSettingsScreen extends ConsumerWidget {
@@ -27,6 +28,12 @@ class GeneralSettingsScreen extends ConsumerWidget {
             const _SettingsSectionContainer(
               child: ProfileThemePreferencesCard(),
             ),
+            if (kIsWeb) ...<Widget>[
+              const SizedBox(height: 16),
+              const _SettingsSectionContainer(
+                child: WebNotificationPreferencesCard(),
+              ),
+            ],
             if (showExactAlarmSettings) ...<Widget>[
               const SizedBox(height: 16),
               const _SettingsSectionContainer(

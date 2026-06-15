@@ -55,7 +55,7 @@ class DebtRemoteDataSource {
     final QuerySnapshot<Map<String, dynamic>> snapshot = await _collection(
       userId,
     ).get();
-    return snapshot.docs.map(_fromDocument).toList(growable: false);
+    return snapshot.docs.map(fromDocument).toList(growable: false);
   }
 
   Map<String, dynamic> _mapDebt(DebtEntity debt) {
@@ -75,7 +75,7 @@ class DebtRemoteDataSource {
     }..removeWhere((String key, Object? value) => value == null);
   }
 
-  DebtEntity _fromDocument(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+  DebtEntity fromDocument(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
     final Map<String, dynamic> data = doc.data();
     final int scale = _readInt(data['amountScale']) ?? 2;
     final double legacyAmount = (data['amount'] as num?)?.toDouble() ?? 0;

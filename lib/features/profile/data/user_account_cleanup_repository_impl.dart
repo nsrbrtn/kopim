@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/services/sync/sync_contract.dart';
+import 'package:kopim/core/services/sync/sync_metadata_repository.dart';
 import 'package:kopim/features/profile/domain/repositories/profile_avatar_repository.dart';
 import 'package:kopim/features/profile/domain/repositories/user_account_cleanup_repository.dart';
 
@@ -9,9 +10,11 @@ class UserAccountCleanupRepositoryImpl implements UserAccountCleanupRepository {
     required FirebaseFirestore firestore,
     required db.AppDatabase database,
     required ProfileAvatarRepository profileAvatarRepository,
+    required SyncMetadataRepository syncMetadataRepository,
   }) : _firestore = firestore,
        _database = database,
-       _profileAvatarRepository = profileAvatarRepository;
+       _profileAvatarRepository = profileAvatarRepository,
+       _syncMetadataRepository = syncMetadataRepository;
 
   static final List<String> _userCollections =
       SyncContract.remoteCleanupCollections;
@@ -19,6 +22,7 @@ class UserAccountCleanupRepositoryImpl implements UserAccountCleanupRepository {
   final FirebaseFirestore _firestore;
   final db.AppDatabase _database;
   final ProfileAvatarRepository _profileAvatarRepository;
+  final SyncMetadataRepository _syncMetadataRepository;
 
   @override
   Future<void> deleteRemoteUserData(String uid) async {
@@ -60,7 +64,8 @@ class UserAccountCleanupRepositoryImpl implements UserAccountCleanupRepository {
   }
 
   @override
-  Future<void> deleteLocalUserData() async {
+  Future<void> deleteLocalUserData(String uid) async {
+    await _syncMetadataRepository.clear(uid);
     await _database.transaction(() async {
       await (_database.delete(_database.transactionTags)).go();
       await (_database.delete(_database.goalContributions)).go();

@@ -135,11 +135,6 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 600));
 
-      final BuildContext context = tester.element(
-        find.byType(SavingGoalDetailsScreen),
-      );
-      final AppLocalizations strings = AppLocalizations.of(context)!;
-
       expect(find.text('Vacation Trip'), findsOneWidget);
       expect(find.textContaining('Save for summer holidays'), findsOneWidget);
 

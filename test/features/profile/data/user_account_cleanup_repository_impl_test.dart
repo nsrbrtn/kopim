@@ -4,6 +4,8 @@ import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/data/database.dart';
 import 'package:kopim/core/services/sync/sync_contract.dart';
+import 'package:kopim/core/services/sync/sync_metadata_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kopim/features/profile/data/user_account_cleanup_repository_impl.dart';
 import 'package:kopim/features/profile/domain/repositories/profile_avatar_repository.dart';
 import 'dart:typed_data';
@@ -33,6 +35,7 @@ void main() {
   late UserAccountCleanupRepositoryImpl repository;
 
   setUp(() {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
     database = AppDatabase.connect(DatabaseConnection(NativeDatabase.memory()));
     firestore = FakeFirebaseFirestore();
     avatarRepository = _FakeProfileAvatarRepository();
@@ -40,6 +43,7 @@ void main() {
       firestore: firestore,
       database: database,
       profileAvatarRepository: avatarRepository,
+      syncMetadataRepository: SyncMetadataRepository(),
     );
   });
 
@@ -111,7 +115,7 @@ void main() {
           ),
         );
 
-    await repository.deleteLocalUserData();
+    await repository.deleteLocalUserData('user-1');
 
     expect((await database.select(database.accounts).get()), isEmpty);
     expect((await database.select(database.profiles).get()), isEmpty);

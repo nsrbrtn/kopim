@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:riverpod/riverpod.dart';
@@ -50,12 +51,14 @@ class UpcomingNotificationsController
       unawaited(handleNotificationResponse(response));
     });
 
-    try {
-      await _notifications.ensurePermission();
-    } catch (error, stackTrace) {
-      _logger.logError(
-        'Не удалось запросить разрешение на уведомления: $error\n$stackTrace',
-      );
+    if (!kIsWeb) {
+      try {
+        await _notifications.ensurePermission();
+      } catch (error, stackTrace) {
+        _logger.logError(
+          'Не удалось запросить разрешение на уведомления: $error\n$stackTrace',
+        );
+      }
     }
 
     List<UpcomingPayment> initialPayments = const <UpcomingPayment>[];

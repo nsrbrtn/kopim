@@ -63,7 +63,7 @@ class BudgetInstanceRemoteDataSource {
     final QuerySnapshot<Map<String, dynamic>> snapshot = await _collection(
       userId,
     ).get();
-    return snapshot.docs.map(_fromDocument).toList();
+    return snapshot.docs.map(fromDocument).toList();
   }
 
   Map<String, dynamic> _mapInstance(BudgetInstance instance) {
@@ -86,9 +86,7 @@ class BudgetInstanceRemoteDataSource {
     }..removeWhere((String key, Object? value) => value == null);
   }
 
-  BudgetInstance _fromDocument(
-    QueryDocumentSnapshot<Map<String, dynamic>> doc,
-  ) {
+  BudgetInstance fromDocument(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
     final Map<String, dynamic> data = doc.data();
     final int scale = _readInt(data['amountScale']) ?? 2;
     final double legacyAmount = (data['amount'] as num?)?.toDouble() ?? 0;

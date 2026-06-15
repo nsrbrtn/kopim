@@ -43,6 +43,7 @@ import 'package:kopim/features/upcoming_payments/data/sources/remote/upcoming_pa
 import 'package:kopim/features/upcoming_payments/domain/entities/payment_reminder.dart';
 import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
 import 'package:kopim/core/services/sync_status.dart';
+import 'package:kopim/core/services/auth_sync_service.dart';
 
 class SyncService {
   SyncService({
@@ -66,6 +67,7 @@ class SyncService {
     required UpcomingPaymentRemoteDataSource upcomingPaymentRemoteDataSource,
     required PaymentReminderRemoteDataSource paymentReminderRemoteDataSource,
     required FirebaseAuth firebaseAuth,
+    required AuthSyncService authSyncService,
     Connectivity? connectivity,
     OutboxPayloadNormalizer payloadNormalizer = const OutboxPayloadNormalizer(),
   }) : _outboxDao = outboxDao,
@@ -88,6 +90,7 @@ class SyncService {
        _paymentReminderRemoteDataSource = paymentReminderRemoteDataSource,
        _auth = firebaseAuth,
        _connectivity = connectivity ?? Connectivity(),
+       _authSyncService = authSyncService,
        _payloadNormalizer = payloadNormalizer;
 
   static const Duration _staleSendingRecoveryWindow = Duration(minutes: 5);
@@ -112,6 +115,7 @@ class SyncService {
   final PaymentReminderRemoteDataSource _paymentReminderRemoteDataSource;
   final FirebaseAuth _auth;
   final Connectivity _connectivity;
+  final AuthSyncService _authSyncService;
   final OutboxPayloadNormalizer _payloadNormalizer;
 
   StreamSubscription<List<db.OutboxEntryRow>>? _outboxSubscription;
@@ -121,6 +125,7 @@ class SyncService {
 
   bool _isOnline = false;
   bool _isSyncing = false;
+  bool _isManualSyncing = false;
   bool _initialized = false;
   SyncStatus _status = SyncStatus.offline;
 
@@ -189,6 +194,74 @@ class SyncService {
     if (!hasPending) return SyncActionResult.noChanges;
     await syncPending();
     return SyncActionResult.synced;
+  }
+
+  Future<IncrementalSyncStatus> triggerManualSync() async {
+    await initialize();
+    if (!_isOnline) {
+      return const IncrementalSyncStatus(result: IncrementalSyncResult.offline);
+    }
+    final User? user = _auth.currentUser;
+    if (user == null) {
+      return const IncrementalSyncStatus(
+        result: IncrementalSyncResult.unauthenticated,
+      );
+    }
+    if (_isManualSyncing || _isSyncing) {
+      return const IncrementalSyncStatus(
+        result: IncrementalSyncResult.alreadySyncing,
+      );
+    }
+
+    _isManualSyncing = true;
+    _updateStatus();
+    try {
+      await syncPending();
+
+      final List<db.OutboxEntryRow> pending = await _outboxDao.fetchPending(
+        limit: 1,
+      );
+      if (pending.isNotEmpty) {
+        return const IncrementalSyncStatus(
+          result: IncrementalSyncResult.pushFailed,
+        );
+      }
+
+      final int pulledCount = await _authSyncService.performIncrementalSync(
+        user.uid,
+      );
+      if (pulledCount == 0) {
+        return const IncrementalSyncStatus(
+          result: IncrementalSyncResult.noChanges,
+        );
+      }
+
+      return IncrementalSyncStatus(
+        result: IncrementalSyncResult.success,
+        pulledCount: pulledCount,
+      );
+    } catch (e, stackTrace) {
+      if (e is StateError && e.message == 'full_sync_required') {
+        return const IncrementalSyncStatus(
+          result: IncrementalSyncResult.error,
+          errorMessage: 'full_sync_required',
+        );
+      }
+      if (!AppRuntimeConfig.isOffline) {
+        FirebaseCrashlytics.instance.recordError(
+          e,
+          stackTrace,
+          reason: 'manual_sync_failed',
+        );
+      }
+      return IncrementalSyncStatus(
+        result: IncrementalSyncResult.error,
+        errorMessage: e.toString(),
+      );
+    } finally {
+      _isManualSyncing = false;
+      _updateStatus();
+    }
   }
 
   Future<void> _syncEntry(String userId, db.OutboxEntryRow entry) async {
@@ -754,10 +827,14 @@ class SyncService {
 
   void _updateStatus() {
     final SyncStatus nextStatus = kIsWeb
-        ? (_isSyncing ? SyncStatus.syncing : SyncStatus.upToDate)
+        ? ((_isSyncing || _isManualSyncing)
+              ? SyncStatus.syncing
+              : SyncStatus.upToDate)
         : (!_isOnline
               ? SyncStatus.offline
-              : (_isSyncing ? SyncStatus.syncing : SyncStatus.upToDate));
+              : ((_isSyncing || _isManualSyncing)
+                    ? SyncStatus.syncing
+                    : SyncStatus.upToDate));
     if (nextStatus == _status) return;
     _status = nextStatus;
     if (_statusController.isClosed) return;

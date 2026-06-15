@@ -3104,9 +3104,12 @@ void main() {
       final db.OutboxEntryRow outboxEntry = outboxRows.firstWhere(
         (db.OutboxEntryRow e) => e.entityId == 'tx-1',
       );
-      await (database.update(database.outboxEntries)
-            ..where((db.$OutboxEntriesTable tbl) => tbl.id.equals(outboxEntry.id)))
-          .write(const db.OutboxEntriesCompanion(status: Value<String>('sending')));
+      await (database.update(database.outboxEntries)..where(
+            (db.$OutboxEntriesTable tbl) => tbl.id.equals(outboxEntry.id),
+          ))
+          .write(
+            const db.OutboxEntriesCompanion(status: Value<String>('sending')),
+          );
 
       await firestore
           .collection('users')

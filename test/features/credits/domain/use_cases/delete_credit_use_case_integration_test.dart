@@ -295,7 +295,9 @@ void main() {
               interestPaidMinor: Value<String>(
                 tombstonedGroup.interestPaid.minor.toString(),
               ),
-              feesPaidMinor: Value<String>(tombstonedGroup.feesPaid.minor.toString()),
+              feesPaidMinor: Value<String>(
+                tombstonedGroup.feesPaid.minor.toString(),
+              ),
               createdAt: Value<DateTime>(tombstonedGroup.createdAt!),
               updatedAt: Value<DateTime>(tombstonedGroup.updatedAt!),
               isDeleted: const Value<bool>(true),

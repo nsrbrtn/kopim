@@ -57,7 +57,7 @@ class CategoryRemoteDataSource {
     final QuerySnapshot<Map<String, dynamic>> snapshot = await _collection(
       userId,
     ).get();
-    return snapshot.docs.map(_fromDocument).toList();
+    return snapshot.docs.map(fromDocument).toList();
   }
 
   Map<String, dynamic> mapCategory(Category category) {
@@ -80,7 +80,7 @@ class CategoryRemoteDataSource {
     }..removeWhere((String key, Object? value) => value == null);
   }
 
-  Category _fromDocument(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+  Category fromDocument(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
     final Map<String, dynamic> data = doc.data();
     PhosphorIconDescriptor? descriptor;
     final Object? iconDescriptorRaw = data['iconDescriptor'];

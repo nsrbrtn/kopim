@@ -62,7 +62,7 @@ class TransactionRemoteDataSource {
     final QuerySnapshot<Map<String, dynamic>> snapshot = await _collection(
       userId,
     ).get();
-    return snapshot.docs.map(_fromDocument).toList();
+    return snapshot.docs.map(fromDocument).toList();
   }
 
   Map<String, dynamic> mapTransaction(TransactionEntity transaction) {
@@ -89,7 +89,7 @@ class TransactionRemoteDataSource {
     }..removeWhere((String key, Object? value) => value == null);
   }
 
-  TransactionEntity _fromDocument(
+  TransactionEntity fromDocument(
     QueryDocumentSnapshot<Map<String, dynamic>> doc,
   ) {
     final Map<String, dynamic> data = doc.data();

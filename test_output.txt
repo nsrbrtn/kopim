@@ -1,0 +1,538 @@
+00:00 +0: loading /home/artem/StudioProjects/kopim/test/core/services/auth_sync_repro_test.dart
+00:00 +0: Should reproduce FK error when transaction is synced before its saving goal
+00:00 +0 -1: Should reproduce FK error when transaction is synced before its saving goal [E]
+  Binding has not yet been initialized.
+  The "instance" getter on the ServicesBinding binding mixin is only available once that binding has been initialized.
+  Typically, this is done by calling "WidgetsFlutterBinding.ensureInitialized()" or "runApp()" (the latter calls the former). Typically this call is done in the "void main()" method. The "ensureInitialized" method is idempotent; calling it multiple times is not harmful. After calling that method, the "instance" getter will return the binding.
+  In a test, one can call "TestWidgetsFlutterBinding.ensureInitialized()" as the first line in the test's "main()" method to initialize the binding.
+  If ServicesBinding is a custom binding mixin, there must also be a custom binding class, like WidgetsFlutterBinding, but that mixes in the selected binding, and that is the class that must be constructed before using the "instance" getter.
+  dart:async                                                           _Completer.completeError
+  package:shared_preferences/src/shared_preferences_legacy.dart 90:19  SharedPreferences.getInstance
+  ===== asynchronous gap ===========================
+  dart:async                                                           _CustomZone.registerBinaryCallback
+  package:shared_preferences/src/shared_preferences_legacy.dart 85:13  SharedPreferences.getInstance
+  package:kopim/core/services/sync/sync_metadata_repository.dart 8:62  new SyncMetadataRepository
+  test/core/services/support/auth_sync_test_harness.dart 186:30        AuthSyncTestHarness.setUp
+  test/core/services/auth_sync_repro_test.dart 20:19                   main.<fn>
+  
+CRITICAL SYNC ERROR: Binding has not yet been initialized.
+The "instance" getter on the ServicesBinding binding mixin is only available once that binding has been initialized.
+Typically, this is done by calling "WidgetsFlutterBinding.ensureInitialized()" or "runApp()" (the latter calls the former). Typically this call is done in the "void main()" method. The "ensureInitialized" method is idempotent; calling it multiple times is not harmful. After calling that method, the "instance" getter will return the binding.
+In a test, one can call "TestWidgetsFlutterBinding.ensureInitialized()" as the first line in the test's "main()" method to initialize the binding.
+If ServicesBinding is a custom binding mixin, there must also be a custom binding class, like WidgetsFlutterBinding, but that mixes in the selected binding, and that is the class that must be constructed before using the "instance" getter.
+dart:async/future_impl.dart 21:26                                    _interceptError
+dart:async/future_impl.dart 52:23                                    _interceptUserError
+dart:async/future_impl.dart 82:26                                    _Completer.completeError
+package:shared_preferences/src/shared_preferences_legacy.dart 90:19  SharedPreferences.getInstance
+===== asynchronous gap ===========================
+dart:async/zone.dart 763:19                                          _CustomZone.registerBinaryCallback
+package:shared_preferences/src/shared_preferences_legacy.dart 85:13  SharedPreferences.getInstance
+package:kopim/core/services/sync/sync_metadata_repository.dart 8:62  new SyncMetadataRepository
+test/core/services/support/auth_sync_test_harness.dart 186:30        AuthSyncTestHarness.setUp
+test/core/services/auth_sync_repro_test.dart 20:19                   main.<fn>
+package:test_api/src/backend/declarer.dart 439:61                    Declarer._runSetUps.<fn>
+dart:async/future.dart 674:26                                        Future.forEach.<fn>
+dart:async/future.dart 732:26                                        Future.doWhile.<fn>
+package:stack_trace/src/stack_zone_specification.dart 127:36         StackZoneSpecification._registerUnaryCallback.<fn>.<fn>
+package:stack_trace/src/stack_zone_specification.dart 207:15         StackZoneSpecification._run
+package:stack_trace/src/stack_zone_specification.dart 127:24         StackZoneSpecification._registerUnaryCallback.<fn>
+dart:async/zone_root.dart 48:47                                      _rootRunUnary
+dart:async/zone.dart 733:19                                          _CustomZone.runUnary
+dart:async/zone.dart 633:7                                           _CustomZone.runUnaryGuarded
+dart:async/zone.dart 671:26                                          _CustomZone.bindUnaryCallbackGuarded.<fn>
+dart:async/future.dart 749:18                                        Future.doWhile
+dart:async/future.dart 672:12                                        Future.forEach
+package:test_api/src/backend/declarer.dart 439:18                    Declarer._runSetUps
+package:test_api/src/backend/declarer.dart 252:21                    Declarer.test.<fn>.<fn>
+dart:async/zone_root.dart 35:13                                      _rootRun
+dart:async/zone.dart 726:19                                          _CustomZone.run
+dart:async/zone_api.dart 166:6                                       _runZoned
+dart:async/zone_api.dart 92:10                                       runZoned
+package:test_api/src/backend/declarer.dart 250:17                    Declarer.test.<fn>
+package:test_api/src/backend/invoker.dart 318:17                     Invoker._waitForOutstandingCallbacks.<fn>
+dart:async/zone_root.dart 35:13                                      _rootRun
+dart:async/zone.dart 726:19                                          _CustomZone.run
+dart:async/zone_api.dart 166:6                                       _runZoned
+dart:async/zone_api.dart 92:10                                       runZoned
+package:test_api/src/backend/invoker.dart 314:5                      Invoker._waitForOutstandingCallbacks
+package:test_api/src/backend/invoker.dart 457:21                     Invoker._onRun.<fn>.<fn>.<fn>
+===== asynchronous gap ===========================
+dart:async/zone.dart 754:19                                          _CustomZone.registerUnaryCallback
+dart:async/zone.dart 670:22                                          _CustomZone.bindUnaryCallbackGuarded
+dart:async/future.dart 728:34                                        Future.doWhile
+dart:async/future.dart 672:12                                        Future.forEach
+package:test_api/src/backend/declarer.dart 439:18                    Declarer._runSetUps
+package:test_api/src/backend/declarer.dart 252:21                    Declarer.test.<fn>.<fn>
+dart:async/zone_root.dart 35:13                                      _rootRun
+dart:async/zone.dart 726:19                                          _CustomZone.run
+dart:async/zone_api.dart 166:6                                       _runZoned
+dart:async/zone_api.dart 92:10                                       runZoned
+package:test_api/src/backend/declarer.dart 250:17                    Declarer.test.<fn>
+package:test_api/src/backend/invoker.dart 318:17                     Invoker._waitForOutstandingCallbacks.<fn>
+dart:async/zone_root.dart 35:13                                      _rootRun
+dart:async/zone.dart 726:19                                          _CustomZone.run
+dart:async/zone_api.dart 166:6                                       _runZoned
+dart:async/zone_api.dart 92:10                                       runZoned
+package:test_api/src/backend/invoker.dart 314:5                      Invoker._waitForOutstandingCallbacks
+package:test_api/src/backend/invoker.dart 457:21                     Invoker._onRun.<fn>.<fn>.<fn>
+===== asynchronous gap ===========================
+dart:async/zone.dart 754:19                                          _CustomZone.registerUnaryCallback
+package:test_api/src/backend/invoker.dart 455:15                     Invoker._onRun.<fn>.<fn>.<fn>
+dart:async/zone_root.dart 35:13                                      _rootRun
+dart:async/zone.dart 726:19                                          _CustomZone.run
+dart:async/zone_api.dart 166:6                                       _runZoned
+dart:async/zone_api.dart 92:10                                       runZoned
+package:test_api/src/backend/invoker.dart 445:11                     Invoker._onRun.<fn>.<fn>
+package:test_api/src/backend/invoker.dart 500:15                     Invoker._guardIfGuarded
+package:test_api/src/backend/invoker.dart 444:9                      Invoker._onRun.<fn>
+package:stack_trace/src/chain.dart 97:24                             Chain.capture.<fn>
+dart:async/zone_root.dart 35:13                                      _rootRun
+dart:async/zone.dart 726:19                                          _CustomZone.run
+dart:async/zone_api.dart 166:6                                       _runZoned
+dart:async/zone_api.dart 92:10                                       runZoned
+package:stack_trace/src/chain.dart 95:12                             Chain.capture
+package:test_api/src/backend/invoker.dart 442:11                     Invoker._onRun
+package:test_api/src/backend/live_test_controller.dart 161:11        LiveTestController.run
+package:test_api/src/backend/remote_listener.dart 323:16             RemoteListener._runLiveTest.<fn>
+dart:async/zone_root.dart 35:13                                      _rootRun
+dart:async/zone.dart 726:19                                          _CustomZone.run
+dart:async/zone_api.dart 166:6                                       _runZoned
+dart:async/zone_api.dart 92:10                                       runZoned
+package:test_api/src/backend/remote_listener.dart 322:5              RemoteListener._runLiveTest
+package:test_api/src/backend/remote_listener.dart 263:7              RemoteListener._serializeTest.<fn>
+dart:async/zone_root.dart 48:47                                      _rootRunUnary
+dart:async/zone.dart 733:19                                          _CustomZone.runUnary
+dart:async/zone.dart 633:7                                           _CustomZone.runUnaryGuarded
+dart:async/stream_impl.dart 381:11                                   _BufferingStreamSubscription._sendData
+dart:async/stream_impl.dart 312:7                                    _BufferingStreamSubscription._add
+dart:async/stream_controller.dart 798:19                             _SyncStreamControllerDispatch._sendData
+dart:async/stream_controller.dart 663:7                              _StreamController._add
+dart:async/stream_controller.dart 618:5                              _StreamController.add
+dart:async/zone_root.dart 56:13                                      _rootRunUnary
+dart:async/zone.dart 733:19                                          _CustomZone.runUnary
+dart:async/zone.dart 633:7                                           _CustomZone.runUnaryGuarded
+dart:async/stream_impl.dart 381:11                                   _BufferingStreamSubscription._sendData
+dart:async/stream_impl.dart 312:7                                    _BufferingStreamSubscription._add
+dart:async/stream_controller.dart 798:19                             _SyncStreamControllerDispatch._sendData
+dart:async/stream_controller.dart 663:7                              _StreamController._add
+dart:async/stream_controller.dart 618:5                              _StreamController.add
+dart:async/stream_controller.dart 898:13                             _StreamSinkWrapper.add
+package:stream_channel/src/guarantee_channel.dart 125:12             _GuaranteeSink.add
+package:stream_channel/src/multi_channel.dart 159:31                 new _MultiChannel.<fn>
+dart:async/zone.dart 891:10                                          _RootZone.runUnaryGuarded
+dart:_internal/async_cast.dart 95:11                                 CastStreamSubscription._onData
+dart:async/zone.dart 891:10                                          _RootZone.runUnaryGuarded
+dart:async/stream_impl.dart 381:11                                   _BufferingStreamSubscription._sendData
+dart:async/stream_impl.dart 312:7                                    _BufferingStreamSubscription._add
+dart:async/stream_controller.dart 798:19                             _SyncStreamControllerDispatch._sendData
+dart:async/stream_controller.dart 663:7                              _StreamController._add
+dart:async/stream_controller.dart 618:5                              _StreamController.add
+dart:async/zone.dart 891:10                                          _RootZone.runUnaryGuarded
+dart:async/stream_impl.dart 381:11                                   _BufferingStreamSubscription._sendData
+dart:async/stream_impl.dart 312:7                                    _BufferingStreamSubscription._add
+dart:async/stream_controller.dart 798:19                             _SyncStreamControllerDispatch._sendData
+dart:async/stream_controller.dart 663:7                              _StreamController._add
+dart:async/stream_controller.dart 618:5                              _StreamController.add
+dart:async/stream_controller.dart 898:13                             _StreamSinkWrapper.add
+dart:async/zone.dart 891:10                                          _RootZone.runUnaryGuarded
+dart:async/stream_impl.dart 381:11                                   _BufferingStreamSubscription._sendData
+dart:async/stream_impl.dart 312:7                                    _BufferingStreamSubscription._add
+dart:async/stream_pipe.dart 154:11                                   _ForwardingStreamSubscription._add
+dart:async/stream_pipe.dart 252:10                                   _MapStream._handleData
+dart:async/stream_pipe.dart 184:13                                   _ForwardingStreamSubscription._handleData
+dart:async/zone.dart 891:10                                          _RootZone.runUnaryGuarded
+dart:async/stream_impl.dart 381:11                                   _BufferingStreamSubscription._sendData
+dart:async/stream_impl.dart 312:7                                    _BufferingStreamSubscription._add
+dart:async/stream_controller.dart 798:19                             _SyncStreamControllerDispatch._sendData
+dart:async/stream_controller.dart 663:7                              _StreamController._add
+dart:async/stream_controller.dart 618:5                              _StreamController.add
+dart:_http/websocket_impl.dart 1252:27                               new _WebSocketImpl._fromSocket.<fn>
+dart:async/zone.dart 891:10                                          _RootZone.runUnaryGuarded
+dart:async/stream_impl.dart 381:11                                   _BufferingStreamSubscription._sendData
+dart:async/stream_impl.dart 312:7                                    _BufferingStreamSubscription._add
+dart:async/stream_transformers.dart 67:11                            _SinkTransformerStreamSubscription._add
+dart:async/stream_transformers.dart 13:11                            _EventSinkWrapper.add
+dart:_http/websocket_impl.dart 348:23                                _WebSocketProtocolTransformer._messageFrameEnd
+dart:_http/websocket_impl.dart 238:46                                _WebSocketProtocolTransformer.add
+dart:async/stream_transformers.dart 115:24                           _SinkTransformerStreamSubscription._handleData
+dart:async/zone.dart 891:10                                          _RootZone.runUnaryGuarded
+dart:async/stream_impl.dart 381:11                                   _BufferingStreamSubscription._sendData
+dart:async/stream_impl.dart 312:7                                    _BufferingStreamSubscription._add
+dart:async/stream_controller.dart 798:19                             _SyncStreamControllerDispatch._sendData
+dart:async/stream_controller.dart 663:7                              _StreamController._add
+dart:async/stream_controller.dart 618:5                              _StreamController.add
+dart:io-patch/socket_patch.dart 2874:41                              _Socket._onData
+dart:async/zone.dart 891:10                                          _RootZone.runUnaryGuarded
+dart:async/stream_impl.dart 381:11                                   _BufferingStreamSubscription._sendData
+dart:async/stream_impl.dart 312:7                                    _BufferingStreamSubscription._add
+dart:async/stream_controller.dart 798:19                             _SyncStreamControllerDispatch._sendData
+dart:async/stream_controller.dart 663:7                              _StreamController._add
+dart:async/stream_controller.dart 618:5                              _StreamController.add
+dart:io-patch/socket_patch.dart 2312:31                              new _RawSocket.<fn>
+dart:io-patch/socket_patch.dart 1647:14                              _NativeSocket.issueReadEvent.issue
+dart:async/schedule_microtask.dart 40:35                             _microtaskLoop
+dart:async/schedule_microtask.dart 49:5                              _startMicrotaskLoop
+
+  AuthFailure(code: sync-failed, message: Failed to synchronize data. Please try again later.)
+  package:kopim/core/services/auth_sync_service.dart 615:7  AuthSyncService.synchronizeOnLogin
+  
+00:00 +0 -1: Should sanitize transaction when saving goal is missing
+00:00 +0 -2: Should sanitize transaction when saving goal is missing [E]
+  Binding has not yet been initialized.
+  The "instance" getter on the ServicesBinding binding mixin is only available once that binding has been initialized.
+  Typically, this is done by calling "WidgetsFlutterBinding.ensureInitialized()" or "runApp()" (the latter calls the former). Typically this call is done in the "void main()" method. The "ensureInitialized" method is idempotent; calling it multiple times is not harmful. After calling that method, the "instance" getter will return the binding.
+  In a test, one can call "TestWidgetsFlutterBinding.ensureInitialized()" as the first line in the test's "main()" method to initialize the binding.
+  If ServicesBinding is a custom binding mixin, there must also be a custom binding class, like WidgetsFlutterBinding, but that mixes in the selected binding, and that is the class that must be constructed before using the "instance" getter.
+  dart:async                                                           _Completer.completeError
+  package:shared_preferences/src/shared_preferences_legacy.dart 90:19  SharedPreferences.getInstance
+  ===== asynchronous gap ===========================
+  dart:async                                                           _CustomZone.registerBinaryCallback
+  package:shared_preferences/src/shared_preferences_legacy.dart 85:13  SharedPreferences.getInstance
+  package:kopim/core/services/sync/sync_metadata_repository.dart 8:62  new SyncMetadataRepository
+  test/core/services/support/auth_sync_test_harness.dart 186:30        AuthSyncTestHarness.setUp
+  test/core/services/auth_sync_repro_test.dart 20:19                   main.<fn>
+  
+CRITICAL SYNC ERROR: Binding has not yet been initialized.
+The "instance" getter on the ServicesBinding binding mixin is only available once that binding has been initialized.
+Typically, this is done by calling "WidgetsFlutterBinding.ensureInitialized()" or "runApp()" (the latter calls the former). Typically this call is done in the "void main()" method. The "ensureInitialized" method is idempotent; calling it multiple times is not harmful. After calling that method, the "instance" getter will return the binding.
+In a test, one can call "TestWidgetsFlutterBinding.ensureInitialized()" as the first line in the test's "main()" method to initialize the binding.
+If ServicesBinding is a custom binding mixin, there must also be a custom binding class, like WidgetsFlutterBinding, but that mixes in the selected binding, and that is the class that must be constructed before using the "instance" getter.
+dart:async/future_impl.dart 21:26                                    _interceptError
+dart:async/future_impl.dart 52:23                                    _interceptUserError
+dart:async/future_impl.dart 82:26                                    _Completer.completeError
+package:shared_preferences/src/shared_preferences_legacy.dart 90:19  SharedPreferences.getInstance
+===== asynchronous gap ===========================
+dart:async/zone.dart 763:19                                          _CustomZone.registerBinaryCallback
+package:shared_preferences/src/shared_preferences_legacy.dart 85:13  SharedPreferences.getInstance
+package:kopim/core/services/sync/sync_metadata_repository.dart 8:62  new SyncMetadataRepository
+test/core/services/support/auth_sync_test_harness.dart 186:30        AuthSyncTestHarness.setUp
+test/core/services/auth_sync_repro_test.dart 20:19                   main.<fn>
+package:test_api/src/backend/declarer.dart 439:61                    Declarer._runSetUps.<fn>
+dart:async/future.dart 674:26                                        Future.forEach.<fn>
+dart:async/future.dart 732:26                                        Future.doWhile.<fn>
+package:stack_trace/src/stack_zone_specification.dart 127:36         StackZoneSpecification._registerUnaryCallback.<fn>.<fn>
+package:stack_trace/src/stack_zone_specification.dart 207:15         StackZoneSpecification._run
+package:stack_trace/src/stack_zone_specification.dart 127:24         StackZoneSpecification._registerUnaryCallback.<fn>
+dart:async/zone_root.dart 48:47                                      _rootRunUnary
+dart:async/zone.dart 733:19                                          _CustomZone.runUnary
+dart:async/zone.dart 633:7                                           _CustomZone.runUnaryGuarded
+dart:async/zone.dart 671:26                                          _CustomZone.bindUnaryCallbackGuarded.<fn>
+dart:async/future.dart 749:18                                        Future.doWhile
+dart:async/future.dart 672:12                                        Future.forEach
+package:test_api/src/backend/declarer.dart 439:18                    Declarer._runSetUps
+package:test_api/src/backend/declarer.dart 252:21                    Declarer.test.<fn>.<fn>
+dart:async/zone_root.dart 35:13                                      _rootRun
+dart:async/zone.dart 726:19                                          _CustomZone.run
+dart:async/zone_api.dart 166:6                                       _runZoned
+dart:async/zone_api.dart 92:10                                       runZoned
+package:test_api/src/backend/declarer.dart 250:17                    Declarer.test.<fn>
+package:test_api/src/backend/invoker.dart 318:17                     Invoker._waitForOutstandingCallbacks.<fn>
+dart:async/zone_root.dart 35:13                                      _rootRun
+dart:async/zone.dart 726:19                                          _CustomZone.run
+dart:async/zone_api.dart 166:6                                       _runZoned
+dart:async/zone_api.dart 92:10                                       runZoned
+package:test_api/src/backend/invoker.dart 314:5                      Invoker._waitForOutstandingCallbacks
+package:test_api/src/backend/invoker.dart 457:21                     Invoker._onRun.<fn>.<fn>.<fn>
+===== asynchronous gap ===========================
+dart:async/zone.dart 754:19                                          _CustomZone.registerUnaryCallback
+dart:async/zone.dart 670:22                                          _CustomZone.bindUnaryCallbackGuarded
+dart:async/future.dart 728:34                                        Future.doWhile
+dart:async/future.dart 672:12                                        Future.forEach
+package:test_api/src/backend/declarer.dart 439:18                    Declarer._runSetUps
+package:test_api/src/backend/declarer.dart 252:21                    Declarer.test.<fn>.<fn>
+dart:async/zone_root.dart 35:13                                      _rootRun
+dart:async/zone.dart 726:19                                          _CustomZone.run
+dart:async/zone_api.dart 166:6                                       _runZoned
+dart:async/zone_api.dart 92:10                                       runZoned
+package:test_api/src/backend/declarer.dart 250:17                    Declarer.test.<fn>
+package:test_api/src/backend/invoker.dart 318:17                     Invoker._waitForOutstandingCallbacks.<fn>
+dart:async/zone_root.dart 35:13                                      _rootRun
+dart:async/zone.dart 726:19                                          _CustomZone.run
+dart:async/zone_api.dart 166:6                                       _runZoned
+dart:async/zone_api.dart 92:10                                       runZoned
+package:test_api/src/backend/invoker.dart 314:5                      Invoker._waitForOutstandingCallbacks
+package:test_api/src/backend/invoker.dart 457:21                     Invoker._onRun.<fn>.<fn>.<fn>
+===== asynchronous gap ===========================
+dart:async/zone.dart 754:19                                          _CustomZone.registerUnaryCallback
+package:test_api/src/backend/invoker.dart 455:15                     Invoker._onRun.<fn>.<fn>.<fn>
+dart:async/zone_root.dart 35:13                                      _rootRun
+dart:async/zone.dart 726:19                                          _CustomZone.run
+dart:async/zone_api.dart 166:6                                       _runZoned
+dart:async/zone_api.dart 92:10                                       runZoned
+package:test_api/src/backend/invoker.dart 445:11                     Invoker._onRun.<fn>.<fn>
+package:test_api/src/backend/invoker.dart 500:15                     Invoker._guardIfGuarded
+package:test_api/src/backend/invoker.dart 444:9                      Invoker._onRun.<fn>
+package:stack_trace/src/chain.dart 97:24                             Chain.capture.<fn>
+dart:async/zone_root.dart 35:13                                      _rootRun
+dart:async/zone.dart 726:19                                          _CustomZone.run
+dart:async/zone_api.dart 166:6                                       _runZoned
+dart:async/zone_api.dart 92:10                                       runZoned
+package:stack_trace/src/chain.dart 95:12                             Chain.capture
+package:test_api/src/backend/invoker.dart 442:11                     Invoker._onRun
+package:test_api/src/backend/live_test_controller.dart 161:11        LiveTestController.run
+package:test_api/src/backend/remote_listener.dart 323:16             RemoteListener._runLiveTest.<fn>
+dart:async/zone_root.dart 35:13                                      _rootRun
+dart:async/zone.dart 726:19                                          _CustomZone.run
+dart:async/zone_api.dart 166:6                                       _runZoned
+dart:async/zone_api.dart 92:10                                       runZoned
+package:test_api/src/backend/remote_listener.dart 322:5              RemoteListener._runLiveTest
+package:test_api/src/backend/remote_listener.dart 263:7              RemoteListener._serializeTest.<fn>
+dart:async/zone_root.dart 48:47                                      _rootRunUnary
+dart:async/zone.dart 733:19                                          _CustomZone.runUnary
+dart:async/zone.dart 633:7                                           _CustomZone.runUnaryGuarded
+dart:async/stream_impl.dart 381:11                                   _BufferingStreamSubscription._sendData
+dart:async/stream_impl.dart 312:7                                    _BufferingStreamSubscription._add
+dart:async/stream_controller.dart 798:19                             _SyncStreamControllerDispatch._sendData
+dart:async/stream_controller.dart 663:7                              _StreamController._add
+dart:async/stream_controller.dart 618:5                              _StreamController.add
+dart:async/zone_root.dart 56:13                                      _rootRunUnary
+dart:async/zone.dart 733:19                                          _CustomZone.runUnary
+dart:async/zone.dart 633:7                                           _CustomZone.runUnaryGuarded
+dart:async/stream_impl.dart 381:11                                   _BufferingStreamSubscription._sendData
+dart:async/stream_impl.dart 312:7                                    _BufferingStreamSubscription._add
+dart:async/stream_controller.dart 798:19                             _SyncStreamControllerDispatch._sendData
+dart:async/stream_controller.dart 663:7                              _StreamController._add
+dart:async/stream_controller.dart 618:5                              _StreamController.add
+dart:async/stream_controller.dart 898:13                             _StreamSinkWrapper.add
+package:stream_channel/src/guarantee_channel.dart 125:12             _GuaranteeSink.add
+package:stream_channel/src/multi_channel.dart 159:31                 new _MultiChannel.<fn>
+dart:async/zone.dart 891:10                                          _RootZone.runUnaryGuarded
+dart:_internal/async_cast.dart 95:11                                 CastStreamSubscription._onData
+dart:async/zone.dart 891:10                                          _RootZone.runUnaryGuarded
+dart:async/stream_impl.dart 381:11                                   _BufferingStreamSubscription._sendData
+dart:async/stream_impl.dart 312:7                                    _BufferingStreamSubscription._add
+dart:async/stream_controller.dart 798:19                             _SyncStreamControllerDispatch._sendData
+dart:async/stream_controller.dart 663:7                              _StreamController._add
+dart:async/stream_controller.dart 618:5                              _StreamController.add
+dart:async/zone.dart 891:10                                          _RootZone.runUnaryGuarded
+dart:async/stream_impl.dart 381:11                                   _BufferingStreamSubscription._sendData
+dart:async/stream_impl.dart 312:7                                    _BufferingStreamSubscription._add
+dart:async/stream_controller.dart 798:19                             _SyncStreamControllerDispatch._sendData
+dart:async/stream_controller.dart 663:7                              _StreamController._add
+dart:async/stream_controller.dart 618:5                              _StreamController.add
+dart:async/stream_controller.dart 898:13                             _StreamSinkWrapper.add
+dart:async/zone.dart 891:10                                          _RootZone.runUnaryGuarded
+dart:async/stream_impl.dart 381:11                                   _BufferingStreamSubscription._sendData
+dart:async/stream_impl.dart 312:7                                    _BufferingStreamSubscription._add
+dart:async/stream_pipe.dart 154:11                                   _ForwardingStreamSubscription._add
+dart:async/stream_pipe.dart 252:10                                   _MapStream._handleData
+dart:async/stream_pipe.dart 184:13                                   _ForwardingStreamSubscription._handleData
+dart:async/zone.dart 891:10                                          _RootZone.runUnaryGuarded
+dart:async/stream_impl.dart 381:11                                   _BufferingStreamSubscription._sendData
+dart:async/stream_impl.dart 312:7                                    _BufferingStreamSubscription._add
+dart:async/stream_controller.dart 798:19                             _SyncStreamControllerDispatch._sendData
+dart:async/stream_controller.dart 663:7                              _StreamController._add
+dart:async/stream_controller.dart 618:5                              _StreamController.add
+dart:_http/websocket_impl.dart 1252:27                               new _WebSocketImpl._fromSocket.<fn>
+dart:async/zone.dart 891:10                                          _RootZone.runUnaryGuarded
+dart:async/stream_impl.dart 381:11                                   _BufferingStreamSubscription._sendData
+dart:async/stream_impl.dart 312:7                                    _BufferingStreamSubscription._add
+dart:async/stream_transformers.dart 67:11                            _SinkTransformerStreamSubscription._add
+dart:async/stream_transformers.dart 13:11                            _EventSinkWrapper.add
+dart:_http/websocket_impl.dart 348:23                                _WebSocketProtocolTransformer._messageFrameEnd
+dart:_http/websocket_impl.dart 238:46                                _WebSocketProtocolTransformer.add
+dart:async/stream_transformers.dart 115:24                           _SinkTransformerStreamSubscription._handleData
+dart:async/zone.dart 891:10                                          _RootZone.runUnaryGuarded
+dart:async/stream_impl.dart 381:11                                   _BufferingStreamSubscription._sendData
+dart:async/stream_impl.dart 312:7                                    _BufferingStreamSubscription._add
+dart:async/stream_controller.dart 798:19                             _SyncStreamControllerDispatch._sendData
+dart:async/stream_controller.dart 663:7                              _StreamController._add
+dart:async/stream_controller.dart 618:5                              _StreamController.add
+dart:io-patch/socket_patch.dart 2874:41                              _Socket._onData
+dart:async/zone.dart 891:10                                          _RootZone.runUnaryGuarded
+dart:async/stream_impl.dart 381:11                                   _BufferingStreamSubscription._sendData
+dart:async/stream_impl.dart 312:7                                    _BufferingStreamSubscription._add
+dart:async/stream_controller.dart 798:19                             _SyncStreamControllerDispatch._sendData
+dart:async/stream_controller.dart 663:7                              _StreamController._add
+dart:async/stream_controller.dart 618:5                              _StreamController.add
+dart:io-patch/socket_patch.dart 2312:31                              new _RawSocket.<fn>
+dart:io-patch/socket_patch.dart 1647:14                              _NativeSocket.issueReadEvent.issue
+dart:async/schedule_microtask.dart 40:35                             _microtaskLoop
+dart:async/schedule_microtask.dart 49:5                              _startMicrotaskLoop
+
+  AuthFailure(code: sync-failed, message: Failed to synchronize data. Please try again later.)
+  package:kopim/core/services/auth_sync_service.dart 615:7  AuthSyncService.synchronizeOnLogin
+  
+00:00 +0 -2: Should skip transaction when account is missing
+00:00 +0 -3: Should skip transaction when account is missing [E]
+  Binding has not yet been initialized.
+  The "instance" getter on the ServicesBinding binding mixin is only available once that binding has been initialized.
+  Typically, this is done by calling "WidgetsFlutterBinding.ensureInitialized()" or "runApp()" (the latter calls the former). Typically this call is done in the "void main()" method. The "ensureInitialized" method is idempotent; calling it multiple times is not harmful. After calling that method, the "instance" getter will return the binding.
+  In a test, one can call "TestWidgetsFlutterBinding.ensureInitialized()" as the first line in the test's "main()" method to initialize the binding.
+  If ServicesBinding is a custom binding mixin, there must also be a custom binding class, like WidgetsFlutterBinding, but that mixes in the selected binding, and that is the class that must be constructed before using the "instance" getter.
+  dart:async                                                           _Completer.completeError
+  package:shared_preferences/src/shared_preferences_legacy.dart 90:19  SharedPreferences.getInstance
+  ===== asynchronous gap ===========================
+  dart:async                                                           _CustomZone.registerBinaryCallback
+  package:shared_preferences/src/shared_preferences_legacy.dart 85:13  SharedPreferences.getInstance
+  package:kopim/core/services/sync/sync_metadata_repository.dart 8:62  new SyncMetadataRepository
+  test/core/services/support/auth_sync_test_harness.dart 186:30        AuthSyncTestHarness.setUp
+  test/core/services/auth_sync_repro_test.dart 20:19                   main.<fn>
+  
+CRITICAL SYNC ERROR: Binding has not yet been initialized.
+The "instance" getter on the ServicesBinding binding mixin is only available once that binding has been initialized.
+Typically, this is done by calling "WidgetsFlutterBinding.ensureInitialized()" or "runApp()" (the latter calls the former). Typically this call is done in the "void main()" method. The "ensureInitialized" method is idempotent; calling it multiple times is not harmful. After calling that method, the "instance" getter will return the binding.
+In a test, one can call "TestWidgetsFlutterBinding.ensureInitialized()" as the first line in the test's "main()" method to initialize the binding.
+If ServicesBinding is a custom binding mixin, there must also be a custom binding class, like WidgetsFlutterBinding, but that mixes in the selected binding, and that is the class that must be constructed before using the "instance" getter.
+dart:async/future_impl.dart 21:26                                    _interceptError
+dart:async/future_impl.dart 52:23                                    _interceptUserError
+dart:async/future_impl.dart 82:26                                    _Completer.completeError
+package:shared_preferences/src/shared_preferences_legacy.dart 90:19  SharedPreferences.getInstance
+===== asynchronous gap ===========================
+dart:async/zone.dart 763:19                                          _CustomZone.registerBinaryCallback
+package:shared_preferences/src/shared_preferences_legacy.dart 85:13  SharedPreferences.getInstance
+package:kopim/core/services/sync/sync_metadata_repository.dart 8:62  new SyncMetadataRepository
+test/core/services/support/auth_sync_test_harness.dart 186:30        AuthSyncTestHarness.setUp
+test/core/services/auth_sync_repro_test.dart 20:19                   main.<fn>
+package:test_api/src/backend/declarer.dart 439:61                    Declarer._runSetUps.<fn>
+dart:async/future.dart 674:26                                        Future.forEach.<fn>
+dart:async/future.dart 732:26                                        Future.doWhile.<fn>
+package:stack_trace/src/stack_zone_specification.dart 127:36         StackZoneSpecification._registerUnaryCallback.<fn>.<fn>
+package:stack_trace/src/stack_zone_specification.dart 207:15         StackZoneSpecification._run
+package:stack_trace/src/stack_zone_specification.dart 127:24         StackZoneSpecification._registerUnaryCallback.<fn>
+dart:async/zone_root.dart 48:47                                      _rootRunUnary
+dart:async/zone.dart 733:19                                          _CustomZone.runUnary
+dart:async/zone.dart 633:7                                           _CustomZone.runUnaryGuarded
+dart:async/zone.dart 671:26                                          _CustomZone.bindUnaryCallbackGuarded.<fn>
+dart:async/future.dart 749:18                                        Future.doWhile
+dart:async/future.dart 672:12                                        Future.forEach
+package:test_api/src/backend/declarer.dart 439:18                    Declarer._runSetUps
+package:test_api/src/backend/declarer.dart 252:21                    Declarer.test.<fn>.<fn>
+dart:async/zone_root.dart 35:13                                      _rootRun
+dart:async/zone.dart 726:19                                          _CustomZone.run
+dart:async/zone_api.dart 166:6                                       _runZoned
+dart:async/zone_api.dart 92:10                                       runZoned
+package:test_api/src/backend/declarer.dart 250:17                    Declarer.test.<fn>
+package:test_api/src/backend/invoker.dart 318:17                     Invoker._waitForOutstandingCallbacks.<fn>
+dart:async/zone_root.dart 35:13                                      _rootRun
+dart:async/zone.dart 726:19                                          _CustomZone.run
+dart:async/zone_api.dart 166:6                                       _runZoned
+dart:async/zone_api.dart 92:10                                       runZoned
+package:test_api/src/backend/invoker.dart 314:5                      Invoker._waitForOutstandingCallbacks
+package:test_api/src/backend/invoker.dart 457:21                     Invoker._onRun.<fn>.<fn>.<fn>
+===== asynchronous gap ===========================
+dart:async/zone.dart 754:19                                          _CustomZone.registerUnaryCallback
+dart:async/zone.dart 670:22                                          _CustomZone.bindUnaryCallbackGuarded
+dart:async/future.dart 728:34                                        Future.doWhile
+dart:async/future.dart 672:12                                        Future.forEach
+package:test_api/src/backend/declarer.dart 439:18                    Declarer._runSetUps
+package:test_api/src/backend/declarer.dart 252:21                    Declarer.test.<fn>.<fn>
+dart:async/zone_root.dart 35:13                                      _rootRun
+dart:async/zone.dart 726:19                                          _CustomZone.run
+dart:async/zone_api.dart 166:6                                       _runZoned
+dart:async/zone_api.dart 92:10                                       runZoned
+package:test_api/src/backend/declarer.dart 250:17                    Declarer.test.<fn>
+package:test_api/src/backend/invoker.dart 318:17                     Invoker._waitForOutstandingCallbacks.<fn>
+dart:async/zone_root.dart 35:13                                      _rootRun
+dart:async/zone.dart 726:19                                          _CustomZone.run
+dart:async/zone_api.dart 166:6                                       _runZoned
+dart:async/zone_api.dart 92:10                                       runZoned
+package:test_api/src/backend/invoker.dart 314:5                      Invoker._waitForOutstandingCallbacks
+package:test_api/src/backend/invoker.dart 457:21                     Invoker._onRun.<fn>.<fn>.<fn>
+===== asynchronous gap ===========================
+dart:async/zone.dart 754:19                                          _CustomZone.registerUnaryCallback
+package:test_api/src/backend/invoker.dart 455:15                     Invoker._onRun.<fn>.<fn>.<fn>
+dart:async/zone_root.dart 35:13                                      _rootRun
+dart:async/zone.dart 726:19                                          _CustomZone.run
+dart:async/zone_api.dart 166:6                                       _runZoned
+dart:async/zone_api.dart 92:10                                       runZoned
+package:test_api/src/backend/invoker.dart 445:11                     Invoker._onRun.<fn>.<fn>
+package:test_api/src/backend/invoker.dart 500:15                     Invoker._guardIfGuarded
+package:test_api/src/backend/invoker.dart 444:9                      Invoker._onRun.<fn>
+package:stack_trace/src/chain.dart 97:24                             Chain.capture.<fn>
+dart:async/zone_root.dart 35:13                                      _rootRun
+dart:async/zone.dart 726:19                                          _CustomZone.run
+dart:async/zone_api.dart 166:6                                       _runZoned
+dart:async/zone_api.dart 92:10                                       runZoned
+package:stack_trace/src/chain.dart 95:12                             Chain.capture
+package:test_api/src/backend/invoker.dart 442:11                     Invoker._onRun
+package:test_api/src/backend/live_test_controller.dart 161:11        LiveTestController.run
+package:test_api/src/backend/remote_listener.dart 323:16             RemoteListener._runLiveTest.<fn>
+dart:async/zone_root.dart 35:13                                      _rootRun
+dart:async/zone.dart 726:19                                          _CustomZone.run
+dart:async/zone_api.dart 166:6                                       _runZoned
+dart:async/zone_api.dart 92:10                                       runZoned
+package:test_api/src/backend/remote_listener.dart 322:5              RemoteListener._runLiveTest
+package:test_api/src/backend/remote_listener.dart 263:7              RemoteListener._serializeTest.<fn>
+dart:async/zone_root.dart 48:47                                      _rootRunUnary
+dart:async/zone.dart 733:19                                          _CustomZone.runUnary
+dart:async/zone.dart 633:7                                           _CustomZone.runUnaryGuarded
+dart:async/stream_impl.dart 381:11                                   _BufferingStreamSubscription._sendData
+dart:async/stream_impl.dart 312:7                                    _BufferingStreamSubscription._add
+dart:async/stream_controller.dart 798:19                             _SyncStreamControllerDispatch._sendData
+dart:async/stream_controller.dart 663:7                              _StreamController._add
+dart:async/stream_controller.dart 618:5                              _StreamController.add
+dart:async/zone_root.dart 56:13                                      _rootRunUnary
+dart:async/zone.dart 733:19                                          _CustomZone.runUnary
+dart:async/zone.dart 633:7                                           _CustomZone.runUnaryGuarded
+dart:async/stream_impl.dart 381:11                                   _BufferingStreamSubscription._sendData
+dart:async/stream_impl.dart 312:7                                    _BufferingStreamSubscription._add
+dart:async/stream_controller.dart 798:19                             _SyncStreamControllerDispatch._sendData
+dart:async/stream_controller.dart 663:7                              _StreamController._add
+dart:async/stream_controller.dart 618:5                              _StreamController.add
+dart:async/stream_controller.dart 898:13                             _StreamSinkWrapper.add
+package:stream_channel/src/guarantee_channel.dart 125:12             _GuaranteeSink.add
+package:stream_channel/src/multi_channel.dart 159:31                 new _MultiChannel.<fn>
+dart:async/zone.dart 891:10                                          _RootZone.runUnaryGuarded
+dart:_internal/async_cast.dart 95:11                                 CastStreamSubscription._onData
+dart:async/zone.dart 891:10                                          _RootZone.runUnaryGuarded
+dart:async/stream_impl.dart 381:11                                   _BufferingStreamSubscription._sendData
+dart:async/stream_impl.dart 312:7                                    _BufferingStreamSubscription._add
+dart:async/stream_controller.dart 798:19                             _SyncStreamControllerDispatch._sendData
+dart:async/stream_controller.dart 663:7                              _StreamController._add
+dart:async/stream_controller.dart 618:5                              _StreamController.add
+dart:async/zone.dart 891:10                                          _RootZone.runUnaryGuarded
+dart:async/stream_impl.dart 381:11                                   _BufferingStreamSubscription._sendData
+dart:async/stream_impl.dart 312:7                                    _BufferingStreamSubscription._add
+dart:async/stream_controller.dart 798:19                             _SyncStreamControllerDispatch._sendData
+dart:async/stream_controller.dart 663:7                              _StreamController._add
+dart:async/stream_controller.dart 618:5                              _StreamController.add
+dart:async/stream_controller.dart 898:13                             _StreamSinkWrapper.add
+dart:async/zone.dart 891:10                                          _RootZone.runUnaryGuarded
+dart:async/stream_impl.dart 381:11                                   _BufferingStreamSubscription._sendData
+dart:async/stream_impl.dart 312:7                                    _BufferingStreamSubscription._add
+dart:async/stream_pipe.dart 154:11                                   _ForwardingStreamSubscription._add
+dart:async/stream_pipe.dart 252:10                                   _MapStream._handleData
+dart:async/stream_pipe.dart 184:13                                   _ForwardingStreamSubscription._handleData
+dart:async/zone.dart 891:10                                          _RootZone.runUnaryGuarded
+dart:async/stream_impl.dart 381:11                                   _BufferingStreamSubscription._sendData
+dart:async/stream_impl.dart 312:7                                    _BufferingStreamSubscription._add
+dart:async/stream_controller.dart 798:19                             _SyncStreamControllerDispatch._sendData
+dart:async/stream_controller.dart 663:7                              _StreamController._add
+dart:async/stream_controller.dart 618:5                              _StreamController.add
+dart:_http/websocket_impl.dart 1252:27                               new _WebSocketImpl._fromSocket.<fn>
+dart:async/zone.dart 891:10                                          _RootZone.runUnaryGuarded
+dart:async/stream_impl.dart 381:11                                   _BufferingStreamSubscription._sendData
+dart:async/stream_impl.dart 312:7                                    _BufferingStreamSubscription._add
+dart:async/stream_transformers.dart 67:11                            _SinkTransformerStreamSubscription._add
+dart:async/stream_transformers.dart 13:11                            _EventSinkWrapper.add
+dart:_http/websocket_impl.dart 348:23                                _WebSocketProtocolTransformer._messageFrameEnd
+dart:_http/websocket_impl.dart 238:46                                _WebSocketProtocolTransformer.add
+dart:async/stream_transformers.dart 115:24                           _SinkTransformerStreamSubscription._handleData
+dart:async/zone.dart 891:10                                          _RootZone.runUnaryGuarded
+dart:async/stream_impl.dart 381:11                                   _BufferingStreamSubscription._sendData
+dart:async/stream_impl.dart 312:7                                    _BufferingStreamSubscription._add
+dart:async/stream_controller.dart 798:19                             _SyncStreamControllerDispatch._sendData
+dart:async/stream_controller.dart 663:7                              _StreamController._add
+dart:async/stream_controller.dart 618:5                              _StreamController.add
+dart:io-patch/socket_patch.dart 2874:41                              _Socket._onData
+dart:async/zone.dart 891:10                                          _RootZone.runUnaryGuarded
+dart:async/stream_impl.dart 381:11                                   _BufferingStreamSubscription._sendData
+dart:async/stream_impl.dart 312:7                                    _BufferingStreamSubscription._add
+dart:async/stream_controller.dart 798:19                             _SyncStreamControllerDispatch._sendData
+dart:async/stream_controller.dart 663:7                              _StreamController._add
+dart:async/stream_controller.dart 618:5                              _StreamController.add
+dart:io-patch/socket_patch.dart 2312:31                              new _RawSocket.<fn>
+dart:io-patch/socket_patch.dart 1647:14                              _NativeSocket.issueReadEvent.issue
+dart:async/schedule_microtask.dart 40:35                             _microtaskLoop
+dart:async/schedule_microtask.dart 49:5                              _startMicrotaskLoop
+
+  AuthFailure(code: sync-failed, message: Failed to synchronize data. Please try again later.)
+  package:kopim/core/services/auth_sync_service.dart 615:7  AuthSyncService.synchronizeOnLogin
+  
+00:00 +0 -3: Some tests failed.
+
+Failing tests:
+  /home/artem/StudioProjects/kopim/test/core/services/auth_sync_repro_test.dart: Should reproduce FK error when transaction is synced before its saving goal
+  /home/artem/StudioProjects/kopim/test/core/services/auth_sync_repro_test.dart: Should sanitize transaction when saving goal is missing
+  /home/artem/StudioProjects/kopim/test/core/services/auth_sync_repro_test.dart: Should skip transaction when account is missing
