@@ -49,7 +49,7 @@ void main() {
     );
     final AppLocalizations strings = AppLocalizations.of(context)!;
 
-    expect(find.text(strings.profileThemeHeader), findsOneWidget);
+    expect(find.text(strings.profileDarkModeLabel), findsOneWidget);
     expect(find.text(strings.settingsNotificationsExactTitle), findsOneWidget);
   });
 

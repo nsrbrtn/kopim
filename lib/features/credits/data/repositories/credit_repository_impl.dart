@@ -261,8 +261,14 @@ class CreditRepositoryImpl implements CreditRepository {
   }
 
   @override
-  Future<List<CreditPaymentGroupEntity>> getPaymentGroups(String creditId) {
-    return _creditPaymentDao.getPaymentGroups(creditId);
+  Future<List<CreditPaymentGroupEntity>> getPaymentGroups(
+    String creditId, {
+    bool includeDeleted = false,
+  }) {
+    return _creditPaymentDao.getPaymentGroups(
+      creditId,
+      includeDeleted: includeDeleted,
+    );
   }
 
   @override

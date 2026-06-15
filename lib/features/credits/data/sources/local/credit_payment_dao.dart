@@ -113,15 +113,22 @@ class CreditPaymentDao {
   }
 
   Future<List<CreditPaymentGroupEntity>> getPaymentGroups(
-    String creditId,
-  ) async {
+    String creditId, {
+    bool includeDeleted = false,
+  }) async {
     final String currency = await _resolveCreditCurrency(creditId);
-    final List<db.CreditPaymentGroupRow> rows =
-        await (_db.select(_db.creditPaymentGroups)..where(
-              (db.CreditPaymentGroups tbl) =>
-                  tbl.creditId.equals(creditId) & tbl.isDeleted.equals(false),
-            ))
-            .get();
+    final SimpleSelectStatement<db.$CreditPaymentGroupsTable,
+            db.CreditPaymentGroupRow> query =
+        _db.select(_db.creditPaymentGroups)
+          ..where((db.$CreditPaymentGroupsTable tbl) =>
+              tbl.creditId.equals(creditId));
+
+    if (!includeDeleted) {
+      query.where(
+          (db.$CreditPaymentGroupsTable tbl) => tbl.isDeleted.equals(false));
+    }
+
+    final List<db.CreditPaymentGroupRow> rows = await query.get();
     rows.sort(
       (db.CreditPaymentGroupRow a, db.CreditPaymentGroupRow b) =>
           b.paidAt.compareTo(a.paidAt),

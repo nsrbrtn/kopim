@@ -60,6 +60,13 @@ void main() {
     when(
       () => upcomingPaymentsRepository.delete(any()),
     ).thenAnswer((_) async {});
+    when(() => transactionRepository.runInTransaction<void>(any())).thenAnswer((
+      Invocation invocation,
+    ) {
+      final Future<void> Function() action =
+          invocation.positionalArguments.first as Future<void> Function();
+      return action();
+    });
   });
 
   test(
@@ -71,7 +78,10 @@ void main() {
         _buildGroup(id: 'group-2', creditId: credit.id),
       ];
       when(
-        () => creditRepository.getPaymentGroups(credit.id),
+        () => creditRepository.getPaymentGroups(
+          credit.id,
+          includeDeleted: any(named: 'includeDeleted'),
+        ),
       ).thenAnswer((_) async => groups);
       when(() => transactionRepository.findByGroupId('group-1')).thenAnswer(
         (_) async => <TransactionEntity>[
@@ -97,7 +107,8 @@ void main() {
       await useCase.call(credit);
 
       verifyInOrder(<dynamic Function()>[
-        () => creditRepository.getPaymentGroups(credit.id),
+        () =>
+            creditRepository.getPaymentGroups(credit.id, includeDeleted: true),
         () => transactionRepository.findByGroupId('group-1'),
         () => transactionRepository.softDelete('tx-1'),
         () => transactionRepository.findByGroupId('group-2'),
@@ -124,17 +135,61 @@ void main() {
         feesCategoryId: null,
       );
       when(
-        () => creditRepository.getPaymentGroups(credit.id),
+        () => creditRepository.getPaymentGroups(
+          credit.id,
+          includeDeleted: any(named: 'includeDeleted'),
+        ),
       ).thenAnswer((_) async => const <CreditPaymentGroupEntity>[]);
 
       await useCase.call(credit);
 
-      verify(() => creditRepository.getPaymentGroups(credit.id)).called(1);
+      verify(
+        () =>
+            creditRepository.getPaymentGroups(credit.id, includeDeleted: true),
+      ).called(1);
       verifyNever(() => transactionRepository.findByGroupId(any()));
       verifyNever(() => transactionRepository.softDelete(any()));
       verify(() => creditRepository.deleteCredit(credit.id)).called(1);
       verify(() => accountRepository.softDelete(credit.accountId)).called(1);
       verifyNever(() => categoryRepository.softDelete(any()));
+    },
+  );
+
+  test(
+    'soft-delete транзакций для tombstoned (isDeleted = true) групп платежей при удалении кредита',
+    () async {
+      final CreditEntity credit = _buildCredit();
+      final List<CreditPaymentGroupEntity> groups = <CreditPaymentGroupEntity>[
+        _buildGroup(id: 'group-active', creditId: credit.id),
+        _buildGroup(
+          id: 'group-tombstoned',
+          creditId: credit.id,
+        ).copyWith(isDeleted: true),
+      ];
+      when(
+        () =>
+            creditRepository.getPaymentGroups(credit.id, includeDeleted: true),
+      ).thenAnswer((_) async => groups);
+      when(
+        () => transactionRepository.findByGroupId('group-active'),
+      ).thenAnswer(
+        (_) async => <TransactionEntity>[
+          _buildTransaction(id: 'tx-active', groupId: 'group-active'),
+        ],
+      );
+      when(
+        () => transactionRepository.findByGroupId('group-tombstoned'),
+      ).thenAnswer(
+        (_) async => <TransactionEntity>[
+          _buildTransaction(id: 'tx-tombstoned', groupId: 'group-tombstoned'),
+        ],
+      );
+
+      await useCase.call(credit);
+
+      verify(() => transactionRepository.softDelete('tx-active')).called(1);
+      verify(() => transactionRepository.softDelete('tx-tombstoned')).called(1);
+      verify(() => creditRepository.deleteCredit(credit.id)).called(1);
     },
   );
 }

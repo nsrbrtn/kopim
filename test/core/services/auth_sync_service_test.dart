@@ -211,12 +211,23 @@ void main() {
     );
 
     test(
-      'fails login sync when active remote transaction references missing credit payment group',
+      'repairs login sync when active remote transaction references missing credit payment group',
       () async {
         final AuthSyncService service = buildService();
         const String userId = 'user-active-missing-group';
         final DateTime createdAt = DateTime.utc(2024, 5, 3, 10);
         final DateTime updatedAt = DateTime.utc(2024, 5, 3, 11);
+
+        await harness.seedRemoteProfile(
+          userId: userId,
+          profile: Profile(
+            uid: userId,
+            name: 'Repair User',
+            currency: ProfileCurrency.rub,
+            locale: 'ru',
+            updatedAt: createdAt,
+          ),
+        );
 
         await firestore
             .collection('users')
@@ -276,16 +287,29 @@ void main() {
               'isDeleted': false,
             });
 
-        await expectLater(
-          () => service.synchronizeOnLogin(
-            user: const AuthUser(
-              uid: userId,
-              email: 'groups@example.com',
-              isAnonymous: false,
-            ),
+        await service.synchronizeOnLogin(
+          user: const AuthUser(
+            uid: userId,
+            email: 'groups@example.com',
+            isAnonymous: false,
           ),
-          throwsA(isA<AuthFailure>()),
         );
+
+        final db.TransactionRow? localTx = await database
+            .select(database.transactions)
+            .getSingleOrNull();
+        expect(localTx, isNotNull);
+        expect(localTx!.isDeleted, isTrue);
+        expect(localTx.groupId, isNull);
+
+        final List<db.OutboxEntryRow> outboxRows = await database
+            .select(database.outboxEntries)
+            .get();
+        expect(outboxRows, hasLength(1));
+        final db.OutboxEntryRow tombstone = outboxRows.first;
+        expect(tombstone.entityId, 'tx-1');
+        expect(tombstone.entityType, 'transaction');
+        expect(tombstone.operation, OutboxOperation.delete.name);
       },
     );
 
@@ -2756,6 +2780,362 @@ void main() {
       expect(outboxRows, hasLength(1));
       expect(outboxRows.single.status, OutboxStatus.sent.name);
       expect(outboxRows.single.sentAt, isNotNull);
+    });
+
+    test('missing group repair during login sync (SQLite FK Guard)', () async {
+      final AuthSyncService service = buildService();
+      const String userId = 'user-repair-missing';
+      final DateTime createdAt = DateTime.utc(2024, 5, 3, 10);
+      final DateTime updatedAt = DateTime.utc(2024, 5, 3, 11);
+
+      await harness.seedRemoteProfile(
+        userId: userId,
+        profile: Profile(
+          uid: userId,
+          name: 'Repair User',
+          currency: ProfileCurrency.rub,
+          locale: 'ru',
+          updatedAt: createdAt,
+        ),
+      );
+
+      await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('accounts')
+          .doc('acc-1')
+          .set(<String, dynamic>{
+            'id': 'acc-1',
+            'name': 'Main',
+            'balance': 0,
+            'balanceMinor': '0',
+            'openingBalance': 0,
+            'openingBalanceMinor': '0',
+            'currency': 'RUB',
+            'currencyScale': 2,
+            'type': 'checking',
+            'createdAt': Timestamp.fromDate(createdAt),
+            'updatedAt': Timestamp.fromDate(updatedAt),
+            'isDeleted': false,
+          });
+
+      await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('categories')
+          .doc('cat-1')
+          .set(<String, dynamic>{
+            'id': 'cat-1',
+            'name': 'Interest',
+            'type': 'expense',
+            'createdAt': Timestamp.fromDate(createdAt),
+            'updatedAt': Timestamp.fromDate(updatedAt),
+            'isDeleted': false,
+            'isSystem': false,
+            'isHidden': false,
+            'isFavorite': false,
+          });
+
+      await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('transactions')
+          .doc('tx-1')
+          .set(<String, dynamic>{
+            'id': 'tx-1',
+            'accountId': 'acc-1',
+            'categoryId': 'cat-1',
+            'amount': 100.0,
+            'amountMinor': '10000',
+            'amountScale': 2,
+            'date': Timestamp.fromDate(createdAt),
+            'type': TransactionType.expense.storageValue,
+            'groupId': 'missing-group',
+            'createdAt': Timestamp.fromDate(createdAt),
+            'updatedAt': Timestamp.fromDate(updatedAt),
+            'isDeleted': false,
+          });
+
+      await service.synchronizeOnLogin(
+        user: const AuthUser(
+          uid: userId,
+          email: 'repair@kopim.app',
+          isAnonymous: false,
+        ),
+      );
+
+      final db.TransactionRow? localTx = await database
+          .select(database.transactions)
+          .getSingleOrNull();
+      expect(localTx, isNotNull);
+      expect(localTx!.isDeleted, isTrue);
+      expect(localTx.groupId, isNull);
+
+      final List<db.OutboxEntryRow> outboxRows = await database
+          .select(database.outboxEntries)
+          .get();
+      final db.OutboxEntryRow tombstone = outboxRows.firstWhere(
+        (db.OutboxEntryRow e) => e.entityId == 'tx-1',
+      );
+      expect(tombstone.operation, OutboxOperation.delete.name);
+    });
+
+    test('tombstoned group repair during login sync', () async {
+      final AuthSyncService service = buildService();
+      const String userId = 'user-repair-tombstoned';
+      final DateTime createdAt = DateTime.utc(2024, 5, 3, 10);
+      final DateTime updatedAt = DateTime.utc(2024, 5, 3, 11);
+
+      await harness.seedRemoteProfile(
+        userId: userId,
+        profile: Profile(
+          uid: userId,
+          name: 'Repair User',
+          currency: ProfileCurrency.rub,
+          locale: 'ru',
+          updatedAt: createdAt,
+        ),
+      );
+
+      await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('accounts')
+          .doc('acc-1')
+          .set(<String, dynamic>{
+            'id': 'acc-1',
+            'name': 'Main',
+            'balance': 0,
+            'balanceMinor': '0',
+            'openingBalance': 0,
+            'openingBalanceMinor': '0',
+            'currency': 'RUB',
+            'currencyScale': 2,
+            'type': 'checking',
+            'createdAt': Timestamp.fromDate(createdAt),
+            'updatedAt': Timestamp.fromDate(updatedAt),
+            'isDeleted': false,
+          });
+      await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('categories')
+          .doc('cat-1')
+          .set(<String, dynamic>{
+            'id': 'cat-1',
+            'name': 'Interest',
+            'type': 'expense',
+            'createdAt': Timestamp.fromDate(createdAt),
+            'updatedAt': Timestamp.fromDate(updatedAt),
+            'isDeleted': false,
+            'isSystem': false,
+            'isHidden': false,
+            'isFavorite': false,
+          });
+
+      await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('credits')
+          .doc('credit-1')
+          .set(<String, dynamic>{
+            'id': 'credit-1',
+            'accountId': 'acc-1',
+            'termMonths': 12,
+            'interestRate': 10,
+            'startDate': Timestamp.fromDate(createdAt),
+            'paymentDay': 15,
+            'createdAt': Timestamp.fromDate(createdAt),
+            'updatedAt': Timestamp.fromDate(updatedAt),
+            'totalAmountMinor': '500000',
+            'totalAmountScale': 2,
+            'isDeleted': false,
+          });
+
+      await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('credit_payment_groups')
+          .doc('group-deleted')
+          .set(<String, dynamic>{
+            'id': 'group-deleted',
+            'creditId': 'credit-1',
+            'sourceAccountId': 'acc-1',
+            'paidAt': Timestamp.fromDate(createdAt),
+            'totalOutflowMinor': '1000',
+            'totalOutflowScale': 2,
+            'principalPaidMinor': '800',
+            'interestPaidMinor': '200',
+            'feesPaidMinor': '0',
+            'createdAt': Timestamp.fromDate(createdAt),
+            'updatedAt': Timestamp.fromDate(updatedAt),
+            'isDeleted': true,
+          });
+
+      await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('transactions')
+          .doc('tx-1')
+          .set(<String, dynamic>{
+            'id': 'tx-1',
+            'accountId': 'acc-1',
+            'categoryId': 'cat-1',
+            'amount': 10.0,
+            'amountMinor': '1000',
+            'amountScale': 2,
+            'date': Timestamp.fromDate(createdAt),
+            'type': TransactionType.expense.storageValue,
+            'groupId': 'group-deleted',
+            'createdAt': Timestamp.fromDate(createdAt),
+            'updatedAt': Timestamp.fromDate(updatedAt),
+            'isDeleted': false,
+          });
+
+      await service.synchronizeOnLogin(
+        user: const AuthUser(
+          uid: userId,
+          email: 'repair@kopim.app',
+          isAnonymous: false,
+        ),
+      );
+
+      final db.TransactionRow? localTx = await database
+          .select(database.transactions)
+          .getSingleOrNull();
+      expect(localTx, isNotNull);
+      expect(localTx!.isDeleted, isTrue);
+      expect(localTx.groupId, 'group-deleted');
+    });
+
+    test('repair is idempotent', () async {
+      final AuthSyncService service = buildService();
+      const String userId = 'user-repair-idempotent';
+      final DateTime createdAt = DateTime.utc(2024, 5, 3, 10);
+      final DateTime updatedAt = DateTime.utc(2024, 5, 3, 11);
+
+      await harness.seedRemoteProfile(
+        userId: userId,
+        profile: Profile(
+          uid: userId,
+          name: 'Repair User',
+          currency: ProfileCurrency.rub,
+          locale: 'ru',
+          updatedAt: createdAt,
+        ),
+      );
+
+      await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('accounts')
+          .doc('acc-1')
+          .set(<String, dynamic>{
+            'id': 'acc-1',
+            'name': 'Main',
+            'balance': 0,
+            'balanceMinor': '0',
+            'openingBalance': 0,
+            'openingBalanceMinor': '0',
+            'currency': 'RUB',
+            'currencyScale': 2,
+            'type': 'checking',
+            'createdAt': Timestamp.fromDate(createdAt),
+            'updatedAt': Timestamp.fromDate(updatedAt),
+            'isDeleted': false,
+          });
+      await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('categories')
+          .doc('cat-1')
+          .set(<String, dynamic>{
+            'id': 'cat-1',
+            'name': 'Interest',
+            'type': 'expense',
+            'createdAt': Timestamp.fromDate(createdAt),
+            'updatedAt': Timestamp.fromDate(updatedAt),
+            'isDeleted': false,
+            'isSystem': false,
+            'isHidden': false,
+            'isFavorite': false,
+          });
+
+      await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('transactions')
+          .doc('tx-1')
+          .set(<String, dynamic>{
+            'id': 'tx-1',
+            'accountId': 'acc-1',
+            'categoryId': 'cat-1',
+            'amount': 10.0,
+            'amountMinor': '1000',
+            'amountScale': 2,
+            'date': Timestamp.fromDate(createdAt),
+            'type': TransactionType.expense.storageValue,
+            'groupId': 'missing-group',
+            'createdAt': Timestamp.fromDate(createdAt),
+            'updatedAt': Timestamp.fromDate(updatedAt),
+            'isDeleted': false,
+          });
+
+      await service.synchronizeOnLogin(
+        user: const AuthUser(
+          uid: userId,
+          email: 'repair@kopim.app',
+          isAnonymous: false,
+        ),
+      );
+
+      List<db.OutboxEntryRow> outboxRows = await database
+          .select(database.outboxEntries)
+          .get();
+      expect(
+        outboxRows.where(
+          (db.OutboxEntryRow e) =>
+              e.entityId == 'tx-1' &&
+              e.operation == OutboxOperation.delete.name,
+        ),
+        hasLength(1),
+      );
+
+      final db.OutboxEntryRow outboxEntry = outboxRows.firstWhere(
+        (db.OutboxEntryRow e) => e.entityId == 'tx-1',
+      );
+      await (database.update(database.outboxEntries)
+            ..where((db.$OutboxEntriesTable tbl) => tbl.id.equals(outboxEntry.id)))
+          .write(const db.OutboxEntriesCompanion(status: Value<String>('sending')));
+
+      await firestore
+          .collection('users')
+          .doc(userId)
+          .collection('transactions')
+          .doc('tx-1')
+          .update(<String, dynamic>{
+            'updatedAt': Timestamp.fromDate(
+              updatedAt.add(const Duration(minutes: 5)),
+            ),
+          });
+
+      await service.synchronizeOnLogin(
+        user: const AuthUser(
+          uid: userId,
+          email: 'repair@kopim.app',
+          isAnonymous: false,
+        ),
+      );
+
+      outboxRows = await database.select(database.outboxEntries).get();
+      expect(
+        outboxRows.where(
+          (db.OutboxEntryRow e) =>
+              e.entityId == 'tx-1' &&
+              e.operation == OutboxOperation.delete.name,
+        ),
+        hasLength(1),
+      );
     });
   });
 }

@@ -19,7 +19,10 @@ abstract class CreditRepository {
   Future<void> addPaymentGroup(CreditPaymentGroupEntity group);
   Future<bool> addPaymentGroupIfAbsent(CreditPaymentGroupEntity group);
   Future<void> updatePaymentGroup(CreditPaymentGroupEntity group);
-  Future<List<CreditPaymentGroupEntity>> getPaymentGroups(String creditId);
+  Future<List<CreditPaymentGroupEntity>> getPaymentGroups(
+    String creditId, {
+    bool includeDeleted = false,
+  });
   Future<CreditPaymentGroupEntity?> findPaymentGroupById(String groupId);
   Future<CreditPaymentGroupEntity?> findPaymentGroupByIdempotencyKey({
     required String creditId,

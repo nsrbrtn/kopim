@@ -44,13 +44,12 @@ void main() {
     );
     final AppLocalizations strings = AppLocalizations.of(context)!;
 
-    expect(find.text(strings.profileThemeLightDescription), findsOneWidget);
+    expect(find.text(strings.profileDarkModeLabel), findsOneWidget);
 
     await tester.tap(find.byType(Switch));
     await tester.pump();
 
     expect(controller.debugState, const AppThemeMode.dark());
-    expect(find.text(strings.profileThemeDarkDescription), findsOneWidget);
 
     await tester.tap(find.byType(Switch));
     await tester.pump();

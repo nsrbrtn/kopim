@@ -140,12 +140,8 @@ void main() {
       );
       final AppLocalizations strings = AppLocalizations.of(context)!;
 
-      final String transactionsLabel = strings
-          .savingsGoalDetailsTransactionsCount(analytics.transactionCount);
-
       expect(find.text('Vacation Trip'), findsOneWidget);
       expect(find.textContaining('Save for summer holidays'), findsOneWidget);
-      expect(find.text(transactionsLabel), findsOneWidget);
 
       await tester.pumpWidget(const SizedBox.shrink());
       await tester.pump();

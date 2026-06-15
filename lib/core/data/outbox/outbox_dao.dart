@@ -82,11 +82,30 @@ class OutboxDao {
             attemptCount: const Value<int>(0),
             createdAt: Value<DateTime>(now),
             updatedAt: Value<DateTime>(now),
-            baseRemoteUpdatedAt: Value<DateTime?>(baseRemoteUpdatedAt),
-            baseRemoteIsDeleted: Value<bool?>(baseRemoteIsDeleted),
             baseRemoteTypeVersion: Value<int?>(baseRemoteTypeVersion),
           ),
         );
+  }
+
+  Future<bool> hasPendingDeleteForEntity({
+    required String entityType,
+    required String entityId,
+  }) async {
+    final SimpleSelectStatement<db.$OutboxEntriesTable, db.OutboxEntryRow>
+    query = _db.select(_db.outboxEntries)
+      ..where(
+        (db.$OutboxEntriesTable tbl) =>
+            tbl.entityType.equals(entityType) &
+            tbl.entityId.equals(entityId) &
+            tbl.operation.equals(OutboxOperation.delete.name) &
+            tbl.status.isIn(<String>[
+              OutboxStatus.pending.name,
+              OutboxStatus.sending.name,
+              OutboxStatus.failed.name,
+            ]),
+      );
+    final List<db.OutboxEntryRow> rows = await query.get();
+    return rows.isNotEmpty;
   }
 
   Stream<List<db.OutboxEntryRow>> watchPending({int? limit}) {

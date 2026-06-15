@@ -319,8 +319,9 @@ class _EmptyCreditRepository implements CreditRepository {
 
   @override
   Future<List<CreditPaymentGroupEntity>> getPaymentGroups(
-    String creditId,
-  ) async {
+    String creditId, {
+    bool includeDeleted = false,
+  }) async {
     return const <CreditPaymentGroupEntity>[];
   }
 

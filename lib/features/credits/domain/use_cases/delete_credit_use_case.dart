@@ -24,42 +24,47 @@ class DeleteCreditUseCase {
   final UpcomingPaymentsRepository _upcomingPaymentsRepository;
 
   Future<void> call(CreditEntity credit) async {
-    final List<CreditPaymentGroupEntity> paymentGroups = await _creditRepository
-        .getPaymentGroups(credit.id);
-    for (final CreditPaymentGroupEntity group in paymentGroups) {
-      final List<TransactionEntity> transactions = await _transactionRepository
-          .findByGroupId(group.id);
-      for (final TransactionEntity transaction in transactions) {
-        if (transaction.isDeleted) {
-          continue;
+    await _transactionRepository.runInTransaction<void>(() async {
+      final List<CreditPaymentGroupEntity> paymentGroups =
+          await _creditRepository.getPaymentGroups(
+            credit.id,
+            includeDeleted: true,
+          );
+      for (final CreditPaymentGroupEntity group in paymentGroups) {
+        final List<TransactionEntity> transactions =
+            await _transactionRepository.findByGroupId(group.id);
+        for (final TransactionEntity transaction in transactions) {
+          if (transaction.isDeleted) {
+            continue;
+          }
+          await _transactionRepository.softDelete(transaction.id);
         }
-        await _transactionRepository.softDelete(transaction.id);
       }
-    }
 
-    // 1. Помечаем кредит как удаленный
-    await _creditRepository.deleteCredit(credit.id);
+      // 1. Помечаем кредит как удаленный
+      await _creditRepository.deleteCredit(credit.id);
 
-    // 2. Удаляем связанный счет
-    await _deleteAccountUseCase(credit.accountId);
+      // 2. Удаляем связанный счет
+      await _deleteAccountUseCase(credit.accountId);
 
-    // 3. Удаляем связанные категории, если они есть
-    final Set<String> categoryIds = <String>{
-      if (credit.categoryId != null && credit.categoryId!.isNotEmpty)
-        credit.categoryId!,
-      if (credit.interestCategoryId != null &&
-          credit.interestCategoryId!.isNotEmpty)
-        credit.interestCategoryId!,
-      if (credit.feesCategoryId != null && credit.feesCategoryId!.isNotEmpty)
-        credit.feesCategoryId!,
-    };
-    for (final String categoryId in categoryIds) {
-      final UpcomingPayment? upcomingRule = await _upcomingPaymentsRepository
-          .getByCategoryId(categoryId);
-      if (upcomingRule != null) {
-        await _upcomingPaymentsRepository.delete(upcomingRule.id);
+      // 3. Удаляем связанные категории, если они есть
+      final Set<String> categoryIds = <String>{
+        if (credit.categoryId != null && credit.categoryId!.isNotEmpty)
+          credit.categoryId!,
+        if (credit.interestCategoryId != null &&
+            credit.interestCategoryId!.isNotEmpty)
+          credit.interestCategoryId!,
+        if (credit.feesCategoryId != null && credit.feesCategoryId!.isNotEmpty)
+          credit.feesCategoryId!,
+      };
+      for (final String categoryId in categoryIds) {
+        final UpcomingPayment? upcomingRule = await _upcomingPaymentsRepository
+            .getByCategoryId(categoryId);
+        if (upcomingRule != null) {
+          await _upcomingPaymentsRepository.delete(upcomingRule.id);
+        }
+        await _deleteCategoryUseCase(categoryId);
       }
-      await _deleteCategoryUseCase(categoryId);
-    }
+    });
   }
 }

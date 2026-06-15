@@ -108,6 +108,8 @@ void main() {
     final SnackBar snackBar = tester.widget<SnackBar>(find.byType(SnackBar));
     expect(snackBar.duration, const Duration(seconds: 1));
     expect(find.text(strings.addTransactionSuccess), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 4));
   });
 }
 

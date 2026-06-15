@@ -2500,8 +2500,20 @@ class AuthSyncService {
             .map((CreditPaymentGroupEntity e) => e.id)
             .toSet();
 
+        final Set<String> allPhysicalPaymentGroupIds =
+            sanitizedCreditPaymentGroups
+                .map((CreditPaymentGroupEntity e) => e.id)
+                .toSet();
+
+        final List<TransactionEntity> repairedTransactions =
+            await _resolveOrphanedCreditPaymentLinks(
+              transactions: normalizedTransactions,
+              validPaymentGroupIds: validPaymentGroupIds,
+              allPhysicalPaymentGroupIds: allPhysicalPaymentGroupIds,
+            );
+
         _assertResolvableCreditPaymentLinks(
-          transactions: normalizedTransactions,
+          transactions: repairedTransactions,
           validPaymentGroupIds: validPaymentGroupIds,
         );
 
@@ -2509,11 +2521,11 @@ class AuthSyncService {
         // Sanitize transactions
         final List<TransactionEntity> sanitizedTransactions = _dataSanitizer
             .sanitizeTransactions(
-              transactions: normalizedTransactions,
+              transactions: repairedTransactions,
               validAccountIds: validAccountIds,
               validCategoryIds: validCategoryIds,
               validSavingGoalIds: validSavingGoalIds,
-              validPaymentGroupIds: validPaymentGroupIds,
+              validPaymentGroupIds: allPhysicalPaymentGroupIds,
             );
 
         final List<UpcomingPayment> sanitizedUpcomingPayments = _dataSanitizer
@@ -3143,6 +3155,69 @@ class AuthSyncService {
     return counts.entries
         .map((MapEntry<String, int> entry) => '${entry.key}(${entry.value})')
         .join(', ');
+  }
+
+  Future<List<TransactionEntity>> _resolveOrphanedCreditPaymentLinks({
+    required List<TransactionEntity> transactions,
+    required Set<String> validPaymentGroupIds,
+    required Set<String> allPhysicalPaymentGroupIds,
+  }) async {
+    final DateTime now = DateTime.now().toUtc();
+    final List<TransactionEntity> repaired = <TransactionEntity>[];
+
+    for (final TransactionEntity transaction in transactions) {
+      if (!transaction.isDeleted &&
+          transaction.groupId != null &&
+          !validPaymentGroupIds.contains(transaction.groupId)) {
+        _logger.logWarning(
+          'AuthSyncService: Found orphaned active transaction ${transaction.id} '
+          'pointing to missing/deleted group ${transaction.groupId}. Soft-deleting.',
+        );
+
+        final bool groupExistsPhysically = allPhysicalPaymentGroupIds.contains(
+          transaction.groupId,
+        );
+
+        final TransactionEntity updatedTx = transaction.copyWith(
+          isDeleted: true,
+          updatedAt: now,
+          groupId: groupExistsPhysically ? transaction.groupId : null,
+        );
+        repaired.add(updatedTx);
+
+        final bool alreadyQueued = await _outboxDao.hasPendingDeleteForEntity(
+          entityType: entityTypeTransaction,
+          entityId: transaction.id,
+        );
+
+        if (!alreadyQueued) {
+          await _outboxDao.enqueue(
+            entityType: entityTypeTransaction,
+            entityId: transaction.id,
+            operation: OutboxOperation.delete,
+            payload: _mapTransactionPayload(updatedTx),
+            baseRemoteUpdatedAt: transaction.updatedAt,
+            baseRemoteIsDeleted: transaction.isDeleted,
+          );
+        }
+      } else {
+        repaired.add(transaction);
+      }
+    }
+    return repaired;
+  }
+
+  Map<String, dynamic> _mapTransactionPayload(TransactionEntity transaction) {
+    final Map<String, dynamic> json = transaction.toJson();
+    json['createdAt'] = transaction.createdAt.toIso8601String();
+    json['updatedAt'] = transaction.updatedAt.toIso8601String();
+    json['date'] = transaction.date.toIso8601String();
+    json['savingGoalId'] = transaction.savingGoalId;
+    json['idempotencyKey'] = transaction.idempotencyKey;
+    json['groupId'] = transaction.groupId;
+    json['amountMinor'] = transaction.amountMinor?.toString();
+    json['amountScale'] = transaction.amountScale;
+    return json;
   }
 
   void _assertResolvableCreditPaymentLinks({

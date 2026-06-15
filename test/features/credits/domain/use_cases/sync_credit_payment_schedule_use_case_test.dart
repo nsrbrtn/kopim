@@ -424,7 +424,10 @@ class _InMemoryCreditRepository implements CreditRepository {
   }
 
   @override
-  Future<List<CreditPaymentGroupEntity>> getPaymentGroups(String creditId) {
+  Future<List<CreditPaymentGroupEntity>> getPaymentGroups(
+    String creditId, {
+    bool includeDeleted = false,
+  }) {
     throw UnimplementedError();
   }
 
