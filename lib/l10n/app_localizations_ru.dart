@@ -519,6 +519,16 @@ class AppLocalizationsRu extends AppLocalizations {
       'Так вы быстрее увидите долгосрочный прогресс, а не только отдельные операции.';
 
   @override
+  String get gettingStartedCelebrationTitle => 'Отличный старт!';
+
+  @override
+  String get gettingStartedCelebrationSubtitle =>
+      'Вы успешно выполнили все шаги базовой настройки приложения. Теперь вы полностью готовы к управлению своими финансами с Kopim!';
+
+  @override
+  String get gettingStartedCelebrationButton => 'Поехали!';
+
+  @override
   String get settingsHomeGamificationTitle => 'Виджет геймификации';
 
   @override
@@ -1446,6 +1456,13 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get homeTransactionsEmpty => 'Транзакций пока нет.';
+
+  @override
+  String get homeTransactionsCreateButton => 'Добавить операцию';
+
+  @override
+  String get homeTransactionsEmptyDescription =>
+      'Добавьте первую операцию, чтобы начать отслеживать расходы.';
 
   @override
   String homeTransactionsError(String error) {
@@ -2641,6 +2658,9 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get budgetsEmptyMessage =>
       'Создайте первый бюджет, чтобы контролировать расходы.';
+
+  @override
+  String get budgetsCreateButton => 'Создать бюджет';
 
   @override
   String get budgetsErrorTitle => 'Не удалось загрузить бюджеты';

@@ -10,7 +10,7 @@ import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_paymen
 import 'package:kopim/features/upcoming_payments/domain/providers/upcoming_payments_providers.dart';
 import 'package:kopim/features/upcoming_payments/domain/services/time_service.dart';
 import 'package:kopim/features/upcoming_payments/presentation/providers/upcoming_payment_selection_providers.dart';
-import 'package:kopim/features/upcoming_payments/presentation/widgets/empty_state.dart';
+import 'package:kopim/core/widgets/empty_state_view.dart';
 import 'package:kopim/features/upcoming_payments/presentation/widgets/reminder_list_item.dart';
 import 'package:kopim/features/upcoming_payments/presentation/widgets/upcoming_list_item.dart';
 import 'package:kopim/l10n/app_localizations.dart';
@@ -19,9 +19,14 @@ import 'package:kopim/features/upcoming_payments/domain/usecases/mark_reminder_d
 import 'package:kopim/features/upcoming_payments/domain/usecases/delete_upcoming_payment_uc.dart';
 
 class UpcomingPaymentsList extends ConsumerWidget {
-  const UpcomingPaymentsList({super.key, required this.onEdit});
+  const UpcomingPaymentsList({
+    super.key,
+    required this.onEdit,
+    required this.onCreate,
+  });
 
   final void Function(UpcomingPayment payment) onEdit;
+  final VoidCallback onCreate;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -64,10 +69,12 @@ class UpcomingPaymentsList extends ConsumerWidget {
     return paymentsAsync.when(
       data: (List<UpcomingPayment> payments) {
         if (payments.isEmpty) {
-          return UpcomingEmptyState(
+          return EmptyStateView(
             icon: Icons.event_repeat,
             title: strings.upcomingPaymentsEmptyPaymentsTitle,
-            message: strings.upcomingPaymentsEmptyPaymentsDescription,
+            description: strings.upcomingPaymentsEmptyPaymentsDescription,
+            actionLabel: strings.upcomingPaymentsAddPayment,
+            onActionPressed: onCreate,
           );
         }
         return ListView.builder(
@@ -166,9 +173,14 @@ class UpcomingPaymentsList extends ConsumerWidget {
 }
 
 class PaymentRemindersList extends ConsumerWidget {
-  const PaymentRemindersList({super.key, required this.onEdit});
+  const PaymentRemindersList({
+    super.key,
+    required this.onEdit,
+    required this.onCreate,
+  });
 
   final void Function(PaymentReminder reminder) onEdit;
+  final VoidCallback onCreate;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -186,10 +198,13 @@ class PaymentRemindersList extends ConsumerWidget {
             children: <Widget>[
               if (isWeb) const _WebReminderNotice(),
               Expanded(
-                child: UpcomingEmptyState(
+                child: EmptyStateView(
                   icon: Icons.alarm,
                   title: strings.upcomingPaymentsEmptyRemindersTitle,
-                  message: strings.upcomingPaymentsEmptyRemindersDescription,
+                  description:
+                      strings.upcomingPaymentsEmptyRemindersDescription,
+                  actionLabel: strings.upcomingPaymentsAddReminder,
+                  onActionPressed: onCreate,
                 ),
               ),
             ],

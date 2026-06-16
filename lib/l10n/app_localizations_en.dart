@@ -517,6 +517,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'This helps you see long-term progress, not just individual transactions.';
 
   @override
+  String get gettingStartedCelebrationTitle => 'Great Start!';
+
+  @override
+  String get gettingStartedCelebrationSubtitle =>
+      'You have successfully completed all basic setup steps. Now you are fully ready to manage your finances with Kopim!';
+
+  @override
+  String get gettingStartedCelebrationButton => 'Let\'s Go!';
+
+  @override
   String get settingsHomeGamificationTitle => 'Gamification widget';
 
   @override
@@ -1437,6 +1447,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get homeTransactionsEmpty => 'No transactions recorded yet.';
+
+  @override
+  String get homeTransactionsCreateButton => 'Add transaction';
+
+  @override
+  String get homeTransactionsEmptyDescription =>
+      'Add your first transaction to start tracking your expenses.';
 
   @override
   String homeTransactionsError(String error) {
@@ -2617,6 +2634,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get budgetsEmptyMessage =>
       'Create your first budget to track spending and stay on target.';
+
+  @override
+  String get budgetsCreateButton => 'Create budget';
 
   @override
   String get budgetsErrorTitle => 'Couldn\'t load budgets';

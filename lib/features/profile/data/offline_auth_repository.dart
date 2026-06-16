@@ -64,6 +64,13 @@ class OfflineAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<AuthUser> signInOffline() async {
+    _currentUser ??= await _restoreOrCreateUser();
+    _controller.add(_currentUser);
+    return _currentUser!;
+  }
+
+  @override
   Future<void> signOut() async {
     _currentUser = null;
     _controller.add(null);

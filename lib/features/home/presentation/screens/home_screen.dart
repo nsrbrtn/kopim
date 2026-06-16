@@ -41,6 +41,7 @@ import 'package:kopim/features/home/presentation/widgets/home_upcoming_items_car
 import 'package:kopim/features/getting_started/presentation/widgets/getting_started_card.dart';
 import 'package:kopim/core/widgets/animated_fab.dart';
 import 'package:kopim/core/widgets/kopim_glass_fab.dart';
+import 'package:kopim/core/widgets/empty_state_view.dart';
 import 'package:kopim/features/home/presentation/widgets/quick_add_transaction.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -2826,18 +2827,22 @@ class _ErrorMessage extends StatelessWidget {
   }
 }
 
-class _EmptyMessage extends StatelessWidget {
+class _EmptyMessage extends ConsumerWidget {
   const _EmptyMessage({required this.message});
 
   final String message;
 
   @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 24),
-        child: Text(message, textAlign: TextAlign.center),
-      ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AppLocalizations strings = AppLocalizations.of(context)!;
+    return EmptyStateView(
+      icon: Icons.receipt_long_outlined,
+      title: message,
+      description: strings.homeTransactionsEmptyDescription,
+      actionLabel: strings.homeTransactionsCreateButton,
+      onActionPressed: () =>
+          ref.read(transactionSheetControllerProvider.notifier).openForAdd(),
+      isCompact: true,
     );
   }
 }

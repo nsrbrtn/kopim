@@ -98,12 +98,22 @@ class AuthController extends _$AuthController {
 
   Future<void> continueWithOfflineMode() async {
     state = const AsyncValue<AuthUser?>.loading();
-    final AuthUser user = AuthUser.guest();
-    if (!ref.mounted) {
-      return;
+    try {
+      final AuthUser user = await ref
+          .read(authRepositoryProvider)
+          .signInOffline();
+      if (!ref.mounted) {
+        return;
+      }
+      _enterOfflineMode();
+      state = AsyncValue<AuthUser?>.data(user);
+    } catch (error, stackTrace) {
+      if (!ref.mounted) {
+        return;
+      }
+      state = AsyncValue<AuthUser?>.error(error, stackTrace);
+      rethrow;
     }
-    _enterOfflineMode();
-    state = AsyncValue<AuthUser?>.data(user);
   }
 
   Future<void> signUp(SignUpRequest request) async {

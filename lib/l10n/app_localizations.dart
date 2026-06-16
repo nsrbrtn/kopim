@@ -990,6 +990,24 @@ abstract class AppLocalizations {
   /// **'This helps you see long-term progress, not just individual transactions.'**
   String get gettingStartedStepGoalDescription;
 
+  /// Title of the getting started celebration dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Great Start!'**
+  String get gettingStartedCelebrationTitle;
+
+  /// Subtitle of the getting started celebration dialog
+  ///
+  /// In en, this message translates to:
+  /// **'You have successfully completed all basic setup steps. Now you are fully ready to manage your finances with Kopim!'**
+  String get gettingStartedCelebrationSubtitle;
+
+  /// Button label to dismiss the getting started celebration dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s Go!'**
+  String get gettingStartedCelebrationButton;
+
   /// Switch label for enabling the gamification widget
   ///
   /// In en, this message translates to:
@@ -2621,6 +2639,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No transactions recorded yet.'**
   String get homeTransactionsEmpty;
+
+  /// Button to add a transaction on the home screen when empty
+  ///
+  /// In en, this message translates to:
+  /// **'Add transaction'**
+  String get homeTransactionsCreateButton;
+
+  /// Supporting copy for the empty transactions list on the home screen
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first transaction to start tracking your expenses.'**
+  String get homeTransactionsEmptyDescription;
 
   /// Error shown when transactions stream fails
   ///
@@ -4649,6 +4679,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Create your first budget to track spending and stay on target.'**
   String get budgetsEmptyMessage;
+
+  /// Button to create the first budget
+  ///
+  /// In en, this message translates to:
+  /// **'Create budget'**
+  String get budgetsCreateButton;
 
   /// Error headline shown when budgets stream fails
   ///

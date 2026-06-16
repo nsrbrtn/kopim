@@ -59,10 +59,6 @@ class GettingStartedProgress {
   }
 
   bool isStepLocked(GettingStartedStepId stepId) {
-    final GettingStartedStepId? activeStep = currentStep;
-    if (activeStep == null || isStepComplete(stepId)) {
-      return false;
-    }
-    return orderedSteps.indexOf(stepId) > orderedSteps.indexOf(activeStep);
+    return false;
   }
 }

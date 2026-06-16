@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kopim/core/config/theme_extensions.dart';
 import 'package:kopim/core/widgets/animated_fab.dart';
 import 'package:kopim/core/widgets/kopim_glass_fab.dart';
+import 'package:kopim/core/widgets/empty_state_view.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
@@ -186,7 +187,16 @@ NavigationTabContent buildBudgetsTabContent(
         final List<BudgetProgress> items =
             budgetsAsync.value ?? const <BudgetProgress>[];
         if (items.isEmpty) {
-          content = _BudgetsEmptyState(strings: strings);
+          content = _BudgetsEmptyState(
+            strings: strings,
+            onCreate: () async {
+              await Navigator.of(context).push(
+                MaterialPageRoute<BudgetFormResult>(
+                  builder: (BuildContext context) => const BudgetFormScreen(),
+                ),
+              );
+            },
+          );
         } else {
           final List<TransactionEntity> transactions =
               transactionsAsync.value ?? const <TransactionEntity>[];
@@ -304,46 +314,19 @@ NavigationTabContent buildBudgetsTabContent(
 }
 
 class _BudgetsEmptyState extends StatelessWidget {
-  const _BudgetsEmptyState({required this.strings});
+  const _BudgetsEmptyState({required this.strings, required this.onCreate});
 
   final AppLocalizations strings;
+  final VoidCallback onCreate;
 
   @override
   Widget build(BuildContext context) {
-    final ThemeData theme = Theme.of(context);
-    final KopimLayout layout = context.kopimLayout;
-    final KopimSpacingScale spacing = layout.spacing;
-    final KopimIconSizes iconSizes = layout.iconSizes;
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: spacing.screen),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(
-              Icons.pie_chart_outline,
-              size: iconSizes.xl,
-              color: theme.colorScheme.primary,
-            ),
-            SizedBox(height: spacing.section),
-            Text(
-              strings.budgetsEmptyTitle,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: spacing.between),
-            Text(
-              strings.budgetsEmptyMessage,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
+    return EmptyStateView(
+      icon: Icons.pie_chart_outline,
+      title: strings.budgetsEmptyTitle,
+      description: strings.budgetsEmptyMessage,
+      actionLabel: strings.budgetsCreateButton,
+      onActionPressed: onCreate,
     );
   }
 }

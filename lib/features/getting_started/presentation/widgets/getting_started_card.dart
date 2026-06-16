@@ -11,6 +11,7 @@ import 'package:kopim/features/getting_started/presentation/controllers/getting_
 import 'package:kopim/features/profile/presentation/screens/profile_management_screen.dart';
 import 'package:kopim/features/savings/presentation/screens/savings_list_screen.dart';
 import 'package:kopim/features/transactions/presentation/add_transaction_screen.dart';
+import 'package:kopim/features/getting_started/presentation/widgets/getting_started_celebration_dialog.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class GettingStartedCardHost extends ConsumerWidget {
@@ -18,19 +19,21 @@ class GettingStartedCardHost extends ConsumerWidget {
     required this.onRouteRequested,
     this.forceVisible = false,
     this.allowDismiss = true,
+    this.onDismiss,
     super.key,
   });
 
   final ValueChanged<String> onRouteRequested;
   final bool forceVisible;
   final bool allowDismiss;
+  final VoidCallback? onDismiss;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.listen<AsyncValue<GettingStartedViewModel>>(
       gettingStartedViewModelProvider,
       (
-        AsyncValue<GettingStartedViewModel>? _,
+        AsyncValue<GettingStartedViewModel>? previous,
         AsyncValue<GettingStartedViewModel> next,
       ) {
         next.whenData((GettingStartedViewModel model) {
@@ -39,6 +42,17 @@ class GettingStartedCardHost extends ConsumerWidget {
               ref
                   .read(gettingStartedPreferencesControllerProvider.notifier)
                   .activate(),
+            );
+          }
+          final bool wasCompleted =
+              previous?.value?.progress.isCompleted ?? false;
+          final bool isCompleted = model.progress.isCompleted;
+          if (isCompleted && !wasCompleted) {
+            showDialog<void>(
+              context: context,
+              barrierDismissible: false,
+              builder: (BuildContext context) =>
+                  const GettingStartedCelebrationDialog(),
             );
           }
         });
@@ -56,9 +70,11 @@ class GettingStartedCardHost extends ConsumerWidget {
         return GettingStartedCard(
           model: model,
           allowDismiss: allowDismiss,
-          onDismiss: () => ref
-              .read(gettingStartedPreferencesControllerProvider.notifier)
-              .hide(),
+          onDismiss:
+              onDismiss ??
+              () => ref
+                  .read(gettingStartedPreferencesControllerProvider.notifier)
+                  .hide(),
           onStepTap: (GettingStartedStepId stepId) =>
               onRouteRequested(_routeForStep(stepId)),
         );
@@ -142,7 +158,14 @@ class GettingStartedCard extends StatelessWidget {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
+            _ProgressBar(
+              value: model.progress.totalStepsCount > 0
+                  ? model.progress.completedStepsCount /
+                        model.progress.totalStepsCount
+                  : 0.0,
+            ),
+            const SizedBox(height: 16),
             for (final GettingStartedStepId stepId
                 in GettingStartedProgress.orderedSteps) ...<Widget>[
               _GettingStartedStepTile(
@@ -155,16 +178,6 @@ class GettingStartedCard extends StatelessWidget {
               ),
               if (stepId != GettingStartedProgress.orderedSteps.last)
                 const SizedBox(height: 8),
-            ],
-            if (allowDismiss && !model.progress.isCompleted) ...<Widget>[
-              const SizedBox(height: 12),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton(
-                  onPressed: onDismiss,
-                  child: Text(strings.gettingStartedHideAction),
-                ),
-              ),
             ],
           ],
         ),
@@ -209,18 +222,30 @@ class _GettingStartedStepTile extends StatelessWidget {
     return InkWell(
       onTap: isEnabled ? onTap : null,
       borderRadius: BorderRadius.circular(16),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
+          color: isCurrent
+              ? colors.primaryContainer.withValues(alpha: 0.15)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isCurrent ? colors.primary : colors.outlineVariant,
+            width: isCurrent ? 1.5 : 1.0,
           ),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Icon(icon, color: accent),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                return ScaleTransition(scale: animation, child: child);
+              },
+              child: Icon(icon, key: ValueKey<IconData>(icon), color: accent),
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -291,4 +316,44 @@ String _descriptionForStep(
       strings.gettingStartedStepProfileDescription,
     GettingStartedStepId.goal => strings.gettingStartedStepGoalDescription,
   };
+}
+
+class _ProgressBar extends StatelessWidget {
+  const _ProgressBar({required this.value});
+
+  final double value;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme colors = theme.colorScheme;
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0, end: value),
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
+      builder: (BuildContext context, double animatedValue, Widget? child) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: Container(
+            height: 6,
+            width: double.infinity,
+            color: colors.primaryContainer.withValues(alpha: 0.3),
+            child: FractionallySizedBox(
+              alignment: Alignment.centerLeft,
+              widthFactor: animatedValue,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4),
+                  gradient: LinearGradient(
+                    colors: <Color>[colors.primary, colors.tertiary],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 }

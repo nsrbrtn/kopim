@@ -51,8 +51,11 @@ class _UpcomingPaymentsScreenState extends ConsumerState<UpcomingPaymentsScreen>
       body: TabBarView(
         controller: _tabController,
         children: <Widget>[
-          UpcomingPaymentsList(onEdit: _openPayment),
-          PaymentRemindersList(onEdit: _openReminder),
+          UpcomingPaymentsList(onEdit: _openPayment, onCreate: _createPayment),
+          PaymentRemindersList(
+            onEdit: _openReminder,
+            onCreate: _createReminder,
+          ),
         ],
       ),
       floatingActionButton: KopimFloatingActionButton(

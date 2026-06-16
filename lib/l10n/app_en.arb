@@ -580,6 +580,18 @@
   "@gettingStartedStepGoalDescription": {
     "description": "Getting started step description for saving goal creation"
   },
+  "gettingStartedCelebrationTitle": "Great Start!",
+  "@gettingStartedCelebrationTitle": {
+    "description": "Title of the getting started celebration dialog"
+  },
+  "gettingStartedCelebrationSubtitle": "You have successfully completed all basic setup steps. Now you are fully ready to manage your finances with Kopim!",
+  "@gettingStartedCelebrationSubtitle": {
+    "description": "Subtitle of the getting started celebration dialog"
+  },
+  "gettingStartedCelebrationButton": "Let's Go!",
+  "@gettingStartedCelebrationButton": {
+    "description": "Button label to dismiss the getting started celebration dialog"
+  },
   "settingsHomeGamificationTitle": "Gamification widget",
   "@settingsHomeGamificationTitle": {
     "description": "Switch label for enabling the gamification widget"
@@ -1819,6 +1831,14 @@
   "homeTransactionsEmpty": "No transactions recorded yet.",
   "@homeTransactionsEmpty": {
     "description": "Empty state for transactions list"
+  },
+  "homeTransactionsCreateButton": "Add transaction",
+  "@homeTransactionsCreateButton": {
+    "description": "Button to add a transaction on the home screen when empty"
+  },
+  "homeTransactionsEmptyDescription": "Add your first transaction to start tracking your expenses.",
+  "@homeTransactionsEmptyDescription": {
+    "description": "Supporting copy for the empty transactions list on the home screen"
   },
   "homeTransactionsError": "Unable to load transactions: {error}",
   "@homeTransactionsError": {
@@ -3388,6 +3408,10 @@
   "budgetsEmptyMessage": "Create your first budget to track spending and stay on target.",
   "@budgetsEmptyMessage": {
     "description": "Supporting copy for the empty budgets state"
+  },
+  "budgetsCreateButton": "Create budget",
+  "@budgetsCreateButton": {
+    "description": "Button to create the first budget"
   },
   "budgetsErrorTitle": "Couldn't load budgets",
   "@budgetsErrorTitle": {

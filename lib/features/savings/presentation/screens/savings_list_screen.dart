@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kopim/core/widgets/kopim_floating_action_button.dart';
+import 'package:kopim/core/widgets/empty_state_view.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/savings/domain/value_objects/goal_progress.dart';
@@ -197,38 +198,12 @@ class _SavingsEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
-    final ThemeData theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Icon(
-              Icons.savings_outlined,
-              size: 72,
-              color: theme.colorScheme.primary,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              strings.savingsEmptyTitle,
-              style: theme.textTheme.titleMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              strings.savingsEmptyMessage,
-              style: theme.textTheme.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            FilledButton(
-              onPressed: onCreate,
-              child: Text(strings.savingsAddGoalButton),
-            ),
-          ],
-        ),
-      ),
+    return EmptyStateView(
+      icon: Icons.savings_outlined,
+      title: strings.savingsEmptyTitle,
+      description: strings.savingsEmptyMessage,
+      actionLabel: strings.savingsAddGoalButton,
+      onActionPressed: onCreate,
     );
   }
 }

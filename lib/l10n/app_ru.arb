@@ -580,6 +580,18 @@
   "@gettingStartedStepGoalDescription": {
     "description": "Описание шага мини-онбординга для создания цели накопления"
   },
+  "gettingStartedCelebrationTitle": "Отличный старт!",
+  "@gettingStartedCelebrationTitle": {
+    "description": "Заголовок диалога поздравления с успешным завершением онбординга"
+  },
+  "gettingStartedCelebrationSubtitle": "Вы успешно выполнили все шаги базовой настройки приложения. Теперь вы полностью готовы к управлению своими финансами с Kopim!",
+  "@gettingStartedCelebrationSubtitle": {
+    "description": "Описание в диалоге поздравления с успешным завершением онбординга"
+  },
+  "gettingStartedCelebrationButton": "Поехали!",
+  "@gettingStartedCelebrationButton": {
+    "description": "Кнопка закрытия диалога поздравления"
+  },
   "settingsHomeGamificationTitle": "Виджет геймификации",
   "@settingsHomeGamificationTitle": {
     "description": "Подпись переключателя виджета геймификации"
@@ -1835,6 +1847,14 @@
   "homeTransactionsEmpty": "Транзакций пока нет.",
   "@homeTransactionsEmpty": {
     "description": "Сообщение пустого состояния для транзакций"
+  },
+  "homeTransactionsCreateButton": "Добавить операцию",
+  "@homeTransactionsCreateButton": {
+    "description": "Кнопка добавления транзакции на главном экране при пустом списке"
+  },
+  "homeTransactionsEmptyDescription": "Добавьте первую операцию, чтобы начать отслеживать расходы.",
+  "@homeTransactionsEmptyDescription": {
+    "description": "Подпись к пустому списку транзакций на главном экране"
   },
   "homeTransactionsError": "Не удалось загрузить транзакции: {error}",
   "@homeTransactionsError": {
@@ -3388,6 +3408,10 @@
   "budgetsEmptyMessage": "Создайте первый бюджет, чтобы контролировать расходы.",
   "@budgetsEmptyMessage": {
     "description": "Сообщение пустого состояния для экранов бюджетов"
+  },
+  "budgetsCreateButton": "Создать бюджет",
+  "@budgetsCreateButton": {
+    "description": "Кнопка создания первого бюджета"
   },
   "budgetsErrorTitle": "Не удалось загрузить бюджеты",
   "@budgetsErrorTitle": {

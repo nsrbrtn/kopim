@@ -14,8 +14,8 @@ void main() {
       );
 
       expect(progress.currentStep, GettingStartedStepId.category);
-      expect(progress.isStepLocked(GettingStartedStepId.transaction), isTrue);
-      expect(progress.isStepLocked(GettingStartedStepId.profile), isTrue);
+      expect(progress.isStepLocked(GettingStartedStepId.transaction), isFalse);
+      expect(progress.isStepLocked(GettingStartedStepId.profile), isFalse);
       expect(progress.completedStepsCount, 1);
       expect(progress.isCompleted, isFalse);
     });

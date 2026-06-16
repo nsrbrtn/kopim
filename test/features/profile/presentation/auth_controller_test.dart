@@ -108,6 +108,14 @@ class FakeAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<AuthUser> signInOffline() async {
+    final AuthUser user = AuthUser.guest(createdAt: DateTime.utc(2024, 1, 1));
+    initialUser = user;
+    _controller.add(user);
+    return user;
+  }
+
+  @override
   Future<void> sendPasswordResetEmail(String email) =>
       Future<void>.error(UnimplementedError());
 

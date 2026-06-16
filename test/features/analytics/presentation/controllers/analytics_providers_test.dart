@@ -993,7 +993,7 @@ void main() {
     'analyticsTransferTransactionsProvider исключает платежи по кредиту из переводов',
     () async {
       final DateTime now = DateTime.now();
-      final DateTime txDate = now.subtract(const Duration(hours: 2));
+      final DateTime txDate = now;
       final DateTime rangeStart = DateUtils.dateOnly(now);
       final DateTime rangeEnd = rangeStart;
 
@@ -1149,7 +1149,7 @@ void main() {
     'analyticsTransferTransactionsProvider исключает платежи по legacy-кредиту из переводов',
     () async {
       final DateTime now = DateTime.now();
-      final DateTime txDate = now.subtract(const Duration(hours: 2));
+      final DateTime txDate = now;
       final DateTime rangeStart = DateUtils.dateOnly(now);
       final DateTime rangeEnd = rangeStart;
 
@@ -1559,7 +1559,7 @@ void main() {
     'credit payment учитывается как outflow при credit типе счета',
     () async {
       final DateTime now = DateTime.now();
-      final DateTime txDate = now.subtract(const Duration(hours: 2));
+      final DateTime txDate = now;
       final DateTime rangeStart = DateUtils.dateOnly(now);
       final DateTime rangeEnd = rangeStart;
 

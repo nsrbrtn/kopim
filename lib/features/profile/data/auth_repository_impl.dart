@@ -169,6 +169,14 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<AuthUser> signInOffline() async {
+    final AuthUser fallback = AuthUser.guest();
+    _localFallbackUser = fallback;
+    _logger.logInfo('Using offline guest fallback ${fallback.uid}.');
+    return fallback;
+  }
+
+  @override
   Future<void> sendPasswordResetEmail(String email) {
     return _guardVoid('sendPasswordResetEmail', () async {
       await _firebaseAuth.sendPasswordResetEmail(email: email);

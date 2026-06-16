@@ -164,6 +164,9 @@ class MenuScreen extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
             child: GettingStartedCardHost(
               forceVisible: true,
+              onDismiss: () {
+                Navigator.of(sheetContext).pop();
+              },
               onRouteRequested: (String routeName) {
                 Navigator.of(sheetContext).pop();
                 _pushRoute(context, routeName);
