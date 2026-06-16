@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/application/firebase_availability.dart';
 import 'package:kopim/core/config/app_runtime.dart';
@@ -38,6 +39,9 @@ import 'package:kopim/features/getting_started/domain/entities/getting_started_v
 import 'package:kopim/features/getting_started/presentation/controllers/getting_started_controller.dart';
 import 'package:kopim/features/home/domain/entities/home_dashboard_preferences.dart';
 import 'package:kopim/features/home/presentation/controllers/home_dashboard_preferences_controller.dart';
+import 'package:kopim/features/home/presentation/widgets/home_budget_progress_card.dart';
+import 'package:kopim/features/home/presentation/widgets/home_savings_overview_card.dart';
+import 'package:kopim/features/home/presentation/widgets/home_upcoming_items_card.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/screens/menu_screen.dart';
@@ -75,6 +79,20 @@ class _FakeHomeDashboardPreferencesController
   @override
   Future<HomeDashboardPreferences> build() async {
     return const HomeDashboardPreferences();
+  }
+}
+
+class _EnabledHomeDashboardPreferencesController
+    extends HomeDashboardPreferencesController {
+  _EnabledHomeDashboardPreferencesController();
+
+  @override
+  Future<HomeDashboardPreferences> build() async {
+    return const HomeDashboardPreferences(
+      showBudgetWidget: true,
+      showRecurringWidget: true,
+      showSavingsWidget: true,
+    );
   }
 }
 
@@ -402,7 +420,12 @@ void main() {
   const AuthUser? anonymousUser = null;
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-  ProviderScope buildShell(Widget child) {
+  ProviderScope buildShell(
+    Widget child, {
+    List<Override> overrides = const <Override>[],
+    HomeDashboardPreferencesController Function()?
+    dashboardPreferencesControllerFactory,
+  }) {
     final _StreamAccountRepository accountRepository = _StreamAccountRepository(
       Stream<List<AccountEntity>>.value(<AccountEntity>[account]),
     );
@@ -427,7 +450,8 @@ void main() {
           () => _FakeAuthController(anonymousUser),
         ),
         homeDashboardPreferencesControllerProvider.overrideWith(
-          () => _FakeHomeDashboardPreferencesController(),
+          dashboardPreferencesControllerFactory ??
+              () => _FakeHomeDashboardPreferencesController(),
         ),
         accountRepositoryProvider.overrideWithValue(accountRepository),
         categoryRepositoryProvider.overrideWithValue(categoryRepository),
@@ -531,6 +555,7 @@ void main() {
             ),
           ),
         ),
+        ...overrides,
       ],
       child: child,
     );
@@ -794,6 +819,34 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     expect(container.read(mainNavigationControllerProvider).currentIndex, 1);
     expect(container.read(mainNavigationControllerProvider).history, <int>[0]);
+  });
+
+  testWidgets('wide layout renders home secondary panel widgets', (
+    WidgetTester tester,
+  ) async {
+    await setWindowSize(tester, const Size(1200, 1200));
+    await tester.pumpWidget(
+      buildShell(
+        MaterialApp(
+          navigatorKey: navigatorKey,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routes: <String, WidgetBuilder>{
+            MenuScreen.routeName: (_) => const MenuScreen(),
+          },
+          home: const MainNavigationShell(),
+        ),
+        dashboardPreferencesControllerFactory: () =>
+            _EnabledHomeDashboardPreferencesController(),
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.byType(HomeBudgetProgressCard), findsOneWidget);
+    expect(find.byType(HomeSavingsOverviewCard), findsOneWidget);
+    expect(find.byType(HomeUpcomingItemsCard), findsOneWidget);
   });
 
   testWidgets(

@@ -1023,6 +1023,10 @@ class _CategoryTile extends StatelessWidget {
             if (spentComparison != 0) {
               return spentComparison;
             }
+            final int limitComparison = (b.limit ?? 0).compareTo(a.limit ?? 0);
+            if (limitComparison != 0) {
+              return limitComparison;
+            }
             return a.category.name.compareTo(b.category.name);
           });
 
@@ -1518,6 +1522,8 @@ List<BudgetCategorySpend> _computeCategorySpend({
   items.sort((BudgetCategorySpend a, BudgetCategorySpend b) {
     final int spentComparison = b.spent.compareTo(a.spent);
     if (spentComparison != 0) return spentComparison;
+    final int limitComparison = (b.limit ?? 0).compareTo(a.limit ?? 0);
+    if (limitComparison != 0) return limitComparison;
     return a.category.name.compareTo(b.category.name);
   });
   return items;

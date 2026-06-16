@@ -539,6 +539,54 @@ void main() {
 
     expect(find.text('Кофе'), findsOneWidget);
   });
+
+  testWidgets(
+    'при поиске родительской категории её можно раскрыть и показать подкатегории, даже если они не подходят по названию',
+    (WidgetTester tester) async {
+      final AccountEntity account = _buildAccount();
+      final List<Category> categories = <Category>[
+        _buildCategory(id: 'food', name: 'Еда'),
+        _buildCategory(id: 'coffee', name: 'Кофе', parentId: 'food'),
+      ];
+
+      await _pumpTransactionForm(
+        tester,
+        account: account,
+        categories: categories,
+      );
+
+      final BuildContext context = tester.element(find.byType(Scaffold));
+      final AppLocalizations strings = AppLocalizations.of(context)!;
+
+      final Finder searchField = find.byWidgetPredicate(
+        (Widget widget) =>
+            widget is TextField &&
+            widget.decoration?.hintText ==
+                strings.addTransactionCategorySearchHint,
+      );
+
+      expect(searchField, findsOneWidget);
+
+      await tester.enterText(searchField, 'Ед');
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Еда'), findsOneWidget);
+      expect(find.text('Кофе'), findsNothing);
+
+      await tester.tap(find.text('Еда'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Кофе'), findsOneWidget);
+
+      await tester.tap(find.text('Кофе'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Кофе'), findsOneWidget);
+    },
+  );
 }
 
 Future<void> _pumpTransactionForm(

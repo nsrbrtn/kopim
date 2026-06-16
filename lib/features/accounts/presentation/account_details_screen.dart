@@ -230,6 +230,7 @@ class _AccountDetailsScreenState extends ConsumerState<AccountDetailsScreen> {
                     const SizedBox(height: 16),
                     _AccountBalanceChartCard(
                       points: balancePoints,
+                      period: period,
                       currencyFormat: currencyFormat,
                       strings: strings,
                     ),
@@ -350,11 +351,13 @@ class _AccountPeriodSelector extends StatelessWidget {
 class _AccountBalanceChartCard extends StatelessWidget {
   const _AccountBalanceChartCard({
     required this.points,
+    required this.period,
     required this.currencyFormat,
     required this.strings,
   });
 
   final List<_BalanceChartPoint> points;
+  final AccountDetailsPeriod period;
   final NumberFormat currencyFormat;
   final AppLocalizations strings;
 
@@ -367,7 +370,11 @@ class _AccountBalanceChartCard extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     final ColorScheme colors = theme.colorScheme;
     final KopimLayout layout = context.kopimLayout;
+    final bool compactLayout = shouldUseCompactAccountSummary(
+      MediaQuery.sizeOf(context).width,
+    );
     final _BalanceChartPoint latest = points.last;
+    final _BalanceChartPoint first = points.first;
 
     final double minBalance = points
         .map((_BalanceChartPoint point) => point.balance.toDouble())
@@ -388,6 +395,16 @@ class _AccountBalanceChartCard extends StatelessWidget {
     final double axisRange = effectiveRange * chartHeight / availableHeight;
     final double yMax = maxBalance + (topPadding / chartHeight) * axisRange;
     final double yMin = yMax - axisRange;
+    final String seriesLabel = _resolveBalanceSeriesLabel(period);
+    final String seriesDetail = _resolveBalanceLegendDetail(period);
+    final String startBalanceLabel = currencyFormat.format(
+      first.balance.toDouble(),
+    );
+    final String endBalanceLabel = currencyFormat.format(
+      latest.balance.toDouble(),
+    );
+    final String lowBalanceLabel = currencyFormat.format(minBalance);
+    final String highBalanceLabel = currencyFormat.format(maxBalance);
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -413,6 +430,16 @@ class _AccountBalanceChartCard extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
+          const SizedBox(height: 8),
+          Row(
+            children: <Widget>[
+              _ChartInlineLegend(
+                color: colors.primary,
+                label: seriesLabel,
+                secondaryLabel: seriesDetail,
+              ),
+            ],
+          ),
           const SizedBox(height: 20),
           SizedBox(
             height: chartHeight,
@@ -422,6 +449,11 @@ class _AccountBalanceChartCard extends StatelessWidget {
               primaryXAxis: CategoryAxis(
                 majorGridLines: const MajorGridLines(width: 0),
                 axisLine: const AxisLine(width: 0),
+                majorTickLines: MajorTickLines(
+                  width: 1,
+                  color: colors.outlineVariant,
+                  size: 6,
+                ),
                 labelStyle: theme.textTheme.labelSmall?.copyWith(
                   color: colors.onSurfaceVariant,
                   letterSpacing: 0.3,
@@ -429,11 +461,37 @@ class _AccountBalanceChartCard extends StatelessWidget {
                 interval: _resolveAxisInterval(points.length),
               ),
               primaryYAxis: NumericAxis(
-                isVisible: false,
                 minimum: yMin,
                 maximum: yMax,
+                majorGridLines: MajorGridLines(
+                  width: 1,
+                  color: colors.outline.withValues(alpha: 0.18),
+                ),
+                axisLine: const AxisLine(width: 0),
+                majorTickLines: const MajorTickLines(size: 0),
+                numberFormat: NumberFormat.compact(locale: strings.localeName),
+                labelStyle: theme.textTheme.labelSmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                  letterSpacing: 0.2,
+                ),
               ),
               series: <CartesianSeries<_BalanceChartPoint, String>>[
+                SplineAreaSeries<_BalanceChartPoint, String>(
+                  dataSource: points,
+                  xValueMapper: (_BalanceChartPoint point, _) => point.label,
+                  yValueMapper: (_BalanceChartPoint point, _) =>
+                      point.balance.toDouble(),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: <Color>[
+                      colors.primary.withValues(alpha: 0.20),
+                      colors.primary.withValues(alpha: 0.04),
+                    ],
+                  ),
+                  borderWidth: 0,
+                  animationDuration: 0,
+                ),
                 SplineSeries<_BalanceChartPoint, String>(
                   dataSource: points,
                   xValueMapper: (_BalanceChartPoint point, _) => point.label,
@@ -447,6 +505,64 @@ class _AccountBalanceChartCard extends StatelessWidget {
               ],
             ),
           ),
+          const SizedBox(height: 16),
+          compactLayout
+              ? Column(
+                  children: <Widget>[
+                    _ChartSummaryRow(
+                      leading: _ChartSummaryMetric(
+                        label: 'На начало периода',
+                        value: startBalanceLabel,
+                      ),
+                      trailing: _ChartSummaryMetric(
+                        label: 'На сегодня',
+                        value: endBalanceLabel,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    _ChartSummaryRow(
+                      leading: _ChartSummaryMetric(
+                        label: 'Минимум',
+                        value: lowBalanceLabel,
+                      ),
+                      trailing: _ChartSummaryMetric(
+                        label: 'Максимум',
+                        value: highBalanceLabel,
+                      ),
+                    ),
+                  ],
+                )
+              : Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: _ChartSummaryMetric(
+                        label: 'На начало периода',
+                        value: startBalanceLabel,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _ChartSummaryMetric(
+                        label: 'На сегодня',
+                        value: endBalanceLabel,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _ChartSummaryMetric(
+                        label: 'Минимум',
+                        value: lowBalanceLabel,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _ChartSummaryMetric(
+                        label: 'Максимум',
+                        value: highBalanceLabel,
+                      ),
+                    ),
+                  ],
+                ),
         ],
       ),
     );
@@ -495,19 +611,26 @@ class _AccountPeriodSummaryCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(layout.radius.xxl),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
+          Text(
+            strings.accountDetailsPeriodTotalLabel,
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: colors.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 14),
           if (compactLayout)
             Column(
               children: <Widget>[
-                _SummaryColumn(
+                _SummaryMetricCard(
                   label: strings.accountDetailsIncomeLabel,
                   value: '+ $incomeLabel',
                   dotColor: colors.primary,
                 ),
                 const SizedBox(height: 12),
-                Divider(color: colors.outlineVariant, height: 1),
-                const SizedBox(height: 12),
-                _SummaryColumn(
+                _SummaryMetricCard(
                   label: strings.accountDetailsExpenseLabel,
                   value: '- $expenseLabel',
                   dotColor: colors.tertiary,
@@ -518,15 +641,15 @@ class _AccountPeriodSummaryCard extends StatelessWidget {
             Row(
               children: <Widget>[
                 Expanded(
-                  child: _SummaryColumn(
+                  child: _SummaryMetricCard(
                     label: strings.accountDetailsIncomeLabel,
                     value: '+ $incomeLabel',
                     dotColor: colors.primary,
                   ),
                 ),
-                Container(width: 1, height: 48, color: colors.outlineVariant),
+                const SizedBox(width: 12),
                 Expanded(
-                  child: _SummaryColumn(
+                  child: _SummaryMetricCard(
                     label: strings.accountDetailsExpenseLabel,
                     value: '- $expenseLabel',
                     dotColor: colors.tertiary,
@@ -534,29 +657,34 @@ class _AccountPeriodSummaryCard extends StatelessWidget {
                 ),
               ],
             ),
-          const SizedBox(height: 12),
-          Divider(color: colors.outlineVariant, height: 16),
-          const SizedBox(height: 4),
-          Wrap(
-            alignment: WrapAlignment.center,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            spacing: 4,
-            runSpacing: 4,
-            children: <Widget>[
-              Text(
-                '${strings.accountDetailsPeriodTotalLabel}:',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colors.onSurfaceVariant,
+          const SizedBox(height: 14),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: colors.surfaceContainerHighest.withValues(alpha: 0.55),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              runSpacing: 6,
+              spacing: 12,
+              children: <Widget>[
+                Text(
+                  strings.accountDetailsPeriodTotalLabel,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colors.onSurfaceVariant,
+                  ),
                 ),
-              ),
-              Text(
-                '${isNegative ? '-' : '+'} $netLabel',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: isNegative ? colors.error : colors.primary,
-                  fontWeight: FontWeight.w600,
+                Text(
+                  '${isNegative ? '-' : '+'} $netLabel',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: isNegative ? colors.error : colors.primary,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -564,8 +692,8 @@ class _AccountPeriodSummaryCard extends StatelessWidget {
   }
 }
 
-class _SummaryColumn extends StatelessWidget {
-  const _SummaryColumn({
+class _SummaryMetricCard extends StatelessWidget {
+  const _SummaryMetricCard({
     required this.label,
     required this.value,
     required this.dotColor,
@@ -578,43 +706,156 @@ class _SummaryColumn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Row(
-          children: <Widget>[
-            Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: dotColor,
-                shape: BoxShape.circle,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+    final ColorScheme colors = theme.colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHighest.withValues(alpha: 0.45),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: dotColor,
+                  shape: BoxShape.circle,
                 ),
               ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colors.onSurfaceVariant,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: colors.onSurface,
+              fontWeight: FontWeight.w700,
             ),
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ChartInlineLegend extends StatelessWidget {
+  const _ChartInlineLegend({
+    required this.color,
+    required this.label,
+    required this.secondaryLabel,
+  });
+
+  final Color color;
+  final String label;
+  final String secondaryLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme colors = theme.colorScheme;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(width: 8),
         Text(
-          value,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.titleMedium?.copyWith(
-            color: theme.colorScheme.onSurface,
+          label,
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: colors.onSurface,
             fontWeight: FontWeight.w600,
           ),
         ),
+        const SizedBox(width: 8),
+        Text(
+          secondaryLabel,
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: colors.onSurfaceVariant,
+          ),
+        ),
       ],
+    );
+  }
+}
+
+class _ChartSummaryRow extends StatelessWidget {
+  const _ChartSummaryRow({required this.leading, required this.trailing});
+
+  final Widget leading;
+  final Widget trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: <Widget>[
+        Expanded(child: leading),
+        const SizedBox(width: 10),
+        Expanded(child: trailing),
+      ],
+    );
+  }
+}
+
+class _ChartSummaryMetric extends StatelessWidget {
+  const _ChartSummaryMetric({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
+    final ColorScheme colors = theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHighest.withValues(alpha: 0.45),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: colors.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleSmall?.copyWith(
+              color: colors.onSurface,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1263,6 +1504,26 @@ double resolveAccountDetailsHorizontalPadding(double availableWidth) {
 @visibleForTesting
 bool shouldUseCompactAccountSummary(double availableWidth) {
   return availableWidth < 520;
+}
+
+String _resolveBalanceSeriesLabel(AccountDetailsPeriod period) {
+  switch (period) {
+    case AccountDetailsPeriod.month:
+      return 'Динамика баланса';
+    case AccountDetailsPeriod.quarter:
+    case AccountDetailsPeriod.year:
+      return 'Динамика баланса';
+  }
+}
+
+String _resolveBalanceLegendDetail(AccountDetailsPeriod period) {
+  switch (period) {
+    case AccountDetailsPeriod.month:
+      return 'по дням';
+    case AccountDetailsPeriod.quarter:
+    case AccountDetailsPeriod.year:
+      return 'по месяцам';
+  }
 }
 
 List<_TopCategoryItem> _resolveTopCategories({

@@ -898,66 +898,86 @@ void _showPresetAvatarSheet(
                 style: theme.textTheme.bodyMedium,
               ),
               const SizedBox(height: 16),
-              SizedBox(
-                height: 300,
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  padding: EdgeInsets.zero,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    mainAxisSpacing: 12,
-                    crossAxisSpacing: 12,
-                    childAspectRatio: 0.8,
-                  ),
-                  itemCount: _presetAvatarAssetPaths.length,
-                  itemBuilder: (BuildContext gridContext, int index) {
-                    final String assetPath = _presetAvatarAssetPaths[index];
-                    return InkWell(
-                      borderRadius: BorderRadius.circular(16),
-                      onTap: () async {
-                        Navigator.of(sheetContext).pop();
-                        await ref
-                            .read(avatarControllerProvider.notifier)
-                            .selectPresetAvatar(uid: uid, assetPath: assetPath);
-                      },
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          ClipOval(
-                            child: Image.asset(
-                              assetPath,
-                              width: 72,
-                              height: 72,
-                              fit: BoxFit.cover,
-                              errorBuilder:
-                                  (
-                                    BuildContext context,
-                                    Object error,
-                                    StackTrace? stackTrace,
-                                  ) => Container(
-                                    width: 72,
-                                    height: 72,
-                                    color: theme
-                                        .colorScheme
-                                        .surfaceContainerHighest,
-                                    child: Icon(
-                                      Icons.person,
-                                      color: theme.colorScheme.onSurfaceVariant,
+              LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+                  final double gridWidth = _resolvePresetAvatarGridWidth(
+                    constraints.maxWidth,
+                  );
+                  return SizedBox(
+                    height: 300,
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: SizedBox(
+                        width: gridWidth,
+                        child: GridView.builder(
+                          shrinkWrap: true,
+                          padding: EdgeInsets.zero,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 3,
+                                mainAxisSpacing: 12,
+                                crossAxisSpacing: 12,
+                                childAspectRatio: 0.8,
+                              ),
+                          itemCount: _presetAvatarAssetPaths.length,
+                          itemBuilder: (BuildContext gridContext, int index) {
+                            final String assetPath =
+                                _presetAvatarAssetPaths[index];
+                            return InkWell(
+                              borderRadius: BorderRadius.circular(16),
+                              onTap: () async {
+                                Navigator.of(sheetContext).pop();
+                                await ref
+                                    .read(avatarControllerProvider.notifier)
+                                    .selectPresetAvatar(
+                                      uid: uid,
+                                      assetPath: assetPath,
+                                    );
+                              },
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: <Widget>[
+                                  ClipOval(
+                                    child: Image.asset(
+                                      assetPath,
+                                      width: 72,
+                                      height: 72,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (
+                                            BuildContext context,
+                                            Object error,
+                                            StackTrace? stackTrace,
+                                          ) => Container(
+                                            width: 72,
+                                            height: 72,
+                                            color: theme
+                                                .colorScheme
+                                                .surfaceContainerHighest,
+                                            child: Icon(
+                                              Icons.person,
+                                              color: theme
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
+                                            ),
+                                          ),
                                     ),
                                   ),
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            strings.profilePresetAvatarLabel(index + 1),
-                            style: theme.textTheme.bodySmall,
-                          ),
-                        ],
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    strings.profilePresetAvatarLabel(index + 1),
+                                    style: theme.textTheme.bodySmall,
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 12),
             ],
@@ -976,6 +996,13 @@ const List<String> _presetAvatarAssetPaths = <String>[
   'assets/avatars/avatar_mauve.png',
   'assets/avatars/avatar_teal.png',
 ];
+
+double _resolvePresetAvatarGridWidth(double availableWidth) {
+  if (availableWidth <= 440) {
+    return availableWidth;
+  }
+  return 440;
+}
 
 class _CenteredProgress extends StatelessWidget {
   const _CenteredProgress({this.size = 32});

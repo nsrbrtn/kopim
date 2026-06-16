@@ -242,10 +242,10 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
           final String localeTag = Localizations.localeOf(
             context,
           ).toLanguageTag();
-          const bool enableTwoPane = false;
           final bool isLandscape = constraints.maxWidth > constraints.maxHeight;
           final bool isWideScreen =
               constraints.maxWidth >= kMainNavigationRailBreakpoint;
+          final bool enableTwoPane = isWideScreen;
           final bool shouldConstrainBottomBar = isLandscape || isWideScreen;
           final bool useBottomBar = showNavigation;
 

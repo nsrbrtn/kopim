@@ -148,5 +148,123 @@ void main() {
         expect(find.text('Показать больше'), findsOneWidget);
       },
     );
+
+    testWidgets('показывает легенду и пояснения для графика баланса', (
+      WidgetTester tester,
+    ) async {
+      const String accountId = 'acc-2';
+      final AccountEntity account = AccountEntity(
+        id: accountId,
+        name: 'Тбанк',
+        balanceMinor: BigInt.from(120000),
+        openingBalanceMinor: BigInt.from(100000),
+        currency: 'RUB',
+        currencyScale: 2,
+        type: 'bank',
+        createdAt: DateTime(2024, 1, 1),
+        updatedAt: DateTime(2024, 1, 1),
+      );
+      final DateTimeRange periodRange = DateTimeRange(
+        start: DateTime(2024, 6, 1),
+        end: DateTime(2024, 6, 30),
+      );
+      final List<TransactionEntity> transactions = <TransactionEntity>[
+        TransactionEntity(
+          id: 'tx-1',
+          accountId: accountId,
+          amountMinor: BigInt.from(5000),
+          amountScale: 2,
+          date: DateTime(2024, 6, 3),
+          type: 'income',
+          createdAt: DateTime(2024, 6, 3),
+          updatedAt: DateTime(2024, 6, 3),
+        ),
+        TransactionEntity(
+          id: 'tx-2',
+          accountId: accountId,
+          amountMinor: BigInt.from(3000),
+          amountScale: 2,
+          date: DateTime(2024, 6, 12),
+          type: 'expense',
+          createdAt: DateTime(2024, 6, 12),
+          updatedAt: DateTime(2024, 6, 12),
+        ),
+      ];
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: <Override>[
+            accountDetailsProvider.overrideWith((Ref ref, String id) {
+              expect(id, accountId);
+              return Stream<AccountEntity?>.value(account);
+            }),
+            accountTransactionSummaryProvider.overrideWith((
+              Ref ref,
+              String id,
+            ) {
+              expect(id, accountId);
+              return AsyncValue<AccountTransactionSummary>.data(
+                AccountTransactionSummary(
+                  totalIncome: MoneyAmount(minor: BigInt.from(5000), scale: 2),
+                  totalExpense: MoneyAmount(minor: BigInt.from(3000), scale: 2),
+                ),
+              );
+            }),
+            filteredAccountTransactionsProvider.overrideWith((
+              Ref ref,
+              String id,
+            ) {
+              expect(id, accountId);
+              return AsyncValue<List<TransactionEntity>>.data(transactions);
+            }),
+            accountCategoriesProvider.overrideWith(
+              (Ref ref) => Stream<List<Category>>.value(const <Category>[]),
+            ),
+            accountTransactionsProvider.overrideWith((Ref ref, String id) {
+              expect(id, accountId);
+              return Stream<List<TransactionEntity>>.value(transactions);
+            }),
+            canShowMoreAccountTransactionsProvider.overrideWith((
+              Ref ref,
+              String id,
+            ) {
+              expect(id, accountId);
+              return const AsyncValue<bool>.data(false);
+            }),
+            accountDetailsPeriodRangeProvider.overrideWith((
+              Ref ref,
+              String id,
+            ) {
+              expect(id, accountId);
+              return periodRange;
+            }),
+            accountTopCategoryTotalsProvider(
+              accountId: accountId,
+              start: periodRange.start,
+              end: periodRange.end,
+            ).overrideWith(
+              (Ref ref) => Stream<List<TransactionCategoryTotals>>.value(
+                const <TransactionCategoryTotals>[],
+              ),
+            ),
+          ],
+          child: const MaterialApp(
+            locale: Locale('ru'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: AccountDetailsScreen(accountId: accountId),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Динамика баланса'), findsOneWidget);
+      expect(find.text('по дням'), findsOneWidget);
+      expect(find.text('На начало периода'), findsOneWidget);
+      expect(find.text('На сегодня'), findsOneWidget);
+      expect(find.text('Минимум'), findsOneWidget);
+      expect(find.text('Максимум'), findsOneWidget);
+    });
   });
 }

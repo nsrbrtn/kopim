@@ -1656,7 +1656,7 @@ class _CategoryDropdownFieldState
               )
               .toList(growable: false)
         : const <Category>[];
-    final bool allowExpand = !hasQuery;
+    const bool allowExpand = true;
     final bool showExpandedBranch = allowExpand && _expandedParentId != null;
     final bool showOtherCategories = hasQuery
         ? searchResults.isNotEmpty
@@ -1666,13 +1666,11 @@ class _CategoryDropdownFieldState
             hierarchy: hierarchy,
             expandedParentId: _expandedParentId!,
           )
-        : allowExpand
-        ? _expandParentsWithChildren(
+        : _expandParentsWithChildren(
             parents: headerCategories,
             hierarchy: hierarchy,
             expandedParentId: _expandedParentId,
-          )
-        : headerCategories;
+          );
     final List<Category> otherDisplayCategories = showExpandedBranch
         ? const <Category>[]
         : hasQuery
