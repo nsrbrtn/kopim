@@ -119,22 +119,11 @@ void main() {
       );
     });
 
-    test(
-      'signInAnonymously falls back to guest user on network error',
-      () async {
-        when(() => firebaseAuth.currentUser).thenReturn(null);
-        when(() => firebaseAuth.signInAnonymously()).thenThrow(
-          FirebaseAuthException(
-            code: 'network-request-failed',
-            message: 'No connectivity',
-          ),
-        );
-
-        final AuthUser result = await repository.signInAnonymously();
-
-        expect(result.isAnonymous, isTrue);
-        expect(result.uid, startsWith('guest-'));
-      },
-    );
+    test('signInAnonymously throws UnsupportedError', () async {
+      expect(
+        () => repository.signInAnonymously(),
+        throwsA(isA<UnsupportedError>()),
+      );
+    });
   });
 }

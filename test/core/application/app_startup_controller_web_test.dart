@@ -11,7 +11,9 @@ import 'package:riverpod/riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:kopim/core/application/app_startup_controller.dart';
+import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/services/sync/local_sync_integrity_debug_reporter.dart';
 import 'package:kopim/core/services/sync_service.dart';
 import 'package:kopim/features/upcoming_payments/application/upcoming_notifications_controller.dart';
 import 'package:kopim/features/upcoming_payments/data/services/upcoming_payments_work_scheduler.dart';
@@ -22,6 +24,9 @@ class _MockUpcomingPaymentsWorkScheduler extends Mock
 class _MockSyncService extends Mock implements SyncService {}
 
 class _MockFirebaseFirestore extends Mock implements FirebaseFirestore {}
+
+class _MockLocalSyncIntegrityDebugReporter extends Mock
+    implements LocalSyncIntegrityDebugReporter {}
 
 class _FakeUpcomingNotificationsController
     extends UpcomingNotificationsController {
@@ -116,6 +121,7 @@ void main() {
   late FirebasePlatform? previousFirebaseDelegate;
 
   setUp(() {
+    AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseDev);
     previousFirebaseDelegate = Firebase.delegatePackingProperty;
     Firebase.delegatePackingProperty = _FakeFirebasePlatform();
     AppStartupController.debugIsWebOverride = true;
@@ -130,10 +136,69 @@ void main() {
   });
 
   tearDown(() {
+    AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseDev);
     Firebase.delegatePackingProperty = previousFirebaseDelegate;
     AppStartupController.debugIsWebOverride = null;
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(timeZoneChannel, null);
+  });
+
+  test('initialize skips Firebase and sync warmup in offline flavor', () async {
+    AppRuntimeConfig.configure(AppRuntimeFlavor.offline);
+    final _MockUpcomingPaymentsWorkScheduler upcomingScheduler =
+        _MockUpcomingPaymentsWorkScheduler();
+    final _MockSyncService syncService = _MockSyncService();
+    final _MockLocalSyncIntegrityDebugReporter integrityReporter =
+        _MockLocalSyncIntegrityDebugReporter();
+    int firebaseInitReads = 0;
+    int notificationBuilds = 0;
+
+    when(
+      () => integrityReporter.runAndLog(context: any(named: 'context')),
+    ).thenAnswer((_) async {});
+    when(
+      () => upcomingScheduler.cleanupLegacyWorkIfNeeded(),
+    ).thenAnswer((_) async {});
+
+    final ProviderContainer container = ProviderContainer(
+      overrides: [
+        firebaseInitializationProvider.overrideWith((ref) async {
+          firebaseInitReads++;
+          throw StateError('Firebase init must not run in offline flavor');
+        }),
+        syncServiceProvider.overrideWithValue(syncService),
+        upcomingPaymentsWorkSchedulerProvider.overrideWithValue(
+          upcomingScheduler,
+        ),
+        localSyncIntegrityDebugReporterProvider.overrideWithValue(
+          integrityReporter,
+        ),
+        upcomingNotificationsControllerProvider.overrideWith(() {
+          return _FakeUpcomingNotificationsController(
+            onBuild: () => notificationBuilds++,
+          );
+        }),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    final ProviderSubscription<AppStartupResult> subscription = container
+        .listen<AppStartupResult>(
+          appStartupControllerProvider,
+          // ignore: avoid_unused_parameters
+          (previous, next) {},
+        );
+    addTearDown(subscription.close);
+
+    await container.read(appStartupControllerProvider.notifier).initialize();
+    await Future<void>.delayed(Duration.zero);
+
+    expect(firebaseInitReads, 0);
+    expect(Firebase.apps, isEmpty);
+    expect(container.read(appStartupControllerProvider).isLoading, isFalse);
+    expect(notificationBuilds, 1);
+    verifyNever(() => syncService.initialize());
+    verifyNever(() => syncService.syncPending());
   });
 
   test(

@@ -6,6 +6,7 @@ import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/money/currency_scale.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:kopim/core/services/auth_sync_service.dart';
+import 'package:kopim/core/services/sync/sync_ownership_guard.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/data/sources/remote/account_remote_data_source.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
@@ -87,6 +88,7 @@ void main() {
     SavingGoalRemoteDataSource? savingGoalRemoteDataSource,
     UpcomingPaymentRemoteDataSource? upcomingPaymentRemoteDataSource,
     PaymentReminderRemoteDataSource? paymentReminderRemoteDataSource,
+    SyncOwnershipGuard syncOwnershipGuard = const FakeSyncOwnershipGuard(),
   }) {
     return harness.buildService(
       accountRemoteDataSource: accountRemoteDataSource,
@@ -95,6 +97,7 @@ void main() {
       savingGoalRemoteDataSource: savingGoalRemoteDataSource,
       upcomingPaymentRemoteDataSource: upcomingPaymentRemoteDataSource,
       paymentReminderRemoteDataSource: paymentReminderRemoteDataSource,
+      syncOwnershipGuard: syncOwnershipGuard,
     );
   }
 
@@ -2656,6 +2659,63 @@ void main() {
       expect(entries, hasLength(1));
       expect(entries.single.status, equals(OutboxStatus.pending.name));
     });
+
+    test(
+      'blocks cloud login sync for local data and does not push outbox',
+      () async {
+        final AuthSyncService service = buildService(
+          syncOwnershipGuard: const SyncOwnershipGuard(),
+        );
+        const String cloudUserId = 'cloud-user-blocked';
+        final AccountEntity localAccount = AccountEntity(
+          id: 'local-account-1',
+          name: 'Local cash',
+          balanceMinor: BigInt.from(10000),
+          currency: 'RUB',
+          currencyScale: 2,
+          type: 'cash',
+          createdAt: DateTime.utc(2024, 1, 1),
+          updatedAt: DateTime.utc(2024, 1, 2),
+          isDeleted: false,
+        );
+
+        await accountDao.upsert(localAccount);
+        await outboxDao.enqueue(
+          entityType: 'account',
+          entityId: localAccount.id,
+          operation: OutboxOperation.upsert,
+          payload: localAccount.toJson()
+            ..['createdAt'] = localAccount.createdAt.toIso8601String()
+            ..['updatedAt'] = localAccount.updatedAt.toIso8601String(),
+        );
+
+        await expectLater(
+          service.synchronizeOnLogin(
+            user: const AuthUser(
+              uid: cloudUserId,
+              email: 'cloud@kopim.app',
+              isAnonymous: false,
+            ),
+          ),
+          throwsA(isA<SyncOwnershipException>()),
+        );
+
+        final DocumentSnapshot<Map<String, dynamic>> remoteAccount =
+            await firestore
+                .collection('users')
+                .doc(cloudUserId)
+                .collection('accounts')
+                .doc(localAccount.id)
+                .get();
+        expect(remoteAccount.exists, isFalse);
+
+        final List<db.OutboxEntryRow> entries = await outboxDao.fetchPending(
+          limit: 10,
+        );
+        expect(entries, hasLength(1));
+        expect(entries.single.status, equals(OutboxStatus.pending.name));
+      },
+    );
 
     test('retries stale sending outbox entries during login sync', () async {
       final AuthSyncService service = buildService();

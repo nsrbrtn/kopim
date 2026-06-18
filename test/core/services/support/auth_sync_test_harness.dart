@@ -10,6 +10,8 @@ import 'package:kopim/core/services/auth_sync_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/sync/sync_data_sanitizer.dart';
 import 'package:kopim/core/services/sync/sync_metadata_repository.dart';
+import 'package:kopim/core/services/sync/sync_ownership_guard.dart';
+import 'package:kopim/core/config/app_runtime.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kopim/features/accounts/data/services/account_type_backfill_service.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
@@ -66,6 +68,23 @@ import 'package:mocktail/mocktail.dart';
 class FakeTransaction extends Fake implements Transaction {}
 
 class FakeCategory extends Fake implements Category {}
+
+class FakeSyncOwnershipGuard extends SyncOwnershipGuard {
+  const FakeSyncOwnershipGuard();
+
+  @override
+  Future<void> ensureCanStartCloudSync({
+    required String currentCloudUid,
+    required MigrationDecision migrationDecision,
+    required bool hasLocalData,
+  }) async {}
+
+  @override
+  Future<void> ensureOutboxEntryCanBePushed({
+    required String currentCloudUid,
+    required String? entryOwnerUid,
+  }) async {}
+}
 
 class MockLoggerService extends Mock implements LoggerService {}
 
@@ -209,6 +228,7 @@ class AuthSyncTestHarness {
     SavingGoalRemoteDataSource? savingGoalRemoteDataSource,
     UpcomingPaymentRemoteDataSource? upcomingPaymentRemoteDataSource,
     PaymentReminderRemoteDataSource? paymentReminderRemoteDataSource,
+    SyncOwnershipGuard syncOwnershipGuard = const FakeSyncOwnershipGuard(),
   }) {
     return AuthSyncService(
       database: database,
@@ -256,6 +276,7 @@ class AuthSyncTestHarness {
       analyticsService: analytics,
       dataSanitizer: sanitizer,
       syncMetadataRepository: syncMetadataRepository,
+      syncOwnershipGuard: syncOwnershipGuard,
       accountTypeBackfillService: accountTypeBackfillService,
     );
   }

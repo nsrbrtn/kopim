@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/application/firebase_availability.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/services/auth_sync_service.dart';
+import 'package:kopim/core/config/app_runtime.dart';
+import 'package:kopim/features/profile/data/local_auth_repository.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/sign_in_request.dart';
 import 'package:kopim/features/profile/domain/entities/sign_up_request.dart';
@@ -18,6 +20,8 @@ import 'package:riverpod/src/framework.dart';
 class MockConnectivity extends Mock implements Connectivity {}
 
 class MockAuthSyncService extends Mock implements AuthSyncService {}
+
+class MockLocalAuthRepository extends Mock implements LocalAuthRepository {}
 
 class FakeUserAccountCleanupRepository implements UserAccountCleanupRepository {
   Future<void> Function(String uid)? onDeleteRemoteUserData;
@@ -179,6 +183,7 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(<ConnectivityResult>[]);
+    registerFallbackValue(MigrationDecision.none);
     registerFallbackValue(
       AuthUser(
         uid: 'fallback',
@@ -192,6 +197,16 @@ void main() {
 
   setUp(() {
     authRepository = FakeAuthRepository();
+    final MockLocalAuthRepository mockLocalAuth = MockLocalAuthRepository();
+    when(
+      () => mockLocalAuth.signInAnonymously(),
+    ).thenAnswer((_) async => AuthUser.local(uid: 'local-test-uid'));
+    when(
+      () => mockLocalAuth.restoreLocalSession(),
+    ).thenAnswer((_) async => AuthUser.local(uid: 'local-test-uid'));
+    when(
+      () => mockLocalAuth.signInOffline(),
+    ).thenAnswer((_) async => AuthUser.local(uid: 'local-test-uid'));
     connectivity = MockConnectivity();
     authSyncService = MockAuthSyncService();
     cleanupRepository = FakeUserAccountCleanupRepository();
@@ -206,12 +221,16 @@ void main() {
       () => authSyncService.synchronizeOnLogin(
         user: any(named: 'user'),
         previousUser: any(named: 'previousUser'),
+        migrationDecision: any(named: 'migrationDecision'),
       ),
     ).thenAnswer((_) async {});
 
     container = ProviderContainer(
       overrides: <Override>[
         authRepositoryProvider.overrideWithValue(authRepository),
+        cloudAuthRepositoryProvider.overrideWithValue(authRepository),
+        localAuthRepositoryProvider.overrideWithValue(mockLocalAuth),
+        activeAuthRepositoryProvider.overrideWithValue(authRepository),
         userAccountCleanupRepositoryProvider.overrideWithValue(
           cleanupRepository,
         ),
@@ -246,6 +265,7 @@ void main() {
     'continueWithOfflineMode creates local guest session without Firebase',
     () async {
       final FakeAuthRepository localAuthRepository = FakeAuthRepository();
+      final MockLocalAuthRepository mockLocalAuth = MockLocalAuthRepository();
       final MockConnectivity onlineConnectivity = MockConnectivity();
 
       when(
@@ -254,10 +274,16 @@ void main() {
       when(
         () => onlineConnectivity.onConnectivityChanged,
       ).thenAnswer((_) => const Stream<List<ConnectivityResult>>.empty());
+      when(() => mockLocalAuth.signInOffline()).thenAnswer(
+        (_) async => AuthUser.guest(createdAt: DateTime.utc(2024, 1, 1)),
+      );
 
       final ProviderContainer localContainer = ProviderContainer(
         overrides: <Override>[
           authRepositoryProvider.overrideWithValue(localAuthRepository),
+          cloudAuthRepositoryProvider.overrideWithValue(localAuthRepository),
+          localAuthRepositoryProvider.overrideWithValue(mockLocalAuth),
+          activeAuthRepositoryProvider.overrideWithValue(mockLocalAuth),
           userAccountCleanupRepositoryProvider.overrideWithValue(
             cleanupRepository,
           ),
@@ -292,6 +318,58 @@ void main() {
       expect(localAuthRepository.signInAnonymouslyCalled, isFalse);
       expect(offlineUser, isNotNull);
       expect(offlineUser!.isGuest, isTrue);
+    },
+  );
+
+  test(
+    'does not restore local session on startup when cloud build is online and cloud user is absent',
+    () async {
+      final MockLocalAuthRepository mockLocalAuth = MockLocalAuthRepository();
+      final MockConnectivity onlineConnectivity = MockConnectivity();
+
+      when(
+        () => onlineConnectivity.checkConnectivity(),
+      ).thenAnswer((_) async => <ConnectivityResult>[ConnectivityResult.wifi]);
+      when(
+        () => onlineConnectivity.onConnectivityChanged,
+      ).thenAnswer((_) => const Stream<List<ConnectivityResult>>.empty());
+      when(
+        () => mockLocalAuth.signInAnonymously(),
+      ).thenAnswer((_) async => AuthUser.local(uid: 'local-test-uid'));
+      when(
+        () => mockLocalAuth.restoreLocalSession(),
+      ).thenAnswer((_) async => AuthUser.local(uid: 'local-test-uid'));
+
+      final FakeAuthRepository cloudAuthRepository = FakeAuthRepository();
+      final ProviderContainer localContainer = ProviderContainer(
+        overrides: <Override>[
+          authRepositoryProvider.overrideWithValue(mockLocalAuth),
+          activeAuthRepositoryProvider.overrideWithValue(mockLocalAuth),
+          cloudAuthRepositoryProvider.overrideWithValue(cloudAuthRepository),
+          localAuthRepositoryProvider.overrideWithValue(mockLocalAuth),
+          userAccountCleanupRepositoryProvider.overrideWithValue(
+            cleanupRepository,
+          ),
+          connectivityProvider.overrideWithValue(onlineConnectivity),
+          authSyncServiceProvider.overrideWithValue(authSyncService),
+        ],
+      );
+      localContainer
+          .read(firebaseAvailabilityProvider.notifier)
+          .setUnavailable('test');
+
+      addTearDown(() {
+        cloudAuthRepository.dispose();
+        localContainer.dispose();
+      });
+
+      final AuthUser? user = await localContainer.read(
+        authControllerProvider.future,
+      );
+
+      expect(user, isNull);
+      verifyNever(() => mockLocalAuth.restoreLocalSession());
+      verifyNever(() => mockLocalAuth.signInAnonymously());
     },
   );
 

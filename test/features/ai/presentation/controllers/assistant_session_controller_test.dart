@@ -13,6 +13,8 @@ import 'package:kopim/features/ai/presentation/controllers/assistant_session_con
 import 'package:kopim/features/ai/presentation/models/assistant_filters.dart';
 import 'package:kopim/features/ai/presentation/models/assistant_message.dart';
 import 'package:kopim/features/ai/presentation/models/assistant_session_state.dart';
+import 'package:kopim/features/profile/domain/entities/auth_user.dart';
+import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/active_currency_code_provider.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod/misc.dart' show Override;
@@ -67,6 +69,13 @@ class _FakeAiAssistantRepository implements AiAssistantRepository {
       const Stream<Map<String, dynamic>>.empty();
 }
 
+class FakeAuthController extends AuthController {
+  @override
+  FutureOr<AuthUser?> build() {
+    return const AuthUser(uid: 'test-user', isAnonymous: false);
+  }
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -87,6 +96,7 @@ void main() {
       final ProviderContainer container = ProviderContainer(
         overrides: <Override>[
           _firebaseInitializedOverride,
+          authControllerProvider.overrideWith(FakeAuthController.new),
           activeCurrencyCodeProvider.overrideWithValue('RUB'),
           connectivityProvider.overrideWithValue(connectivity),
           askFinancialAssistantUseCaseProvider.overrideWith(
@@ -136,6 +146,7 @@ void main() {
       final ProviderContainer container = ProviderContainer(
         overrides: <Override>[
           _firebaseInitializedOverride,
+          authControllerProvider.overrideWith(FakeAuthController.new),
           activeCurrencyCodeProvider.overrideWithValue('RUB'),
           connectivityProvider.overrideWithValue(connectivity),
           askFinancialAssistantUseCaseProvider.overrideWith(
@@ -196,6 +207,7 @@ void main() {
         final ProviderContainer container = ProviderContainer(
           overrides: <Override>[
             _firebaseInitializedOverride,
+            authControllerProvider.overrideWith(FakeAuthController.new),
             activeCurrencyCodeProvider.overrideWithValue('RUB'),
             connectivityProvider.overrideWithValue(connectivity),
             askFinancialAssistantUseCaseProvider.overrideWith(
@@ -259,6 +271,7 @@ void main() {
       final ProviderContainer container = ProviderContainer(
         overrides: <Override>[
           _firebaseInitializedOverride,
+          authControllerProvider.overrideWith(FakeAuthController.new),
           activeCurrencyCodeProvider.overrideWithValue('RUB'),
           connectivityProvider.overrideWithValue(connectivity),
           askFinancialAssistantUseCaseProvider.overrideWith(
@@ -297,6 +310,7 @@ void main() {
       final ProviderContainer container = ProviderContainer(
         overrides: <Override>[
           _firebaseInitializedOverride,
+          authControllerProvider.overrideWith(FakeAuthController.new),
           activeCurrencyCodeProvider.overrideWithValue('RUB'),
           connectivityProvider.overrideWithValue(connectivity),
           askFinancialAssistantUseCaseProvider.overrideWith(

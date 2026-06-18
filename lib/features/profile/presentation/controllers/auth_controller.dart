@@ -11,6 +11,7 @@ import 'package:kopim/features/profile/domain/entities/sign_up_request.dart';
 import 'package:kopim/features/profile/domain/failures/auth_failure.dart';
 import 'package:kopim/features/profile/domain/repositories/auth_repository.dart';
 import 'package:kopim/features/profile/domain/usecases/delete_user_account_use_case.dart';
+import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'auth_controller.g.dart';
@@ -24,7 +25,7 @@ class AuthController extends _$AuthController {
 
   @override
   FutureOr<AuthUser?> build() async {
-    final AuthRepository repository = ref.watch(authRepositoryProvider);
+    final AuthRepository repository = _startupAuthRepository();
     final Connectivity connectivity = ref.watch(connectivityProvider);
 
     _authSubscription = repository.authStateChanges().listen(
@@ -77,13 +78,20 @@ class AuthController extends _$AuthController {
     return null;
   }
 
+  AuthRepository _startupAuthRepository() {
+    if (AppRuntimeConfig.isOfflineOnlyDistribution) {
+      return ref.watch(localAuthRepositoryProvider);
+    }
+    return ref.watch(cloudAuthRepositoryProvider);
+  }
+
   Future<void> signIn(SignInRequest request) async {
     _exitOfflineMode();
     final AuthUser? previousUser = state.value;
     state = const AsyncValue<AuthUser?>.loading();
     try {
       final AuthUser user = await ref
-          .read(authRepositoryProvider)
+          .read(cloudAuthRepositoryProvider)
           .signIn(request);
       state = AsyncValue<AuthUser?>.data(user);
       await _syncOrThrow(user, previousUser);
@@ -100,7 +108,7 @@ class AuthController extends _$AuthController {
     state = const AsyncValue<AuthUser?>.loading();
     try {
       final AuthUser user = await ref
-          .read(authRepositoryProvider)
+          .read(localAuthRepositoryProvider)
           .signInOffline();
       if (!ref.mounted) {
         return;
@@ -122,7 +130,7 @@ class AuthController extends _$AuthController {
     state = const AsyncValue<AuthUser?>.loading();
     try {
       final AuthUser user = await ref
-          .read(authRepositoryProvider)
+          .read(cloudAuthRepositoryProvider)
           .signUp(request);
       state = AsyncValue<AuthUser?>.data(user);
       await _syncOrThrow(user, previousUser);
@@ -138,7 +146,7 @@ class AuthController extends _$AuthController {
     state = const AsyncValue<AuthUser?>.loading();
     try {
       final AuthUser user = await ref
-          .read(authRepositoryProvider)
+          .read(cloudAuthRepositoryProvider)
           .reauthenticate(request);
       state = AsyncValue<AuthUser?>.data(user);
       await _syncOrThrow(user, previousUser);
@@ -152,7 +160,7 @@ class AuthController extends _$AuthController {
     _exitOfflineMode();
     state = const AsyncValue<AuthUser?>.loading();
     try {
-      await ref.read(authRepositoryProvider).signOut();
+      await ref.read(cloudSignOutUseCaseProvider).execute();
       state = const AsyncValue<AuthUser?>.data(null);
       _initialSyncTriggered = false;
       _upcomingPaymentsWorkScheduled = false;
@@ -170,7 +178,7 @@ class AuthController extends _$AuthController {
     final AuthUser? previousUser = state.value;
     try {
       final AuthUser user = await ref
-          .read(authRepositoryProvider)
+          .read(cloudAuthRepositoryProvider)
           .updateEmail(newEmail: newEmail, currentPassword: currentPassword);
       state = AsyncValue<AuthUser?>.data(user);
     } on AuthFailure catch (failure) {
@@ -190,13 +198,13 @@ class AuthController extends _$AuthController {
     final AuthUser? previousUser = state.value;
     try {
       await ref
-          .read(authRepositoryProvider)
+          .read(cloudAuthRepositoryProvider)
           .updatePassword(
             currentPassword: currentPassword,
             newPassword: newPassword,
           );
       state = AsyncValue<AuthUser?>.data(
-        ref.read(authRepositoryProvider).currentUser ?? previousUser,
+        ref.read(cloudAuthRepositoryProvider).currentUser ?? previousUser,
       );
     } on AuthFailure catch (failure) {
       state = AsyncValue<AuthUser?>.data(previousUser);
@@ -246,9 +254,18 @@ class AuthController extends _$AuthController {
     if (availability.isAvailable == false) {
       return;
     }
+    final DataModeState? dataModeState = ref
+        .read(dataModeControllerProvider)
+        .value;
+    final MigrationDecision decision =
+        dataModeState?.migrationDecision ?? MigrationDecision.none;
     await ref
         .read(authSyncServiceProvider)
-        .synchronizeOnLogin(user: user, previousUser: previousUser);
+        .synchronizeOnLogin(
+          user: user,
+          previousUser: previousUser,
+          migrationDecision: decision,
+        );
     await ref.read(recomputeUserProgressUseCaseProvider)();
     if (supportsUpcomingPaymentsBackgroundWork() &&
         !_upcomingPaymentsWorkScheduled) {

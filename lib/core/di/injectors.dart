@@ -107,7 +107,12 @@ import 'package:kopim/features/savings/domain/use_cases/update_saving_goal_use_c
 import 'package:kopim/features/savings/domain/use_cases/watch_saving_goal_analytics_use_case.dart';
 import 'package:kopim/features/savings/domain/use_cases/watch_saving_goals_use_case.dart';
 import 'package:kopim/features/profile/data/auth_repository_impl.dart';
-import 'package:kopim/features/profile/data/offline_auth_repository.dart';
+import 'package:kopim/features/profile/data/local_auth_repository.dart';
+import 'package:kopim/features/profile/data/local_profile_repository.dart';
+import 'package:kopim/features/profile/data/cloud_entitlement_repository.dart';
+import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
+import 'package:kopim/core/services/noop_sync_service.dart';
+import 'package:kopim/core/services/sync/sync_ownership_guard.dart';
 import 'package:kopim/features/profile/data/local/profile_dao.dart';
 import 'package:kopim/features/profile/data/profile_avatar_repository_impl.dart';
 import 'package:kopim/features/profile/data/profile_repository_impl.dart';
@@ -130,6 +135,7 @@ import 'package:kopim/features/profile/domain/usecases/recompute_user_progress_u
 import 'package:kopim/features/profile/domain/usecases/update_profile_avatar_use_case.dart';
 import 'package:kopim/features/profile/domain/usecases/update_profile_use_case.dart';
 import 'package:kopim/features/profile/domain/usecases/update_profile_use_case_impl.dart';
+import 'package:kopim/features/profile/domain/usecases/cloud_sign_out_use_case.dart';
 import 'package:kopim/features/credits/data/sources/remote/credit_payment_group_remote_data_source.dart';
 import 'package:kopim/features/credits/data/sources/remote/credit_payment_schedule_remote_data_source.dart';
 import 'package:kopim/features/settings/data/repositories/export_data_repository_impl.dart';
@@ -226,7 +232,7 @@ AnalyticsService analyticsService(Ref ref) => const AnalyticsService();
 
 @Riverpod(keepAlive: true)
 Future<void> firebaseInitialization(Ref ref) async {
-  if (AppRuntimeConfig.isOffline) {
+  if (AppRuntimeConfig.isOfflineOnlyDistribution) {
     Future<void>.microtask(
       () => ref
           .read(firebaseAvailabilityProvider.notifier)
@@ -385,8 +391,14 @@ AppDatabase appDatabase(Ref ref) {
 }
 
 @riverpod
-OutboxDao outboxDao(Ref ref) =>
-    OutboxDao(ref.watch(appDatabaseProvider), ref.watch(loggerServiceProvider));
+OutboxDao outboxDao(Ref ref) => OutboxDao(ref.watch(appDatabaseProvider), () {
+  try {
+    final AuthRepository activeAuth = ref.read(activeAuthRepositoryProvider);
+    return activeAuth.currentUser?.uid;
+  } catch (_) {
+    return null;
+  }
+}, ref.watch(loggerServiceProvider));
 
 @riverpod
 SyncConflictDao syncConflictDao(Ref ref) =>
@@ -1257,6 +1269,9 @@ final rp.Provider<ProfileSyncErrorReporter> profileSyncErrorReporterProvider =
     });
 
 @riverpod
+CloudSignOutUseCase cloudSignOutUseCase(Ref ref) => CloudSignOutUseCase(ref);
+
+@riverpod
 UpdateProfileUseCase updateProfileUseCase(Ref ref) =>
     UpdateProfileUseCaseImpl(repository: ref.watch(profileRepositoryProvider));
 
@@ -1296,14 +1311,25 @@ UpdateProfileAvatarUseCase updateProfileAvatarUseCase(Ref ref) =>
 final rp.Provider<DeleteUserAccountUseCase> deleteUserAccountUseCaseProvider =
     rp.Provider<DeleteUserAccountUseCase>((rp.Ref ref) {
       return DeleteUserAccountUseCase(
-        authRepository: ref.watch(authRepositoryProvider),
+        authRepository: ref.watch(cloudAuthRepositoryProvider),
         cleanupRepository: ref.watch(userAccountCleanupRepositoryProvider),
       );
     });
 
 @riverpod
 SyncService syncService(Ref ref) {
-  final SyncService service = SyncService(
+  if (AppRuntimeConfig.isOfflineOnlyDistribution) {
+    return NoopSyncService();
+  }
+
+  final DataModeState? dataModeState = ref
+      .watch(dataModeControllerProvider)
+      .value;
+  if (dataModeState == null || dataModeState.dataMode == DataMode.localOnly) {
+    return NoopSyncService();
+  }
+
+  final FirebaseSyncService service = FirebaseSyncService(
     outboxDao: ref.watch(outboxDaoProvider),
     accountRemoteDataSource: ref.watch(accountRemoteDataSourceProvider),
     categoryRemoteDataSource: ref.watch(categoryRemoteDataSourceProvider),
@@ -1335,6 +1361,7 @@ SyncService syncService(Ref ref) {
     ),
     firebaseAuth: ref.watch(firebaseAuthProvider),
     authSyncService: ref.watch(authSyncServiceProvider),
+    syncOwnershipGuard: ref.watch(syncOwnershipGuardProvider),
     connectivity: ref.watch(connectivityProvider),
   );
   ref.onDispose(service.dispose);
@@ -1342,31 +1369,50 @@ SyncService syncService(Ref ref) {
 }
 
 @riverpod
-AuthRepository authRepository(Ref ref) {
-  if (AppRuntimeConfig.isOffline) {
-    final OfflineAuthRepository repository = OfflineAuthRepository(
-      loggerService: ref.watch(loggerServiceProvider),
-    );
-    ref.onDispose(repository.dispose);
-    return repository;
-  }
+LocalProfileRepository localProfileRepository(Ref ref) =>
+    LocalProfileRepository();
 
-  final FirebaseAvailabilityState availability = ref.watch(
-    firebaseAvailabilityProvider,
+@riverpod
+CloudEntitlementRepository cloudEntitlementRepository(Ref ref) =>
+    CloudEntitlementRepositoryImpl();
+
+@riverpod
+LocalAuthRepository localAuthRepository(Ref ref) {
+  final LocalAuthRepository repository = LocalAuthRepository(
+    localProfileRepository: ref.watch(localProfileRepositoryProvider),
+    loggerService: ref.watch(loggerServiceProvider),
   );
-  // If explicitly unavailable (on any platform), use offline repo
-  if (availability.isAvailable == false) {
-    final OfflineAuthRepository repository = OfflineAuthRepository(
-      loggerService: ref.watch(loggerServiceProvider),
-    );
-    ref.onDispose(repository.dispose);
-    return repository;
-  }
+  ref.onDispose(repository.dispose);
+  return repository;
+}
+
+@riverpod
+AuthRepository cloudAuthRepository(Ref ref) {
   return AuthRepositoryImpl(
     firebaseAuth: ref.watch(firebaseAuthProvider),
     loggerService: ref.watch(loggerServiceProvider),
     analyticsService: ref.watch(analyticsServiceProvider),
   );
+}
+
+@riverpod
+AuthRepository activeAuthRepository(Ref ref) {
+  if (AppRuntimeConfig.isOfflineOnlyDistribution) {
+    return ref.watch(localAuthRepositoryProvider);
+  }
+
+  final DataModeState? dataModeState = ref
+      .watch(dataModeControllerProvider)
+      .value;
+  if (dataModeState == null || dataModeState.dataMode == DataMode.localOnly) {
+    return ref.watch(localAuthRepositoryProvider);
+  }
+  return ref.watch(cloudAuthRepositoryProvider);
+}
+
+@riverpod
+AuthRepository authRepository(Ref ref) {
+  return ref.watch(activeAuthRepositoryProvider);
 }
 
 @riverpod
@@ -1377,6 +1423,9 @@ SyncDataSanitizer syncDataSanitizer(Ref ref) =>
 LocalSyncIntegrityDiagnosticsService localSyncIntegrityDiagnosticsService(
   Ref ref,
 ) => LocalSyncIntegrityDiagnosticsService(ref.watch(appDatabaseProvider));
+
+@riverpod
+SyncOwnershipGuard syncOwnershipGuard(Ref ref) => const SyncOwnershipGuard();
 
 @riverpod
 LocalSyncIntegrityReportFormatter localSyncIntegrityReportFormatter(Ref ref) =>
@@ -1445,6 +1494,7 @@ AuthSyncService authSyncService(Ref ref) => AuthSyncService(
   analyticsService: ref.watch(analyticsServiceProvider),
   dataSanitizer: ref.watch(syncDataSanitizerProvider),
   syncMetadataRepository: ref.watch(syncMetadataRepositoryProvider),
+  syncOwnershipGuard: ref.watch(syncOwnershipGuardProvider),
   accountTypeBackfillService: ref.watch(accountTypeBackfillServiceProvider),
   integrityDiagnosticsService: ref.watch(
     localSyncIntegrityDiagnosticsServiceProvider,

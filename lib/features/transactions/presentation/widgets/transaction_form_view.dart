@@ -1305,8 +1305,12 @@ class _CategoryDropdownFieldState
   }
 
   void _onSearchChanged() {
+    final String newQuery = _searchController.text;
+    if (newQuery == _query) {
+      return;
+    }
     setState(() {
-      _query = _searchController.text;
+      _query = newQuery;
       if (_query.trim().isNotEmpty) {
         _expandedParentId = null;
       }

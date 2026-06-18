@@ -1,11 +1,17 @@
 import 'package:firebase_core/firebase_core.dart';
 
+import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/config/firebase_environment.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/firebase_runtime_guard.dart';
 
 /// Гарантирует, что Firebase инициализирован перед обращением к сервисам.
 Future<void> ensureFirebaseInitialized({LoggerService? logger}) async {
+  if (AppRuntimeConfig.isOfflineOnlyDistribution) {
+    logger?.logInfo('Firebase initialization skipped: offline-only mode');
+    return;
+  }
+
   if (hasFirebaseAppsSafely(
     onError: (Object error) {
       logger?.logError('Firebase.apps недоступен', error);

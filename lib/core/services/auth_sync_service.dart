@@ -6,6 +6,8 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:intl/intl.dart';
 import 'package:kopim/core/services/sync/sync_conflict_types.dart';
+import 'package:kopim/core/services/sync/sync_ownership_guard.dart';
+import 'package:kopim/core/config/app_runtime.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kopim/core/data/database.dart';
@@ -122,6 +124,7 @@ class AuthSyncService {
     required AnalyticsService analyticsService,
     required SyncDataSanitizer dataSanitizer,
     required SyncMetadataRepository syncMetadataRepository,
+    required SyncOwnershipGuard syncOwnershipGuard,
     AccountTypeBackfillService? accountTypeBackfillService,
     GoalContributionRebuildService? goalContributionRebuildService,
     LocalSyncIntegrityDiagnosticsService? integrityDiagnosticsService,
@@ -183,6 +186,7 @@ class AuthSyncService {
            ),
        _dataSanitizer = dataSanitizer,
        _syncMetadataRepository = syncMetadataRepository,
+       _syncOwnershipGuard = syncOwnershipGuard,
        _payloadNormalizer = payloadNormalizer;
 
   static const String entityTypeTransaction = 'transaction';
@@ -261,12 +265,14 @@ class AuthSyncService {
   final OutboxPayloadNormalizer _payloadNormalizer;
   final SyncDataSanitizer _dataSanitizer;
   final SyncMetadataRepository _syncMetadataRepository;
+  final SyncOwnershipGuard _syncOwnershipGuard;
 
   bool _inProgress = false;
 
   Future<void> synchronizeOnLogin({
     required AuthUser user,
     AuthUser? previousUser,
+    MigrationDecision migrationDecision = MigrationDecision.none,
   }) async {
     if (_inProgress) {
       _logger.logInfo('AuthSyncService: synchronization already running, skip');
@@ -278,6 +284,13 @@ class AuthSyncService {
       );
       return;
     }
+
+    final bool hasLocalData = await _database.hasAnyLocalOnlyData();
+    await _syncOwnershipGuard.ensureCanStartCloudSync(
+      currentCloudUid: user.uid,
+      migrationDecision: migrationDecision,
+      hasLocalData: hasLocalData,
+    );
 
     _inProgress = true;
     final bool upgradingFromAnonymous =
@@ -1661,6 +1674,13 @@ class AuthSyncService {
     bool useRegistryFreshnessCheck = false,
   }) async {
     if (entries.isEmpty) return;
+
+    for (final db.OutboxEntryRow entry in entries) {
+      await _syncOwnershipGuard.ensureOutboxEntryCanBePushed(
+        currentCloudUid: userId,
+        entryOwnerUid: entry.ownerUid,
+      );
+    }
 
     if (transaction == null) {
       await _firestore.runTransaction((Transaction tx) async {

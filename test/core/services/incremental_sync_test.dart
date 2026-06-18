@@ -36,7 +36,7 @@ void main() {
   setUpAll(() {
     TestWidgetsFlutterBinding.ensureInitialized();
     SharedPreferences.setMockInitialValues(<String, Object>{});
-    AppRuntimeConfig.configure(AppRuntimeFlavor.offline);
+    AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseDev);
     registerFallbackValue(<ConnectivityResult>[]);
   });
 
@@ -77,7 +77,7 @@ void main() {
     });
 
     SyncService buildSyncService(AuthSyncService authSyncService) {
-      syncService = SyncService(
+      syncService = FirebaseSyncService(
         outboxDao: harness.outboxDao,
         accountRemoteDataSource: AccountRemoteDataSource(harness.firestore),
         categoryRemoteDataSource: CategoryRemoteDataSource(harness.firestore),
@@ -102,6 +102,7 @@ void main() {
         paymentReminderRemoteDataSource: harness.paymentReminderRemote,
         firebaseAuth: firebaseAuth,
         authSyncService: authSyncService,
+        syncOwnershipGuard: const FakeSyncOwnershipGuard(),
         connectivity: connectivity,
       );
       return syncService!;
@@ -125,7 +126,10 @@ void main() {
         }
       }
 
-      await authSyncService.synchronizeOnLogin(user: authUser);
+      await authSyncService.synchronizeOnLogin(
+        user: authUser,
+        migrationDecision: MigrationDecision.none,
+      );
 
       for (final SyncEntityManifestEntry entry in SyncContract.manifest) {
         if (entry.outboxEntityType != null && entry.participatesInLoginSync) {

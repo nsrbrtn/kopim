@@ -176,7 +176,7 @@ final class FirebaseInitializationProvider
 }
 
 String _$firebaseInitializationHash() =>
-    r'37f9a987779803ae2694b8ddaa8032d14bfe0e5c';
+    r'cccf69ce13df504a231ff55b3cea92b1743c699b';
 
 @ProviderFor(firestore)
 final firestoreProvider = FirestoreProvider._();
@@ -606,7 +606,7 @@ final class OutboxDaoProvider
   }
 }
 
-String _$outboxDaoHash() => r'31a692ddefd8636173ff49d782d01fa08b40d438';
+String _$outboxDaoHash() => r'6f8c2d0b77ac0c73310c377585768b9d6812fbb2';
 
 @ProviderFor(syncConflictDao)
 final syncConflictDaoProvider = SyncConflictDaoProvider._();
@@ -5591,6 +5591,54 @@ final class UserProgressRepositoryProvider
 String _$userProgressRepositoryHash() =>
     r'45cd8ec50b47f83b716c24d37a2fb2d4d475b972';
 
+@ProviderFor(cloudSignOutUseCase)
+final cloudSignOutUseCaseProvider = CloudSignOutUseCaseProvider._();
+
+final class CloudSignOutUseCaseProvider
+    extends
+        $FunctionalProvider<
+          CloudSignOutUseCase,
+          CloudSignOutUseCase,
+          CloudSignOutUseCase
+        >
+    with $Provider<CloudSignOutUseCase> {
+  CloudSignOutUseCaseProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'cloudSignOutUseCaseProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$cloudSignOutUseCaseHash();
+
+  @$internal
+  @override
+  $ProviderElement<CloudSignOutUseCase> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  CloudSignOutUseCase create(Ref ref) {
+    return cloudSignOutUseCase(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(CloudSignOutUseCase value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<CloudSignOutUseCase>(value),
+    );
+  }
+}
+
+String _$cloudSignOutUseCaseHash() =>
+    r'97cc9563b252481130b5b55174a4923b6afb289b';
+
 @ProviderFor(updateProfileUseCase)
 final updateProfileUseCaseProvider = UpdateProfileUseCaseProvider._();
 
@@ -5874,7 +5922,236 @@ final class SyncServiceProvider
   }
 }
 
-String _$syncServiceHash() => r'1a77b3fe0c38b711487776a1512ca3e025bfcacf';
+String _$syncServiceHash() => r'1f2a4ad939a717b83effc3e404e26dc67822c884';
+
+@ProviderFor(localProfileRepository)
+final localProfileRepositoryProvider = LocalProfileRepositoryProvider._();
+
+final class LocalProfileRepositoryProvider
+    extends
+        $FunctionalProvider<
+          LocalProfileRepository,
+          LocalProfileRepository,
+          LocalProfileRepository
+        >
+    with $Provider<LocalProfileRepository> {
+  LocalProfileRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'localProfileRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$localProfileRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<LocalProfileRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  LocalProfileRepository create(Ref ref) {
+    return localProfileRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(LocalProfileRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<LocalProfileRepository>(value),
+    );
+  }
+}
+
+String _$localProfileRepositoryHash() =>
+    r'96f91f86b52fd13e01ef2a225d4d564ba53f60d5';
+
+@ProviderFor(cloudEntitlementRepository)
+final cloudEntitlementRepositoryProvider =
+    CloudEntitlementRepositoryProvider._();
+
+final class CloudEntitlementRepositoryProvider
+    extends
+        $FunctionalProvider<
+          CloudEntitlementRepository,
+          CloudEntitlementRepository,
+          CloudEntitlementRepository
+        >
+    with $Provider<CloudEntitlementRepository> {
+  CloudEntitlementRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'cloudEntitlementRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$cloudEntitlementRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<CloudEntitlementRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  CloudEntitlementRepository create(Ref ref) {
+    return cloudEntitlementRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(CloudEntitlementRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<CloudEntitlementRepository>(value),
+    );
+  }
+}
+
+String _$cloudEntitlementRepositoryHash() =>
+    r'd6b10952d957685ca974ad27a8cc24ceaa251681';
+
+@ProviderFor(localAuthRepository)
+final localAuthRepositoryProvider = LocalAuthRepositoryProvider._();
+
+final class LocalAuthRepositoryProvider
+    extends
+        $FunctionalProvider<
+          LocalAuthRepository,
+          LocalAuthRepository,
+          LocalAuthRepository
+        >
+    with $Provider<LocalAuthRepository> {
+  LocalAuthRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'localAuthRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$localAuthRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<LocalAuthRepository> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  LocalAuthRepository create(Ref ref) {
+    return localAuthRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(LocalAuthRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<LocalAuthRepository>(value),
+    );
+  }
+}
+
+String _$localAuthRepositoryHash() =>
+    r'135559b23902cc6dfe6700e860e97432edc7feca';
+
+@ProviderFor(cloudAuthRepository)
+final cloudAuthRepositoryProvider = CloudAuthRepositoryProvider._();
+
+final class CloudAuthRepositoryProvider
+    extends $FunctionalProvider<AuthRepository, AuthRepository, AuthRepository>
+    with $Provider<AuthRepository> {
+  CloudAuthRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'cloudAuthRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$cloudAuthRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<AuthRepository> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  AuthRepository create(Ref ref) {
+    return cloudAuthRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AuthRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AuthRepository>(value),
+    );
+  }
+}
+
+String _$cloudAuthRepositoryHash() =>
+    r'3faecbb379c235c530f4b8e2acc0350e02ca3ae4';
+
+@ProviderFor(activeAuthRepository)
+final activeAuthRepositoryProvider = ActiveAuthRepositoryProvider._();
+
+final class ActiveAuthRepositoryProvider
+    extends $FunctionalProvider<AuthRepository, AuthRepository, AuthRepository>
+    with $Provider<AuthRepository> {
+  ActiveAuthRepositoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'activeAuthRepositoryProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$activeAuthRepositoryHash();
+
+  @$internal
+  @override
+  $ProviderElement<AuthRepository> $createElement($ProviderPointer pointer) =>
+      $ProviderElement(pointer);
+
+  @override
+  AuthRepository create(Ref ref) {
+    return activeAuthRepository(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(AuthRepository value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<AuthRepository>(value),
+    );
+  }
+}
+
+String _$activeAuthRepositoryHash() =>
+    r'9ae3a501e501cbd5a1cc2a735ab586cb2af8aa04';
 
 @ProviderFor(authRepository)
 final authRepositoryProvider = AuthRepositoryProvider._();
@@ -5915,7 +6192,7 @@ final class AuthRepositoryProvider
   }
 }
 
-String _$authRepositoryHash() => r'4d0bbf1626a7b9355346b5d195f6295372e6eb01';
+String _$authRepositoryHash() => r'f4f6e2b329529fe9b288cc2447e5d2c689fc5f4e';
 
 @ProviderFor(syncDataSanitizer)
 final syncDataSanitizerProvider = SyncDataSanitizerProvider._();
@@ -6014,6 +6291,54 @@ final class LocalSyncIntegrityDiagnosticsServiceProvider
 
 String _$localSyncIntegrityDiagnosticsServiceHash() =>
     r'e1f82c60e7263ac04d402ccb715128f453a94d60';
+
+@ProviderFor(syncOwnershipGuard)
+final syncOwnershipGuardProvider = SyncOwnershipGuardProvider._();
+
+final class SyncOwnershipGuardProvider
+    extends
+        $FunctionalProvider<
+          SyncOwnershipGuard,
+          SyncOwnershipGuard,
+          SyncOwnershipGuard
+        >
+    with $Provider<SyncOwnershipGuard> {
+  SyncOwnershipGuardProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'syncOwnershipGuardProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$syncOwnershipGuardHash();
+
+  @$internal
+  @override
+  $ProviderElement<SyncOwnershipGuard> $createElement(
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
+
+  @override
+  SyncOwnershipGuard create(Ref ref) {
+    return syncOwnershipGuard(ref);
+  }
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(SyncOwnershipGuard value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<SyncOwnershipGuard>(value),
+    );
+  }
+}
+
+String _$syncOwnershipGuardHash() =>
+    r'17537e94af1eea2a8ebd11554f4b860b6c8adb60';
 
 @ProviderFor(localSyncIntegrityReportFormatter)
 final localSyncIntegrityReportFormatterProvider =
@@ -6158,4 +6483,4 @@ final class AuthSyncServiceProvider
   }
 }
 
-String _$authSyncServiceHash() => r'2b3cb14831c11eb49853806c59e684faef1d1db7';
+String _$authSyncServiceHash() => r'ca1a8ab7483ae95ff7737dd03dc67a392e07c022';

@@ -6,6 +6,8 @@ import 'package:kopim/features/profile/presentation/widgets/profile_credentials_
 import 'package:kopim/features/profile/presentation/widgets/profile_theme_preferences_card.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
+import 'package:kopim/features/profile/presentation/widgets/profile_sync_settings_card.dart';
+
 class ProfileSettingsScreen extends StatelessWidget {
   const ProfileSettingsScreen({super.key});
 
@@ -22,6 +24,8 @@ class ProfileSettingsScreen extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           children: <Widget>[
             const _ProfileSettingsSection(child: ProfileAccountSettingsCard()),
+            const SizedBox(height: 16),
+            const _ProfileSettingsSection(child: ProfileSyncSettingsCard()),
             if (!AppRuntimeConfig.isOffline) ...<Widget>[
               const SizedBox(height: 16),
               const _ProfileSettingsSection(

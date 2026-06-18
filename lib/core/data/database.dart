@@ -155,6 +155,7 @@ class OutboxEntries extends Table {
   DateTimeColumn get baseRemoteUpdatedAt => dateTime().nullable()();
   BoolColumn get baseRemoteIsDeleted => boolean().nullable()();
   IntColumn get baseRemoteTypeVersion => integer().nullable()();
+  TextColumn get ownerUid => text().nullable().withLength(min: 1, max: 64)();
 }
 
 @DataClassName('ProfileRow')
@@ -496,7 +497,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 48;
+  int get schemaVersion => 49;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -1526,6 +1527,11 @@ LEFT JOIN accounts acc ON up.account_id = acc.id
           await m.addColumn(outboxEntries, outboxEntries.baseRemoteTypeVersion);
         }
       }
+      if (from < 49) {
+        if (!await _columnExists('outbox_entries', 'owner_uid')) {
+          await m.addColumn(outboxEntries, outboxEntries.ownerUid);
+        }
+      }
     },
     beforeOpen: (OpeningDetails details) async {
       await customStatement('PRAGMA foreign_keys = ON');
@@ -1766,5 +1772,75 @@ WHERE goal_id = ? AND (storage_account_id IS NULL OR storage_account_id = '')
       }
     }
     return 'sg_${DateTime.now().microsecondsSinceEpoch}';
+  }
+
+  Future<bool> hasAnyUserData() async {
+    final List<String> tableNames = <String>[
+      'accounts',
+      'tags',
+      'transactions',
+      'transaction_tags',
+      'budgets',
+      'budget_instances',
+      'saving_goals',
+      'goal_account_links',
+      'goal_contributions',
+      'upcoming_payments',
+      'payment_reminders',
+      'debts',
+      'credits',
+      'credit_cards',
+      'credit_payment_schedules',
+      'credit_payment_groups',
+    ];
+
+    for (final String tableName in tableNames) {
+      if (await _tableExists(tableName)) {
+        final List<QueryRow> res = await customSelect(
+          'SELECT 1 FROM $tableName LIMIT 1',
+        ).get();
+        if (res.isNotEmpty) return true;
+      }
+    }
+
+    if (await _tableExists('categories')) {
+      final List<QueryRow> categoryRes = await customSelect(
+        'SELECT 1 FROM categories WHERE is_system = 0 LIMIT 1',
+      ).get();
+      if (categoryRes.isNotEmpty) return true;
+    }
+
+    return false;
+  }
+
+  Future<bool> hasAnyLocalOnlyData() async {
+    final bool hasData = await hasAnyUserData();
+    if (!hasData) return false;
+
+    // Проверяем наличие облачного профиля. Если облачного профиля нет вообще, все данные локальные.
+    if (await _tableExists('profiles')) {
+      final List<QueryRow> cloudProfiles = await customSelect(
+        "SELECT 1 FROM profiles WHERE uid NOT LIKE 'local-%' LIMIT 1",
+      ).get();
+      if (cloudProfiles.isEmpty) return true;
+    }
+
+    // Проверяем наличие локальных или legacy записей в outbox
+    if (await _tableExists('outbox_entries')) {
+      final List<QueryRow> localOutbox = await customSelect(
+        "SELECT 1 FROM outbox_entries WHERE owner_uid LIKE 'local-%' OR owner_uid IS NULL LIMIT 1",
+      ).get();
+      if (localOutbox.isNotEmpty) return true;
+    }
+
+    // Проверяем наличие saving_goals с локальным UID
+    if (await _tableExists('saving_goals')) {
+      final List<QueryRow> localGoals = await customSelect(
+        "SELECT 1 FROM saving_goals WHERE user_id LIKE 'local-%' LIMIT 1",
+      ).get();
+      if (localGoals.isNotEmpty) return true;
+    }
+
+    return false;
   }
 }

@@ -10,6 +10,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
+import 'package:kopim/core/services/sync/sync_ownership_guard.dart';
 import 'package:kopim/core/services/sync_service.dart';
 import 'package:kopim/core/services/auth_sync_service.dart';
 import 'package:kopim/features/accounts/data/sources/remote/account_remote_data_source.dart';
@@ -47,10 +48,11 @@ void main() {
   });
 
   test('syncPending pushes queued profile update to Firestore', () async {
+    const String uid = 'user-sync';
     final db.AppDatabase database = db.AppDatabase.connect(
       DatabaseConnection(NativeDatabase.memory()),
     );
-    final OutboxDao outboxDao = OutboxDao(database);
+    final OutboxDao outboxDao = OutboxDao(database, () => uid);
     final ProfileDao profileDao = ProfileDao(database);
     final FakeFirebaseFirestore firestore = FakeFirebaseFirestore();
     final ProfileRemoteDataSource profileRemote = ProfileRemoteDataSource(
@@ -63,7 +65,6 @@ void main() {
       outboxDao: outboxDao,
     );
 
-    const String uid = 'user-sync';
     final Profile profile = Profile(
       uid: uid,
       name: 'Alice',
@@ -90,7 +91,7 @@ void main() {
       () => connectivity.onConnectivityChanged,
     ).thenAnswer((_) => connectivityController.stream);
 
-    final SyncService service = SyncService(
+    final FirebaseSyncService service = FirebaseSyncService(
       outboxDao: outboxDao,
       accountRemoteDataSource: AccountRemoteDataSource(firestore),
       categoryRemoteDataSource: CategoryRemoteDataSource(firestore),
@@ -117,6 +118,7 @@ void main() {
       profileRemoteDataSource: profileRemote,
       firebaseAuth: firebaseAuth,
       authSyncService: _MockAuthSyncService(),
+      syncOwnershipGuard: const SyncOwnershipGuard(),
       connectivity: connectivity,
     );
 

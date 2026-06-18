@@ -1,14 +1,18 @@
 import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/widgets/kopim_text_field.dart';
+import 'package:kopim/features/profile/data/cloud_entitlement_repository.dart';
+import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/sign_in_form_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/sign_up_form_controller.dart';
-import 'package:kopim/l10n/app_localizations.dart';
 import 'package:kopim/features/profile/presentation/utils/auth_error_mapper.dart';
+import 'package:kopim/l10n/app_localizations.dart';
 
 bool _isOffline(List<ConnectivityResult> results) {
   if (results.isEmpty) {
@@ -44,6 +48,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   late bool _isSignUpMode;
   late final TextEditingController _emailController;
   late final TextEditingController _passwordController;
+  late final TextEditingController _licenseKeyController;
   late final TextEditingController _signUpEmailController;
   late final TextEditingController _signUpPasswordController;
   late final TextEditingController _signUpConfirmPasswordController;
@@ -73,6 +78,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     );
     _emailController = TextEditingController(text: initialState.email);
     _passwordController = TextEditingController(text: initialState.password);
+    _licenseKeyController = TextEditingController(
+      text: CloudEntitlementRepositoryImpl.demoCloudKey,
+    );
     _signUpEmailController = TextEditingController(
       text: signUpInitialState.email,
     );
@@ -177,6 +185,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     _signUpFormSubscription?.close();
     _emailController.dispose();
     _passwordController.dispose();
+    _licenseKeyController.dispose();
     _signUpEmailController.dispose();
     _signUpPasswordController.dispose();
     _signUpConfirmPasswordController.dispose();
@@ -202,6 +211,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       signUpFormControllerProvider.notifier,
     );
     final AsyncValue<bool> isOffline = ref.watch(_signInOfflineProvider);
+    final AsyncValue<DataModeState> dataModeAsync = ref.watch(
+      dataModeControllerProvider,
+    );
     final ThemeData theme = Theme.of(context);
     final bool isSubmitting = _isSignUpMode
         ? signUpState.isSubmitting
@@ -211,7 +223,6 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
         ? signUpState.errorMessage
         : formState.errorMessage;
 
-    // Determine field-specific errors for visual feedback
     final bool emailHasError =
         !_isSignUpMode &&
         errorMessage != null &&
@@ -271,6 +282,25 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       color: theme.colorScheme.primary,
     );
 
+    final bool isDevEntitlementGate =
+        !kIsWeb && AppRuntimeConfig.flavor == AppRuntimeFlavor.firebaseDev;
+    final bool showOfflineAction =
+        !kIsWeb && AppRuntimeConfig.flavor == AppRuntimeFlavor.firebaseProd;
+    final CloudEntitlementState? entitlementState = dataModeAsync.maybeWhen(
+      data: (DataModeState value) => value.entitlementState,
+      orElse: () => null,
+    );
+    final bool isEntitlementStateResolving =
+        isDevEntitlementGate && dataModeAsync.isLoading;
+    final bool showEntitlementGate =
+        isDevEntitlementGate &&
+        !isEntitlementStateResolving &&
+        entitlementState != CloudEntitlementState.active;
+    final bool isEntitlementLoading =
+        showEntitlementGate && dataModeAsync.isLoading;
+    final bool isEntitlementInvalid =
+        entitlementState == CloudEntitlementState.invalid;
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -291,254 +321,369 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   ],
                 ),
               ),
-
               const SizedBox(height: 32),
-
-              // Subheader
               Text(
-                _isSignUpMode ? strings.signUpTitle : 'Войди для синхронизации',
+                isEntitlementStateResolving
+                    ? 'Проверяем облачный доступ'
+                    : showEntitlementGate
+                    ? 'Активируй облачный доступ'
+                    : (_isSignUpMode
+                          ? strings.signUpTitle
+                          : 'Войди для синхронизации'),
                 style: subHeaderStyle,
               ),
               const SizedBox(height: 16),
-
-              // Form
-              if (_isSignUpMode) ...<Widget>[
-                _buildLabel(strings.signInEmailLabel, labelStyle),
-                const SizedBox(height: 10),
-                KopimTextField(
-                  controller: _signUpEmailController,
-                  focusNode: _signUpEmailFocusNode,
-                  keyboardType: TextInputType.emailAddress,
-                  textInputAction: TextInputAction.next,
-                  enabled: !isSubmitting,
-                  onSubmitted: (_) => _signUpPasswordFocusNode.requestFocus(),
-                  placeholder: strings.signInEmailPlaceholder,
-                ),
-                const SizedBox(height: 16),
-
-                _buildLabel(strings.signInPasswordLabel, labelStyle),
-                const SizedBox(height: 10),
-                KopimTextField(
-                  controller: _signUpPasswordController,
-                  focusNode: _signUpPasswordFocusNode,
-                  obscureText: true,
-                  textInputAction: TextInputAction.next,
-                  enabled: !isSubmitting,
-                  onSubmitted: (_) =>
-                      _signUpConfirmPasswordFocusNode.requestFocus(),
-                  placeholder: '••••••••',
-                ),
-                const SizedBox(height: 16),
-
-                _buildLabel(strings.signUpConfirmPasswordLabel, labelStyle),
-                const SizedBox(height: 10),
-                KopimTextField(
-                  controller: _signUpConfirmPasswordController,
-                  focusNode: _signUpConfirmPasswordFocusNode,
-                  obscureText: true,
-                  textInputAction: TextInputAction.next,
-                  enabled: !isSubmitting,
-                  onSubmitted: (_) =>
-                      _signUpDisplayNameFocusNode.requestFocus(),
-                  placeholder: '••••••••',
-                ),
-                const SizedBox(height: 16),
-
-                _buildLabel(strings.signUpDisplayNameLabel, labelStyle),
-                const SizedBox(height: 10),
-                KopimTextField(
-                  controller: _signUpDisplayNameController,
-                  focusNode: _signUpDisplayNameFocusNode,
-                  textCapitalization: TextCapitalization.words,
-                  textInputAction: TextInputAction.done,
-                  enabled: !isSubmitting,
-                  onSubmitted: (_) => _onSignUpSubmit(signUpController),
-                  placeholder: strings.signInDisplayNamePlaceholder,
-                ),
-              ] else ...<Widget>[
-                // Email
-                _buildLabel(strings.signInEmailLabel, labelStyle),
-                const SizedBox(height: 10),
-                KopimTextField(
-                  controller: _emailController,
-                  focusNode: _emailFocusNode,
-                  keyboardType: TextInputType.emailAddress,
-                  textInputAction: TextInputAction.next,
-                  enabled: !isSubmitting,
-                  onSubmitted: (_) => _passwordFocusNode.requestFocus(),
-                  placeholder: strings.signInEmailPlaceholder,
-                  hasError: emailHasError,
-                ),
-                const SizedBox(height: 16),
-
-                // Password Label Row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Text(strings.signInPasswordLabel, style: labelStyle),
-                    GestureDetector(
-                      onTap: () async {
-                        await controller.resetPassword();
-                        if (!context.mounted) {
-                          return;
-                        }
-                        final SignInFormState latestState = ref.read(
-                          signInFormControllerProvider,
-                        );
-                        if (latestState.errorMessage == null &&
-                            !latestState.isSubmitting) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              duration: const Duration(seconds: 3),
-                              content: Text(strings.signInResetPasswordSuccess),
-                            ),
-                          );
-                        }
-                      },
-                      child: Text(
-                        strings.signInForgotPasswordCta,
-                        style: linkStyle,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                KopimTextField(
-                  controller: _passwordController,
-                  focusNode: _passwordFocusNode,
-                  obscureText: true,
-                  textInputAction: TextInputAction.done,
-                  enabled: !isSubmitting,
-                  onSubmitted: (_) => _onSubmit(controller),
-                  placeholder: '••••••••',
-                  hasError: passwordHasError,
-                ),
-              ],
-
-              const SizedBox(height: 24),
-
-              // Error Message
-              if (errorMessage != null) ...<Widget>[
-                Text(
-                  AuthErrorMapper.map(errorMessage, strings),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.error,
+              if (isEntitlementStateResolving)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 32),
+                    child: CircularProgressIndicator(),
                   ),
-                  textAlign: TextAlign.center,
+                )
+              else if (showEntitlementGate)
+                _buildEntitlementGate(
+                  theme: theme,
+                  labelStyle: labelStyle,
+                  isBusy: isBusy,
+                  isEntitlementLoading: isEntitlementLoading,
+                  isEntitlementInvalid: isEntitlementInvalid,
+                )
+              else
+                _buildAuthSection(
+                  context: context,
+                  strings: strings,
+                  theme: theme,
+                  controller: controller,
+                  signUpController: signUpController,
+                  formState: formState,
+                  signUpState: signUpState,
+                  isOffline: isOffline,
+                  isSubmitting: isSubmitting,
+                  isBusy: isBusy,
+                  errorMessage: errorMessage,
+                  emailHasError: emailHasError,
+                  passwordHasError: passwordHasError,
+                  labelStyle: labelStyle,
+                  linkStyle: linkStyle,
+                  dividerTextStyle: dividerTextStyle,
+                  bottomActionStyle: bottomActionStyle,
+                  showOfflineAction: showOfflineAction,
                 ),
-                const SizedBox(height: 12),
-              ],
-
-              // Offline Notice
-              isOffline.when(
-                data: (bool offline) => offline
-                    ? Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Text(
-                          strings.signInOfflineNotice,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.secondary,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      )
-                    : const SizedBox.shrink(),
-                loading: () => const SizedBox.shrink(),
-                error: (Object error, StackTrace stackTrace) =>
-                    const SizedBox.shrink(),
-              ),
-
-              // Submit Button
-              SizedBox(
-                width: double.infinity,
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: FilledButton(
-                    onPressed: _isSignUpMode
-                        ? (signUpState.canSubmit
-                              ? () => _onSignUpSubmit(signUpController)
-                              : null)
-                        : (formState.canSubmit
-                              ? () => _onSubmit(controller)
-                              : null),
-                    style: FilledButton.styleFrom(
-                      textStyle: const TextStyle(
-                        fontFamily: 'Inter',
-                        fontWeight: FontWeight.w500,
-                        fontSize: 16,
-                        letterSpacing: 0.15,
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 16,
-                      ),
-                      shape: const StadiumBorder(),
-                    ),
-                    child: isSubmitting
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(_isSignUpMode ? 'Создать' : 'Войти'),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-
-              // Divider
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Divider(
-                      color: theme.colorScheme.outlineVariant,
-                      thickness: 1,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: Text('или', style: dividerTextStyle),
-                  ),
-                  Expanded(
-                    child: Divider(
-                      color: theme.colorScheme.outlineVariant,
-                      thickness: 1,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 32),
-
-              // Bottom Actions
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  GestureDetector(
-                    onTap: isBusy ? null : () => controller.continueOffline(),
-                    child: Text('Продолжить офлайн', style: bottomActionStyle),
-                  ),
-                  GestureDetector(
-                    onTap: isBusy
-                        ? null
-                        : () => _toggleMode(
-                            controller: controller,
-                            signUpController: signUpController,
-                          ),
-                    child: Text(
-                      _isSignUpMode ? 'Войти в аккаунт' : 'Создать аккаунт',
-                      style: bottomActionStyle,
-                    ),
-                  ),
-                ],
-              ),
-
               const SizedBox(height: 40),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildEntitlementGate({
+    required ThemeData theme,
+    required TextStyle labelStyle,
+    required bool isBusy,
+    required bool isEntitlementLoading,
+    required bool isEntitlementInvalid,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          'Для dev-сборки сначала активируй лицензионный ключ, а затем войди или создай облачный аккаунт.',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 16),
+        _buildLabel('Лицензионный ключ', labelStyle),
+        const SizedBox(height: 10),
+        KopimTextField(
+          controller: _licenseKeyController,
+          textInputAction: TextInputAction.done,
+          enabled: !isBusy && !isEntitlementLoading,
+          onSubmitted: (_) => _activateEntitlementKey(),
+          placeholder: 'DEMO-CLOUD-KEY',
+          hasError: isEntitlementInvalid,
+        ),
+        if (isEntitlementInvalid) ...<Widget>[
+          const SizedBox(height: 12),
+          Text(
+            'Ключ не принят. Проверь значение и попробуй снова.',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.error,
+            ),
+          ),
+        ],
+        const SizedBox(height: 24),
+        SizedBox(
+          width: double.infinity,
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: FilledButton(
+              onPressed: isBusy || isEntitlementLoading
+                  ? null
+                  : _activateEntitlementKey,
+              style: FilledButton.styleFrom(
+                textStyle: const TextStyle(
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.w500,
+                  fontSize: 16,
+                  letterSpacing: 0.15,
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
+                shape: const StadiumBorder(),
+              ),
+              child: isEntitlementLoading
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Активировать ключ'),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAuthSection({
+    required BuildContext context,
+    required AppLocalizations strings,
+    required ThemeData theme,
+    required SignInFormController controller,
+    required SignUpFormController signUpController,
+    required SignInFormState formState,
+    required SignUpFormState signUpState,
+    required AsyncValue<bool> isOffline,
+    required bool isSubmitting,
+    required bool isBusy,
+    required String? errorMessage,
+    required bool emailHasError,
+    required bool passwordHasError,
+    required TextStyle labelStyle,
+    required TextStyle linkStyle,
+    required TextStyle dividerTextStyle,
+    required TextStyle bottomActionStyle,
+    required bool showOfflineAction,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        if (_isSignUpMode) ...<Widget>[
+          _buildLabel(strings.signInEmailLabel, labelStyle),
+          const SizedBox(height: 10),
+          KopimTextField(
+            controller: _signUpEmailController,
+            focusNode: _signUpEmailFocusNode,
+            keyboardType: TextInputType.emailAddress,
+            textInputAction: TextInputAction.next,
+            enabled: !isSubmitting,
+            onSubmitted: (_) => _signUpPasswordFocusNode.requestFocus(),
+            placeholder: strings.signInEmailPlaceholder,
+          ),
+          const SizedBox(height: 16),
+          _buildLabel(strings.signInPasswordLabel, labelStyle),
+          const SizedBox(height: 10),
+          KopimTextField(
+            controller: _signUpPasswordController,
+            focusNode: _signUpPasswordFocusNode,
+            obscureText: true,
+            showObscureToggle: true,
+            textInputAction: TextInputAction.next,
+            enabled: !isSubmitting,
+            onSubmitted: (_) => _signUpConfirmPasswordFocusNode.requestFocus(),
+            placeholder: '••••••••',
+          ),
+          const SizedBox(height: 16),
+          _buildLabel(strings.signUpConfirmPasswordLabel, labelStyle),
+          const SizedBox(height: 10),
+          KopimTextField(
+            controller: _signUpConfirmPasswordController,
+            focusNode: _signUpConfirmPasswordFocusNode,
+            obscureText: true,
+            showObscureToggle: true,
+            textInputAction: TextInputAction.next,
+            enabled: !isSubmitting,
+            onSubmitted: (_) => _signUpDisplayNameFocusNode.requestFocus(),
+            placeholder: '••••••••',
+          ),
+          const SizedBox(height: 16),
+          _buildLabel(strings.signUpDisplayNameLabel, labelStyle),
+          const SizedBox(height: 10),
+          KopimTextField(
+            controller: _signUpDisplayNameController,
+            focusNode: _signUpDisplayNameFocusNode,
+            textCapitalization: TextCapitalization.words,
+            textInputAction: TextInputAction.done,
+            enabled: !isSubmitting,
+            onSubmitted: (_) => _onSignUpSubmit(signUpController),
+            placeholder: strings.signInDisplayNamePlaceholder,
+          ),
+        ] else ...<Widget>[
+          _buildLabel(strings.signInEmailLabel, labelStyle),
+          const SizedBox(height: 10),
+          KopimTextField(
+            controller: _emailController,
+            focusNode: _emailFocusNode,
+            keyboardType: TextInputType.emailAddress,
+            textInputAction: TextInputAction.next,
+            enabled: !isSubmitting,
+            onSubmitted: (_) => _passwordFocusNode.requestFocus(),
+            placeholder: strings.signInEmailPlaceholder,
+            hasError: emailHasError,
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Text(strings.signInPasswordLabel, style: labelStyle),
+              GestureDetector(
+                onTap: () async {
+                  await controller.resetPassword();
+                  if (!context.mounted) {
+                    return;
+                  }
+                  final SignInFormState latestState = ref.read(
+                    signInFormControllerProvider,
+                  );
+                  if (latestState.errorMessage == null &&
+                      !latestState.isSubmitting) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        duration: const Duration(seconds: 3),
+                        content: Text(strings.signInResetPasswordSuccess),
+                      ),
+                    );
+                  }
+                },
+                child: Text(strings.signInForgotPasswordCta, style: linkStyle),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          KopimTextField(
+            controller: _passwordController,
+            focusNode: _passwordFocusNode,
+            obscureText: true,
+            showObscureToggle: true,
+            textInputAction: TextInputAction.done,
+            enabled: !isSubmitting,
+            onSubmitted: (_) => _onSubmit(controller),
+            placeholder: '••••••••',
+            hasError: passwordHasError,
+          ),
+        ],
+        const SizedBox(height: 24),
+        if (errorMessage != null) ...<Widget>[
+          Text(
+            AuthErrorMapper.map(errorMessage, strings),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.error,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+        ],
+        isOffline.when(
+          data: (bool offline) => offline
+              ? Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(
+                    strings.signInOfflineNotice,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.secondary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                )
+              : const SizedBox.shrink(),
+          loading: () => const SizedBox.shrink(),
+          error: (Object error, StackTrace stackTrace) =>
+              const SizedBox.shrink(),
+        ),
+        SizedBox(
+          width: double.infinity,
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: FilledButton(
+              onPressed: _isSignUpMode
+                  ? (signUpState.canSubmit
+                        ? () => _onSignUpSubmit(signUpController)
+                        : null)
+                  : (formState.canSubmit ? () => _onSubmit(controller) : null),
+              style: FilledButton.styleFrom(
+                textStyle: const TextStyle(
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.w500,
+                  fontSize: 16,
+                  letterSpacing: 0.15,
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
+                shape: const StadiumBorder(),
+              ),
+              child: isSubmitting
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(_isSignUpMode ? 'Создать' : 'Войти'),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: Divider(
+                color: theme.colorScheme.outlineVariant,
+                thickness: 1,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Text('или', style: dividerTextStyle),
+            ),
+            Expanded(
+              child: Divider(
+                color: theme.colorScheme.outlineVariant,
+                thickness: 1,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 32),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            if (showOfflineAction)
+              GestureDetector(
+                onTap: isBusy ? null : () => controller.continueOffline(),
+                child: Text('Продолжить офлайн', style: bottomActionStyle),
+              )
+            else
+              const SizedBox.shrink(),
+            GestureDetector(
+              onTap: isBusy
+                  ? null
+                  : () => _toggleMode(
+                      controller: controller,
+                      signUpController: signUpController,
+                    ),
+              child: Text(
+                _isSignUpMode ? 'Войти в аккаунт' : 'Создать аккаунт',
+                style: bottomActionStyle,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
@@ -552,6 +697,13 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
   Future<void> _onSignUpSubmit(SignUpFormController controller) {
     return controller.submit();
+  }
+
+  Future<void> _activateEntitlementKey() {
+    final String key = _licenseKeyController.text.trim();
+    return ref
+        .read(dataModeControllerProvider.notifier)
+        .activateEntitlementKey(key);
   }
 
   void _toggleMode({

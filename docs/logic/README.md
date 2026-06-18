@@ -45,6 +45,7 @@
 - [**Firebase для релиза и ротации ключей**](firebase_release_setup.md) — настройка production-проекта, генерация новых конфигов через FlutterFire CLI, безопасная ротация ключей
 - [**Web fallback**](web_fallback.md) — поведение при недоступности Firebase в браузере и ручная выгрузка данных
 - [**Offline flavor для первого релиза**](offline_flavor_release.md) — отдельный release contour `kopim.app`, ограничения offline runtime и публикационные правила для Google Play
+- [**Стартовые auth entry-flow**](auth_entry_flows.md) — матрица экранов входа для `web`, `firebaseDev`, `firebaseProd` и offline-контура
 
 ---
 

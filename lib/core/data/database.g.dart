@@ -7496,6 +7496,21 @@ class $OutboxEntriesTable extends OutboxEntries
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _ownerUidMeta = const VerificationMeta(
+    'ownerUid',
+  );
+  @override
+  late final GeneratedColumn<String> ownerUid = GeneratedColumn<String>(
+    'owner_uid',
+    aliasedName,
+    true,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 64,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -7512,6 +7527,7 @@ class $OutboxEntriesTable extends OutboxEntries
     baseRemoteUpdatedAt,
     baseRemoteIsDeleted,
     baseRemoteTypeVersion,
+    ownerUid,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -7626,6 +7642,12 @@ class $OutboxEntriesTable extends OutboxEntries
         ),
       );
     }
+    if (data.containsKey('owner_uid')) {
+      context.handle(
+        _ownerUidMeta,
+        ownerUid.isAcceptableOrUnknown(data['owner_uid']!, _ownerUidMeta),
+      );
+    }
     return context;
   }
 
@@ -7691,6 +7713,10 @@ class $OutboxEntriesTable extends OutboxEntries
         DriftSqlType.int,
         data['${effectivePrefix}base_remote_type_version'],
       ),
+      ownerUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner_uid'],
+      ),
     );
   }
 
@@ -7715,6 +7741,7 @@ class OutboxEntryRow extends DataClass implements Insertable<OutboxEntryRow> {
   final DateTime? baseRemoteUpdatedAt;
   final bool? baseRemoteIsDeleted;
   final int? baseRemoteTypeVersion;
+  final String? ownerUid;
   const OutboxEntryRow({
     required this.id,
     required this.entityType,
@@ -7730,6 +7757,7 @@ class OutboxEntryRow extends DataClass implements Insertable<OutboxEntryRow> {
     this.baseRemoteUpdatedAt,
     this.baseRemoteIsDeleted,
     this.baseRemoteTypeVersion,
+    this.ownerUid,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -7757,6 +7785,9 @@ class OutboxEntryRow extends DataClass implements Insertable<OutboxEntryRow> {
     }
     if (!nullToAbsent || baseRemoteTypeVersion != null) {
       map['base_remote_type_version'] = Variable<int>(baseRemoteTypeVersion);
+    }
+    if (!nullToAbsent || ownerUid != null) {
+      map['owner_uid'] = Variable<String>(ownerUid);
     }
     return map;
   }
@@ -7787,6 +7818,9 @@ class OutboxEntryRow extends DataClass implements Insertable<OutboxEntryRow> {
       baseRemoteTypeVersion: baseRemoteTypeVersion == null && nullToAbsent
           ? const Value.absent()
           : Value(baseRemoteTypeVersion),
+      ownerUid: ownerUid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ownerUid),
     );
   }
 
@@ -7816,6 +7850,7 @@ class OutboxEntryRow extends DataClass implements Insertable<OutboxEntryRow> {
       baseRemoteTypeVersion: serializer.fromJson<int?>(
         json['baseRemoteTypeVersion'],
       ),
+      ownerUid: serializer.fromJson<String?>(json['ownerUid']),
     );
   }
   @override
@@ -7836,6 +7871,7 @@ class OutboxEntryRow extends DataClass implements Insertable<OutboxEntryRow> {
       'baseRemoteUpdatedAt': serializer.toJson<DateTime?>(baseRemoteUpdatedAt),
       'baseRemoteIsDeleted': serializer.toJson<bool?>(baseRemoteIsDeleted),
       'baseRemoteTypeVersion': serializer.toJson<int?>(baseRemoteTypeVersion),
+      'ownerUid': serializer.toJson<String?>(ownerUid),
     };
   }
 
@@ -7854,6 +7890,7 @@ class OutboxEntryRow extends DataClass implements Insertable<OutboxEntryRow> {
     Value<DateTime?> baseRemoteUpdatedAt = const Value.absent(),
     Value<bool?> baseRemoteIsDeleted = const Value.absent(),
     Value<int?> baseRemoteTypeVersion = const Value.absent(),
+    Value<String?> ownerUid = const Value.absent(),
   }) => OutboxEntryRow(
     id: id ?? this.id,
     entityType: entityType ?? this.entityType,
@@ -7875,6 +7912,7 @@ class OutboxEntryRow extends DataClass implements Insertable<OutboxEntryRow> {
     baseRemoteTypeVersion: baseRemoteTypeVersion.present
         ? baseRemoteTypeVersion.value
         : this.baseRemoteTypeVersion,
+    ownerUid: ownerUid.present ? ownerUid.value : this.ownerUid,
   );
   OutboxEntryRow copyWithCompanion(OutboxEntriesCompanion data) {
     return OutboxEntryRow(
@@ -7902,6 +7940,7 @@ class OutboxEntryRow extends DataClass implements Insertable<OutboxEntryRow> {
       baseRemoteTypeVersion: data.baseRemoteTypeVersion.present
           ? data.baseRemoteTypeVersion.value
           : this.baseRemoteTypeVersion,
+      ownerUid: data.ownerUid.present ? data.ownerUid.value : this.ownerUid,
     );
   }
 
@@ -7921,7 +7960,8 @@ class OutboxEntryRow extends DataClass implements Insertable<OutboxEntryRow> {
           ..write('lastError: $lastError, ')
           ..write('baseRemoteUpdatedAt: $baseRemoteUpdatedAt, ')
           ..write('baseRemoteIsDeleted: $baseRemoteIsDeleted, ')
-          ..write('baseRemoteTypeVersion: $baseRemoteTypeVersion')
+          ..write('baseRemoteTypeVersion: $baseRemoteTypeVersion, ')
+          ..write('ownerUid: $ownerUid')
           ..write(')'))
         .toString();
   }
@@ -7942,6 +7982,7 @@ class OutboxEntryRow extends DataClass implements Insertable<OutboxEntryRow> {
     baseRemoteUpdatedAt,
     baseRemoteIsDeleted,
     baseRemoteTypeVersion,
+    ownerUid,
   );
   @override
   bool operator ==(Object other) =>
@@ -7960,7 +8001,8 @@ class OutboxEntryRow extends DataClass implements Insertable<OutboxEntryRow> {
           other.lastError == this.lastError &&
           other.baseRemoteUpdatedAt == this.baseRemoteUpdatedAt &&
           other.baseRemoteIsDeleted == this.baseRemoteIsDeleted &&
-          other.baseRemoteTypeVersion == this.baseRemoteTypeVersion);
+          other.baseRemoteTypeVersion == this.baseRemoteTypeVersion &&
+          other.ownerUid == this.ownerUid);
 }
 
 class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntryRow> {
@@ -7978,6 +8020,7 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntryRow> {
   final Value<DateTime?> baseRemoteUpdatedAt;
   final Value<bool?> baseRemoteIsDeleted;
   final Value<int?> baseRemoteTypeVersion;
+  final Value<String?> ownerUid;
   const OutboxEntriesCompanion({
     this.id = const Value.absent(),
     this.entityType = const Value.absent(),
@@ -7993,6 +8036,7 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntryRow> {
     this.baseRemoteUpdatedAt = const Value.absent(),
     this.baseRemoteIsDeleted = const Value.absent(),
     this.baseRemoteTypeVersion = const Value.absent(),
+    this.ownerUid = const Value.absent(),
   });
   OutboxEntriesCompanion.insert({
     this.id = const Value.absent(),
@@ -8009,6 +8053,7 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntryRow> {
     this.baseRemoteUpdatedAt = const Value.absent(),
     this.baseRemoteIsDeleted = const Value.absent(),
     this.baseRemoteTypeVersion = const Value.absent(),
+    this.ownerUid = const Value.absent(),
   }) : entityType = Value(entityType),
        entityId = Value(entityId),
        operation = Value(operation),
@@ -8028,6 +8073,7 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntryRow> {
     Expression<DateTime>? baseRemoteUpdatedAt,
     Expression<bool>? baseRemoteIsDeleted,
     Expression<int>? baseRemoteTypeVersion,
+    Expression<String>? ownerUid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -8047,6 +8093,7 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntryRow> {
         'base_remote_is_deleted': baseRemoteIsDeleted,
       if (baseRemoteTypeVersion != null)
         'base_remote_type_version': baseRemoteTypeVersion,
+      if (ownerUid != null) 'owner_uid': ownerUid,
     });
   }
 
@@ -8065,6 +8112,7 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntryRow> {
     Value<DateTime?>? baseRemoteUpdatedAt,
     Value<bool?>? baseRemoteIsDeleted,
     Value<int?>? baseRemoteTypeVersion,
+    Value<String?>? ownerUid,
   }) {
     return OutboxEntriesCompanion(
       id: id ?? this.id,
@@ -8082,6 +8130,7 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntryRow> {
       baseRemoteIsDeleted: baseRemoteIsDeleted ?? this.baseRemoteIsDeleted,
       baseRemoteTypeVersion:
           baseRemoteTypeVersion ?? this.baseRemoteTypeVersion,
+      ownerUid: ownerUid ?? this.ownerUid,
     );
   }
 
@@ -8134,6 +8183,9 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntryRow> {
         baseRemoteTypeVersion.value,
       );
     }
+    if (ownerUid.present) {
+      map['owner_uid'] = Variable<String>(ownerUid.value);
+    }
     return map;
   }
 
@@ -8153,7 +8205,8 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntryRow> {
           ..write('lastError: $lastError, ')
           ..write('baseRemoteUpdatedAt: $baseRemoteUpdatedAt, ')
           ..write('baseRemoteIsDeleted: $baseRemoteIsDeleted, ')
-          ..write('baseRemoteTypeVersion: $baseRemoteTypeVersion')
+          ..write('baseRemoteTypeVersion: $baseRemoteTypeVersion, ')
+          ..write('ownerUid: $ownerUid')
           ..write(')'))
         .toString();
   }
@@ -22836,6 +22889,7 @@ typedef $$OutboxEntriesTableCreateCompanionBuilder =
       Value<DateTime?> baseRemoteUpdatedAt,
       Value<bool?> baseRemoteIsDeleted,
       Value<int?> baseRemoteTypeVersion,
+      Value<String?> ownerUid,
     });
 typedef $$OutboxEntriesTableUpdateCompanionBuilder =
     OutboxEntriesCompanion Function({
@@ -22853,6 +22907,7 @@ typedef $$OutboxEntriesTableUpdateCompanionBuilder =
       Value<DateTime?> baseRemoteUpdatedAt,
       Value<bool?> baseRemoteIsDeleted,
       Value<int?> baseRemoteTypeVersion,
+      Value<String?> ownerUid,
     });
 
 class $$OutboxEntriesTableFilterComposer
@@ -22931,6 +22986,11 @@ class $$OutboxEntriesTableFilterComposer
 
   ColumnFilters<int> get baseRemoteTypeVersion => $composableBuilder(
     column: $table.baseRemoteTypeVersion,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ownerUid => $composableBuilder(
+    column: $table.ownerUid,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -23013,6 +23073,11 @@ class $$OutboxEntriesTableOrderingComposer
     column: $table.baseRemoteTypeVersion,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get ownerUid => $composableBuilder(
+    column: $table.ownerUid,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$OutboxEntriesTableAnnotationComposer
@@ -23075,6 +23140,9 @@ class $$OutboxEntriesTableAnnotationComposer
     column: $table.baseRemoteTypeVersion,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get ownerUid =>
+      $composableBuilder(column: $table.ownerUid, builder: (column) => column);
 }
 
 class $$OutboxEntriesTableTableManager
@@ -23122,6 +23190,7 @@ class $$OutboxEntriesTableTableManager
                 Value<DateTime?> baseRemoteUpdatedAt = const Value.absent(),
                 Value<bool?> baseRemoteIsDeleted = const Value.absent(),
                 Value<int?> baseRemoteTypeVersion = const Value.absent(),
+                Value<String?> ownerUid = const Value.absent(),
               }) => OutboxEntriesCompanion(
                 id: id,
                 entityType: entityType,
@@ -23137,6 +23206,7 @@ class $$OutboxEntriesTableTableManager
                 baseRemoteUpdatedAt: baseRemoteUpdatedAt,
                 baseRemoteIsDeleted: baseRemoteIsDeleted,
                 baseRemoteTypeVersion: baseRemoteTypeVersion,
+                ownerUid: ownerUid,
               ),
           createCompanionCallback:
               ({
@@ -23154,6 +23224,7 @@ class $$OutboxEntriesTableTableManager
                 Value<DateTime?> baseRemoteUpdatedAt = const Value.absent(),
                 Value<bool?> baseRemoteIsDeleted = const Value.absent(),
                 Value<int?> baseRemoteTypeVersion = const Value.absent(),
+                Value<String?> ownerUid = const Value.absent(),
               }) => OutboxEntriesCompanion.insert(
                 id: id,
                 entityType: entityType,
@@ -23169,6 +23240,7 @@ class $$OutboxEntriesTableTableManager
                 baseRemoteUpdatedAt: baseRemoteUpdatedAt,
                 baseRemoteIsDeleted: baseRemoteIsDeleted,
                 baseRemoteTypeVersion: baseRemoteTypeVersion,
+                ownerUid: ownerUid,
               ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

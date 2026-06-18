@@ -8,8 +8,10 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:kopim/core/application/firebase_availability.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/sync_service.dart';
 import 'package:kopim/core/utils/timezone_utils.dart';
+import 'package:kopim/features/profile/data/cloud_entitlement_repository.dart';
 import 'package:kopim/features/upcoming_payments/application/upcoming_notifications_controller.dart';
 
 part 'app_startup_controller.g.dart';
@@ -43,6 +45,10 @@ class AppStartupController extends _$AppStartupController {
     state = const AsyncValue<void>.loading();
 
     try {
+      final LoggerService logger = ref.read(loggerServiceProvider);
+      logger.logInfo(
+        'AppStartupController: initialize start, flavor=${AppRuntimeConfig.flavor.name}, isWeb=$_isRunningOnWeb.',
+      );
       await initializeLocalTimeZone();
 
       if (AppRuntimeConfig.usesFirebase) {
@@ -57,6 +63,9 @@ class AppStartupController extends _$AppStartupController {
         firebaseAvailabilityProvider,
       );
       final bool firebaseAvailable = availability.isAvailable != false;
+      logger.logInfo(
+        'AppStartupController: firebaseAvailable=$firebaseAvailable, distribution=${AppRuntimeConfig.distributionMode.name}.',
+      );
 
       if (AppRuntimeConfig.isOffline) {
         unawaited(_initializeBackgroundServices());
@@ -66,6 +75,7 @@ class AppStartupController extends _$AppStartupController {
           completer.complete();
           return;
         }
+        await _bootstrapProdCloudEntitlement();
         await _initializeWebServices();
       } else {
         if (firebaseAvailable) {
@@ -75,6 +85,7 @@ class AppStartupController extends _$AppStartupController {
             cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
           );
         }
+        await _bootstrapProdCloudEntitlement();
         unawaited(_initializeBackgroundServices());
       }
       state = const AsyncValue<void>.data(null);
@@ -99,6 +110,44 @@ class AppStartupController extends _$AppStartupController {
           .runAndLog(context: 'app_startup_background'),
     );
     await _activateUpcomingNotificationsSync();
+  }
+
+  Future<void> _bootstrapProdCloudEntitlement() async {
+    final LoggerService logger = ref.read(loggerServiceProvider);
+    if (AppRuntimeConfig.flavor != AppRuntimeFlavor.firebaseProd) {
+      logger.logInfo(
+        'AppStartupController: skipping prod entitlement bootstrap for flavor=${AppRuntimeConfig.flavor.name}.',
+      );
+      return;
+    }
+
+    final CloudEntitlementRepository repository = ref.read(
+      cloudEntitlementRepositoryProvider,
+    );
+    final CloudEntitlementState currentState = await repository
+        .getCachedState();
+    logger.logInfo(
+      'AppStartupController: prod entitlement bootstrap currentState=${currentState.name}.',
+    );
+    if (currentState == CloudEntitlementState.active) {
+      logger.logInfo(
+        'AppStartupController: prod entitlement already active, no bootstrap needed.',
+      );
+      return;
+    }
+
+    final CloudEntitlementResult result = await repository.activateKey(
+      CloudEntitlementRepositoryImpl.demoCloudKey,
+    );
+    logger.logInfo(
+      'AppStartupController: prod entitlement bootstrap result success=${result.success}, state=${result.state.name}.',
+    );
+    if (!result.success) {
+      throw StateError(
+        result.errorMessage ??
+            'Не удалось автоматически активировать cloud key',
+      );
+    }
   }
 
   Future<void> _initializeWebServices() async {

@@ -347,7 +347,7 @@ final class SavingGoalForecastProvider
 }
 
 String _$savingGoalForecastHash() =>
-    r'0688f512690edfc23273d6da3ad5deba33ab79bf';
+    r'b49c1a331ca109f8f6139157e6c338a042b0f5dc';
 
 final class SavingGoalForecastFamily extends $Family
     with $FunctionalFamilyOverride<SavingGoalForecast?, String> {

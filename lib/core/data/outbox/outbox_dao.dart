@@ -11,9 +11,11 @@ enum OutboxOperation { upsert, delete }
 enum OutboxStatus { pending, sending, sent, failed }
 
 class OutboxDao {
-  OutboxDao(this._db, [this._logger]);
+  OutboxDao(this._db, [String? Function()? currentUidProvider, this._logger])
+    : _currentUidProvider = currentUidProvider ?? (() => null);
 
   final db.AppDatabase _db;
+  final String? Function() _currentUidProvider;
   final LoggerService? _logger;
   static const List<OutboxStatus> _compactableStatuses = <OutboxStatus>[
     OutboxStatus.pending,
@@ -46,6 +48,8 @@ class OutboxDao {
   }) async {
     final DateTime now = DateTime.now();
     final String encodedPayload = jsonEncode(payload);
+    final String? ownerUid = _currentUidProvider();
+
     final db.OutboxEntryRow? compacted = await _findCompactableEntry(
       entityType: entityType,
       entityId: entityId,
@@ -66,6 +70,7 @@ class OutboxDao {
               baseRemoteUpdatedAt: Value<DateTime?>(baseRemoteUpdatedAt),
               baseRemoteIsDeleted: Value<bool?>(baseRemoteIsDeleted),
               baseRemoteTypeVersion: Value<int?>(baseRemoteTypeVersion),
+              ownerUid: Value<String?>(ownerUid),
             ),
           );
       return compacted.id;
@@ -83,6 +88,7 @@ class OutboxDao {
             createdAt: Value<DateTime>(now),
             updatedAt: Value<DateTime>(now),
             baseRemoteTypeVersion: Value<int?>(baseRemoteTypeVersion),
+            ownerUid: Value<String?>(ownerUid),
           ),
         );
   }
@@ -255,6 +261,13 @@ class OutboxDao {
           (db.$OutboxEntriesTable tbl) =>
               tbl.status.equals(OutboxStatus.sent.name),
         ))
+        .go();
+  }
+
+  Future<void> clearByOwnerUid(String ownerUid) async {
+    await (_db.delete(
+          _db.outboxEntries,
+        )..where((db.$OutboxEntriesTable tbl) => tbl.ownerUid.equals(ownerUid)))
         .go();
   }
 

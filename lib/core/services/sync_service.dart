@@ -6,10 +6,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:kopim/core/config/app_runtime.dart';
+import 'package:kopim/core/services/firebase_runtime_guard.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/data/outbox/outbox_payload_normalizer.dart';
 import 'package:kopim/core/money/money.dart';
+import 'package:kopim/core/services/sync/sync_ownership_guard.dart';
 import 'package:kopim/features/accounts/data/sources/remote/account_remote_data_source.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/budgets/data/sources/remote/budget_instance_remote_data_source.dart';
@@ -45,8 +47,19 @@ import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_paymen
 import 'package:kopim/core/services/sync_status.dart';
 import 'package:kopim/core/services/auth_sync_service.dart';
 
-class SyncService {
-  SyncService({
+abstract class SyncService {
+  Future<void> initialize();
+  Future<void> dispose();
+  Future<void> syncPending();
+  Future<SyncActionResult> triggerSync();
+  Future<IncrementalSyncStatus> triggerManualSync();
+
+  SyncStatus get status;
+  Stream<SyncStatus> get statusStream;
+}
+
+class FirebaseSyncService implements SyncService {
+  FirebaseSyncService({
     required OutboxDao outboxDao,
     required AccountRemoteDataSource accountRemoteDataSource,
     required CategoryRemoteDataSource categoryRemoteDataSource,
@@ -68,6 +81,7 @@ class SyncService {
     required PaymentReminderRemoteDataSource paymentReminderRemoteDataSource,
     required FirebaseAuth firebaseAuth,
     required AuthSyncService authSyncService,
+    required SyncOwnershipGuard syncOwnershipGuard,
     Connectivity? connectivity,
     OutboxPayloadNormalizer payloadNormalizer = const OutboxPayloadNormalizer(),
   }) : _outboxDao = outboxDao,
@@ -91,6 +105,7 @@ class SyncService {
        _auth = firebaseAuth,
        _connectivity = connectivity ?? Connectivity(),
        _authSyncService = authSyncService,
+       _syncOwnershipGuard = syncOwnershipGuard,
        _payloadNormalizer = payloadNormalizer;
 
   static const Duration _staleSendingRecoveryWindow = Duration(minutes: 5);
@@ -116,6 +131,7 @@ class SyncService {
   final FirebaseAuth _auth;
   final Connectivity _connectivity;
   final AuthSyncService _authSyncService;
+  final SyncOwnershipGuard _syncOwnershipGuard;
   final OutboxPayloadNormalizer _payloadNormalizer;
 
   StreamSubscription<List<db.OutboxEntryRow>>? _outboxSubscription;
@@ -129,9 +145,13 @@ class SyncService {
   bool _initialized = false;
   SyncStatus _status = SyncStatus.offline;
 
+  @override
   Stream<SyncStatus> get statusStream => _statusController.stream;
+
+  @override
   SyncStatus get status => _status;
 
+  @override
   Future<void> initialize() async {
     if (_initialized) return;
     _initialized = true;
@@ -148,12 +168,14 @@ class SyncService {
     });
   }
 
+  @override
   Future<void> dispose() async {
     await _outboxSubscription?.cancel();
     await _connectivitySubscription?.cancel();
     await _statusController.close();
   }
 
+  @override
   Future<void> syncPending() async {
     _updateStatus();
     if (_isSyncing || !_isOnline) return;
@@ -182,6 +204,7 @@ class SyncService {
     }
   }
 
+  @override
   Future<SyncActionResult> triggerSync() async {
     await initialize();
     if (!_isOnline) return SyncActionResult.offline;
@@ -196,6 +219,7 @@ class SyncService {
     return SyncActionResult.synced;
   }
 
+  @override
   Future<IncrementalSyncStatus> triggerManualSync() async {
     await initialize();
     if (!_isOnline) {
@@ -247,7 +271,7 @@ class SyncService {
           errorMessage: 'full_sync_required',
         );
       }
-      if (!AppRuntimeConfig.isOffline) {
+      if (!AppRuntimeConfig.isOffline && hasFirebaseAppsSafely()) {
         FirebaseCrashlytics.instance.recordError(
           e,
           stackTrace,
@@ -267,6 +291,10 @@ class SyncService {
   Future<void> _syncEntry(String userId, db.OutboxEntryRow entry) async {
     final db.OutboxEntryRow prepared = await _outboxDao.prepareForSend(entry);
     try {
+      await _syncOwnershipGuard.ensureOutboxEntryCanBePushed(
+        currentCloudUid: userId,
+        entryOwnerUid: prepared.ownerUid,
+      );
       final Map<String, dynamic> payload = _payloadNormalizer.normalize(
         prepared.entityType,
         _outboxDao.decodePayload(prepared),
@@ -380,7 +408,7 @@ class SyncService {
       await _outboxDao.markAsSent(prepared.id);
     } catch (error, stackTrace) {
       await _outboxDao.markAsFailed(prepared.id, error.toString());
-      if (!AppRuntimeConfig.isOffline) {
+      if (!AppRuntimeConfig.isOffline && hasFirebaseAppsSafely()) {
         FirebaseCrashlytics.instance.recordError(
           error,
           stackTrace,

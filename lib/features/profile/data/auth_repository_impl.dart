@@ -110,70 +110,17 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<AuthUser> signInAnonymously() async {
-    try {
-      final User? current = _firebaseAuth.currentUser;
-      if (current != null && current.isAnonymous) {
-        final AuthUser? mapped = _mapFirebaseUser(current);
-        if (mapped != null) {
-          _localFallbackUser = null;
-          _logger.logInfo('Using existing anonymous session ${mapped.uid}.');
-          return mapped;
-        }
-      }
-
-      final UserCredential credential = await _firebaseAuth.signInAnonymously();
-      final AuthUser? user = _mapCredentialNullable(credential);
-      if (user != null) {
-        _localFallbackUser = null;
-        _logger.logInfo(
-          'Anonymous Firebase sign-in succeeded for ${user.uid}.',
-        );
-        return user;
-      }
-
-      final AuthUser fallback = AuthUser.guest();
-      _localFallbackUser = fallback;
-      _logger.logInfo(
-        'Firebase anonymous sign-in returned null user. Using fallback ${fallback.uid}.',
-      );
-      return fallback;
-    } on FirebaseAuthException catch (error, stackTrace) {
-      _logger.logError(
-        'FirebaseAuthException during signInAnonymously: ${error.code}',
-        error,
-      );
-      _analyticsService.reportError(error, stackTrace);
-
-      if (error.code == 'network-request-failed' ||
-          error.code == 'network_error') {
-        final AuthUser fallback = AuthUser.guest();
-        _localFallbackUser = fallback;
-        _logger.logInfo(
-          'Using offline anonymous fallback ${fallback.uid} due to network error.',
-        );
-        return fallback;
-      }
-
-      throw AuthFailure(
-        code: error.code,
-        message: error.message ?? 'Failed to sign in anonymously.',
-      );
-    } catch (error, stackTrace) {
-      _logger.logError('Unexpected error during signInAnonymously', error);
-      _analyticsService.reportError(error, stackTrace);
-      final AuthUser fallback = AuthUser.guest();
-      _localFallbackUser = fallback;
-      return fallback;
-    }
+  Future<AuthUser> signInAnonymously() {
+    throw UnsupportedError(
+      'Firebase Anonymous Auth is disabled. Use explicit cloud sign-in.',
+    );
   }
 
   @override
-  Future<AuthUser> signInOffline() async {
-    final AuthUser fallback = AuthUser.guest();
-    _localFallbackUser = fallback;
-    _logger.logInfo('Using offline guest fallback ${fallback.uid}.');
-    return fallback;
+  Future<AuthUser> signInOffline() {
+    throw UnsupportedError(
+      'signInOffline is not supported in Cloud AuthRepository. Use local session or explicit sign-in.',
+    );
   }
 
   @override

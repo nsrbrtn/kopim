@@ -106,7 +106,7 @@ class SignInFormController extends _$SignInFormController {
     state = state.copyWith(isSubmitting: true, errorMessage: null);
     try {
       await ref
-          .read(authRepositoryProvider)
+          .read(cloudAuthRepositoryProvider)
           .sendPasswordResetEmail(state.email.trim());
 
       if (!ref.mounted) return;

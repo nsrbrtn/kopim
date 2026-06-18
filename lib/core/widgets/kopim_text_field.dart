@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../config/theme_extensions.dart';
 
@@ -31,6 +32,7 @@ class KopimTextField extends StatefulWidget {
     this.fillColor,
     this.placeholderColor,
     this.hasError = false,
+    this.showObscureToggle = false,
   });
 
   /// Ключ для внутреннего [TextField]. Нужен в тестах и для точного поиска поля.
@@ -58,6 +60,7 @@ class KopimTextField extends StatefulWidget {
   final Color? fillColor;
   final Color? placeholderColor;
   final bool hasError;
+  final bool showObscureToggle;
 
   @override
   State<KopimTextField> createState() => _KopimTextFieldState();
@@ -66,11 +69,13 @@ class KopimTextField extends StatefulWidget {
 class _KopimTextFieldState extends State<KopimTextField> {
   late FocusNode _focusNode;
   bool _ownsFocusNode = false;
+  late bool _obscureText;
 
   @override
   void initState() {
     super.initState();
     _assignFocusNode(widget.focusNode);
+    _obscureText = widget.obscureText;
   }
 
   @override
@@ -81,6 +86,9 @@ class _KopimTextFieldState extends State<KopimTextField> {
         _focusNode.dispose();
       }
       _assignFocusNode(widget.focusNode);
+    }
+    if (oldWidget.obscureText != widget.obscureText) {
+      _obscureText = widget.obscureText;
     }
   }
 
@@ -139,7 +147,7 @@ class _KopimTextFieldState extends State<KopimTextField> {
           autofocus: widget.autofocus,
           readOnly: widget.readOnly,
           enabled: widget.enabled,
-          obscureText: widget.obscureText,
+          obscureText: _obscureText,
           keyboardType: widget.keyboardType,
           textInputAction: widget.textInputAction,
           inputFormatters: widget.inputFormatters,
@@ -157,7 +165,25 @@ class _KopimTextFieldState extends State<KopimTextField> {
             hintText: widget.placeholder,
             hintStyle: hintStyle,
             prefixIcon: widget.prefixIcon,
-            suffixIcon: widget.suffixIcon,
+            suffixIcon:
+                widget.suffixIcon ??
+                (widget.showObscureToggle
+                    ? IconButton(
+                        icon: Icon(
+                          _obscureText
+                              ? PhosphorIcons.eyeSlash(
+                                  PhosphorIconsStyle.regular,
+                                )
+                              : PhosphorIcons.eye(PhosphorIconsStyle.regular),
+                          color: colors.onSurfaceVariant,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscureText = !_obscureText;
+                          });
+                        },
+                      )
+                    : null),
             contentPadding: padding,
             border: baseBorder,
             enabledBorder: widget.hasError
