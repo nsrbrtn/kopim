@@ -9,11 +9,14 @@ class UserProgressRepositoryImpl implements UserProgressRepository {
   UserProgressRepositoryImpl({
     required TransactionDao transactionDao,
     UserProgressRemoteDataSource? remoteDataSource,
+    bool Function(String uid)? canWriteRemotely,
   }) : _transactionDao = transactionDao,
-       _remoteDataSource = remoteDataSource;
+       _remoteDataSource = remoteDataSource,
+       _canWriteRemotely = canWriteRemotely ?? ((String _) => true);
 
   final TransactionDao _transactionDao;
   final UserProgressRemoteDataSource? _remoteDataSource;
+  final bool Function(String uid) _canWriteRemotely;
   final StreamController<UserProgress?> _cacheController =
       StreamController<UserProgress?>.broadcast();
 
@@ -30,7 +33,7 @@ class UserProgressRepositoryImpl implements UserProgressRepository {
   @override
   Future<ProgressSnapshot?> fetchRemoteProgress(String uid) {
     final UserProgressRemoteDataSource? remoteDataSource = _remoteDataSource;
-    if (remoteDataSource == null) {
+    if (remoteDataSource == null || !_canWriteRemotely(uid)) {
       return Future<ProgressSnapshot?>.value(null);
     }
     return remoteDataSource.fetch(uid);
@@ -43,7 +46,7 @@ class UserProgressRepositoryImpl implements UserProgressRepository {
     required DateTime updatedAt,
   }) {
     final UserProgressRemoteDataSource? remoteDataSource = _remoteDataSource;
-    if (remoteDataSource == null) {
+    if (remoteDataSource == null || !_canWriteRemotely(uid)) {
       return Future<void>.value();
     }
     return remoteDataSource.upsert(

@@ -1251,11 +1251,26 @@ userAccountCleanupRepositoryProvider =
 
 @riverpod
 UserProgressRepository userProgressRepository(Ref ref) {
+  final DataModeState? dataModeState = ref
+      .watch(dataModeControllerProvider)
+      .value;
   final UserProgressRepositoryImpl repository = UserProgressRepositoryImpl(
     transactionDao: ref.watch(transactionDaoProvider),
-    remoteDataSource: AppRuntimeConfig.isOffline
+    remoteDataSource:
+        AppRuntimeConfig.isOffline ||
+            dataModeState?.dataMode != DataMode.cloudEnabled
         ? null
         : ref.watch(userProgressRemoteDataSourceProvider),
+    canWriteRemotely: (String uid) {
+      if (AppRuntimeConfig.isOffline) {
+        return false;
+      }
+      final DataModeState? state = ref.read(dataModeControllerProvider).value;
+      if (state?.dataMode != DataMode.cloudEnabled) {
+        return false;
+      }
+      return ref.read(cloudAuthRepositoryProvider).currentUser?.uid == uid;
+    },
   );
   ref.onDispose(repository.dispose);
   return repository;
@@ -1319,14 +1334,17 @@ final rp.Provider<DeleteUserAccountUseCase> deleteUserAccountUseCaseProvider =
 @riverpod
 SyncService syncService(Ref ref) {
   if (AppRuntimeConfig.isOfflineOnlyDistribution) {
-    return NoopSyncService();
+    return NoopSyncService(reason: NoopSyncReason.cloudSyncDisabled);
   }
 
   final DataModeState? dataModeState = ref
       .watch(dataModeControllerProvider)
       .value;
   if (dataModeState == null || dataModeState.dataMode == DataMode.localOnly) {
-    return NoopSyncService();
+    return NoopSyncService(reason: NoopSyncReason.cloudSyncDisabled);
+  }
+  if (dataModeState.dataMode == DataMode.cloudBlockedByLocalData) {
+    return NoopSyncService(reason: NoopSyncReason.blockedByLocalData);
   }
 
   final FirebaseSyncService service = FirebaseSyncService(
@@ -1362,6 +1380,7 @@ SyncService syncService(Ref ref) {
     firebaseAuth: ref.watch(firebaseAuthProvider),
     authSyncService: ref.watch(authSyncServiceProvider),
     syncOwnershipGuard: ref.watch(syncOwnershipGuardProvider),
+    syncConflictDao: ref.watch(syncConflictDaoProvider),
     connectivity: ref.watch(connectivityProvider),
   );
   ref.onDispose(service.dispose);
@@ -1404,7 +1423,9 @@ AuthRepository activeAuthRepository(Ref ref) {
   final DataModeState? dataModeState = ref
       .watch(dataModeControllerProvider)
       .value;
-  if (dataModeState == null || dataModeState.dataMode == DataMode.localOnly) {
+  if (dataModeState == null ||
+      dataModeState.dataMode == DataMode.localOnly ||
+      dataModeState.dataMode == DataMode.cloudBlockedByLocalData) {
     return ref.watch(localAuthRepositoryProvider);
   }
   return ref.watch(cloudAuthRepositoryProvider);

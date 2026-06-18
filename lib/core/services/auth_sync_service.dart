@@ -322,9 +322,14 @@ class AuthSyncService {
       wasFallbackUsed = registryResult.wasFallbackUsed;
 
       // 3. readOutbox()
-      final List<db.OutboxEntryRow> allPending = await _outboxDao.fetchPending(
+      final OutboxPendingPlan pendingPlan = await _outboxDao.fetchPendingPlan(
         limit: 10000,
       );
+      await _recordDependencyCycleConflicts(
+        pendingPlan.blockedByDependencyCycle,
+      );
+      final List<db.OutboxEntryRow> allPending =
+          pendingPlan.dispatchableEntries;
 
       // 4. classifyOutboxEntries()
       final List<db.OutboxEntryRow> safeEntries = <db.OutboxEntryRow>[];
@@ -1527,6 +1532,33 @@ class AuthSyncService {
     return totalPulled;
   }
 
+  Future<void> _recordDependencyCycleConflicts(
+    List<db.OutboxEntryRow> blockedEntries,
+  ) async {
+    if (blockedEntries.isEmpty) {
+      return;
+    }
+    final String blockedIds = blockedEntries
+        .map((db.OutboxEntryRow entry) => entry.id)
+        .join(',');
+    await _syncConflictDao.upsertConflict(
+      conflictKey: 'outbox_cycle:$blockedIds',
+      entityType: 'outbox',
+      entityId: blockedIds,
+      conflictType: SyncConflictType.outboxDependencyCycle.value,
+      severity: SyncConflictSeverity.blocking.value,
+      status: SyncConflictStatus.pending.value,
+      metadataJson: jsonEncode(<String, Object>{
+        'blockedOutboxIds': blockedEntries
+            .map((db.OutboxEntryRow entry) => entry.id)
+            .toList(growable: false),
+        'entityTypes': blockedEntries
+            .map((db.OutboxEntryRow entry) => entry.entityType)
+            .toList(growable: false),
+      }),
+    );
+  }
+
   Future<void> _runIntegrityDiagnostics({required String context}) async {
     final LocalSyncIntegrityReport report = await _integrityDiagnosticsService
         .run();
@@ -1640,9 +1672,13 @@ class AuthSyncService {
       await _outboxDao.resetStaleSendingToPending(
         cutoff: DateTime.now().subtract(_staleSendingRecoveryWindow),
       );
-      final List<OutboxEntryRow> pending = await _outboxDao.fetchPending(
+      final OutboxPendingPlan pendingPlan = await _outboxDao.fetchPendingPlan(
         limit: _outboxBatchSize,
       );
+      await _recordDependencyCycleConflicts(
+        pendingPlan.blockedByDependencyCycle,
+      );
+      final List<OutboxEntryRow> pending = pendingPlan.dispatchableEntries;
       final List<OutboxEntryRow> prepared = <db.OutboxEntryRow>[];
       for (final OutboxEntryRow entry in pending) {
         prepared.add(await _outboxDao.prepareForSend(entry));

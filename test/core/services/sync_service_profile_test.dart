@@ -10,6 +10,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
+import 'package:kopim/core/data/sync/sync_conflict_dao.dart';
 import 'package:kopim/core/services/sync/sync_ownership_guard.dart';
 import 'package:kopim/core/services/sync_service.dart';
 import 'package:kopim/core/services/auth_sync_service.dart';
@@ -119,6 +120,7 @@ void main() {
       firebaseAuth: firebaseAuth,
       authSyncService: _MockAuthSyncService(),
       syncOwnershipGuard: const SyncOwnershipGuard(),
+      syncConflictDao: SyncConflictDao(database),
       connectivity: connectivity,
     );
 

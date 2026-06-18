@@ -367,6 +367,18 @@ class _HomeBody extends ConsumerWidget {
             : 'Sign in to sync your data.',
       IncrementalSyncResult.alreadySyncing =>
         isRu ? 'Синхронизация уже выполняется.' : 'Sync is already running.',
+      IncrementalSyncResult.cloudSyncDisabled =>
+        isRu
+            ? 'Облачная синхронизация отключена для текущего режима данных.'
+            : 'Cloud sync is disabled for the current data mode.',
+      IncrementalSyncResult.blockedByLocalData =>
+        isRu
+            ? 'Синхронизация заблокирована: локальные данные требуют отдельного решения перед включением облака.'
+            : 'Sync is blocked because local data needs a separate decision before cloud can be enabled.',
+      IncrementalSyncResult.dependencyCycleDetected =>
+        isRu
+            ? 'Локальные изменения содержат циклическую зависимость и не были отправлены. Требуется исправление данных.'
+            : 'Local changes contain a dependency cycle and were not sent. Data repair is required.',
       IncrementalSyncResult.error =>
         isRu
             ? (status.errorMessage == 'full_sync_required'

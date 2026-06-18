@@ -11,6 +11,7 @@ import 'package:kopim/features/profile/domain/entities/sign_up_request.dart';
 import 'package:kopim/features/profile/domain/failures/auth_failure.dart';
 import 'package:kopim/features/profile/domain/repositories/auth_repository.dart';
 import 'package:kopim/features/profile/domain/usecases/delete_user_account_use_case.dart';
+import 'package:kopim/core/services/sync/sync_ownership_guard.dart';
 import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -259,13 +260,23 @@ class AuthController extends _$AuthController {
         .value;
     final MigrationDecision decision =
         dataModeState?.migrationDecision ?? MigrationDecision.none;
-    await ref
-        .read(authSyncServiceProvider)
-        .synchronizeOnLogin(
-          user: user,
-          previousUser: previousUser,
-          migrationDecision: decision,
-        );
+    try {
+      await ref
+          .read(authSyncServiceProvider)
+          .synchronizeOnLogin(
+            user: user,
+            previousUser: previousUser,
+            migrationDecision: decision,
+          );
+    } on SyncOwnershipException catch (error) {
+      ref
+          .read(loggerServiceProvider)
+          .logWarning(
+            'Cloud sync blocked after login for ${user.uid}: ${error.message}',
+          );
+      _initialSyncTriggered = true;
+      return;
+    }
     await ref.read(recomputeUserProgressUseCaseProvider)();
     if (supportsUpcomingPaymentsBackgroundWork() &&
         !_upcomingPaymentsWorkScheduled) {
@@ -290,6 +301,12 @@ class AuthController extends _$AuthController {
       ref
           .read(loggerServiceProvider)
           .logError('Initial auth sync failed: ${failure.message}', failure);
+    } on SyncOwnershipException catch (error) {
+      ref
+          .read(loggerServiceProvider)
+          .logWarning(
+            'Initial auth sync blocked for ${user.uid}: ${error.message}',
+          );
     }
   }
 }

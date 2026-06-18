@@ -523,7 +523,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get gettingStartedCelebrationSubtitle =>
-      'Вы успешно выполнили все шаги базовой настройки приложения. Теперь вы полностью готовы к управлению своими финансами с Kopim!';
+      'Вы успешно выполнили все шаги базовой настройки приложения. Теперь вы полностью готовы к управлению своими финансами с Копим!';
 
   @override
   String get gettingStartedCelebrationButton => 'Поехали!';

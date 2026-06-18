@@ -6,6 +6,7 @@ import 'package:kopim/core/application/firebase_availability.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/services/auth_sync_service.dart';
 import 'package:kopim/core/config/app_runtime.dart';
+import 'package:kopim/core/services/sync/sync_ownership_guard.dart';
 import 'package:kopim/features/profile/data/local_auth_repository.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/sign_in_request.dart';
@@ -400,6 +401,48 @@ void main() {
     expect(state.hasError, isFalse);
     expect(state.value, equals(user));
   });
+
+  test(
+    'signIn keeps cloud session when login sync is blocked by local data',
+    () async {
+      const AuthUser cloudUser = AuthUser(
+        uid: 'cloud-blocked-user',
+        email: 'user@example.com',
+        isAnonymous: false,
+      );
+      authRepository.onSignIn = (SignInRequest request) async => cloudUser;
+      when(
+        () => authSyncService.synchronizeOnLogin(
+          user: any(named: 'user'),
+          previousUser: any(named: 'previousUser'),
+          migrationDecision: any(named: 'migrationDecision'),
+        ),
+      ).thenThrow(
+        const SyncOwnershipException(
+          'Синхронизация заблокирована: обнаружены локальные данные.',
+        ),
+      );
+      container.read(firebaseAvailabilityProvider.notifier).setAvailable();
+
+      final AuthController controller = container.read(
+        authControllerProvider.notifier,
+      );
+
+      await container.read(authControllerProvider.future);
+      await controller.signIn(
+        const SignInRequest.email(
+          email: 'user@example.com',
+          password: 'pass123',
+        ),
+      );
+
+      final AsyncValue<AuthUser?> state = container.read(
+        authControllerProvider,
+      );
+      expect(state.hasError, isFalse);
+      expect(state.value, equals(cloudUser));
+    },
+  );
 
   test('deleteAccount clears auth state after successful deletion', () async {
     authRepository.initialUser = const AuthUser(

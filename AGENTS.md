@@ -1,136 +1,126 @@
-# AGENTS.md
+# AGENTS.md — правила ИИ-агентов проекта Kopim
 
-**Проект:** kopim  
-**Стек:** Flutter, Riverpod, Freezed, Drift, Firebase  
-**Цели:** Android, iOS, Web, Desktop
+Kopim — Flutter-приложение для личных финансов. Архитектура: Clean Architecture + DDD, Riverpod, Drift SQLite, Firebase/Firestore, offline-first sync. Цели: Android, iOS, Web, Desktop.
 
----
+Этот файл — короткое ядро правил. Подробные инструкции хранятся в `.agents/skills/` и читаются только для релевантных задач.
 
-## 0) Language Policy
+## 1. Экономия токенов и действий
 
-- Все ответы ИИ — **на русском языке**.
-- Комментарии в коде, тексты в PR, описания коммитов, документация — **на русском языке**.
-- В названиях классов/переменных/файлов — общепринятый **английский** (Flutter/Dart-идиомы).
+* Не читай весь репозиторий без необходимости.
+* Начинай с точечного поиска по именам сущностей, файлов, классов, тестов и ошибок.
+* Читай только файлы, которые непосредственно относятся к задаче: изменяемые файлы, их ключевые зависимости, тесты и контракты.
+* Не пересказывай большие файлы и не вставляй полные листинги неизменённого кода.
+* Не делай попутный рефакторинг.
+* Не обновляй зависимости без отдельной задачи.
+* Не меняй UI, архитектуру, публичные API, схему БД или контракт синхронизации сверх явно поставленной задачи.
+* Если задача неоднозначна, выбери минимальное безопасное изменение и явно укажи допущение.
 
----
+## 2. Запреты и safety rules
 
-## 1) Быстрый старт (ключевые команды)
+Запрещено без отдельного плана и явного подтверждения пользователя:
+
+* менять Drift schema, migrations или формат импорт/экспорт данных;
+* менять Sync Contract, outbox ordering, tombstone-логику, ownership guard или правила conflict resolution;
+* менять публичные API модулей;
+* менять auth/login/sync workflow;
+* обновлять Flutter/Dart/Firebase/Gradle/Kotlin зависимости;
+* выполнять destructive-действия с пользовательскими данными.
+
+Категорически запрещено подключаться к production Firebase/Firestore, читать, писать, мигрировать, очищать или seed-ить production-данные без явного подтверждения пользователя и проверки target project.
+
+## 3. Актуальность документации
+
+Перед изменениями, зависящими от внешних API, агент обязан свериться с актуальными источниками:
+
+* текущий `pubspec.yaml`;
+* текущий `pubspec.lock`;
+* официальные Flutter Docs;
+* официальные Dart Docs;
+* pub.dev для конкретного пакета;
+* Firebase Docs;
+* Android Developer Docs для target SDK, permissions, edge-to-edge и build tools;
+* iOS/Apple docs, если задача затрагивает iOS.
+
+Если память агента конфликтует с документацией или текущим кодом проекта, приоритет имеют:
+
+1. текущий код проекта;
+2. `pubspec.lock`;
+3. официальная документация;
+4. память агента.
+
+Если доступа к внешней документации нет, агент обязан явно написать, что проверка внешних источников не была выполнена.
+
+## 4. Карта проекта и источники истины
+
+Документы читать только при необходимости:
+
+* `docs/ai/architecture-map.md` — где находятся слои, фичи, сервисы, DI, тесты и build-конфиги.
+* `docs/ai/source-of-truth.md` — версии, SDK constraints, Drift, Sync Contract, Firebase sync, стандартные проверки.
+* `docs/ai/mcp-setup.md` — настройка MCP.
+* `docs/ai/skills-setup.md` — установка внешних Flutter/Dart skills.
+
+Не загружай эти документы автоматически для каждой задачи. Сначала определи, какой документ нужен.
+
+## 5. Использование skills
+
+При специализированных задачах агент обязан прочитать соответствующий файл:
+
+* `.agents/skills/kopim-sync-skill/SKILL.md` — синхронизация, Firestore, outbox, offline/online режимы.
+* `.agents/skills/kopim-database-skill/SKILL.md` — Drift SQLite, schema, migrations, foreign keys, import/export.
+* `.agents/skills/kopim-ui-skill/SKILL.md` — UI, Riverpod, виджеты, состояния экранов.
+* `.agents/skills/kopim-test-skill/SKILL.md` — тесты, выбор targeted/full проверок.
+* `.agents/skills/kopim-release-skill/SKILL.md` — сборки, релизы, Google Play, Android/iOS/Web/Desktop.
+
+Читай только тот skill, который относится к текущей задаче.
+
+## 6. Проверки качества
+
+Для обычных изменений в коде запусти:
 
 ```bash
-flutter pub get
-
-# Если обновлялись токены темы из Figma
-flutter pub run tool/figma_theme/generate_tokens.dart
-
-# Генерация кода (Freezed, Drift и др.)
-dart run build_runner build --delete-conflicting-outputs
-
-# Форматирование
-dart format --set-exit-if-changed .
-
-# Анализ
-flutter analyze
-
-# Тесты
-flutter test --reporter expanded
-
-# Проверка зависимостей
-flutter pub outdated
+./tool/ai_check.sh
 ```
 
-Примечание по Android:
-- Для dev/CI используем flavor `dev` (например, `flutter build apk --debug --flavor dev`).
-- Для публикации в Google Play проект фиксирует `compileSdk = 36`, `targetSdk = 35`, `minSdk = 24`.
-- Android build toolchain проекта: Gradle wrapper `8.14`, AGP `8.11.1`, Kotlin `2.2.20`, Java/Kotlin target `17`.
+Для изменений в конкретной области сначала запускай targeted tests:
 
----
+```bash
+./tool/ai_check.sh <path_to_test>
+```
 
-## 2) Когда обязателен ExecPlan
+Полный test suite запускай только если:
 
-ExecPlan обязателен для задач уровня «feature/рефакторинг/архитектура»:
+* изменены core/db/sync/auth слои;
+* изменены migrations или Sync Contract;
+* изменён import/export;
+* задача перед релизом;
+* пользователь прямо попросил полный прогон.
 
-- Новые фичи или крупные изменения UX/логики.
-- Существенные рефакторинги модулей/слоев.
-- Любые миграции БД, изменения схем Drift или логики синхронизации.
-- Изменения архитектуры, публичных API модулей, offline-first потоков.
-- Производительность в горячих путях (списки, аналитика, синк).
+Для полного прогона используй:
 
-Шаблон и правила: `.agent/PLANS.md`.
+```bash
+./tool/ai_check.sh --all
+```
 
----
+Если изменялась только документация, правила агентов или markdown-файлы, не запускай Flutter-тесты без необходимости. В отчёте укажи, что код приложения не менялся.
 
-## 3) Карта репозитория
+## 7. Стиль кода и комментариев
 
-- Точки входа:
-  - `lib/main.dart`
-  - `lib/main_prod.dart`
-- Фичи (feature-first):
-  - `lib/features/*/presentation` — UI, Riverpod.
-  - `lib/features/*/domain` — сущности (Freezed), use cases, интерфейсы.
-  - `lib/features/*/data` — репозитории, Drift DAO, Firebase-адаптеры.
-- Общие:
-  - `lib/core/` — дизайн-система, тема, DI, сервисы.
-  - `lib/core/db/` — Drift, миграции, адаптеры.
-  - `docs/components/` — документация по UI-компонентам.
-  - `docs/logic/` — архитектура, процессы, инварианты.
+* Имена классов, методов, переменных, файлов и API — на английском языке.
+* Пользовательские тексты интерфейса — на русском, если задача не требует другого языка.
+* Комментарии в коде — на русском или английском, но только если они объясняют неочевидную бизнес-логику, sync/db edge case или архитектурное ограничение.
+* Не добавляй очевидные комментарии.
+* Сохраняй существующий стиль проекта.
 
----
+## 8. Формат результата
 
-## 4) Архитектура и ключевые принципы
+После выполнения задачи агент обязан кратко вывести:
 
-- Clean Architecture + DDD, модульность по фичам.
-- Domain слой не зависит от Flutter/Firebase/Drift.
-- Все модели и состояния — immutable (Freezed, value equality).
-- Riverpod — DI и state management; в горячих путях использовать `.select()`.
-- Drift — локальный source-of-truth; изменения через миграции.
-- Любые тяжелые операции (Drift/JSON/агрегации) — вне UI isolate.
-- Offline-first: сначала запись в Drift, синк с Firestore фоном.
-- Если добавляется новая пользовательская коллекция/подколлекция в Firestore (`users/{uid}/...`), агент обязан в той же задаче обновить cleaner удаления аккаунта (`UserAccountCleanupRepositoryImpl`) и проверить, что данные этой коллекции удаляются при account deletion.
-- Производительность UI:
-  - `itemExtent`/`prototypeItem` для списков.
-  - Кэш форматтеров дат/денег.
-  - Минимум логики в `build`, больше `const`.
+* что изменено;
+* какие файлы изменены;
+* почему выбранное решение минимальное и безопасное;
+* какие проверки запущены;
+* результат проверок;
+* какие проверки не удалось запустить и почему;
+* какие риски или ручные follow-up остались.
 
-Детальные инварианты по фичам: `docs/logic/feature_invariants.md`.
-
----
-
-## 5) Тестирование и качество
-
-- Unit: доменные сущности, value-объекты, use cases, мапперы.
-- Widget: элементы списков, пустые/ошибочные состояния, формы.
-- Integration: DB + sync, recurring (time travel).
-- DoD: форматирование, analyze, build_runner, тесты зелёные.
-
----
-
-## 6) Документация
-
-- Любое изменение поведения → обновить `docs/`.
-- Новый UI-компонент → `docs/components/`.
-- Новое архитектурное решение/сервис → `docs/logic/`.
-- Индексы: `docs/README.md` и `docs/logic/README.md`.
-- Руководство по агентам и ExecPlan: `docs/logic/ai_agents.md`.
-
----
-
-## 7) Безопасность, запреты, чувствительные файлы
-
-- Не редактировать секреты и генерируемые конфиги: `.env`, `firebase_options.dart`, `google-services.json`, `GoogleService-Info.plist`, `upload-keystore.jks`.
-- Не редактировать автоген: `*.g.dart`, `*.freezed.dart`, `*.drift.dart`.
-- Не запускать деплой-команды без явного запроса:
-  - `firebase deploy`, `flutter build ipa`, `flutter build appbundle` и т.п.
-- Схема Drift меняется только через миграции с описанием и планом отката.
-
----
-
-## 8) Где искать дополнительные правила
-
-- ExecPlan: `.agent/PLANS.md`
-- Workflows: `.agent/workflows/`
-- Инварианты по фичам: `docs/logic/feature_invariants.md`
-- Процессы для агентов: `docs/logic/ai_agents.md`
-
----
-
-AGENTS.md — быстрый вход. Если меняются архитектура, сборка или тестирование, обновляй этот файл и соответствующие документы в `docs/logic/`.
+Если задача затрагивает sync/db/auth/release, отдельно укажи, какой skill был прочитан и какие регрессии покрыты тестами.

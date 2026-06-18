@@ -6,7 +6,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
+import 'package:kopim/core/data/sync/sync_conflict_dao.dart';
 import 'package:kopim/core/services/auth_sync_service.dart';
+import 'package:kopim/core/services/noop_sync_service.dart';
+import 'package:kopim/core/services/sync/sync_conflict_types.dart';
 import 'package:kopim/core/services/sync/sync_contract.dart';
 import 'package:kopim/core/services/sync_service.dart';
 import 'package:kopim/core/services/sync_status.dart';
@@ -103,6 +106,7 @@ void main() {
         firebaseAuth: firebaseAuth,
         authSyncService: authSyncService,
         syncOwnershipGuard: const FakeSyncOwnershipGuard(),
+        syncConflictDao: SyncConflictDao(harness.database),
         connectivity: connectivity,
       );
       return syncService!;
@@ -527,6 +531,86 @@ void main() {
 
       expect(status.result, equals(IncrementalSyncResult.noChanges));
       expect(status.pulledCount, equals(0));
+    });
+
+    test('10. Dependency cycle does not dispatch affected entries', () async {
+      final AuthSyncService authSyncService = harness.buildService();
+      final SyncService syncService = buildSyncService(authSyncService);
+
+      await harness.outboxDao.enqueue(
+        entityType: 'category',
+        entityId: 'cat-cycle-a',
+        operation: OutboxOperation.upsert,
+        payload: <String, dynamic>{
+          'id': 'cat-cycle-a',
+          'parentId': 'cat-cycle-b',
+        },
+      );
+      await harness.outboxDao.enqueue(
+        entityType: 'category',
+        entityId: 'cat-cycle-b',
+        operation: OutboxOperation.upsert,
+        payload: <String, dynamic>{
+          'id': 'cat-cycle-b',
+          'parentId': 'cat-cycle-a',
+        },
+      );
+
+      final IncrementalSyncStatus status = await syncService
+          .triggerManualSync();
+
+      expect(
+        status.result,
+        equals(IncrementalSyncResult.dependencyCycleDetected),
+      );
+
+      final QuerySnapshot<Map<String, dynamic>> remoteCategories = await harness
+          .firestore
+          .collection('users')
+          .doc(userId)
+          .collection('categories')
+          .get();
+      expect(remoteCategories.docs, isEmpty);
+
+      final List<db.OutboxEntryRow> pendingRows = await harness.database
+          .select(harness.database.outboxEntries)
+          .get();
+      expect(
+        pendingRows.map((db.OutboxEntryRow row) => row.status).toSet(),
+        equals(<String>{OutboxStatus.pending.name}),
+      );
+
+      final List<db.SyncConflictRow> conflicts = await SyncConflictDao(
+        harness.database,
+      ).getPendingConflicts();
+      expect(
+        conflicts.any(
+          (db.SyncConflictRow row) =>
+              row.conflictType == SyncConflictType.outboxDependencyCycle.value,
+        ),
+        isTrue,
+      );
+    });
+  });
+
+  group('NoopSyncService', () {
+    test(
+      'returns blockedByLocalData when cloud is blocked by local data',
+      () async {
+        final IncrementalSyncStatus status = await NoopSyncService(
+          reason: NoopSyncReason.blockedByLocalData,
+        ).triggerManualSync();
+
+        expect(status.result, equals(IncrementalSyncResult.blockedByLocalData));
+      },
+    );
+
+    test('returns cloudSyncDisabled when cloud sync is disabled', () async {
+      final IncrementalSyncStatus status = await NoopSyncService(
+        reason: NoopSyncReason.cloudSyncDisabled,
+      ).triggerManualSync();
+
+      expect(status.result, equals(IncrementalSyncResult.cloudSyncDisabled));
     });
   });
 }

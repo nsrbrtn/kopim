@@ -41,6 +41,7 @@ enum SyncConflictType {
   missingRequiredReference('missingRequiredReference'),
   updateUpdate('updateUpdate'),
   deleteUpdate('deleteUpdate'),
+  outboxDependencyCycle('outboxDependencyCycle'),
   integrityError('integrityError');
 
   const SyncConflictType(this.value);

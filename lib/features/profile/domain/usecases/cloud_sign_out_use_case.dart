@@ -35,8 +35,8 @@ class CloudSignOutUseCase {
     // 4. Очищаем метаданные синхронизации для данного пользователя
     await _ref.read(syncMetadataRepositoryProvider).clear(cloudUid);
 
-    // 5. Очищаем outbox-записи для данного пользователя
-    await _ref.read(outboxDaoProvider).clearByOwnerUid(cloudUid);
+    // 5. Pending outbox не удаляем: локальные изменения должны пережить logout
+    // и остаться привязанными к владельцу до его следующего входа.
 
     // 6. Удаляем профиль пользователя из локальной БД profiles
     final AppDatabase db = _ref.read(appDatabaseProvider);

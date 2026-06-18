@@ -2,10 +2,16 @@ import 'dart:async';
 import 'package:kopim/core/services/sync_service.dart';
 import 'package:kopim/core/services/sync_status.dart';
 
+enum NoopSyncReason { cloudSyncDisabled, blockedByLocalData }
+
 class NoopSyncService implements SyncService {
-  NoopSyncService({this.strict = false});
+  NoopSyncService({
+    this.strict = false,
+    this.reason = NoopSyncReason.cloudSyncDisabled,
+  });
 
   final bool strict;
+  final NoopSyncReason reason;
 
   Future<void> _guard(String method) async {
     if (strict) {
@@ -32,8 +38,13 @@ class NoopSyncService implements SyncService {
   @override
   Future<IncrementalSyncStatus> triggerManualSync() async {
     await _guard('triggerManualSync');
-    return const IncrementalSyncStatus(
-      result: IncrementalSyncResult.noChanges,
+    return IncrementalSyncStatus(
+      result: switch (reason) {
+        NoopSyncReason.cloudSyncDisabled =>
+          IncrementalSyncResult.cloudSyncDisabled,
+        NoopSyncReason.blockedByLocalData =>
+          IncrementalSyncResult.blockedByLocalData,
+      },
       pulledCount: 0,
     );
   }

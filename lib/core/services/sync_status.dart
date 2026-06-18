@@ -14,6 +14,9 @@ enum IncrementalSyncResult {
   offline,
   unauthenticated,
   alreadySyncing,
+  cloudSyncDisabled,
+  blockedByLocalData,
+  dependencyCycleDetected,
   noChanges,
   error,
 }

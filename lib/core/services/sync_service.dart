@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -10,7 +11,9 @@ import 'package:kopim/core/services/firebase_runtime_guard.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/data/outbox/outbox_payload_normalizer.dart';
+import 'package:kopim/core/data/sync/sync_conflict_dao.dart';
 import 'package:kopim/core/money/money.dart';
+import 'package:kopim/core/services/sync/sync_conflict_types.dart';
 import 'package:kopim/core/services/sync/sync_ownership_guard.dart';
 import 'package:kopim/features/accounts/data/sources/remote/account_remote_data_source.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
@@ -82,6 +85,7 @@ class FirebaseSyncService implements SyncService {
     required FirebaseAuth firebaseAuth,
     required AuthSyncService authSyncService,
     required SyncOwnershipGuard syncOwnershipGuard,
+    required SyncConflictDao syncConflictDao,
     Connectivity? connectivity,
     OutboxPayloadNormalizer payloadNormalizer = const OutboxPayloadNormalizer(),
   }) : _outboxDao = outboxDao,
@@ -106,6 +110,7 @@ class FirebaseSyncService implements SyncService {
        _connectivity = connectivity ?? Connectivity(),
        _authSyncService = authSyncService,
        _syncOwnershipGuard = syncOwnershipGuard,
+       _syncConflictDao = syncConflictDao,
        _payloadNormalizer = payloadNormalizer;
 
   static const Duration _staleSendingRecoveryWindow = Duration(minutes: 5);
@@ -132,6 +137,7 @@ class FirebaseSyncService implements SyncService {
   final Connectivity _connectivity;
   final AuthSyncService _authSyncService;
   final SyncOwnershipGuard _syncOwnershipGuard;
+  final SyncConflictDao _syncConflictDao;
   final OutboxPayloadNormalizer _payloadNormalizer;
 
   StreamSubscription<List<db.OutboxEntryRow>>? _outboxSubscription;
@@ -189,8 +195,11 @@ class FirebaseSyncService implements SyncService {
         cutoff: DateTime.now().subtract(_staleSendingRecoveryWindow),
       );
       await _outboxDao.deleteByEntityType('category_group');
-      final List<db.OutboxEntryRow> pendingEntries = await _outboxDao
-          .fetchPending(limit: 100);
+      final OutboxPendingPlan plan = await _outboxDao.fetchPendingPlan(
+        limit: 100,
+      );
+      await _recordDependencyCycle(plan.blockedByDependencyCycle);
+      final List<db.OutboxEntryRow> pendingEntries = plan.dispatchableEntries;
       if (pendingEntries.isEmpty) return;
 
       for (final db.OutboxEntryRow entry in pendingEntries) {
@@ -241,6 +250,14 @@ class FirebaseSyncService implements SyncService {
     _updateStatus();
     try {
       await syncPending();
+      final OutboxPendingPlan cyclePlan = await _outboxDao.fetchPendingPlan(
+        limit: 1,
+      );
+      if (cyclePlan.hasDependencyCycle) {
+        return const IncrementalSyncStatus(
+          result: IncrementalSyncResult.dependencyCycleDetected,
+        );
+      }
 
       final List<db.OutboxEntryRow> pending = await _outboxDao.fetchPending(
         limit: 1,
@@ -867,5 +884,32 @@ class FirebaseSyncService implements SyncService {
     _status = nextStatus;
     if (_statusController.isClosed) return;
     _statusController.add(nextStatus);
+  }
+
+  Future<void> _recordDependencyCycle(
+    List<db.OutboxEntryRow> blockedEntries,
+  ) async {
+    if (blockedEntries.isEmpty) {
+      return;
+    }
+    final String blockedIds = blockedEntries
+        .map((db.OutboxEntryRow entry) => entry.id)
+        .join(',');
+    await _syncConflictDao.upsertConflict(
+      conflictKey: 'outbox_cycle:$blockedIds',
+      entityType: 'outbox',
+      entityId: blockedIds,
+      conflictType: SyncConflictType.outboxDependencyCycle.value,
+      severity: SyncConflictSeverity.blocking.value,
+      status: SyncConflictStatus.pending.value,
+      metadataJson: jsonEncode(<String, Object>{
+        'blockedOutboxIds': blockedEntries
+            .map((db.OutboxEntryRow entry) => entry.id)
+            .toList(growable: false),
+        'entityTypes': blockedEntries
+            .map((db.OutboxEntryRow entry) => entry.entityType)
+            .toList(growable: false),
+      }),
+    );
   }
 }

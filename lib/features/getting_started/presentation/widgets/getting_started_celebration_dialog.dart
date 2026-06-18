@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:kopim/core/config/theme_extensions.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
 class GettingStartedCelebrationDialog extends StatefulWidget {
@@ -16,7 +17,7 @@ class _GettingStartedCelebrationDialogState
     with TickerProviderStateMixin {
   late final AnimationController _confettiController;
   late final Animation<double> _confettiAnimation;
-  late final List<_ConfettiParticle> _particles;
+  List<_ConfettiParticle>? _particles;
 
   late final AnimationController _entranceController;
   late final Animation<double> _scaleAnimation;
@@ -25,13 +26,6 @@ class _GettingStartedCelebrationDialogState
   @override
   void initState() {
     super.initState();
-    final math.Random rand = math.Random();
-
-    // Генерация 60 частиц с разной физикой
-    _particles = List<_ConfettiParticle>.generate(
-      60,
-      (int index) => _ConfettiParticle.random(rand),
-    );
 
     // Анимация полета конфетти (1.8 секунды)
     _confettiController = AnimationController(
@@ -74,6 +68,21 @@ class _GettingStartedCelebrationDialogState
     final ColorScheme colors = theme.colorScheme;
     final AppLocalizations strings = AppLocalizations.of(context)!;
 
+    if (_particles == null) {
+      final math.Random rand = math.Random();
+      final List<Color> brandColors = <Color>[
+        colors.primary,
+        colors.secondary,
+        colors.tertiary,
+        colors.primaryContainer,
+        colors.tertiaryContainer,
+      ];
+      _particles = List<_ConfettiParticle>.generate(
+        60,
+        (int index) => _ConfettiParticle.random(rand, brandColors),
+      );
+    }
+
     return Dialog(
       backgroundColor: Colors.transparent,
       elevation: 0,
@@ -87,7 +96,7 @@ class _GettingStartedCelebrationDialogState
             child: IgnorePointer(
               child: CustomPaint(
                 painter: _ConfettiPainter(
-                  particles: _particles,
+                  particles: _particles!,
                   progress: _confettiAnimation.value,
                 ),
               ),
@@ -102,7 +111,9 @@ class _GettingStartedCelebrationDialogState
                 constraints: const BoxConstraints(maxWidth: 340),
                 decoration: BoxDecoration(
                   color: colors.surfaceContainerHigh,
-                  borderRadius: BorderRadius.circular(28),
+                  borderRadius: BorderRadius.circular(
+                    context.kopimLayout.radius.card,
+                  ),
                   boxShadow: <BoxShadow>[
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.2),
@@ -142,7 +153,7 @@ class _GettingStartedCelebrationDialogState
                       strings.gettingStartedCelebrationTitle,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -154,17 +165,11 @@ class _GettingStartedCelebrationDialogState
                       ),
                     ),
                     const SizedBox(height: 24),
-                    FilledButton(
-                      style: FilledButton.styleFrom(
-                        minimumSize: const Size.fromHeight(50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Text(
-                        strings.gettingStartedCelebrationButton,
-                        style: const TextStyle(fontWeight: FontWeight.w700),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: Text(strings.gettingStartedCelebrationButton),
                       ),
                     ),
                   ],
@@ -323,18 +328,13 @@ class _ConfettiParticle {
     required this.gravity,
   });
 
-  factory _ConfettiParticle.random(math.Random rand) {
+  factory _ConfettiParticle.random(math.Random rand, List<Color> colors) {
     final double angle = rand.nextDouble() * 2 * math.pi;
     final double speed = 100.0 + rand.nextDouble() * 150.0;
     return _ConfettiParticle(
       vx: math.cos(angle) * speed,
       vy: math.sin(angle) * speed - 50.0, // легкое смещение вверх при взрыве
-      color: HSLColor.fromAHSL(
-        1.0,
-        rand.nextDouble() * 360,
-        0.85,
-        0.55,
-      ).toColor(),
+      color: colors[rand.nextInt(colors.length)],
       size: 5.0 + rand.nextDouble() * 8.0,
       isCircle: rand.nextBool(),
       rotation: rand.nextDouble() * 2 * math.pi,

@@ -92,6 +92,7 @@ class MockAnalyticsService extends Mock implements AnalyticsService {}
 
 class AuthSyncTestHarness {
   static bool _fallbacksRegistered = false;
+  String? activeCloudUid;
 
   late db.AppDatabase database;
   late OutboxDao outboxDao;
@@ -134,7 +135,7 @@ class AuthSyncTestHarness {
     database = db.AppDatabase.connect(
       DatabaseConnection(NativeDatabase.memory()),
     );
-    outboxDao = OutboxDao(database);
+    outboxDao = OutboxDao(database, () => activeCloudUid);
     accountDao = AccountDao(database);
     categoryDao = CategoryDao(database);
     transactionDao = TransactionDao(database);
@@ -218,6 +219,10 @@ class AuthSyncTestHarness {
 
   Future<void> tearDown() async {
     await database.close();
+  }
+
+  void setActiveCloudUid(String? uid) {
+    activeCloudUid = uid;
   }
 
   AuthSyncService buildService({

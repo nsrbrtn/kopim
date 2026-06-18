@@ -1,11 +1,13 @@
 // lib/features/profile/presentation/widgets/profile_sync_settings_card.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:kopim/core/config/app_capabilities.dart';
 import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/di/injectors.dart';
-import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
+import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
 
 class ProfileSyncSettingsCard extends ConsumerStatefulWidget {
   const ProfileSyncSettingsCard({super.key});
@@ -63,9 +65,10 @@ class _ProfileSyncSettingsCardState
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final Color iconColor = theme.colorScheme.onSurfaceVariant;
+    final AppCapabilities capabilities = ref.watch(appCapabilitiesProvider);
 
     // В офлайн-сборке показываем простой информационный блок
-    if (AppRuntimeConfig.isOfflineOnlyDistribution) {
+    if (!capabilities.canRunCloudSync) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
@@ -74,10 +77,7 @@ class _ProfileSyncSettingsCardState
               Icon(Icons.cloud_off_outlined, color: iconColor),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(
-                  'Облако и синхронизация',
-                  style: theme.textTheme.titleMedium,
-                ),
+                child: Text('Локально', style: theme.textTheme.titleMedium),
               ),
             ],
           ),
@@ -97,7 +97,37 @@ class _ProfileSyncSettingsCardState
 
     return dataModeAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (Object error, _) => Text('Ошибка: $error'),
+      error: (Object error, _) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                Icon(
+                  Icons.sync_problem_outlined,
+                  color: theme.colorScheme.error,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Ошибка синхронизации',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: theme.colorScheme.error,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Не удалось получить состояние синхронизации. Попробуйте открыть экран позже.',
+              style: theme.textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 8),
+            Text('$error', style: theme.textTheme.bodySmall),
+          ],
+        );
+      },
       data: (DataModeState stateData) {
         final CloudEntitlementState entitlement = stateData.entitlementState;
         final DataMode mode = stateData.dataMode;
@@ -113,7 +143,7 @@ class _ProfileSyncSettingsCardState
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Активация синхронизации',
+                      'Синхронизация выключена',
                       style: theme.textTheme.titleMedium,
                     ),
                   ),
@@ -121,7 +151,7 @@ class _ProfileSyncSettingsCardState
               ),
               const SizedBox(height: 12),
               Text(
-                'Для включения облачных функций введите лицензионный ключ.',
+                'Сейчас данные хранятся только на этом устройстве. Чтобы включить облачные функции, введите лицензионный ключ.',
                 style: theme.textTheme.bodyMedium,
               ),
               const SizedBox(height: 12),
@@ -149,13 +179,11 @@ class _ProfileSyncSettingsCardState
           );
         }
 
-        // Шаг 2: Ключ активен, но синхронизация localOnly
-        if (mode == DataMode.localOnly) {
+        if (mode == DataMode.cloudBlockedByLocalData) {
           final AuthUser? currentCloudUser = ref
               .watch(cloudAuthRepositoryProvider)
               .currentUser;
 
-          // Пользователь залогинен, но обнаружены локальные данные (CloudMigrationRequired)
           if (currentCloudUser != null) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -169,7 +197,7 @@ class _ProfileSyncSettingsCardState
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Внимание',
+                        'Нужно действие',
                         style: theme.textTheme.titleMedium?.copyWith(
                           color: theme.colorScheme.error,
                         ),
@@ -179,13 +207,12 @@ class _ProfileSyncSettingsCardState
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Локальные данные обнаружены. Автоматическая синхронизация заблокирована. Перенос данных в облако будет реализован в следующем обновлении.',
+                  'Вход в облачный аккаунт выполнен, но синхронизация заблокирована: в локальной базе уже есть данные, которые нельзя безопасно отправить в облако без отдельного решения.',
                   style: theme.textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 16),
                 OutlinedButton(
                   onPressed: () {
-                    // Возвращаемся в чистый локальный режим (выходим из облачного аккаунта)
                     ref.read(authControllerProvider.notifier).signOut();
                   },
                   child: const Text('Остаться в локальном режиме'),
@@ -193,8 +220,10 @@ class _ProfileSyncSettingsCardState
               ],
             );
           }
+        }
 
-          // Пользователь еще не вошел в облако
+        // Шаг 2: Ключ активен, но синхронизация localOnly
+        if (mode == DataMode.localOnly) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
@@ -204,7 +233,7 @@ class _ProfileSyncSettingsCardState
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Облачный аккаунт',
+                      'Синхронизация выключена',
                       style: theme.textTheme.titleMedium,
                     ),
                   ),
@@ -212,17 +241,13 @@ class _ProfileSyncSettingsCardState
               ),
               const SizedBox(height: 12),
               Text(
-                'Ключ синхронизации успешно активирован. Войдите в свой облачный аккаунт для включения синхронизации.',
+                'Лицензионный ключ активирован. Войдите в аккаунт, чтобы включить синхронизацию.',
                 style: theme.textTheme.bodyMedium,
               ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {
-                  // Перенаправляем на экран входа.
-                  // Поскольку в данном тике мы не меняем роутинг,
-                  // мы можем просто открыть стандартный диалог логина или перейти на экран.
-                  // Обычно роут входа: '/auth/signin' или '/signin'
-                  Navigator.of(context).pushNamed('/signin');
+                  Navigator.of(context).pushNamed(SignInScreen.routeName);
                 },
                 child: const Text('Войти в аккаунт'),
               ),
@@ -248,7 +273,7 @@ class _ProfileSyncSettingsCardState
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Облако активно',
+                    'Синхронизация включена',
                     style: theme.textTheme.titleMedium?.copyWith(
                       color: theme.colorScheme.primary,
                     ),

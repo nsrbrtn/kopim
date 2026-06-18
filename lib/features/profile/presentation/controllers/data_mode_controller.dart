@@ -207,13 +207,10 @@ class DataModeController extends _$DataModeController {
 
     if (hasLocalData) {
       logger.logInfo(
-        'DataModeController: local data detected for cloud user ${cloudUser.uid}, keeping localOnly until migration exists.',
+        'DataModeController: local data detected for cloud user ${cloudUser.uid}, keeping cloudBlockedByLocalData until migration exists.',
       );
-      // Если есть локальные данные, миграция обязательна.
-      // Но так как в этой версии миграция не реализована, cloudEnabled запрещен.
       return DataModeState(
-        dataMode:
-            DataMode.localOnly, // Всегда localOnly, если есть локальные данные
+        dataMode: DataMode.cloudBlockedByLocalData,
         entitlementState: entitlement,
         migrationDecision: decision,
       );

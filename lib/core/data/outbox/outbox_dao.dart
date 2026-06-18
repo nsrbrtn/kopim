@@ -123,8 +123,10 @@ class OutboxDao {
             tbl.status.equals(OutboxStatus.failed.name),
       );
     return query.watch().map(
-      (List<db.OutboxEntryRow> entries) =>
-          _sortPendingEntries(entries, limit: limit),
+      (List<db.OutboxEntryRow> entries) => _buildPendingPlan(
+        _filterEntriesForCurrentOwner(entries),
+        limit: limit,
+      ).dispatchableEntries,
     );
   }
 
@@ -144,8 +146,26 @@ class OutboxDao {
             tbl.status.equals(OutboxStatus.failed.name),
       );
     return query.get().then(
-      (List<db.OutboxEntryRow> entries) =>
-          _sortPendingEntries(entries, limit: limit),
+      (List<db.OutboxEntryRow> entries) => _buildPendingPlan(
+        _filterEntriesForCurrentOwner(entries),
+        limit: limit,
+      ).dispatchableEntries,
+    );
+  }
+
+  Future<OutboxPendingPlan> fetchPendingPlan({int limit = 50}) {
+    final SimpleSelectStatement<db.$OutboxEntriesTable, db.OutboxEntryRow>
+    query = _db.select(_db.outboxEntries)
+      ..where(
+        (db.$OutboxEntriesTable tbl) =>
+            tbl.status.equals(OutboxStatus.pending.name) |
+            tbl.status.equals(OutboxStatus.failed.name),
+      );
+    return query.get().then(
+      (List<db.OutboxEntryRow> entries) => _buildPendingPlan(
+        _filterEntriesForCurrentOwner(entries),
+        limit: limit,
+      ),
     );
   }
 
@@ -303,11 +323,28 @@ class OutboxDao {
     return query.getSingleOrNull();
   }
 
-  List<db.OutboxEntryRow> _sortPendingEntries(
+  List<db.OutboxEntryRow> _filterEntriesForCurrentOwner(
+    List<db.OutboxEntryRow> entries,
+  ) {
+    final String? currentUid = _currentUidProvider();
+    if (currentUid == null) {
+      return entries;
+    }
+    return entries
+        .where((db.OutboxEntryRow entry) => entry.ownerUid == currentUid)
+        .toList(growable: false);
+  }
+
+  OutboxPendingPlan _buildPendingPlan(
     List<db.OutboxEntryRow> entries, {
     int? limit,
   }) {
-    if (entries.isEmpty) return entries;
+    if (entries.isEmpty) {
+      return const OutboxPendingPlan(
+        dispatchableEntries: <db.OutboxEntryRow>[],
+        blockedByDependencyCycle: <db.OutboxEntryRow>[],
+      );
+    }
 
     // 1. Предварительная сортировка по fallback-приоритету
     final List<db.OutboxEntryRow> sortedCandidates =
@@ -462,10 +499,11 @@ class OutboxDao {
     }
 
     // 6. Обработка циклов (Graceful recovery)
+    final List<db.OutboxEntryRow> blockedByCycle = <db.OutboxEntryRow>[];
     if (result.length < n) {
       const String warningMsg =
           'OutboxDao: detected a dependency cycle in outbox entries! '
-          'Graceful recovery: falling back to static priority order for remaining nodes.';
+          'Affected entries will stay local until repaired.';
       if (_logger != null) {
         _logger.logWarning(warningMsg);
       } else {
@@ -475,15 +513,19 @@ class OutboxDao {
 
       for (int i = 0; i < n; i++) {
         if (!visited.contains(i)) {
-          result.add(sortedCandidates[i]);
+          blockedByCycle.add(sortedCandidates[i]);
         }
       }
     }
 
-    if (limit == null || result.length <= limit) {
-      return result;
-    }
-    return result.take(limit).toList(growable: false);
+    final List<db.OutboxEntryRow> limitedDispatchable =
+        limit == null || result.length <= limit
+        ? result
+        : result.take(limit).toList(growable: false);
+    return OutboxPendingPlan(
+      dispatchableEntries: limitedDispatchable,
+      blockedByDependencyCycle: blockedByCycle,
+    );
   }
 
   bool _isTombstoneEntry(
@@ -531,6 +573,18 @@ class OutboxDao {
     return SyncContract.manifestByOutboxType[entityType]?.dependencyOrder ??
         1 << 20;
   }
+}
+
+class OutboxPendingPlan {
+  const OutboxPendingPlan({
+    required this.dispatchableEntries,
+    required this.blockedByDependencyCycle,
+  });
+
+  final List<db.OutboxEntryRow> dispatchableEntries;
+  final List<db.OutboxEntryRow> blockedByDependencyCycle;
+
+  bool get hasDependencyCycle => blockedByDependencyCycle.isNotEmpty;
 }
 
 class _ParentRef {

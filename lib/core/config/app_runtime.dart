@@ -2,7 +2,7 @@ enum AppRuntimeFlavor { offline, firebaseDev, firebaseProd }
 
 enum AppDistributionMode { offlineOnly, cloudCapable }
 
-enum DataMode { localOnly, cloudEnabled }
+enum DataMode { localOnly, cloudBlockedByLocalData, cloudEnabled }
 
 enum CloudEntitlementState {
   unavailable,

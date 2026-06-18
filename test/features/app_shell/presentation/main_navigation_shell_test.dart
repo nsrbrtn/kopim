@@ -44,6 +44,7 @@ import 'package:kopim/features/home/presentation/widgets/home_savings_overview_c
 import 'package:kopim/features/home/presentation/widgets/home_upcoming_items_card.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/feature_access_provider.dart';
 import 'package:kopim/features/profile/presentation/screens/menu_screen.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/savings/domain/repositories/saving_goal_repository.dart';
@@ -445,6 +446,16 @@ void main() {
       overrides: [
         firebaseInitializationProvider.overrideWith(
           (Ref ref) => Future<void>.value(),
+        ),
+        featureAccessProvider.overrideWithValue(
+          const FeatureAccess(
+            entitlementState: EntitlementAccessState.cloudActive,
+            canUseCloudSync: true,
+            canUseWebSync: true,
+            canUseAiAssistant: true,
+            canUseAdvancedAnalytics: true,
+            isWebReadOnly: false,
+          ),
         ),
         authControllerProvider.overrideWith(
           () => _FakeAuthController(anonymousUser),

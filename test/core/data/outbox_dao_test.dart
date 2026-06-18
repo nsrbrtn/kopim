@@ -390,28 +390,32 @@ void main() {
       expect(childIdx, lessThan(parentIdx));
     });
 
-    test('5. Cycle Tolerance', () async {
-      final int catAId = await outboxDao.enqueue(
-        entityType: 'category',
-        entityId: 'cat-a',
-        operation: OutboxOperation.upsert,
-        payload: <String, dynamic>{'id': 'cat-a', 'parentId': 'cat-b'},
-      );
+    test(
+      '5. Dependency cycle leaves affected entries blocked locally',
+      () async {
+        final int catAId = await outboxDao.enqueue(
+          entityType: 'category',
+          entityId: 'cat-a',
+          operation: OutboxOperation.upsert,
+          payload: <String, dynamic>{'id': 'cat-a', 'parentId': 'cat-b'},
+        );
 
-      final int catBId = await outboxDao.enqueue(
-        entityType: 'category',
-        entityId: 'cat-b',
-        operation: OutboxOperation.upsert,
-        payload: <String, dynamic>{'id': 'cat-b', 'parentId': 'cat-a'},
-      );
+        final int catBId = await outboxDao.enqueue(
+          entityType: 'category',
+          entityId: 'cat-b',
+          operation: OutboxOperation.upsert,
+          payload: <String, dynamic>{'id': 'cat-b', 'parentId': 'cat-a'},
+        );
 
-      final List<OutboxEntryRow> sorted = await outboxDao.fetchPending();
-      expect(sorted, hasLength(2));
-      // Должны успешно вернуть элементы без бесконечного цикла/краша
-      expect(sorted.map((OutboxEntryRow e) => e.id).toSet(), <int>{
-        catAId,
-        catBId,
-      });
-    });
+        final OutboxPendingPlan plan = await outboxDao.fetchPendingPlan();
+
+        expect(plan.dispatchableEntries, isEmpty);
+        expect(plan.hasDependencyCycle, isTrue);
+        expect(
+          plan.blockedByDependencyCycle.map((OutboxEntryRow e) => e.id).toSet(),
+          <int>{catAId, catBId},
+        );
+      },
+    );
   });
 }

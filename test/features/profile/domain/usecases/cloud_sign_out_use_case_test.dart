@@ -1,8 +1,9 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/data/database.dart';
-import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/sync_service.dart';
@@ -26,8 +27,6 @@ class MockCloudEntitlementRepository extends Mock
 class MockSyncMetadataRepository extends Mock
     implements SyncMetadataRepository {}
 
-class MockOutboxDao extends Mock implements OutboxDao {}
-
 void main() {
   group('CloudSignOutUseCase Tests', () {
     late MockLoggerService mockLogger;
@@ -35,7 +34,6 @@ void main() {
     late MockSyncService mockSyncService;
     late MockCloudEntitlementRepository mockEntitlementRepo;
     late MockSyncMetadataRepository mockSyncMetaRepo;
-    late MockOutboxDao mockOutboxDao;
     late AppDatabase database;
     late ProviderContainer container;
     late CloudSignOutUseCase useCase;
@@ -46,7 +44,6 @@ void main() {
       mockSyncService = MockSyncService();
       mockEntitlementRepo = MockCloudEntitlementRepository();
       mockSyncMetaRepo = MockSyncMetadataRepository();
-      mockOutboxDao = MockOutboxDao();
       database = AppDatabase.connect(
         DatabaseConnection(NativeDatabase.memory()),
       );
@@ -61,7 +58,6 @@ void main() {
             mockEntitlementRepo,
           ),
           syncMetadataRepositoryProvider.overrideWithValue(mockSyncMetaRepo),
-          outboxDaoProvider.overrideWithValue(mockOutboxDao),
           appDatabaseProvider.overrideWithValue(database),
         ],
       );
@@ -89,7 +85,7 @@ void main() {
     });
 
     test(
-      'should stop sync, clear entitlements, wipe sync metadata and outbox, delete profile and conflicts, and signOut',
+      'should stop sync, clear entitlements, keep pending outbox, delete profile and conflicts, and signOut',
       () async {
         const String cloudUid = 'firebase-cloud-uid-123';
         const AuthUser authUser = AuthUser(
@@ -104,9 +100,6 @@ void main() {
           () => mockEntitlementRepo.clearEntitlement(),
         ).thenAnswer((_) async {});
         when(() => mockSyncMetaRepo.clear(cloudUid)).thenAnswer((_) async {});
-        when(
-          () => mockOutboxDao.clearByOwnerUid(cloudUid),
-        ).thenAnswer((_) async {});
         when(() => mockCloudAuth.signOut()).thenAnswer((_) async {});
 
         // Наполняем базу данных тестовыми данными: профиль текущего пользователя и другого, а также конфликт
@@ -140,6 +133,20 @@ void main() {
                 updatedAt: Value<DateTime>(DateTime.now()),
               ),
             );
+        await database
+            .into(database.outboxEntries)
+            .insert(
+              OutboxEntriesCompanion.insert(
+                entityType: 'account',
+                entityId: 'pending-account',
+                operation: 'upsert',
+                payload: jsonEncode(<String, Object>{
+                  'id': 'pending-account',
+                  'name': 'Unsynced account',
+                }),
+                ownerUid: const Value<String?>(cloudUid),
+              ),
+            );
 
         // Вызов
         await useCase.execute();
@@ -148,7 +155,6 @@ void main() {
         verify(() => mockSyncService.dispose()).called(1);
         verify(() => mockEntitlementRepo.clearEntitlement()).called(1);
         verify(() => mockSyncMetaRepo.clear(cloudUid)).called(1);
-        verify(() => mockOutboxDao.clearByOwnerUid(cloudUid)).called(1);
         verify(() => mockCloudAuth.signOut()).called(1);
 
         // Проверки удаления из БД
@@ -165,6 +171,12 @@ void main() {
             .select(database.syncConflicts)
             .get();
         expect(conflicts.isEmpty, isTrue); // конфликты очистились
+
+        final List<OutboxEntryRow> outboxEntries = await database
+            .select(database.outboxEntries)
+            .get();
+        expect(outboxEntries, hasLength(1));
+        expect(outboxEntries.single.ownerUid, equals(cloudUid));
       },
     );
   });

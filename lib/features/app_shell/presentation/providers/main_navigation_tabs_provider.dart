@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/features/ai/presentation/screens/assistant_screen.dart';
 import 'package:kopim/features/analytics/presentation/analytics_screen.dart';
 import 'package:kopim/features/budgets/presentation/budgets_screen.dart';
 import 'package:kopim/features/home/presentation/screens/home_screen.dart';
+import 'package:kopim/features/profile/presentation/controllers/feature_access_provider.dart';
 import 'package:kopim/features/profile/presentation/screens/menu_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
@@ -13,6 +13,7 @@ import '../models/navigation_tab_content.dart';
 
 final Provider<List<NavigationTabConfig>> mainNavigationTabsProvider =
     Provider<List<NavigationTabConfig>>((Ref ref) {
+      final FeatureAccess featureAccess = ref.watch(featureAccessProvider);
       final List<NavigationTabConfig> tabs = <NavigationTabConfig>[
         NavigationTabConfig(
           id: 'home',
@@ -48,7 +49,7 @@ final Provider<List<NavigationTabConfig>> mainNavigationTabsProvider =
         ),
       ];
 
-      if (!AppRuntimeConfig.isOffline) {
+      if (featureAccess.canUseAiAssistant) {
         tabs.insert(
           2,
           NavigationTabConfig(

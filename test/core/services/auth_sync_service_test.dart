@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
@@ -2714,6 +2715,90 @@ void main() {
         );
         expect(entries, hasLength(1));
         expect(entries.single.status, equals(OutboxStatus.pending.name));
+      },
+    );
+
+    test(
+      'pending outbox of user A survives logout, is not pushed to user B, and can sync after user A logs in again',
+      () async {
+        final AuthSyncService service = buildService(
+          syncOwnershipGuard: const SyncOwnershipGuard(),
+        );
+        const String previousUserId = 'cloud-user-a';
+        const String nextUserId = 'cloud-user-b';
+        final AccountEntity account = AccountEntity(
+          id: 'account-user-a',
+          name: 'Old cloud account',
+          balanceMinor: BigInt.from(5000),
+          currency: 'RUB',
+          currencyScale: 2,
+          type: 'cash',
+          createdAt: DateTime.utc(2024, 1, 1),
+          updatedAt: DateTime.utc(2024, 1, 2),
+          isDeleted: false,
+        );
+
+        await database
+            .into(database.outboxEntries)
+            .insert(
+              db.OutboxEntriesCompanion.insert(
+                entityType: 'account',
+                entityId: account.id,
+                operation: OutboxOperation.upsert.name,
+                payload: jsonEncode(
+                  account.toJson()
+                    ..['createdAt'] = account.createdAt.toIso8601String()
+                    ..['updatedAt'] = account.updatedAt.toIso8601String(),
+                ),
+                ownerUid: const Value<String?>(previousUserId),
+              ),
+            );
+
+        harness.setActiveCloudUid(nextUserId);
+        await service.synchronizeOnLogin(
+          user: const AuthUser(
+            uid: nextUserId,
+            email: 'next@kopim.app',
+            isAnonymous: false,
+          ),
+        );
+
+        final DocumentSnapshot<Map<String, dynamic>> remoteAccount =
+            await firestore
+                .collection('users')
+                .doc(nextUserId)
+                .collection('accounts')
+                .doc(account.id)
+                .get();
+        expect(remoteAccount.exists, isFalse);
+        final List<db.OutboxEntryRow> pending = await database
+            .select(database.outboxEntries)
+            .get();
+        expect(
+          pending.where(
+            (db.OutboxEntryRow entry) => entry.ownerUid == previousUserId,
+          ),
+          hasLength(1),
+        );
+
+        harness.setActiveCloudUid(previousUserId);
+        await service.synchronizeOnLogin(
+          user: const AuthUser(
+            uid: previousUserId,
+            email: 'previous@kopim.app',
+            isAnonymous: false,
+          ),
+        );
+
+        final DocumentSnapshot<Map<String, dynamic>> restoredRemoteAccount =
+            await firestore
+                .collection('users')
+                .doc(previousUserId)
+                .collection('accounts')
+                .doc(account.id)
+                .get();
+        expect(restoredRemoteAccount.exists, isTrue);
+        expect(restoredRemoteAccount.data()?['name'], equals(account.name));
       },
     );
 
