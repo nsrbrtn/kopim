@@ -12,10 +12,12 @@ void main() {
         featureAccessProvider.overrideWithValue(
           const FeatureAccess(
             entitlementState: EntitlementAccessState.freeLocal,
-            canUseCloudSync: false,
-            canUseWebSync: false,
-            canUseAiAssistant: false,
-            canUseAdvancedAnalytics: false,
+            cloudSync: FeatureGate(FeatureAccessStatus.requiresEntitlement),
+            webApp: FeatureGate(FeatureAccessStatus.requiresEntitlement),
+            aiAssistant: FeatureGate(FeatureAccessStatus.requiresEntitlement),
+            advancedAnalytics: FeatureGate(
+              FeatureAccessStatus.requiresEntitlement,
+            ),
             isWebReadOnly: false,
           ),
         ),
@@ -39,10 +41,10 @@ void main() {
         featureAccessProvider.overrideWithValue(
           const FeatureAccess(
             entitlementState: EntitlementAccessState.cloudActive,
-            canUseCloudSync: true,
-            canUseWebSync: true,
-            canUseAiAssistant: true,
-            canUseAdvancedAnalytics: true,
+            cloudSync: FeatureGate(FeatureAccessStatus.enabled),
+            webApp: FeatureGate(FeatureAccessStatus.enabled),
+            aiAssistant: FeatureGate(FeatureAccessStatus.enabled),
+            advancedAnalytics: FeatureGate(FeatureAccessStatus.enabled),
             isWebReadOnly: false,
           ),
         ),

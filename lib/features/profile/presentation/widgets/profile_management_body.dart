@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import 'package:kopim/core/application/sync_preferences_provider.dart';
-import 'package:kopim/core/config/app_runtime.dart';
+import 'package:kopim/core/config/app_capabilities.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/utils/avatar_image_provider_resolver.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
@@ -16,6 +16,7 @@ import 'package:kopim/features/profile/domain/policies/level_policy.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_activity_days_provider.dart';
 import 'package:kopim/features/profile/presentation/controllers/avatar_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/feature_access_provider.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/user_progress_controller.dart';
 import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
@@ -40,6 +41,9 @@ class ProfileManagementBody extends ConsumerWidget {
           return _ErrorView(message: strings.profileSignInPrompt);
         }
 
+        final AppCapabilities capabilities = ref.watch(appCapabilitiesProvider);
+        final FeatureAccess featureAccess = ref.watch(featureAccessProvider);
+
         final AsyncValue<Profile?> profileAsync = ref.watch(
           profileControllerProvider(user.uid),
         );
@@ -57,10 +61,12 @@ class ProfileManagementBody extends ConsumerWidget {
         );
         final bool isOnlineSyncEnabled = onlineSyncEnabledAsync.maybeWhen(
           data: (bool value) => value,
-          orElse: () => AppRuntimeConfig.isOffline ? false : true,
+          orElse: () => capabilities.canRunCloudSync,
         );
         final bool canManageOnlineSync =
-            !AppRuntimeConfig.isOffline && !user.isAnonymous;
+            capabilities.canRunCloudSync &&
+            featureAccess.cloudSync.status == FeatureAccessStatus.enabled &&
+            !user.isAnonymous;
         final bool effectiveOnlineSyncEnabled =
             canManageOnlineSync && isOnlineSyncEnabled;
         ref.listen<AsyncValue<void>>(avatarControllerProvider, (
@@ -123,7 +129,8 @@ class ProfileManagementBody extends ConsumerWidget {
                     _SecuritySection(
                       isOnlineSyncEnabled: effectiveOnlineSyncEnabled,
                       canManageOnlineSync: canManageOnlineSync,
-                      isOfflineRuntime: AppRuntimeConfig.isOffline,
+                      cloudSyncGate: featureAccess.cloudSync,
+                      isCloudCapableBuild: capabilities.canRunCloudSync,
                       onToggleOnlineSync: () => _toggleOnlineSync(
                         context,
                         ref,
@@ -140,7 +147,7 @@ class ProfileManagementBody extends ConsumerWidget {
                         textAlign: TextAlign.center,
                       ),
                     ],
-                    if (!AppRuntimeConfig.isOffline) ...<Widget>[
+                    if (capabilities.canUseFirebaseAuth) ...<Widget>[
                       const SizedBox(height: 16),
                       _SignOutButton(onSignOut: () => _signOut(context, ref)),
                     ],
@@ -610,13 +617,15 @@ class _SecuritySection extends StatelessWidget {
   const _SecuritySection({
     required this.isOnlineSyncEnabled,
     required this.canManageOnlineSync,
-    required this.isOfflineRuntime,
+    required this.cloudSyncGate,
+    required this.isCloudCapableBuild,
     required this.onToggleOnlineSync,
   });
 
   final bool isOnlineSyncEnabled;
   final bool canManageOnlineSync;
-  final bool isOfflineRuntime;
+  final FeatureGate cloudSyncGate;
+  final bool isCloudCapableBuild;
   final VoidCallback onToggleOnlineSync;
 
   @override
@@ -647,11 +656,7 @@ class _SecuritySection extends StatelessWidget {
               _SecurityRow(
                 icon: Icons.cloud_done_outlined,
                 label: strings.profileBackupTitle,
-                value: isOfflineRuntime
-                    ? 'Станет доступно позже'
-                    : (isOnlineSyncEnabled
-                          ? strings.profileBackupEnabled
-                          : strings.profileBackupDisabled),
+                value: _backupStatusText(strings),
                 highlightedValue: isOnlineSyncEnabled,
                 onTap: canManageOnlineSync ? onToggleOnlineSync : null,
                 trailing: Switch(
@@ -667,11 +672,11 @@ class _SecuritySection extends StatelessWidget {
                 indent: 16,
                 endIndent: 16,
               ),
-              if (isOfflineRuntime)
+              if (!isCloudCapableBuild || !cloudSyncGate.isEnabled)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                   child: Text(
-                    'Онлайн-синхронизация выключена в офлайн-версии и станет доступна позже по подписке.',
+                    _backupHelperText(),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -693,6 +698,36 @@ class _SecuritySection extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  String _backupStatusText(AppLocalizations strings) {
+    return switch (cloudSyncGate.status) {
+      FeatureAccessStatus.enabled =>
+        isOnlineSyncEnabled
+            ? strings.profileBackupEnabled
+            : strings.profileBackupDisabled,
+      FeatureAccessStatus.blockedByLocalData => 'Нужно действие',
+      FeatureAccessStatus.requiresSignIn => 'Нужен вход в аккаунт',
+      FeatureAccessStatus.requiresEntitlement => 'Синхронизация выключена',
+      FeatureAccessStatus.disabledByBuild => 'Локально',
+      FeatureAccessStatus.unavailable => 'Проверяем доступ',
+    };
+  }
+
+  String _backupHelperText() {
+    return switch (cloudSyncGate.status) {
+      FeatureAccessStatus.enabled => '',
+      FeatureAccessStatus.blockedByLocalData =>
+        'Перед включением синхронизации нужно отдельно решить, что делать с локальными данными на устройстве.',
+      FeatureAccessStatus.requiresSignIn =>
+        'Лицензионный ключ уже активирован. Войдите в аккаунт, чтобы включить синхронизацию.',
+      FeatureAccessStatus.requiresEntitlement =>
+        'Сейчас данные хранятся только на этом устройстве. Облачные функции станут доступны после активации доступа.',
+      FeatureAccessStatus.disabledByBuild =>
+        'Онлайн-синхронизация недоступна в этой сборке. Приложение работает полностью локально.',
+      FeatureAccessStatus.unavailable =>
+        'Подождите немного, приложение уточняет состояние облачных функций.',
+    };
   }
 }
 

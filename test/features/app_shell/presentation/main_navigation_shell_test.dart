@@ -450,10 +450,10 @@ void main() {
         featureAccessProvider.overrideWithValue(
           const FeatureAccess(
             entitlementState: EntitlementAccessState.cloudActive,
-            canUseCloudSync: true,
-            canUseWebSync: true,
-            canUseAiAssistant: true,
-            canUseAdvancedAnalytics: true,
+            cloudSync: FeatureGate(FeatureAccessStatus.enabled),
+            webApp: FeatureGate(FeatureAccessStatus.enabled),
+            aiAssistant: FeatureGate(FeatureAccessStatus.enabled),
+            advancedAnalytics: FeatureGate(FeatureAccessStatus.enabled),
             isWebReadOnly: false,
           ),
         ),

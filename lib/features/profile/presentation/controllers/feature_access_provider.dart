@@ -13,13 +13,33 @@ enum EntitlementAccessState {
   unknown,
 }
 
+enum FeatureAccessStatus {
+  enabled,
+  disabledByBuild,
+  requiresSignIn,
+  requiresEntitlement,
+  blockedByLocalData,
+  unavailable,
+}
+
+class FeatureGate {
+  const FeatureGate(this.status);
+
+  final FeatureAccessStatus status;
+
+  bool get isEnabled => status == FeatureAccessStatus.enabled;
+
+  bool get canPromptUpgrade =>
+      status == FeatureAccessStatus.requiresEntitlement;
+}
+
 class FeatureAccess {
   const FeatureAccess({
     required this.entitlementState,
-    required this.canUseCloudSync,
-    required this.canUseWebSync,
-    required this.canUseAiAssistant,
-    required this.canUseAdvancedAnalytics,
+    required this.cloudSync,
+    required this.webApp,
+    required this.aiAssistant,
+    required this.advancedAnalytics,
     required this.isWebReadOnly,
   });
 
@@ -28,30 +48,41 @@ class FeatureAccess {
     required EntitlementAccessState entitlementState,
     required DataMode? dataMode,
   }) {
-    final bool hasCloudEntitlement =
-        entitlementState == EntitlementAccessState.cloudTrial ||
-        entitlementState == EntitlementAccessState.cloudActive;
-
     return FeatureAccess(
       entitlementState: entitlementState,
-      canUseCloudSync:
-          capabilities.canRunCloudSync &&
-          hasCloudEntitlement &&
-          dataMode == DataMode.cloudEnabled,
-      canUseWebSync: capabilities.canRunCloudSync && hasCloudEntitlement,
-      canUseAiAssistant: capabilities.canUseAiTransport && hasCloudEntitlement,
-      canUseAdvancedAnalytics: hasCloudEntitlement,
+      cloudSync: _resolveCloudSyncGate(
+        capabilities: capabilities,
+        entitlementState: entitlementState,
+        dataMode: dataMode,
+      ),
+      webApp: _resolveWebAppGate(
+        capabilities: capabilities,
+        entitlementState: entitlementState,
+      ),
+      aiAssistant: _resolveAiAssistantGate(
+        capabilities: capabilities,
+        entitlementState: entitlementState,
+      ),
+      advancedAnalytics: _resolveAdvancedAnalyticsGate(
+        capabilities: capabilities,
+        entitlementState: entitlementState,
+      ),
       isWebReadOnly:
           kIsWeb && entitlementState == EntitlementAccessState.cloudExpired,
     );
   }
 
   final EntitlementAccessState entitlementState;
-  final bool canUseCloudSync;
-  final bool canUseWebSync;
-  final bool canUseAiAssistant;
-  final bool canUseAdvancedAnalytics;
+  final FeatureGate cloudSync;
+  final FeatureGate webApp;
+  final FeatureGate aiAssistant;
+  final FeatureGate advancedAnalytics;
   final bool isWebReadOnly;
+
+  bool get canUseCloudSync => cloudSync.isEnabled;
+  bool get canUseWebSync => webApp.isEnabled;
+  bool get canUseAiAssistant => aiAssistant.isEnabled;
+  bool get canUseAdvancedAnalytics => advancedAnalytics.isEnabled;
 }
 
 final Provider<FeatureAccess> featureAccessProvider = Provider<FeatureAccess>((
@@ -85,5 +116,90 @@ EntitlementAccessState _mapEntitlementState(
     CloudEntitlementState.unavailable ||
     CloudEntitlementState.notActivated ||
     CloudEntitlementState.invalid => EntitlementAccessState.freeLocal,
+  };
+}
+
+FeatureGate _resolveCloudSyncGate({
+  required AppCapabilities capabilities,
+  required EntitlementAccessState entitlementState,
+  required DataMode? dataMode,
+}) {
+  if (!capabilities.canRunCloudSync) {
+    return const FeatureGate(FeatureAccessStatus.disabledByBuild);
+  }
+
+  if (dataMode == DataMode.cloudBlockedByLocalData) {
+    return const FeatureGate(FeatureAccessStatus.blockedByLocalData);
+  }
+
+  if (dataMode == DataMode.cloudEnabled) {
+    return const FeatureGate(FeatureAccessStatus.enabled);
+  }
+
+  return switch (entitlementState) {
+    EntitlementAccessState.freeLocal || EntitlementAccessState.cloudExpired =>
+      const FeatureGate(FeatureAccessStatus.requiresEntitlement),
+    EntitlementAccessState.cloudTrial || EntitlementAccessState.cloudActive =>
+      const FeatureGate(FeatureAccessStatus.requiresSignIn),
+    EntitlementAccessState.unknown => const FeatureGate(
+      FeatureAccessStatus.unavailable,
+    ),
+  };
+}
+
+FeatureGate _resolveWebAppGate({
+  required AppCapabilities capabilities,
+  required EntitlementAccessState entitlementState,
+}) {
+  if (!capabilities.canRunCloudSync) {
+    return const FeatureGate(FeatureAccessStatus.disabledByBuild);
+  }
+
+  return switch (entitlementState) {
+    EntitlementAccessState.cloudTrial || EntitlementAccessState.cloudActive =>
+      const FeatureGate(FeatureAccessStatus.enabled),
+    EntitlementAccessState.freeLocal || EntitlementAccessState.cloudExpired =>
+      const FeatureGate(FeatureAccessStatus.requiresEntitlement),
+    EntitlementAccessState.unknown => const FeatureGate(
+      FeatureAccessStatus.unavailable,
+    ),
+  };
+}
+
+FeatureGate _resolveAiAssistantGate({
+  required AppCapabilities capabilities,
+  required EntitlementAccessState entitlementState,
+}) {
+  if (!capabilities.canUseAiTransport) {
+    return const FeatureGate(FeatureAccessStatus.disabledByBuild);
+  }
+
+  return switch (entitlementState) {
+    EntitlementAccessState.cloudTrial || EntitlementAccessState.cloudActive =>
+      const FeatureGate(FeatureAccessStatus.enabled),
+    EntitlementAccessState.freeLocal || EntitlementAccessState.cloudExpired =>
+      const FeatureGate(FeatureAccessStatus.requiresEntitlement),
+    EntitlementAccessState.unknown => const FeatureGate(
+      FeatureAccessStatus.unavailable,
+    ),
+  };
+}
+
+FeatureGate _resolveAdvancedAnalyticsGate({
+  required AppCapabilities capabilities,
+  required EntitlementAccessState entitlementState,
+}) {
+  if (!capabilities.canRunCloudSync) {
+    return const FeatureGate(FeatureAccessStatus.disabledByBuild);
+  }
+
+  return switch (entitlementState) {
+    EntitlementAccessState.cloudTrial || EntitlementAccessState.cloudActive =>
+      const FeatureGate(FeatureAccessStatus.enabled),
+    EntitlementAccessState.freeLocal || EntitlementAccessState.cloudExpired =>
+      const FeatureGate(FeatureAccessStatus.requiresEntitlement),
+    EntitlementAccessState.unknown => const FeatureGate(
+      FeatureAccessStatus.unavailable,
+    ),
   };
 }

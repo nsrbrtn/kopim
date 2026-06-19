@@ -49,7 +49,7 @@ final Provider<List<NavigationTabConfig>> mainNavigationTabsProvider =
         ),
       ];
 
-      if (featureAccess.canUseAiAssistant) {
+      if (featureAccess.aiAssistant.isEnabled) {
         tabs.insert(
           2,
           NavigationTabConfig(

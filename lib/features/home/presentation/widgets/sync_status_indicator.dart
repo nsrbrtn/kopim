@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kopim/core/application/sync_status_provider.dart';
 import 'package:kopim/core/services/sync_status.dart';
+import 'package:kopim/features/profile/presentation/controllers/feature_access_provider.dart';
 
 class SyncStatusIndicator extends ConsumerStatefulWidget {
   const SyncStatusIndicator({super.key, this.size = 10});
@@ -34,6 +35,9 @@ class _SyncStatusIndicatorState extends ConsumerState<SyncStatusIndicator>
           data: (SyncStatus value) => value,
           orElse: () => SyncStatus.offline,
         );
+    final FeatureGate cloudSyncGate = ref.watch(
+      featureAccessProvider.select((FeatureAccess access) => access.cloudSync),
+    );
     final ThemeData theme = Theme.of(context);
 
     if (status == SyncStatus.syncing) {
@@ -52,6 +56,24 @@ class _SyncStatusIndicatorState extends ConsumerState<SyncStatusIndicator>
 
     if (_rotationController.isAnimating) {
       _rotationController.stop();
+    }
+
+    if (cloudSyncGate.status == FeatureAccessStatus.blockedByLocalData) {
+      return Icon(
+        Icons.warning_amber_rounded,
+        size: widget.size + 6,
+        color: theme.colorScheme.error,
+      );
+    }
+
+    if (cloudSyncGate.status == FeatureAccessStatus.disabledByBuild ||
+        cloudSyncGate.status == FeatureAccessStatus.requiresEntitlement ||
+        cloudSyncGate.status == FeatureAccessStatus.requiresSignIn) {
+      return Icon(
+        Icons.cloud_off_outlined,
+        size: widget.size + 4,
+        color: theme.colorScheme.onSurfaceVariant,
+      );
     }
 
     return const SizedBox.shrink();

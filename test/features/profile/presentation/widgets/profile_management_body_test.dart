@@ -13,6 +13,7 @@ import 'package:kopim/features/profile/domain/entities/user_progress.dart';
 import 'package:kopim/features/profile/domain/policies/level_policy.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/avatar_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/feature_access_provider.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_activity_days_provider.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_form_controller.dart';
@@ -122,6 +123,21 @@ void main() {
     updatedAt: DateTime.utc(2024, 1, 1),
   );
 
+  FeatureAccess defaultFeatureAccess() {
+    final FeatureAccessStatus defaultCloudStatus =
+        AppRuntimeConfig.isOfflineOnlyDistribution
+        ? FeatureAccessStatus.disabledByBuild
+        : FeatureAccessStatus.requiresEntitlement;
+    return FeatureAccess(
+      entitlementState: EntitlementAccessState.freeLocal,
+      cloudSync: FeatureGate(defaultCloudStatus),
+      webApp: FeatureGate(defaultCloudStatus),
+      aiAssistant: const FeatureGate(FeatureAccessStatus.requiresEntitlement),
+      advancedAnalytics: FeatureGate(defaultCloudStatus),
+      isWebReadOnly: false,
+    );
+  }
+
   Widget buildTestApp({required List<Override> overrides}) {
     return ProviderScope(
       overrides: overrides,
@@ -163,6 +179,7 @@ void main() {
           onlineSyncPreferencesControllerProvider.overrideWith(
             () => _OnlineSyncPreferencesControllerStub(true),
           ),
+          featureAccessProvider.overrideWithValue(defaultFeatureAccess()),
           exportUserDataControllerProvider.overrideWith(
             () => _ExportUserDataControllerStub(),
           ),
@@ -212,6 +229,16 @@ void main() {
             ),
             onlineSyncPreferencesControllerProvider.overrideWith(
               () => _OnlineSyncPreferencesControllerStub(true),
+            ),
+            featureAccessProvider.overrideWithValue(
+              const FeatureAccess(
+                entitlementState: EntitlementAccessState.cloudActive,
+                cloudSync: FeatureGate(FeatureAccessStatus.enabled),
+                webApp: FeatureGate(FeatureAccessStatus.enabled),
+                aiAssistant: FeatureGate(FeatureAccessStatus.enabled),
+                advancedAnalytics: FeatureGate(FeatureAccessStatus.enabled),
+                isWebReadOnly: false,
+              ),
             ),
             exportUserDataControllerProvider.overrideWith(
               () => _ExportUserDataControllerStub(),
@@ -276,6 +303,7 @@ void main() {
             onlineSyncPreferencesControllerProvider.overrideWith(
               () => _OnlineSyncPreferencesControllerStub(false),
             ),
+            featureAccessProvider.overrideWithValue(defaultFeatureAccess()),
             exportUserDataControllerProvider.overrideWith(
               () => _ExportUserDataControllerStub(),
             ),
@@ -291,10 +319,10 @@ void main() {
 
       expect(find.text('Выйти из профиля'), findsNothing);
       expect(find.text('Выйти из аккаунта'), findsNothing);
-      expect(find.text('Станет доступно позже'), findsOneWidget);
+      expect(find.text('Локально'), findsOneWidget);
       expect(
         find.text(
-          'Онлайн-синхронизация выключена в офлайн-версии и станет доступна позже по подписке.',
+          'Онлайн-синхронизация недоступна в этой сборке. Приложение работает полностью локально.',
         ),
         findsOneWidget,
       );

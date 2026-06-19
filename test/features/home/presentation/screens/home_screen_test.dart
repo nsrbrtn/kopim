@@ -7,6 +7,7 @@ import 'package:kopim/core/application/sync_status_provider.dart';
 import 'package:kopim/core/config/theme.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/money/money_utils.dart';
+import 'package:kopim/core/services/sync_service.dart';
 import 'package:kopim/core/services/sync_status.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/app_shell/presentation/models/navigation_tab_content.dart';
@@ -36,6 +37,7 @@ import 'package:kopim/features/overview/domain/entities/overview_preferences.dar
 import 'package:kopim/features/overview/presentation/controllers/overview_preferences_controller.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/feature_access_provider.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/models/account_monthly_totals.dart';
 import 'package:kopim/features/transactions/domain/models/budget_expense_totals.dart';
@@ -617,6 +619,252 @@ void main() {
         expect(eyeIcon.color, expectedMutedColor);
       },
     );
+
+    testWidgets(
+      'pull-to-refresh does not trigger sync when blocked by local data',
+      (WidgetTester tester) async {
+        final _FakeSyncService syncService = _FakeSyncService();
+
+        await pumpHomeBody(
+          tester,
+          overrides: <Override>[
+            authControllerProvider.overrideWith(
+              () => _FakeAuthController(null),
+            ),
+            homeDashboardPreferencesControllerProvider.overrideWith(
+              () => _FakeHomeDashboardPreferencesController(),
+            ),
+            overviewPreferencesControllerProvider.overrideWith(
+              () => _FakeOverviewPreferencesController(),
+            ),
+            syncStatusProvider.overrideWith(
+              (Ref ref) => Stream<SyncStatus>.value(SyncStatus.offline),
+            ),
+            syncServiceProvider.overrideWithValue(syncService),
+            featureAccessProvider.overrideWithValue(
+              const FeatureAccess(
+                entitlementState: EntitlementAccessState.cloudActive,
+                cloudSync: FeatureGate(FeatureAccessStatus.blockedByLocalData),
+                webApp: FeatureGate(FeatureAccessStatus.enabled),
+                aiAssistant: FeatureGate(FeatureAccessStatus.enabled),
+                advancedAnalytics: FeatureGate(FeatureAccessStatus.enabled),
+                isWebReadOnly: false,
+              ),
+            ),
+            timeServiceProvider.overrideWith(
+              (Ref ref) => const SystemTimeService(),
+            ),
+            homeAccountsProvider.overrideWith(
+              (Ref ref) =>
+                  Stream<List<AccountEntity>>.value(const <AccountEntity>[]),
+            ),
+            homeAccountMonthlySummariesProvider.overrideWith(
+              (Ref ref) => Stream<Map<String, HomeAccountMonthlySummary>>.value(
+                const <String, HomeAccountMonthlySummary>{},
+              ),
+            ),
+            homeOverviewSummaryProvider.overrideWith(
+              (Ref ref) => Stream<HomeOverviewSummary>.value(
+                HomeOverviewSummary(
+                  totalBalance: MoneyAmount(minor: BigInt.zero, scale: 2),
+                  todayIncome: MoneyAmount(minor: BigInt.zero, scale: 2),
+                  todayExpense: MoneyAmount(minor: BigInt.zero, scale: 2),
+                ),
+              ),
+            ),
+            homeCategoriesProvider.overrideWith(
+              (Ref ref) => Stream<List<Category>>.value(const <Category>[]),
+            ),
+            homeGroupedTransactionsProvider.overrideWith(
+              (Ref ref) =>
+                  const AsyncValue<List<DaySection>>.data(<DaySection>[]),
+            ),
+            homeUpcomingItemsProvider(limit: 6).overrideWith(
+              (Ref ref) =>
+                  Stream<List<UpcomingItem>>.value(const <UpcomingItem>[]),
+            ),
+          ],
+        );
+
+        final RefreshIndicatorState refreshState = tester
+            .state<RefreshIndicatorState>(find.byType(RefreshIndicator));
+        refreshState.show();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(syncService.triggerManualSyncCallCount, 0);
+        expect(
+          find.text('Нужно действие перед включением синхронизации.'),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'pull-to-refresh does not trigger sync when sign-in is required',
+      (WidgetTester tester) async {
+        final _FakeSyncService syncService = _FakeSyncService();
+
+        await pumpHomeBody(
+          tester,
+          overrides: <Override>[
+            authControllerProvider.overrideWith(
+              () => _FakeAuthController(null),
+            ),
+            homeDashboardPreferencesControllerProvider.overrideWith(
+              () => _FakeHomeDashboardPreferencesController(),
+            ),
+            overviewPreferencesControllerProvider.overrideWith(
+              () => _FakeOverviewPreferencesController(),
+            ),
+            syncStatusProvider.overrideWith(
+              (Ref ref) => Stream<SyncStatus>.value(SyncStatus.offline),
+            ),
+            syncServiceProvider.overrideWithValue(syncService),
+            featureAccessProvider.overrideWithValue(
+              const FeatureAccess(
+                entitlementState: EntitlementAccessState.cloudActive,
+                cloudSync: FeatureGate(FeatureAccessStatus.requiresSignIn),
+                webApp: FeatureGate(FeatureAccessStatus.enabled),
+                aiAssistant: FeatureGate(FeatureAccessStatus.enabled),
+                advancedAnalytics: FeatureGate(FeatureAccessStatus.enabled),
+                isWebReadOnly: false,
+              ),
+            ),
+            timeServiceProvider.overrideWith(
+              (Ref ref) => const SystemTimeService(),
+            ),
+            homeAccountsProvider.overrideWith(
+              (Ref ref) =>
+                  Stream<List<AccountEntity>>.value(const <AccountEntity>[]),
+            ),
+            homeAccountMonthlySummariesProvider.overrideWith(
+              (Ref ref) => Stream<Map<String, HomeAccountMonthlySummary>>.value(
+                const <String, HomeAccountMonthlySummary>{},
+              ),
+            ),
+            homeOverviewSummaryProvider.overrideWith(
+              (Ref ref) => Stream<HomeOverviewSummary>.value(
+                HomeOverviewSummary(
+                  totalBalance: MoneyAmount(minor: BigInt.zero, scale: 2),
+                  todayIncome: MoneyAmount(minor: BigInt.zero, scale: 2),
+                  todayExpense: MoneyAmount(minor: BigInt.zero, scale: 2),
+                ),
+              ),
+            ),
+            homeCategoriesProvider.overrideWith(
+              (Ref ref) => Stream<List<Category>>.value(const <Category>[]),
+            ),
+            homeGroupedTransactionsProvider.overrideWith(
+              (Ref ref) =>
+                  const AsyncValue<List<DaySection>>.data(<DaySection>[]),
+            ),
+            homeUpcomingItemsProvider(limit: 6).overrideWith(
+              (Ref ref) =>
+                  Stream<List<UpcomingItem>>.value(const <UpcomingItem>[]),
+            ),
+          ],
+        );
+
+        final RefreshIndicatorState refreshState = tester
+            .state<RefreshIndicatorState>(find.byType(RefreshIndicator));
+        refreshState.show();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(syncService.triggerManualSyncCallCount, 0);
+        expect(
+          find.text('Войдите в аккаунт, чтобы включить синхронизацию.'),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'pull-to-refresh does not trigger sync when entitlement is required',
+      (WidgetTester tester) async {
+        final _FakeSyncService syncService = _FakeSyncService();
+
+        await pumpHomeBody(
+          tester,
+          overrides: <Override>[
+            authControllerProvider.overrideWith(
+              () => _FakeAuthController(null),
+            ),
+            homeDashboardPreferencesControllerProvider.overrideWith(
+              () => _FakeHomeDashboardPreferencesController(),
+            ),
+            overviewPreferencesControllerProvider.overrideWith(
+              () => _FakeOverviewPreferencesController(),
+            ),
+            syncStatusProvider.overrideWith(
+              (Ref ref) => Stream<SyncStatus>.value(SyncStatus.offline),
+            ),
+            syncServiceProvider.overrideWithValue(syncService),
+            featureAccessProvider.overrideWithValue(
+              const FeatureAccess(
+                entitlementState: EntitlementAccessState.freeLocal,
+                cloudSync: FeatureGate(FeatureAccessStatus.requiresEntitlement),
+                webApp: FeatureGate(FeatureAccessStatus.requiresEntitlement),
+                aiAssistant: FeatureGate(
+                  FeatureAccessStatus.requiresEntitlement,
+                ),
+                advancedAnalytics: FeatureGate(
+                  FeatureAccessStatus.requiresEntitlement,
+                ),
+                isWebReadOnly: false,
+              ),
+            ),
+            timeServiceProvider.overrideWith(
+              (Ref ref) => const SystemTimeService(),
+            ),
+            homeAccountsProvider.overrideWith(
+              (Ref ref) =>
+                  Stream<List<AccountEntity>>.value(const <AccountEntity>[]),
+            ),
+            homeAccountMonthlySummariesProvider.overrideWith(
+              (Ref ref) => Stream<Map<String, HomeAccountMonthlySummary>>.value(
+                const <String, HomeAccountMonthlySummary>{},
+              ),
+            ),
+            homeOverviewSummaryProvider.overrideWith(
+              (Ref ref) => Stream<HomeOverviewSummary>.value(
+                HomeOverviewSummary(
+                  totalBalance: MoneyAmount(minor: BigInt.zero, scale: 2),
+                  todayIncome: MoneyAmount(minor: BigInt.zero, scale: 2),
+                  todayExpense: MoneyAmount(minor: BigInt.zero, scale: 2),
+                ),
+              ),
+            ),
+            homeCategoriesProvider.overrideWith(
+              (Ref ref) => Stream<List<Category>>.value(const <Category>[]),
+            ),
+            homeGroupedTransactionsProvider.overrideWith(
+              (Ref ref) =>
+                  const AsyncValue<List<DaySection>>.data(<DaySection>[]),
+            ),
+            homeUpcomingItemsProvider(limit: 6).overrideWith(
+              (Ref ref) =>
+                  Stream<List<UpcomingItem>>.value(const <UpcomingItem>[]),
+            ),
+          ],
+        );
+
+        final RefreshIndicatorState refreshState = tester
+            .state<RefreshIndicatorState>(find.byType(RefreshIndicator));
+        refreshState.show();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(syncService.triggerManualSyncCallCount, 0);
+        expect(
+          find.text(
+            'Синхронизация выключена. Сначала активируйте облачный доступ.',
+          ),
+          findsOneWidget,
+        );
+      },
+    );
   });
 }
 
@@ -641,6 +889,35 @@ class _FakeOverviewPreferencesController extends OverviewPreferencesController {
   @override
   Future<OverviewPreferences> build() async {
     return const OverviewPreferences();
+  }
+}
+
+class _FakeSyncService implements SyncService {
+  int triggerManualSyncCallCount = 0;
+
+  @override
+  Future<void> dispose() async {}
+
+  @override
+  Future<void> initialize() async {}
+
+  @override
+  SyncStatus get status => SyncStatus.offline;
+
+  @override
+  Stream<SyncStatus> get statusStream =>
+      Stream<SyncStatus>.value(SyncStatus.offline);
+
+  @override
+  Future<void> syncPending() async {}
+
+  @override
+  Future<SyncActionResult> triggerSync() async => SyncActionResult.noChanges;
+
+  @override
+  Future<IncrementalSyncStatus> triggerManualSync() async {
+    triggerManualSyncCallCount += 1;
+    return const IncrementalSyncStatus(result: IncrementalSyncResult.noChanges);
   }
 }
 

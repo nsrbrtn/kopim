@@ -24,22 +24,28 @@ void main() {
         dataMode: DataMode.localOnly,
       );
 
-      expect(access.canUseCloudSync, isFalse);
-      expect(access.canUseAiAssistant, isFalse);
-      expect(access.canUseAdvancedAnalytics, isFalse);
+      expect(access.cloudSync.status, FeatureAccessStatus.requiresEntitlement);
+      expect(
+        access.aiAssistant.status,
+        FeatureAccessStatus.requiresEntitlement,
+      );
+      expect(
+        access.advancedAnalytics.status,
+        FeatureAccessStatus.requiresEntitlement,
+      );
     },
   );
 
-  test('cloudTrial entitlement enables cloud feature gates', () {
+  test('cloudTrial entitlement requires sign-in before cloud sync', () {
     final FeatureAccess access = FeatureAccess.fromState(
       capabilities: capabilities,
       entitlementState: EntitlementAccessState.cloudTrial,
-      dataMode: DataMode.cloudEnabled,
+      dataMode: DataMode.localOnly,
     );
 
-    expect(access.canUseCloudSync, isTrue);
-    expect(access.canUseAiAssistant, isTrue);
-    expect(access.canUseAdvancedAnalytics, isTrue);
+    expect(access.cloudSync.status, FeatureAccessStatus.requiresSignIn);
+    expect(access.aiAssistant.status, FeatureAccessStatus.enabled);
+    expect(access.advancedAnalytics.status, FeatureAccessStatus.enabled);
   });
 
   test('cloudActive entitlement enables cloud feature gates', () {
@@ -49,9 +55,20 @@ void main() {
       dataMode: DataMode.cloudEnabled,
     );
 
-    expect(access.canUseCloudSync, isTrue);
-    expect(access.canUseAiAssistant, isTrue);
-    expect(access.canUseAdvancedAnalytics, isTrue);
+    expect(access.cloudSync.status, FeatureAccessStatus.enabled);
+    expect(access.aiAssistant.status, FeatureAccessStatus.enabled);
+    expect(access.advancedAnalytics.status, FeatureAccessStatus.enabled);
+  });
+
+  test('blocked local data is exposed as a dedicated cloud sync status', () {
+    final FeatureAccess access = FeatureAccess.fromState(
+      capabilities: capabilities,
+      entitlementState: EntitlementAccessState.cloudActive,
+      dataMode: DataMode.cloudBlockedByLocalData,
+    );
+
+    expect(access.cloudSync.status, FeatureAccessStatus.blockedByLocalData);
+    expect(access.canUseCloudSync, isFalse);
   });
 
   test('cloudExpired entitlement disables sync writes and AI', () {
@@ -61,7 +78,28 @@ void main() {
       dataMode: DataMode.localOnly,
     );
 
-    expect(access.canUseCloudSync, isFalse);
-    expect(access.canUseAiAssistant, isFalse);
+    expect(access.cloudSync.status, FeatureAccessStatus.requiresEntitlement);
+    expect(access.aiAssistant.status, FeatureAccessStatus.requiresEntitlement);
+  });
+
+  test('offline build disables gates at capability level', () {
+    const AppCapabilities offlineCapabilities = AppCapabilities(
+      canInitializeFirebase: false,
+      canUseFirebaseAuth: false,
+      canUseFirestore: false,
+      canUseRemoteConfig: false,
+      canRunCloudSync: false,
+      canUseAiTransport: false,
+      firebaseEnvironment: null,
+    );
+
+    final FeatureAccess access = FeatureAccess.fromState(
+      capabilities: offlineCapabilities,
+      entitlementState: EntitlementAccessState.cloudActive,
+      dataMode: DataMode.cloudEnabled,
+    );
+
+    expect(access.cloudSync.status, FeatureAccessStatus.disabledByBuild);
+    expect(access.aiAssistant.status, FeatureAccessStatus.disabledByBuild);
   });
 }

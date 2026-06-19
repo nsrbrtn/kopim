@@ -50,6 +50,7 @@ import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/presentation/controllers/active_currency_code_provider.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/feature_access_provider.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction_type.dart';
@@ -340,6 +341,23 @@ class _HomeBody extends ConsumerWidget {
   }
 
   Future<void> _handleRefresh(BuildContext context, WidgetRef ref) async {
+    final FeatureGate cloudSyncGate = ref.read(featureAccessProvider).cloudSync;
+    if (cloudSyncGate.status != FeatureAccessStatus.enabled) {
+      if (!context.mounted) return;
+      final bool isRu = Localizations.localeOf(context).languageCode == 'ru';
+      final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar();
+      messenger.showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 3),
+          content: Text(
+            _cloudSyncDisabledMessage(isRu: isRu, cloudSyncGate: cloudSyncGate),
+          ),
+        ),
+      );
+      return;
+    }
+
     final SyncService syncService = ref.read(syncServiceProvider);
     final IncrementalSyncStatus status = await syncService.triggerManualSync();
     if (!context.mounted) return;
@@ -367,13 +385,13 @@ class _HomeBody extends ConsumerWidget {
             : 'Sign in to sync your data.',
       IncrementalSyncResult.alreadySyncing =>
         isRu ? 'Синхронизация уже выполняется.' : 'Sync is already running.',
-      IncrementalSyncResult.cloudSyncDisabled =>
-        isRu
-            ? 'Облачная синхронизация отключена для текущего режима данных.'
-            : 'Cloud sync is disabled for the current data mode.',
+      IncrementalSyncResult.cloudSyncDisabled => _cloudSyncDisabledMessage(
+        isRu: isRu,
+        cloudSyncGate: cloudSyncGate,
+      ),
       IncrementalSyncResult.blockedByLocalData =>
         isRu
-            ? 'Синхронизация заблокирована: локальные данные требуют отдельного решения перед включением облака.'
+            ? 'Нужно действие перед включением синхронизации.'
             : 'Sync is blocked because local data needs a separate decision before cloud can be enabled.',
       IncrementalSyncResult.dependencyCycleDetected =>
         isRu
@@ -394,6 +412,38 @@ class _HomeBody extends ConsumerWidget {
     messenger.showSnackBar(
       SnackBar(duration: const Duration(seconds: 3), content: Text(message)),
     );
+  }
+
+  String _cloudSyncDisabledMessage({
+    required bool isRu,
+    required FeatureGate cloudSyncGate,
+  }) {
+    return switch (cloudSyncGate.status) {
+      FeatureAccessStatus.disabledByBuild =>
+        isRu
+            ? 'Эта версия работает только локально.'
+            : 'This build works in local-only mode.',
+      FeatureAccessStatus.requiresEntitlement =>
+        isRu
+            ? 'Синхронизация выключена. Сначала активируйте облачный доступ.'
+            : 'Sync is disabled. Activate cloud access first.',
+      FeatureAccessStatus.requiresSignIn =>
+        isRu
+            ? 'Войдите в аккаунт, чтобы включить синхронизацию.'
+            : 'Sign in to enable sync.',
+      FeatureAccessStatus.blockedByLocalData =>
+        isRu
+            ? 'Нужно действие перед включением синхронизации.'
+            : 'Action is required before sync can be enabled.',
+      FeatureAccessStatus.unavailable =>
+        isRu
+            ? 'Состояние синхронизации еще уточняется.'
+            : 'Sync availability is still being checked.',
+      FeatureAccessStatus.enabled =>
+        isRu
+            ? 'Синхронизация временно недоступна.'
+            : 'Sync is temporarily unavailable.',
+    };
   }
 }
 
