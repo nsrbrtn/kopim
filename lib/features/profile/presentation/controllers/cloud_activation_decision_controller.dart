@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_preflight_controller.dart';
-import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/cloud_activation_readiness_controller.dart';
+import 'package:kopim/features/profile/presentation/models/cloud_activation_readiness_models.dart';
 
 enum CloudActivationDecisionStatus {
   blocked,
@@ -13,13 +13,18 @@ enum CloudActivationDecisionStatus {
 }
 
 enum CloudActivationScenario {
-  localHasDataRemoteUnknown,
-  localEmptyRemoteUnknown,
+  localEmptyRemoteEmpty,
+  localEmptyRemoteMetadataOnly,
+  localEmptyRemoteHasData,
+  localHasDataRemoteEmpty,
+  localHasDataRemoteMetadataOnly,
+  localHasDataRemoteHasData,
 }
 
 enum CloudActivationSnapshotState { empty, hasData, unknown }
 
 enum CloudActivationChoice {
+  enableCloudSync,
   stayLocalOnly,
   migrateLocalToCloud,
   startWithEmptyCloud,
@@ -59,6 +64,8 @@ class CloudActivationDecisionState {
     required this.followupNote,
     required this.localSnapshotState,
     required this.remoteSnapshotState,
+    required this.localFingerprint,
+    required this.remoteFingerprint,
     required this.options,
     this.scenario,
   });
@@ -70,6 +77,8 @@ class CloudActivationDecisionState {
   final String followupNote;
   final CloudActivationSnapshotState localSnapshotState;
   final CloudActivationSnapshotState remoteSnapshotState;
+  final String? localFingerprint;
+  final String? remoteFingerprint;
   final List<CloudActivationDecisionOption> options;
   final CloudActivationScenario? scenario;
 
@@ -78,21 +87,32 @@ class CloudActivationDecisionState {
       status == CloudActivationDecisionStatus.choiceRequired;
 }
 
+String cloudActivationChoiceLabel(CloudActivationChoice choice) {
+  return switch (choice) {
+    CloudActivationChoice.enableCloudSync => 'Включить облачную синхронизацию',
+    CloudActivationChoice.stayLocalOnly => 'Остаться локально',
+    CloudActivationChoice.migrateLocalToCloud => 'Перенести данные в облако',
+    CloudActivationChoice.startWithEmptyCloud => 'Начать с пустого облака',
+    CloudActivationChoice.replaceLocalWithCloud =>
+      'Заменить локальные данные облачными',
+    CloudActivationChoice.mergeLocalAndCloud =>
+      'Объединить локальные и облачные данные',
+  };
+}
+
 bool canOpenCloudActivationChoiceScreen(CloudActivationPreflightStatus status) {
   return status == CloudActivationPreflightStatus.blockedByLocalOnlyData ||
       status == CloudActivationPreflightStatus.readyForNextStep;
 }
 
 CloudActivationDecisionState resolveCloudActivationDecisionState({
-  required CloudActivationPreflightState preflightState,
-  required AsyncValue<DataModeState> dataModeAsync,
+  required CloudActivationReadinessState readinessState,
 }) {
-  return switch (preflightState.status) {
-    CloudActivationPreflightStatus.blockedByLocalOnlyData =>
-      _resolveLocalDataScenario(dataModeAsync),
-    CloudActivationPreflightStatus.readyForNextStep =>
-      _resolveEmptyLocalScenario(dataModeAsync),
-    CloudActivationPreflightStatus.alreadyCloudEnabled =>
+  return switch (readinessState.status) {
+    CloudActivationReadinessStatus.readyForChoice ||
+    CloudActivationReadinessStatus.waitingForConfirmation =>
+      _resolveMatrixScenario(readinessState),
+    CloudActivationReadinessStatus.executionBlocked =>
       const CloudActivationDecisionState(
         status: CloudActivationDecisionStatus.alreadyCloudEnabled,
         title: 'Синхронизация уже включена',
@@ -102,24 +122,28 @@ CloudActivationDecisionState resolveCloudActivationDecisionState({
         followupNote: 'Никакие данные не меняются на этом шаге.',
         localSnapshotState: CloudActivationSnapshotState.unknown,
         remoteSnapshotState: CloudActivationSnapshotState.unknown,
+        localFingerprint: null,
+        remoteFingerprint: null,
         options: <CloudActivationDecisionOption>[],
       ),
-    CloudActivationPreflightStatus.cloudUnavailableInBuild ||
-    CloudActivationPreflightStatus.signedOut ||
-    CloudActivationPreflightStatus
-        .entitlementRequired => const CloudActivationDecisionState(
-      status: CloudActivationDecisionStatus.unavailable,
-      title: 'Синхронизация сейчас недоступна',
-      subtitle: 'Сначала нужно завершить предыдущий шаг.',
-      body:
-          'Этот экран выбора сценария открывается только после того, как облачные функции реально доступны для следующего безопасного шага.',
-      followupNote:
-          'Данные не отправляются и не меняются, пока preflight не разрешит следующий этап.',
-      localSnapshotState: CloudActivationSnapshotState.unknown,
-      remoteSnapshotState: CloudActivationSnapshotState.unknown,
-      options: <CloudActivationDecisionOption>[],
-    ),
-    CloudActivationPreflightStatus.unknown => const CloudActivationDecisionState(
+    CloudActivationReadinessStatus.unavailable =>
+      const CloudActivationDecisionState(
+        status: CloudActivationDecisionStatus.unavailable,
+        title: 'Синхронизация сейчас недоступна',
+        subtitle: 'Сначала нужно завершить предыдущий шаг.',
+        body:
+            'Этот экран выбора сценария открывается только после того, как облачные функции реально доступны для следующего безопасного шага.',
+        followupNote:
+            'Данные не отправляются и не меняются, пока preflight не разрешит следующий этап.',
+        localSnapshotState: CloudActivationSnapshotState.unknown,
+        remoteSnapshotState: CloudActivationSnapshotState.unknown,
+        localFingerprint: null,
+        remoteFingerprint: null,
+        options: <CloudActivationDecisionOption>[],
+      ),
+    CloudActivationReadinessStatus.loading ||
+    CloudActivationReadinessStatus
+        .unknown => const CloudActivationDecisionState(
       status: CloudActivationDecisionStatus.unknown,
       title: 'Проверяем состояние подключения',
       subtitle: 'Сценарий пока не определён.',
@@ -129,66 +153,113 @@ CloudActivationDecisionState resolveCloudActivationDecisionState({
           'Этот экран остаётся fail-closed, пока состояние не стало надёжным.',
       localSnapshotState: CloudActivationSnapshotState.unknown,
       remoteSnapshotState: CloudActivationSnapshotState.unknown,
+      localFingerprint: null,
+      remoteFingerprint: null,
       options: <CloudActivationDecisionOption>[],
     ),
   };
 }
 
-CloudActivationDecisionState _resolveLocalDataScenario(
-  AsyncValue<DataModeState> dataModeAsync,
+CloudActivationDecisionState _resolveMatrixScenario(
+  CloudActivationReadinessState readinessState,
 ) {
-  final DataMode? dataMode = dataModeAsync.asData?.value.dataMode;
-  if (dataMode != DataMode.cloudBlockedByLocalData) {
+  final CloudActivationScenario? scenario = _mapScenario(
+    readinessState.matrixScenario,
+  );
+  if (scenario == null) {
     return const CloudActivationDecisionState(
       status: CloudActivationDecisionStatus.unknown,
       title: 'Проверяем состояние подключения',
       subtitle: 'Сценарий пока не определён.',
       body:
-          'Локальное состояние ещё не подтверждено, поэтому экран выбора не предлагает рискованные шаги.',
+          'Приложение ещё не подтвердило безопасную комбинацию локального и облачного состояния.',
       followupNote:
           'Пока состояние не подтверждено, никакой сценарий не выполняется автоматически.',
       localSnapshotState: CloudActivationSnapshotState.unknown,
       remoteSnapshotState: CloudActivationSnapshotState.unknown,
+      localFingerprint: null,
+      remoteFingerprint: null,
       options: <CloudActivationDecisionOption>[],
     );
   }
 
-  return const CloudActivationDecisionState(
-    status: CloudActivationDecisionStatus.blocked,
-    scenario: CloudActivationScenario.localHasDataRemoteUnknown,
+  final bool localHasData =
+      readinessState.localSnapshotState == LocalSnapshotState.hasUserData;
+  final bool remoteHasData =
+      readinessState.remoteSnapshotState == RemoteSnapshotState.hasUserData;
+  final bool remoteMetadataOnly =
+      readinessState.remoteSnapshotState == RemoteSnapshotState.hasOnlyMetadata;
+  final bool enableCloudSyncAvailable =
+      !localHasData &&
+      (readinessState.remoteSnapshotState == RemoteSnapshotState.empty ||
+          remoteMetadataOnly);
+  final bool startWithEmptyCloudAvailable =
+      localHasData &&
+      (readinessState.remoteSnapshotState == RemoteSnapshotState.empty ||
+          remoteMetadataOnly);
+  final bool migrateLocalToCloudRelevant =
+      localHasData &&
+      (readinessState.remoteSnapshotState == RemoteSnapshotState.empty ||
+          remoteMetadataOnly);
+  final bool replaceLocalWithCloudRelevant = !localHasData && remoteHasData;
+  final bool mergeRelevant = localHasData && remoteHasData;
+
+  return CloudActivationDecisionState(
+    status: localHasData
+        ? CloudActivationDecisionStatus.blocked
+        : CloudActivationDecisionStatus.choiceRequired,
+    scenario: scenario,
     title: 'Как включить облачные функции',
     subtitle:
         'Сначала выберите, как Kopim должен работать с вашими данными дальше.',
-    body:
-        'На этом устройстве уже есть локальные данные. Пока приложение не выполняет перенос, объединение или замену данных автоматически.',
+    body: _buildBody(
+      localHasData: localHasData,
+      remoteHasData: remoteHasData,
+      remoteMetadataOnly: remoteMetadataOnly,
+    ),
     followupNote:
-        'Это только подготовительный шаг: локальные данные пока никуда не отправлены, а облачная синхронизация не включится сама.',
-    localSnapshotState: CloudActivationSnapshotState.hasData,
-    remoteSnapshotState: CloudActivationSnapshotState.unknown,
+        'Это подготовительный экран: choice/readiness только фиксирует безопасный сценарий без sync side effects.',
+    localSnapshotState: _mapLocalSnapshot(readinessState.localSnapshotState),
+    remoteSnapshotState: _mapRemoteSnapshot(readinessState.remoteSnapshotState),
+    localFingerprint: readinessState.localFingerprint,
+    remoteFingerprint: readinessState.remoteFingerprint,
     options: <CloudActivationDecisionOption>[
-      CloudActivationDecisionOption(
+      const CloudActivationDecisionOption(
         choice: CloudActivationChoice.stayLocalOnly,
         title: 'Остаться локально',
-        body:
-            'Закрыть этот flow и продолжить работу только с данными на устройстве.',
+        body: 'Закрыть flow и пока не переходить к облачному сценарию.',
         availability: CloudActivationChoiceAvailability.available,
+      ),
+      CloudActivationDecisionOption(
+        choice: CloudActivationChoice.enableCloudSync,
+        title: 'Включить облачную синхронизацию',
+        body:
+            'Обычное включение синхронизации доступно только когда локально нет пользовательских данных, а в облаке нет финансового снимка.',
+        availability: enableCloudSyncAvailable
+            ? CloudActivationChoiceAvailability.available
+            : CloudActivationChoiceAvailability.unavailableForCurrentScenario,
+        followupNote:
+            'На этом этапе выбор только фиксируется как pending intent: синхронизация ещё не запускается, а удалённое состояние не меняется.',
       ),
       CloudActivationDecisionOption(
         choice: CloudActivationChoice.migrateLocalToCloud,
         title: 'Перенести данные в облако',
         body:
-            'Будущий сценарий переноса текущих локальных данных в облако без ручного экспорта.',
-        availability:
-            CloudActivationChoiceAvailability.unavailableUntilExecutionFlow,
+            'Будущий execution flow переноса локальных данных в облако без ручного экспорта.',
+        availability: migrateLocalToCloudRelevant
+            ? CloudActivationChoiceAvailability.unavailableUntilExecutionFlow
+            : CloudActivationChoiceAvailability.unavailableForCurrentScenario,
         followupNote:
-            'Этот execution flow ещё не реализован, поэтому перенос сейчас не запускается.',
+            'Execution flow для миграции ещё не реализован, поэтому перенос сейчас не запускается.',
       ),
       CloudActivationDecisionOption(
         choice: CloudActivationChoice.startWithEmptyCloud,
         title: 'Начать с пустого облака',
         body:
-            'Подготовить сценарий, в котором облачный режим стартует без отправки текущих локальных данных.',
-        availability: CloudActivationChoiceAvailability.requiresConfirmation,
+            'Отдельный продуктовый выбор для случая, когда локальные данные не нужно отправлять в облако.',
+        availability: startWithEmptyCloudAvailable
+            ? CloudActivationChoiceAvailability.requiresConfirmation
+            : CloudActivationChoiceAvailability.unavailableForCurrentScenario,
         followupNote:
             'На этом шаге это только подтверждение продуктового выбора без изменения данных.',
       ),
@@ -196,95 +267,23 @@ CloudActivationDecisionState _resolveLocalDataScenario(
         choice: CloudActivationChoice.replaceLocalWithCloud,
         title: 'Заменить локальные данные облачными',
         body:
-            'Будущий сценарий, в котором источник данных для устройства приходит из облака.',
-        availability:
-            CloudActivationChoiceAvailability.unavailableForCurrentScenario,
+            'Сценарий актуален только когда облачный финансовый снимок уже подтверждён для текущего аккаунта.',
+        availability: replaceLocalWithCloudRelevant
+            ? CloudActivationChoiceAvailability.unavailableUntilExecutionFlow
+            : CloudActivationChoiceAvailability.unavailableForCurrentScenario,
         followupNote:
-            'Удалённый снимок данных пока не подтверждён, поэтому этот путь скрыт за fail-closed ограничением.',
+            'Execution flow для замены локальных данных облачными ещё не реализован.',
       ),
       CloudActivationDecisionOption(
         choice: CloudActivationChoice.mergeLocalAndCloud,
         title: 'Объединить локальные и облачные данные',
         body:
-            'Будущий сценарий безопасного объединения локальных и облачных данных.',
-        availability:
-            CloudActivationChoiceAvailability.unavailableUntilExecutionFlow,
+            'Merge имеет смысл только когда подтверждены и локальные, и облачные пользовательские данные.',
+        availability: mergeRelevant
+            ? CloudActivationChoiceAvailability.unavailableUntilExecutionFlow
+            : CloudActivationChoiceAvailability.unavailableForCurrentScenario,
         followupNote:
-            'Для этого пути ещё нет execution flow и правил merge на текущем этапе.',
-      ),
-    ],
-  );
-}
-
-CloudActivationDecisionState _resolveEmptyLocalScenario(
-  AsyncValue<DataModeState> dataModeAsync,
-) {
-  final DataMode? dataMode = dataModeAsync.asData?.value.dataMode;
-  if (dataMode != DataMode.localOnly) {
-    return const CloudActivationDecisionState(
-      status: CloudActivationDecisionStatus.unknown,
-      title: 'Проверяем состояние подключения',
-      subtitle: 'Сценарий пока не определён.',
-      body:
-          'Приложение ещё не подтвердило безопасный локальный стартовый сценарий, поэтому выбор временно закрыт.',
-      followupNote:
-          'Никакой путь не будет запущен автоматически, пока состояние не стало надёжным.',
-      localSnapshotState: CloudActivationSnapshotState.unknown,
-      remoteSnapshotState: CloudActivationSnapshotState.unknown,
-      options: <CloudActivationDecisionOption>[],
-    );
-  }
-
-  return const CloudActivationDecisionState(
-    status: CloudActivationDecisionStatus.choiceRequired,
-    scenario: CloudActivationScenario.localEmptyRemoteUnknown,
-    title: 'Как включить облачные функции',
-    subtitle:
-        'Сначала выберите, как Kopim должен работать с вашими данными дальше.',
-    body:
-        'На устройстве сейчас нет подтверждённого локального блока для переноса, но приложение всё равно не включает облако автоматически на этом шаге.',
-    followupNote:
-        'Это подготовительный экран: сценарий можно выбрать заранее, но данные пока не отправляются и не подгружаются.',
-    localSnapshotState: CloudActivationSnapshotState.empty,
-    remoteSnapshotState: CloudActivationSnapshotState.unknown,
-    options: <CloudActivationDecisionOption>[
-      CloudActivationDecisionOption(
-        choice: CloudActivationChoice.stayLocalOnly,
-        title: 'Остаться локально',
-        body: 'Закрыть flow и пока не переходить к облачному сценарию.',
-        availability: CloudActivationChoiceAvailability.available,
-      ),
-      CloudActivationDecisionOption(
-        choice: CloudActivationChoice.migrateLocalToCloud,
-        title: 'Перенести данные в облако',
-        body:
-            'Сценарий переноса нужен только когда есть локальные данные для отправки.',
-        availability:
-            CloudActivationChoiceAvailability.unavailableForCurrentScenario,
-      ),
-      CloudActivationDecisionOption(
-        choice: CloudActivationChoice.startWithEmptyCloud,
-        title: 'Начать с пустого облака',
-        body:
-            'Подготовить пустой облачный старт как следующий продуктовый шаг.',
-        availability: CloudActivationChoiceAvailability.requiresConfirmation,
-        followupNote:
-            'Даже после подтверждения на этом этапе не создаётся и не очищается удалённое состояние.',
-      ),
-      CloudActivationDecisionOption(
-        choice: CloudActivationChoice.replaceLocalWithCloud,
-        title: 'Заменить локальные данные облачными',
-        body:
-            'Этот путь имеет смысл только если облачные данные уже подтверждены отдельно.',
-        availability:
-            CloudActivationChoiceAvailability.unavailableForCurrentScenario,
-      ),
-      CloudActivationDecisionOption(
-        choice: CloudActivationChoice.mergeLocalAndCloud,
-        title: 'Объединить локальные и облачные данные',
-        body: 'Merge станет отдельным этапом, когда появится execution flow.',
-        availability:
-            CloudActivationChoiceAvailability.unavailableUntilExecutionFlow,
+            'Для merge пока нет execution flow и правил объединения на текущем этапе.',
       ),
     ],
   );
@@ -293,7 +292,75 @@ CloudActivationDecisionState _resolveEmptyLocalScenario(
 final Provider<CloudActivationDecisionState> cloudActivationDecisionProvider =
     Provider<CloudActivationDecisionState>((Ref ref) {
       return resolveCloudActivationDecisionState(
-        preflightState: ref.watch(cloudActivationPreflightProvider),
-        dataModeAsync: ref.watch(dataModeControllerProvider),
+        readinessState: ref
+            .watch(cloudActivationReadinessProvider)
+            .asData!
+            .value,
       );
     });
+
+CloudActivationScenario? _mapScenario(CloudActivationMatrixScenario? scenario) {
+  return switch (scenario) {
+    CloudActivationMatrixScenario.localEmptyRemoteEmpty =>
+      CloudActivationScenario.localEmptyRemoteEmpty,
+    CloudActivationMatrixScenario.localEmptyRemoteMetadataOnly =>
+      CloudActivationScenario.localEmptyRemoteMetadataOnly,
+    CloudActivationMatrixScenario.localEmptyRemoteHasUserData =>
+      CloudActivationScenario.localEmptyRemoteHasData,
+    CloudActivationMatrixScenario.localHasUserDataRemoteEmpty =>
+      CloudActivationScenario.localHasDataRemoteEmpty,
+    CloudActivationMatrixScenario.localHasUserDataRemoteMetadataOnly =>
+      CloudActivationScenario.localHasDataRemoteMetadataOnly,
+    CloudActivationMatrixScenario.localHasUserDataRemoteHasUserData =>
+      CloudActivationScenario.localHasDataRemoteHasData,
+    null => null,
+  };
+}
+
+CloudActivationSnapshotState _mapLocalSnapshot(LocalSnapshotState state) {
+  return switch (state) {
+    LocalSnapshotState.empty ||
+    LocalSnapshotState.hasOnlySystemData => CloudActivationSnapshotState.empty,
+    LocalSnapshotState.hasUserData => CloudActivationSnapshotState.hasData,
+    LocalSnapshotState.hasPendingOutbox ||
+    LocalSnapshotState.hasLocalOnlyPlaceholders ||
+    LocalSnapshotState.activationInProgress ||
+    LocalSnapshotState.unknown => CloudActivationSnapshotState.unknown,
+  };
+}
+
+CloudActivationSnapshotState _mapRemoteSnapshot(RemoteSnapshotState state) {
+  return switch (state) {
+    RemoteSnapshotState.empty ||
+    RemoteSnapshotState.hasOnlyMetadata => CloudActivationSnapshotState.empty,
+    RemoteSnapshotState.hasUserData => CloudActivationSnapshotState.hasData,
+    RemoteSnapshotState.hasTombstonesOnly ||
+    RemoteSnapshotState.activationInProgress ||
+    RemoteSnapshotState.unavailable ||
+    RemoteSnapshotState.permissionDenied ||
+    RemoteSnapshotState.unauthenticated ||
+    RemoteSnapshotState.unknown => CloudActivationSnapshotState.unknown,
+  };
+}
+
+String _buildBody({
+  required bool localHasData,
+  required bool remoteHasData,
+  required bool remoteMetadataOnly,
+}) {
+  if (localHasData && remoteHasData) {
+    return 'На устройстве и в облаке уже есть подтверждённые пользовательские данные. Пока приложение не выполняет merge автоматически и остаётся в design-gate режиме.';
+  }
+  if (localHasData) {
+    return remoteMetadataOnly
+        ? 'На устройстве уже есть локальные данные, а в облаке подтверждены только служебные metadata. Обычное включение синхронизации здесь не подменяет отдельный выбор сценария.'
+        : 'На этом устройстве уже есть локальные данные. Пока приложение не выполняет перенос, объединение или замену данных автоматически.';
+  }
+  if (remoteHasData) {
+    return 'Локального блока для миграции сейчас нет, но в облаке уже есть подтверждённые пользовательские данные. Поэтому обычное включение синхронизации остаётся закрытым до отдельного execution flow.';
+  }
+  if (remoteMetadataOnly) {
+    return 'Локально пользовательских данных нет, а в облаке найдены только служебные metadata без финансового снимка. Это эквивалент безопасного пустого старта для текущего readiness-этапа.';
+  }
+  return 'На устройстве сейчас нет подтверждённого локального блока для миграции, и облачный финансовый снимок тоже не найден. Приложение всё равно не включает облако автоматически на этом шаге.';
+}

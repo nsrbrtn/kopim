@@ -15,7 +15,8 @@
 | Разделение `AppCapabilities` / `FeatureAccess` / `DataMode` | `done` | зафиксировано в модели и предыдущем этапе |
 | Gate-based доступ к cloud/web/AI вместо raw flavor checks | `done` | зафиксировано в текущей runtime matrix |
 | Safe preflight-only flow перед включением cloud | `done` | отдельный preflight controller/screen подключены в profile flow и покрыты targeted tests |
-| Choice screen для сценариев `local -> cloud` | `done` | отдельный decision controller и choice screen реализованы как read-only этап без side effects |
+| Choice screen для сценариев `local -> cloud` | `done` | read-only этап сохранён fail-closed, а выбранный сценарий теперь фиксируется как pending intent вне `DataModeController` |
+| Readiness / local snapshot classifier | `done` | local+remote read-only snapshot classifier, matrix-driven readiness/choice flow и legacy handoff guard-tests зафиксированы в текущем checkout |
 | Реальная миграция `local -> cloud` | `planned` | сознательно отложено |
 | Server-backed entitlement / trial lifecycle | `planned` | сознательно отложено |
 | Web read-only barrier для expired entitlement | `planned` | сознательно отложено |
@@ -64,11 +65,13 @@
 
 Статус: `done`
 
-Что должно появиться:
+Что считаем зафиксированным на текущем checkout:
 
 - отдельный экран выбора сценария;
 - read-only decision controller;
+- отдельный pending intent controller вне `DataModeController`;
 - варианты:
+  - `enableCloudSync`
   - `stayLocalOnly`
   - `migrateLocalToCloud`
   - `startWithEmptyCloud`
@@ -98,9 +101,9 @@
 
 ## Ближайший фокус
 
-1. Спроектировать и реализовать отдельный execution flow для реальной миграции `local -> cloud`.
-2. Решить, как и когда надёжно определять `remote snapshot` для choice matrix без нарушения fail-closed поведения.
-3. Только отдельным следующим планом обсуждать merge/upload/replace semantics и их sync-contract последствия.
+1. Открыть отдельный scenario-specific ExecPlan для первого real execution path: `enableCloudSync`, `migrateLocalToCloud`, `startWithEmptyCloud` или `replaceLocalWithCloud`.
+2. Сохранить текущий stage fail-closed: перед любым execution flow повторно проверять local+remote summary и не переиспользовать readiness fingerprint как write-гарантию.
+3. Не расширять legacy `MigrationDecision` дальше текущего compatibility handoff до появления отдельного execution service.
 
 ## Как обновлять этот файл
 

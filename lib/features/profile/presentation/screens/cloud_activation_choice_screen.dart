@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_decision_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/cloud_activation_intent_controller.dart';
 
 class CloudActivationChoiceScreen extends ConsumerWidget {
   const CloudActivationChoiceScreen({super.key});
@@ -14,6 +15,9 @@ class CloudActivationChoiceScreen extends ConsumerWidget {
     final ThemeData theme = Theme.of(context);
     final CloudActivationDecisionState state = ref.watch(
       cloudActivationDecisionProvider,
+    );
+    final CloudActivationIntentState intentState = ref.watch(
+      cloudActivationIntentProvider,
     );
 
     return Scaffold(
@@ -44,13 +48,22 @@ class CloudActivationChoiceScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 _InfoBanner(message: state.followupNote),
+                if (intentState.hasPendingChoice) ...<Widget>[
+                  const SizedBox(height: 12),
+                  _InfoBanner(
+                    message:
+                        'Для следующего этапа сохранён выбор: ${cloudActivationChoiceLabel(intentState.pendingChoice!)}. Данные и синхронизация пока не менялись.',
+                  ),
+                ],
                 if (state.canChoose) ...<Widget>[
                   const SizedBox(height: 24),
                   for (final CloudActivationDecisionOption option
                       in state.options) ...<Widget>[
                     _ChoiceCard(
                       option: option,
-                      onPressed: () => _handleChoice(context, option),
+                      isSelected: intentState.pendingChoice == option.choice,
+                      onPressed: () =>
+                          _handleChoice(context, ref, state, option),
                     ),
                     const SizedBox(height: 12),
                   ],
@@ -71,11 +84,14 @@ class CloudActivationChoiceScreen extends ConsumerWidget {
 
   Future<void> _handleChoice(
     BuildContext context,
+    WidgetRef ref,
+    CloudActivationDecisionState state,
     CloudActivationDecisionOption option,
   ) async {
     switch (option.availability) {
       case CloudActivationChoiceAvailability.available:
         if (option.choice == CloudActivationChoice.stayLocalOnly) {
+          ref.read(cloudActivationIntentProvider.notifier).clearPendingChoice();
           final ScaffoldMessengerState messenger = ScaffoldMessenger.of(
             context,
           );
@@ -89,7 +105,8 @@ class CloudActivationChoiceScreen extends ConsumerWidget {
           );
           return;
         }
-        _showPlaceholderSnackBar(context, option);
+        _savePendingChoice(ref, state, option);
+        _showPendingChoiceSnackBar(context, option);
         return;
       case CloudActivationChoiceAvailability.requiresConfirmation:
         final bool confirmed =
@@ -120,7 +137,8 @@ class CloudActivationChoiceScreen extends ConsumerWidget {
           return;
         }
         if (confirmed) {
-          _showPlaceholderSnackBar(context, option);
+          _savePendingChoice(ref, state, option);
+          _showPendingChoiceSnackBar(context, option);
         }
         return;
       case CloudActivationChoiceAvailability.unavailableForCurrentScenario:
@@ -128,6 +146,30 @@ class CloudActivationChoiceScreen extends ConsumerWidget {
         _showPlaceholderSnackBar(context, option);
         return;
     }
+  }
+
+  void _savePendingChoice(
+    WidgetRef ref,
+    CloudActivationDecisionState state,
+    CloudActivationDecisionOption option,
+  ) {
+    ref
+        .read(cloudActivationIntentProvider.notifier)
+        .savePendingChoice(choice: option.choice, decisionState: state);
+  }
+
+  void _showPendingChoiceSnackBar(
+    BuildContext context,
+    CloudActivationDecisionOption option,
+  ) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          option.followupNote ??
+              'Выбор сохранён для следующего этапа. Данные и подключение пока не менялись.',
+        ),
+      ),
+    );
   }
 
   void _showPlaceholderSnackBar(
@@ -180,9 +222,14 @@ class _InfoBanner extends StatelessWidget {
 }
 
 class _ChoiceCard extends StatelessWidget {
-  const _ChoiceCard({required this.option, required this.onPressed});
+  const _ChoiceCard({
+    required this.option,
+    required this.isSelected,
+    required this.onPressed,
+  });
 
   final CloudActivationDecisionOption option;
+  final bool isSelected;
   final VoidCallback onPressed;
 
   @override
@@ -211,6 +258,7 @@ class _ChoiceCard extends StatelessWidget {
               children: <Widget>[
                 Text(option.title, style: theme.textTheme.titleMedium),
                 Chip(label: Text(availabilityLabel)),
+                if (isSelected) const Chip(label: Text('Выбрано')),
               ],
             ),
             const SizedBox(height: 12),

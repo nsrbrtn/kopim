@@ -21,6 +21,8 @@ Widget _buildTestApp({required CloudActivationPreflightState state}) {
           followupNote: 'note',
           localSnapshotState: CloudActivationSnapshotState.hasData,
           remoteSnapshotState: CloudActivationSnapshotState.unknown,
+          localFingerprint: 'local:hasData',
+          remoteFingerprint: 'remote:unknown|uid:test',
           options: <CloudActivationDecisionOption>[],
         ),
       ),

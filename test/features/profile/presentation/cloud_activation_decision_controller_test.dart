@@ -1,63 +1,47 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_decision_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_preflight_controller.dart';
-import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
+import 'package:kopim/features/profile/presentation/models/cloud_activation_readiness_models.dart';
 
 void main() {
-  DataModeState stateFor(DataMode mode) {
-    return DataModeState(
-      dataMode: mode,
-      entitlementState: CloudEntitlementState.active,
-      migrationDecision: MigrationDecision.none,
+  CloudActivationReadinessState readiness({
+    required LocalSnapshotState local,
+    required RemoteSnapshotState remote,
+    required CloudActivationMatrixScenario scenario,
+    CloudActivationReadinessStatus status =
+        CloudActivationReadinessStatus.readyForChoice,
+  }) {
+    return CloudActivationReadinessState(
+      status: status,
+      localSnapshotState: local,
+      remoteSnapshotState: remote,
+      matrixScenario: scenario,
+      localFingerprint: 'local:${local.name}',
+      remoteFingerprint: 'remote:${remote.name}|uid:user-1',
     );
   }
 
-  test('blocked preflight maps to localHasData choice model', () {
+  test('empty local plus empty remote enables normal cloud sync only', () {
     final CloudActivationDecisionState state =
         resolveCloudActivationDecisionState(
-          preflightState: const CloudActivationPreflightState(
-            CloudActivationPreflightStatus.blockedByLocalOnlyData,
-          ),
-          dataModeAsync: AsyncValue<DataModeState>.data(
-            stateFor(DataMode.cloudBlockedByLocalData),
-          ),
-        );
-
-    expect(state.status, CloudActivationDecisionStatus.blocked);
-    expect(state.scenario, CloudActivationScenario.localHasDataRemoteUnknown);
-    expect(state.localSnapshotState, CloudActivationSnapshotState.hasData);
-    expect(state.remoteSnapshotState, CloudActivationSnapshotState.unknown);
-    expect(state.options, hasLength(5));
-    expect(
-      state.options.first.availability,
-      CloudActivationChoiceAvailability.available,
-    );
-    expect(
-      state.options[1].availability,
-      CloudActivationChoiceAvailability.unavailableUntilExecutionFlow,
-    );
-    expect(
-      state.options[2].availability,
-      CloudActivationChoiceAvailability.requiresConfirmation,
-    );
-  });
-
-  test('ready preflight maps to localEmpty choice model', () {
-    final CloudActivationDecisionState state =
-        resolveCloudActivationDecisionState(
-          preflightState: const CloudActivationPreflightState(
-            CloudActivationPreflightStatus.readyForNextStep,
-          ),
-          dataModeAsync: AsyncValue<DataModeState>.data(
-            stateFor(DataMode.localOnly),
+          readinessState: readiness(
+            local: LocalSnapshotState.empty,
+            remote: RemoteSnapshotState.empty,
+            scenario: CloudActivationMatrixScenario.localEmptyRemoteEmpty,
           ),
         );
 
     expect(state.status, CloudActivationDecisionStatus.choiceRequired);
-    expect(state.scenario, CloudActivationScenario.localEmptyRemoteUnknown);
-    expect(state.localSnapshotState, CloudActivationSnapshotState.empty);
+    expect(state.scenario, CloudActivationScenario.localEmptyRemoteEmpty);
+    expect(
+      state.options
+          .firstWhere(
+            (CloudActivationDecisionOption option) =>
+                option.choice == CloudActivationChoice.enableCloudSync,
+          )
+          .availability,
+      CloudActivationChoiceAvailability.available,
+    );
     expect(
       state.options
           .firstWhere(
@@ -65,45 +49,111 @@ void main() {
                 option.choice == CloudActivationChoice.startWithEmptyCloud,
           )
           .availability,
-      CloudActivationChoiceAvailability.requiresConfirmation,
-    );
-    expect(
-      state.options
-          .firstWhere(
-            (CloudActivationDecisionOption option) =>
-                option.choice == CloudActivationChoice.migrateLocalToCloud,
-          )
-          .availability,
       CloudActivationChoiceAvailability.unavailableForCurrentScenario,
     );
   });
 
-  test('unknown local state stays fail-closed', () {
+  test(
+    'local data plus metadata-only remote keeps startWithEmptyCloud distinct',
+    () {
+      final CloudActivationDecisionState state =
+          resolveCloudActivationDecisionState(
+            readinessState: readiness(
+              local: LocalSnapshotState.hasUserData,
+              remote: RemoteSnapshotState.hasOnlyMetadata,
+              scenario: CloudActivationMatrixScenario
+                  .localHasUserDataRemoteMetadataOnly,
+            ),
+          );
+
+      expect(state.status, CloudActivationDecisionStatus.blocked);
+      expect(
+        state.options
+            .firstWhere(
+              (CloudActivationDecisionOption option) =>
+                  option.choice == CloudActivationChoice.startWithEmptyCloud,
+            )
+            .availability,
+        CloudActivationChoiceAvailability.requiresConfirmation,
+      );
+      expect(
+        state.options
+            .firstWhere(
+              (CloudActivationDecisionOption option) =>
+                  option.choice == CloudActivationChoice.enableCloudSync,
+            )
+            .availability,
+        CloudActivationChoiceAvailability.unavailableForCurrentScenario,
+      );
+      expect(
+        state.options
+            .firstWhere(
+              (CloudActivationDecisionOption option) =>
+                  option.choice == CloudActivationChoice.migrateLocalToCloud,
+            )
+            .availability,
+        CloudActivationChoiceAvailability.unavailableUntilExecutionFlow,
+      );
+    },
+  );
+
+  test('remote user data surfaces replace flow as execution-gated', () {
     final CloudActivationDecisionState state =
         resolveCloudActivationDecisionState(
-          preflightState: const CloudActivationPreflightState(
-            CloudActivationPreflightStatus.blockedByLocalOnlyData,
+          readinessState: readiness(
+            local: LocalSnapshotState.empty,
+            remote: RemoteSnapshotState.hasUserData,
+            scenario: CloudActivationMatrixScenario.localEmptyRemoteHasUserData,
           ),
-          dataModeAsync: const AsyncValue<DataModeState>.loading(),
+        );
+
+    expect(state.scenario, CloudActivationScenario.localEmptyRemoteHasData);
+    expect(
+      state.options
+          .firstWhere(
+            (CloudActivationDecisionOption option) =>
+                option.choice == CloudActivationChoice.replaceLocalWithCloud,
+          )
+          .availability,
+      CloudActivationChoiceAvailability.unavailableUntilExecutionFlow,
+    );
+  });
+
+  test('both local and remote user data surface merge as execution-gated', () {
+    final CloudActivationDecisionState state =
+        resolveCloudActivationDecisionState(
+          readinessState: readiness(
+            local: LocalSnapshotState.hasUserData,
+            remote: RemoteSnapshotState.hasUserData,
+            scenario:
+                CloudActivationMatrixScenario.localHasUserDataRemoteHasUserData,
+          ),
+        );
+
+    expect(state.scenario, CloudActivationScenario.localHasDataRemoteHasData);
+    expect(
+      state.options
+          .firstWhere(
+            (CloudActivationDecisionOption option) =>
+                option.choice == CloudActivationChoice.mergeLocalAndCloud,
+          )
+          .availability,
+      CloudActivationChoiceAvailability.unavailableUntilExecutionFlow,
+    );
+  });
+
+  test('unknown readiness stays fail-closed', () {
+    final CloudActivationDecisionState state =
+        resolveCloudActivationDecisionState(
+          readinessState: const CloudActivationReadinessState(
+            status: CloudActivationReadinessStatus.unknown,
+            localSnapshotState: LocalSnapshotState.unknown,
+            remoteSnapshotState: RemoteSnapshotState.unknown,
+          ),
         );
 
     expect(state.status, CloudActivationDecisionStatus.unknown);
     expect(state.options, isEmpty);
-  });
-
-  test('signed out preflight does not open choice model', () {
-    final CloudActivationDecisionState state =
-        resolveCloudActivationDecisionState(
-          preflightState: const CloudActivationPreflightState(
-            CloudActivationPreflightStatus.signedOut,
-          ),
-          dataModeAsync: AsyncValue<DataModeState>.data(
-            stateFor(DataMode.localOnly),
-          ),
-        );
-
-    expect(state.status, CloudActivationDecisionStatus.unavailable);
-    expect(state.canChoose, isFalse);
   });
 
   test('helper only opens choice screen for blocked and ready states', () {

@@ -15,6 +15,8 @@ import 'package:kopim/features/profile/domain/failures/auth_failure.dart';
 import 'package:kopim/features/profile/domain/repositories/auth_repository.dart';
 import 'package:kopim/features/profile/domain/repositories/user_account_cleanup_repository.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/cloud_activation_decision_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/cloud_activation_intent_controller.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:riverpod/src/framework.dart';
 
@@ -441,6 +443,68 @@ void main() {
       );
       expect(state.hasError, isFalse);
       expect(state.value, equals(cloudUser));
+    },
+  );
+
+  test(
+    'pending product choice does not widen legacy migration handoff on signIn',
+    () async {
+      const AuthUser cloudUser = AuthUser(
+        uid: 'cloud-user-1',
+        email: 'user@example.com',
+        isAnonymous: false,
+      );
+      authRepository.onSignIn = (SignInRequest request) async => cloudUser;
+      container.read(firebaseAvailabilityProvider.notifier).setAvailable();
+      when(
+        () => authSyncService.synchronizeOnLogin(
+          user: any(named: 'user'),
+          previousUser: any(named: 'previousUser'),
+          migrationDecision: any(named: 'migrationDecision'),
+        ),
+      ).thenThrow(
+        const SyncOwnershipException(
+          'Синхронизация заблокирована: legacy handoff остаётся узким.',
+        ),
+      );
+      container
+          .read(cloudActivationIntentProvider.notifier)
+          .savePendingChoice(
+            choice: CloudActivationChoice.enableCloudSync,
+            decisionState: const CloudActivationDecisionState(
+              status: CloudActivationDecisionStatus.choiceRequired,
+              title: 'Как включить облачные функции',
+              subtitle: 'subtitle',
+              body: 'body',
+              followupNote: 'note',
+              localSnapshotState: CloudActivationSnapshotState.empty,
+              remoteSnapshotState: CloudActivationSnapshotState.empty,
+              localFingerprint: 'local:empty',
+              remoteFingerprint: 'remote:empty|uid:cloud-user-1',
+              scenario: CloudActivationScenario.localEmptyRemoteEmpty,
+              options: <CloudActivationDecisionOption>[],
+            ),
+          );
+
+      final AuthController controller = container.read(
+        authControllerProvider.notifier,
+      );
+      await container.read(authControllerProvider.future);
+
+      await controller.signIn(
+        const SignInRequest.email(
+          email: 'user@example.com',
+          password: 'pass123',
+        ),
+      );
+
+      verify(
+        () => authSyncService.synchronizeOnLogin(
+          user: cloudUser,
+          previousUser: any(named: 'previousUser'),
+          migrationDecision: MigrationDecision.none,
+        ),
+      ).called(1);
     },
   );
 
