@@ -601,6 +601,52 @@ AI-онбординг в первой версии не нужен.
 
 ---
 
+## 12.1. Актуальная runtime matrix на текущем этапе
+
+Ниже зафиксировано не целевое будущее поведение, а текущее состояние checkout после safe stage с `AppCapabilities`, `FeatureAccess` и preflight-only screen.
+
+| Runtime | Build capabilities | Возможные feature gates | Preflight states | Что уже работает | Что сознательно не реализовано |
+| --- | --- | --- | --- | --- | --- |
+| `offline` | Firebase/Auth/Firestore/Remote Config/cloud sync/AI transport отключены | `cloudSync`, `webApp`, `aiAssistant`, `advancedAnalytics` всегда `disabledByBuild` | `cloudUnavailableInBuild` | локальный режим, локальные CRUD, импорт/экспорт, UI "Локально" | cloud sign-in, sync, web access, AI, preflight continuation |
+| `dev` | Firebase/Auth/Firestore/Remote Config/cloud sync/AI transport включены, dev Firebase | `requiresEntitlement`, `requiresSignIn`, `blockedByLocalData`, `enabled`, `unavailable` | `entitlementRequired`, `signedOut`, `blockedByLocalOnlyData`, `alreadyCloudEnabled`, `readyForNextStep`, `unknown` | demo/dev entitlement flow, cloud-capable auth, feature gating, preflight-only stop screen | merge local -> cloud, automatic enable after preflight, server entitlement, trial lifecycle |
+| `prod` | Firebase/Auth/Firestore/Remote Config/cloud sync/AI transport включены, prod Firebase | `requiresEntitlement`, `requiresSignIn`, `blockedByLocalData`, `enabled`, `unavailable` | `entitlementRequired`, `signedOut`, `blockedByLocalOnlyData`, `alreadyCloudEnabled`, `readyForNextStep`, `unknown` | cloud-capable auth, gate-based sync/AI availability, preflight-only stop screen | public subscription backend, automatic migration, paid lifecycle, web expired read-only |
+| `web` cloud-capable build | технически те же cloud capabilities, что и у cloud-capable mobile build | `webApp` и `cloudSync` зависят от entitlement/gates; `isWebReadOnly` пока только projection | те же product states, что и у cloud-capable build, если экран preflight открыт | sign-in, cloud-capable routing, gate projection, capability model | настоящий write barrier для expired web entitlement, полноценный read-only режим, отдельная web matrix по операциям create/update/delete |
+
+### Текущие capability-инварианты
+
+* `AppCapabilities` отвечает только за технические возможности сборки.
+* `FeatureAccess` отвечает за продуктовый доступ к sync/web/AI/advanced analytics.
+* `DataMode` по-прежнему описывает текущее поведение данных, а не entitlement lifecycle.
+* `offline` не должен запускать cloud/Firebase сценарии ни через UI, ни через pull-to-refresh.
+* `dev` и `prod` остаются cloud-capable, но доступ к функциям идёт через gates, а не через raw flavor checks.
+
+### Текущие preflight-state значения
+
+Сейчас safe preflight flow умеет только остановить пользователя и объяснить следующее безопасное действие:
+
+* `cloudUnavailableInBuild`
+* `signedOut`
+* `entitlementRequired`
+* `blockedByLocalOnlyData`
+* `readyForNextStep`
+* `alreadyCloudEnabled`
+* `unknown`
+
+Важно: `readyForNextStep` не означает, что приложение уже выполнило миграцию или доказало отсутствие всех рисков. Это только безопасная продуктовая заглушка перед следующим отдельным этапом.
+
+### Что пока сознательно не реализовано
+
+* merge local -> cloud;
+* upload локальных данных после preflight;
+* выбор между `stayLocalOnly` / `startWithEmptyCloud` / `migrateLocalToCloud` в реальном UX;
+* server-backed entitlement;
+* trial lifecycle;
+* настоящий web read-only barrier для expired entitlement;
+* автоматическое включение sync одним нажатием с preflight screen;
+* изменение `SyncContract`, Drift schema, outbox ordering, ownership guard и auth-sync workflow.
+
+---
+
 ## 13. Дорожная карта на 3 этапа
 
 ### Этап 1. Архитектурное разделение local / cloud / entitlement

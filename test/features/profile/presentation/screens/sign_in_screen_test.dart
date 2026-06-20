@@ -4,6 +4,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/sign_in_request.dart';
@@ -40,6 +41,19 @@ class _StubAuthController extends AuthController {
 }
 
 void main() {
+  setUp(() {
+    AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseProd);
+  });
+
+  tearDown(() {
+    AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseDev);
+  });
+
+  Future<void> pumpReady(WidgetTester tester) async {
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+
   Future<void> setWindowSize(WidgetTester tester, Size size) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
@@ -79,7 +93,7 @@ void main() {
       ),
     );
 
-    await tester.pumpAndSettle();
+    await pumpReady(tester);
 
     final BuildContext context = tester.element(find.byType(SignInScreen));
     final AppLocalizations strings = AppLocalizations.of(context)!;
@@ -90,7 +104,7 @@ void main() {
     final Finder toggleToSignUp = find.text('Создать аккаунт');
     await tester.ensureVisible(toggleToSignUp);
     await tester.tap(toggleToSignUp);
-    await tester.pumpAndSettle();
+    await pumpReady(tester);
 
     expect(find.text('Создать'), findsOneWidget);
     expect(find.text(strings.signUpConfirmPasswordLabel), findsOneWidget);
@@ -129,7 +143,7 @@ void main() {
         ),
       );
 
-      await tester.pumpAndSettle();
+      await pumpReady(tester);
 
       final BuildContext context = tester.element(find.byType(SignInScreen));
       final AppLocalizations strings = AppLocalizations.of(context)!;
@@ -172,12 +186,12 @@ void main() {
       ),
     );
 
-    await tester.pumpAndSettle();
+    await pumpReady(tester);
 
     final Finder toggleToSignUp = find.text('Создать аккаунт');
     await tester.ensureVisible(toggleToSignUp);
     await tester.tap(toggleToSignUp);
-    await tester.pumpAndSettle();
+    await pumpReady(tester);
 
     final Finder textFields = find.byType(TextField);
     expect(textFields, findsNWidgets(4));
@@ -191,7 +205,7 @@ void main() {
     final Finder signUpSubmit = find.text('Создать');
     await tester.ensureVisible(signUpSubmit);
     await tester.tap(signUpSubmit);
-    await tester.pumpAndSettle();
+    await pumpReady(tester);
 
     expect(
       authController.signUpRequest,

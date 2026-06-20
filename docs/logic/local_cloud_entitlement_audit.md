@@ -215,6 +215,23 @@ class FeatureAccess {
 | cloud-capable | signed in | active | conflict | `syncConflict` | "Нужно действие" | blocked |
 | cloud-capable | signed in | active | error | `syncError` | "Ошибка синхронизации" | retryable |
 
+### Актуализация на текущем checkout
+
+После safe stage с `AppCapabilities`, `FeatureAccess` и preflight-only flow текущую runtime matrix стоит читать так:
+
+| Runtime | Capabilities | `FeatureAccess.cloudSync` | Preflight | Комментарий |
+| --- | --- | --- | --- | --- |
+| `offline` | cloud/Firebase capabilities отсутствуют | `disabledByBuild` | `cloudUnavailableInBuild` | локальная-only сборка, без cloud continuation |
+| `dev` | все cloud capabilities доступны через dev Firebase | `requiresEntitlement` / `requiresSignIn` / `blockedByLocalData` / `enabled` / `unavailable` | `entitlementRequired` / `signedOut` / `blockedByLocalOnlyData` / `readyForNextStep` / `alreadyCloudEnabled` / `unknown` | основной контур для безопасной проверки local/cloud UX |
+| `prod` | все cloud capabilities доступны через prod Firebase | те же gate-статусы, что и у `dev` | те же preflight-статусы, что и у `dev` | продуктовый cloud-capable runtime без backend subscription lifecycle |
+| `web` cloud-capable build | capability-модель совпадает с cloud-capable runtime | `webApp` и `cloudSync` зависят от entitlement/gates | те же preflight-статусы, если пользователь открывает preflight screen | `isWebReadOnly` пока только projection, не реальный write barrier |
+
+Что важно не перепутать:
+
+* `alreadyCloudEnabled` означает, что cloud уже активен, а не что нужно продолжать активацию.
+* `readyForNextStep` не означает, что уже выполнен merge или что локальных данных точно нет.
+* preflight сейчас intentionally fail-closed: он не запускает migration, upload или sync enablement.
+
 ## План миграции без ломки текущей логики
 
 1. Зафиксировать текущий контракт документом и тестами.
@@ -336,4 +353,3 @@ class FeatureAccess {
 4. Перевести AI tab на `canUseAiAssistant`.
 5. Перевести sync settings card на продуктовые состояния "Синхронизация выключена"/"Включить".
 6. Добавить тесты на существующие barriers до дальнейших UX-изменений.
-

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/money/money_utils.dart';
 import 'package:go_router/go_router.dart';
@@ -22,7 +23,10 @@ import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/cloud_activation_preflight_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
+import 'package:kopim/features/profile/presentation/screens/cloud_activation_choice_screen.dart';
+import 'package:kopim/features/profile/presentation/screens/cloud_activation_preflight_screen.dart';
 import 'package:kopim/features/transactions/presentation/screens/all_transactions_screen.dart';
 import 'package:kopim/features/transactions/presentation/controllers/all_transactions_providers.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -123,6 +127,7 @@ void main() {
   Future<void> pumpApp(
     WidgetTester tester, {
     required dynamic authOverride,
+    List<Override> extraOverrides = const <Override>[],
   }) async {
     final AnalyticsFilterState analyticsFilterState = AnalyticsFilterState(
       dateRange: DateTimeRange(
@@ -204,6 +209,7 @@ void main() {
             (Ref ref) =>
                 Stream<List<CreditEntity>>.value(const <CreditEntity>[]),
           ),
+          ...extraOverrides,
         ],
         child: const _TestApp(),
       ),
@@ -220,6 +226,13 @@ void main() {
       authOverride: authControllerProvider.overrideWith(
         () => _FakeAuthController(testUser),
       ),
+      extraOverrides: <Override>[
+        cloudActivationPreflightProvider.overrideWithValue(
+          const CloudActivationPreflightState(
+            CloudActivationPreflightStatus.unknown,
+          ),
+        ),
+      ],
     );
     expect(find.byType(MainNavigationShell), findsOneWidget);
     await disposeApp(tester);
@@ -299,14 +312,16 @@ void main() {
     final GoRouter router = container.read(appRouterProvider);
 
     router.go(AnalyticsScreen.routeName);
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
     expect(find.byType(AnalyticsScreen), findsNothing);
 
     final AuthController authController = container.read(
       authControllerProvider.notifier,
     );
     (authController as _MutableAuthController).setUser(testUser);
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
     expect(find.byType(AnalyticsScreen), findsOneWidget);
     await disposeApp(tester);
   });
@@ -327,6 +342,48 @@ void main() {
 
     expect(find.byType(MainNavigationShell), findsOneWidget);
     expect(router.state.uri.toString(), MainNavigationShell.routeName);
+    await disposeApp(tester);
+  });
+
+  testWidgets('navigates to cloud activation preflight route', (
+    WidgetTester tester,
+  ) async {
+    await pumpApp(
+      tester,
+      authOverride: authControllerProvider.overrideWith(
+        () => _FakeAuthController(testUser),
+      ),
+    );
+    final BuildContext context = tester.element(find.byType(MaterialApp));
+    final ProviderContainer container = ProviderScope.containerOf(context);
+    final GoRouter router = container.read(appRouterProvider);
+
+    router.go(CloudActivationPreflightScreen.routeName);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.byType(CloudActivationPreflightScreen), findsOneWidget);
+    await disposeApp(tester);
+  });
+
+  testWidgets('navigates to cloud activation choice route', (
+    WidgetTester tester,
+  ) async {
+    await pumpApp(
+      tester,
+      authOverride: authControllerProvider.overrideWith(
+        () => _FakeAuthController(testUser),
+      ),
+    );
+    final BuildContext context = tester.element(find.byType(MaterialApp));
+    final ProviderContainer container = ProviderScope.containerOf(context);
+    final GoRouter router = container.read(appRouterProvider);
+
+    router.go(CloudActivationChoiceScreen.routeName);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.byType(CloudActivationChoiceScreen), findsOneWidget);
     await disposeApp(tester);
   });
 }

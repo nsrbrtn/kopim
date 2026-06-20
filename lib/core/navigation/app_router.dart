@@ -19,6 +19,8 @@ import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/screens/general_settings_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/about_app_screen.dart';
+import 'package:kopim/features/profile/presentation/screens/cloud_activation_choice_screen.dart';
+import 'package:kopim/features/profile/presentation/screens/cloud_activation_preflight_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/menu_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_management_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_settings_screen.dart';
@@ -171,6 +173,20 @@ final Provider<GoRouter> appRouterProvider = Provider<GoRouter>((Ref ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (BuildContext context, GoRouterState state) {
           return const ProfileManagementScreen();
+        },
+      ),
+      GoRoute(
+        path: CloudActivationPreflightScreen.routeName,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (BuildContext context, GoRouterState state) {
+          return const CloudActivationPreflightScreen();
+        },
+      ),
+      GoRoute(
+        path: CloudActivationChoiceScreen.routeName,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (BuildContext context, GoRouterState state) {
+          return const CloudActivationChoiceScreen();
         },
       ),
       GoRoute(

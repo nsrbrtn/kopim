@@ -1,13 +1,14 @@
 // lib/features/profile/presentation/widgets/profile_sync_settings_card.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:kopim/core/config/app_capabilities.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/feature_access_provider.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
-import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
+import 'package:kopim/features/profile/presentation/screens/cloud_activation_preflight_screen.dart';
 
 class ProfileSyncSettingsCard extends ConsumerStatefulWidget {
   const ProfileSyncSettingsCard({super.key});
@@ -59,6 +60,15 @@ class _ProfileSyncSettingsCardState
         });
       }
     }
+  }
+
+  void _openCloudActivationPreflight(BuildContext context) {
+    final GoRouter? router = GoRouter.maybeOf(context);
+    if (router != null) {
+      router.push(CloudActivationPreflightScreen.routeName);
+      return;
+    }
+    Navigator.of(context).pushNamed(CloudActivationPreflightScreen.routeName);
   }
 
   @override
@@ -206,6 +216,11 @@ class _ProfileSyncSettingsCardState
                     style: theme.textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => _openCloudActivationPreflight(context),
+                    child: const Text('Открыть шаги подключения'),
+                  ),
+                  const SizedBox(height: 12),
                   OutlinedButton(
                     onPressed: () {
                       ref.read(authControllerProvider.notifier).signOut();
@@ -239,10 +254,8 @@ class _ProfileSyncSettingsCardState
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pushNamed(SignInScreen.routeName);
-                  },
-                  child: const Text('Войти в аккаунт'),
+                  onPressed: () => _openCloudActivationPreflight(context),
+                  child: const Text('Продолжить подключение'),
                 ),
               ],
             );

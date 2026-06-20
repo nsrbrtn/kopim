@@ -5,7 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/config/app_capabilities.dart';
 import 'package:kopim/core/config/firebase_environment.dart';
 import 'package:kopim/core/config/app_runtime.dart';
+import 'package:kopim/features/profile/presentation/controllers/cloud_activation_preflight_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
+import 'package:kopim/features/profile/presentation/screens/cloud_activation_preflight_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
 import 'package:kopim/features/profile/presentation/widgets/profile_sync_settings_card.dart';
 
@@ -23,7 +25,7 @@ void main() {
     AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseDev);
   });
 
-  testWidgets('sign-in CTA opens SignInScreen.routeName', (
+  testWidgets('preflight CTA opens preflight screen and then sign-in route', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(
@@ -52,6 +54,16 @@ void main() {
         ],
         child: MaterialApp(
           routes: <String, WidgetBuilder>{
+            CloudActivationPreflightScreen.routeName: (_) => ProviderScope(
+              overrides: <Override>[
+                cloudActivationPreflightProvider.overrideWithValue(
+                  const CloudActivationPreflightState(
+                    CloudActivationPreflightStatus.signedOut,
+                  ),
+                ),
+              ],
+              child: const CloudActivationPreflightScreen(),
+            ),
             SignInScreen.routeName: (_) =>
                 const Scaffold(body: Text('sign-in-screen')),
           },
@@ -60,6 +72,11 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Продолжить подключение'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Подключение облака'), findsOneWidget);
 
     await tester.tap(find.text('Войти в аккаунт'));
     await tester.pumpAndSettle();
