@@ -17,6 +17,8 @@
 | Safe preflight-only flow перед включением cloud | `done` | отдельный preflight controller/screen подключены в profile flow и покрыты targeted tests |
 | Choice screen для сценариев `local -> cloud` | `done` | read-only этап сохранён fail-closed, а выбранный сценарий теперь фиксируется как pending intent вне `DataModeController` |
 | Readiness / local snapshot classifier | `done` | local+remote read-only snapshot classifier, matrix-driven readiness/choice flow и legacy handoff guard-tests зафиксированы в текущем checkout |
+| Первый execution path: `enableCloudSync` для пустого workspace | `done` | explicit activation flag per UID, final revalidation, guarded runtime transition и auth/startup sync gate зафиксированы в текущем checkout |
+| Второй execution path: `startWithEmptyCloud` | `done` | explicit backup/export перед destructive step, guarded local reset, отдельный activation scenario per UID и targeted regressions зафиксированы в текущем checkout |
 | Реальная миграция `local -> cloud` | `planned` | сознательно отложено |
 | Server-backed entitlement / trial lifecycle | `planned` | сознательно отложено |
 | Web read-only barrier для expired entitlement | `planned` | сознательно отложено |
@@ -101,9 +103,9 @@
 
 ## Ближайший фокус
 
-1. Открыть отдельный scenario-specific ExecPlan для первого real execution path: `enableCloudSync`, `migrateLocalToCloud`, `startWithEmptyCloud` или `replaceLocalWithCloud`.
-2. Сохранить текущий stage fail-closed: перед любым execution flow повторно проверять local+remote summary и не переиспользовать readiness fingerprint как write-гарантию.
-3. Не расширять legacy `MigrationDecision` дальше текущего compatibility handoff до появления отдельного execution service.
+1. Следующий незакрытый scenario-specific execution path: `migrateLocalToCloud`, но только отдельным plan’ом без переиспользования `startWithEmptyCloud` semantics.
+2. Сохранить текущий fail-closed stage: `startWithEmptyCloud` остаётся отдельным backup/export + local reset flow и не должен расширяться до upload/merge semantics без нового ExecPlan.
+3. `remote=hasOnlyMetadata` для `startWithEmptyCloud` остаётся заблокированным в v1 до отдельного metadata-whitelist этапа с собственными регрессиями.
 
 ## Как обновлять этот файл
 

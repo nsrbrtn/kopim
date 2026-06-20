@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/services/logger_service.dart';
+import 'package:kopim/features/profile/data/cloud_activation_state_repository.dart';
 import 'package:kopim/features/profile/data/cloud_entitlement_repository.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 
@@ -166,6 +167,19 @@ class DataModeController extends _$DataModeController {
     await _updateState(cloudUser, entitlement);
   }
 
+  Future<DataModeState> refreshForCurrentContext() async {
+    final CloudEntitlementState entitlement = await _currentEntitlementState();
+    final AuthUser? currentCloudUser = ref
+        .read(cloudAuthRepositoryProvider)
+        .currentUser;
+    final DataModeState nextState = await _calculateState(
+      currentCloudUser,
+      entitlement,
+    );
+    state = AsyncValue<DataModeState>.data(nextState);
+    return nextState;
+  }
+
   Future<CloudEntitlementState> _currentEntitlementState() {
     return ref.read(cloudEntitlementRepositoryProvider).getCachedState();
   }
@@ -190,6 +204,22 @@ class DataModeController extends _$DataModeController {
     if (cloudUser == null) {
       logger.logInfo(
         'DataModeController: entitlement active but no cloud user, keeping localOnly.',
+      );
+      return DataModeState(
+        dataMode: DataMode.localOnly,
+        entitlementState: entitlement,
+        migrationDecision: MigrationDecision.none,
+      );
+    }
+
+    final CloudActivationStateRepository activationStateRepository = ref.read(
+      cloudActivationStateRepositoryProvider,
+    );
+    final bool hasActivationFlag =
+        await activationStateRepository.getStateForUid(cloudUser.uid) != null;
+    if (!hasActivationFlag) {
+      logger.logInfo(
+        'DataModeController: cloud user=${cloudUser.uid} has no activation flag, keeping localOnly.',
       );
       return DataModeState(
         dataMode: DataMode.localOnly,

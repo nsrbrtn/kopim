@@ -65,7 +65,6 @@ class UserAccountCleanupRepositoryImpl implements UserAccountCleanupRepository {
 
   @override
   Future<void> deleteLocalUserData(String uid) async {
-    await _syncMetadataRepository.clear(uid);
     await _database.transaction(() async {
       await (_database.delete(_database.transactionTags)).go();
       await (_database.delete(_database.goalContributions)).go();
@@ -87,5 +86,6 @@ class UserAccountCleanupRepositoryImpl implements UserAccountCleanupRepository {
       await (_database.delete(_database.profiles)).go();
       await (_database.delete(_database.outboxEntries)).go();
     });
+    await _syncMetadataRepository.clear(uid);
   }
 }

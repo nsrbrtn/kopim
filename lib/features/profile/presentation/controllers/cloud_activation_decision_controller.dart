@@ -191,12 +191,10 @@ CloudActivationDecisionState _resolveMatrixScenario(
       readinessState.remoteSnapshotState == RemoteSnapshotState.hasOnlyMetadata;
   final bool enableCloudSyncAvailable =
       !localHasData &&
-      (readinessState.remoteSnapshotState == RemoteSnapshotState.empty ||
-          remoteMetadataOnly);
+      readinessState.remoteSnapshotState == RemoteSnapshotState.empty;
   final bool startWithEmptyCloudAvailable =
       localHasData &&
-      (readinessState.remoteSnapshotState == RemoteSnapshotState.empty ||
-          remoteMetadataOnly);
+      readinessState.remoteSnapshotState == RemoteSnapshotState.empty;
   final bool migrateLocalToCloudRelevant =
       localHasData &&
       (readinessState.remoteSnapshotState == RemoteSnapshotState.empty ||
@@ -234,12 +232,12 @@ CloudActivationDecisionState _resolveMatrixScenario(
         choice: CloudActivationChoice.enableCloudSync,
         title: 'Включить облачную синхронизацию',
         body:
-            'Обычное включение синхронизации доступно только когда локально нет пользовательских данных, а в облаке нет финансового снимка.',
+            'Обычное включение синхронизации доступно только когда локально нет пользовательских данных, а в облаке вообще нет удалённого снимка.',
         availability: enableCloudSyncAvailable
             ? CloudActivationChoiceAvailability.available
             : CloudActivationChoiceAvailability.unavailableForCurrentScenario,
         followupNote:
-            'На этом этапе выбор только фиксируется как pending intent: синхронизация ещё не запускается, а удалённое состояние не меняется.',
+            'Первый execution path поддерживает только полностью пустое облако: наличие metadata тоже оставляет сценарий заблокированным.',
       ),
       CloudActivationDecisionOption(
         choice: CloudActivationChoice.migrateLocalToCloud,
@@ -259,9 +257,11 @@ CloudActivationDecisionState _resolveMatrixScenario(
             'Отдельный продуктовый выбор для случая, когда локальные данные не нужно отправлять в облако.',
         availability: startWithEmptyCloudAvailable
             ? CloudActivationChoiceAvailability.requiresConfirmation
+            : remoteMetadataOnly && localHasData
+            ? CloudActivationChoiceAvailability.unavailableUntilExecutionFlow
             : CloudActivationChoiceAvailability.unavailableForCurrentScenario,
         followupNote:
-            'На этом шаге это только подтверждение продуктового выбора без изменения данных.',
+            'Перед переключением Kopim сначала создаст backup локальных данных, затем очистит активное локальное рабочее пространство и только после этого включит пустое облако.',
       ),
       CloudActivationDecisionOption(
         choice: CloudActivationChoice.replaceLocalWithCloud,

@@ -5,7 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_decision_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_intent_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/cloud_activation_readiness_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
+import 'package:kopim/features/profile/presentation/models/cloud_activation_readiness_models.dart';
 import 'package:kopim/features/profile/presentation/screens/cloud_activation_choice_screen.dart';
 
 class _FakeDataModeController extends DataModeController {
@@ -71,7 +73,7 @@ void main() {
         body: 'Подготовить пустой облачный старт.',
         availability: CloudActivationChoiceAvailability.requiresConfirmation,
         followupNote:
-            'На этом шаге это только подтверждение выбора без изменения данных.',
+            'Перед переключением Kopim сначала создаст backup локальных данных, затем очистит активное локальное рабочее пространство и только после этого включит пустое облако.',
       ),
       CloudActivationDecisionOption(
         choice: CloudActivationChoice.mergeLocalAndCloud,
@@ -141,8 +143,58 @@ void main() {
 
     expect(
       find.text(
-        'На этом шаге это только подтверждение выбора без изменения данных.',
+        'Перед переключением Kopim сначала создаст backup локальных данных, затем очистит активное локальное рабочее пространство и только после этого включит пустое облако.',
       ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('shows final confirmation button for startWithEmptyCloud', (
+    WidgetTester tester,
+  ) async {
+    _useLargeSurface(tester);
+    addTearDown(tester.view.reset);
+    final ProviderContainer container = _createContainer(
+      blockedState,
+      extraOverrides: <Override>[
+        cloudActivationIntentProvider.overrideWith(
+          CloudActivationIntentController.new,
+        ),
+        cloudActivationReadinessProvider.overrideWithValue(
+          const AsyncData<CloudActivationReadinessState>(
+            CloudActivationReadinessState(
+              status: CloudActivationReadinessStatus.waitingForConfirmation,
+              localSnapshotState: LocalSnapshotState.hasUserData,
+              remoteSnapshotState: RemoteSnapshotState.empty,
+              pendingChoice: CloudActivationChoice.startWithEmptyCloud,
+              localFingerprint: 'local:hasData',
+              remoteFingerprint: 'remote:empty|uid:user-1',
+            ),
+          ),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    container
+        .read(cloudActivationIntentProvider.notifier)
+        .savePendingChoice(
+          choice: CloudActivationChoice.startWithEmptyCloud,
+          decisionState: blockedState,
+        );
+
+    await tester.pumpWidget(_buildTestApp(container: container));
+    await tester.scrollUntilVisible(
+      find.text('Создать backup и начать с пустого облака'),
+      240,
+      scrollable: find.byType(Scrollable),
+    );
+
+    await tester.tap(find.text('Создать backup и начать с пустого облака'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AlertDialog), findsOneWidget);
+    expect(
+      find.textContaining('Локальные финансовые данные не будут загружены'),
       findsOneWidget,
     );
   });

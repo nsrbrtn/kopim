@@ -53,6 +53,29 @@ void main() {
     );
   });
 
+  test('metadata-only remote keeps enableCloudSync unavailable in v1', () {
+    final CloudActivationDecisionState state =
+        resolveCloudActivationDecisionState(
+          readinessState: readiness(
+            local: LocalSnapshotState.empty,
+            remote: RemoteSnapshotState.hasOnlyMetadata,
+            scenario:
+                CloudActivationMatrixScenario.localEmptyRemoteMetadataOnly,
+          ),
+        );
+
+    expect(state.status, CloudActivationDecisionStatus.choiceRequired);
+    expect(
+      state.options
+          .firstWhere(
+            (CloudActivationDecisionOption option) =>
+                option.choice == CloudActivationChoice.enableCloudSync,
+          )
+          .availability,
+      CloudActivationChoiceAvailability.unavailableForCurrentScenario,
+    );
+  });
+
   test(
     'local data plus metadata-only remote keeps startWithEmptyCloud distinct',
     () {
@@ -74,7 +97,7 @@ void main() {
                   option.choice == CloudActivationChoice.startWithEmptyCloud,
             )
             .availability,
-        CloudActivationChoiceAvailability.requiresConfirmation,
+        CloudActivationChoiceAvailability.unavailableUntilExecutionFlow,
       );
       expect(
         state.options

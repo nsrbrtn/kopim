@@ -255,11 +255,18 @@ class AuthController extends _$AuthController {
     if (availability.isAvailable == false) {
       return;
     }
-    final DataModeState? dataModeState = ref
-        .read(dataModeControllerProvider)
-        .value;
-    final MigrationDecision decision =
-        dataModeState?.migrationDecision ?? MigrationDecision.none;
+    final DataModeState effectiveMode = await ref
+        .read(dataModeControllerProvider.notifier)
+        .refreshForCurrentContext();
+    if (effectiveMode.dataMode != DataMode.cloudEnabled) {
+      ref
+          .read(loggerServiceProvider)
+          .logInfo(
+            'AuthController: skip login sync for ${user.uid} because data mode is ${effectiveMode.dataMode.name}.',
+          );
+      return;
+    }
+    final MigrationDecision decision = effectiveMode.migrationDecision;
     try {
       await ref
           .read(authSyncServiceProvider)

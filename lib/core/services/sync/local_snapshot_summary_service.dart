@@ -4,19 +4,35 @@ import 'package:riverpod/riverpod.dart';
 import 'package:kopim/core/data/database.dart';
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/features/profile/application/cloud_activation_runtime_guard.dart';
 import 'package:kopim/features/profile/presentation/models/cloud_activation_readiness_models.dart';
 
 class LocalSnapshotSummaryService {
   const LocalSnapshotSummaryService({
     required AppDatabase database,
     required OutboxDao outboxDao,
+    required CloudActivationRuntimeGuard activationRuntimeGuard,
   }) : _database = database,
-       _outboxDao = outboxDao;
+       _outboxDao = outboxDao,
+       _activationRuntimeGuard = activationRuntimeGuard;
 
   final AppDatabase _database;
   final OutboxDao _outboxDao;
+  final CloudActivationRuntimeGuard _activationRuntimeGuard;
 
-  Future<LocalSnapshotSummary> summarize() async {
+  Future<LocalSnapshotSummary> summarize({
+    bool includeActivationGuard = true,
+  }) async {
+    if (includeActivationGuard && _activationRuntimeGuard.isInProgress) {
+      return const LocalSnapshotSummary(
+        state: LocalSnapshotState.activationInProgress,
+        hasUserData: false,
+        hasSystemData: false,
+        pendingOutboxCount: 0,
+        fingerprint: 'local:activationInProgress',
+      );
+    }
+
     final int pendingOutboxCount = await _outboxDao.pendingCount();
     final bool hasUserData = await _database.hasAnyUserData();
     final bool hasSystemData = await _hasSystemData();
@@ -65,5 +81,6 @@ localSnapshotSummaryServiceProvider = Provider<LocalSnapshotSummaryService>((
   return LocalSnapshotSummaryService(
     database: ref.watch(appDatabaseProvider),
     outboxDao: ref.watch(outboxDaoProvider),
+    activationRuntimeGuard: ref.watch(cloudActivationRuntimeGuardProvider),
   );
 });

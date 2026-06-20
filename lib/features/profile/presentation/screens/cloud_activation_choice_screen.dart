@@ -2,16 +2,61 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:kopim/features/profile/application/cloud_activation_execution_service.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_decision_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/cloud_activation_execution_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_intent_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/cloud_activation_readiness_controller.dart';
+import 'package:kopim/features/profile/presentation/models/cloud_activation_readiness_models.dart';
 
-class CloudActivationChoiceScreen extends ConsumerWidget {
+class CloudActivationChoiceScreen extends ConsumerStatefulWidget {
   const CloudActivationChoiceScreen({super.key});
 
   static const String routeName = '/cloud-activation-choice';
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CloudActivationChoiceScreen> createState() =>
+      _CloudActivationChoiceScreenState();
+}
+
+class _CloudActivationChoiceScreenState
+    extends ConsumerState<CloudActivationChoiceScreen> {
+  @override
+  void initState() {
+    super.initState();
+    ref.listenManual<
+      AsyncValue<CloudActivationExecutionResult>
+    >(cloudActivationExecutionControllerProvider, (
+      AsyncValue<CloudActivationExecutionResult>? previous,
+      AsyncValue<CloudActivationExecutionResult> next,
+    ) {
+      final CloudActivationExecutionResult? result = next.asData?.value;
+      if (result == null || !mounted) {
+        return;
+      }
+      switch (result.status) {
+        case CloudActivationExecutionStatus.succeeded:
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(_successMessage(result))));
+          ref.read(cloudActivationExecutionControllerProvider.notifier).reset();
+          _dismiss(context);
+          return;
+        case CloudActivationExecutionStatus.blocked:
+        case CloudActivationExecutionStatus.failed:
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(_executionMessage(result))));
+          ref.read(cloudActivationExecutionControllerProvider.notifier).reset();
+          return;
+        case CloudActivationExecutionStatus.idle:
+          return;
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final CloudActivationDecisionState state = ref.watch(
       cloudActivationDecisionProvider,
@@ -19,6 +64,28 @@ class CloudActivationChoiceScreen extends ConsumerWidget {
     final CloudActivationIntentState intentState = ref.watch(
       cloudActivationIntentProvider,
     );
+    final AsyncValue<CloudActivationReadinessState> readinessAsync = ref.watch(
+      cloudActivationReadinessProvider,
+    );
+    final CloudActivationReadinessState readinessState =
+        readinessAsync.asData?.value ??
+        const CloudActivationReadinessState(
+          status: CloudActivationReadinessStatus.loading,
+          localSnapshotState: LocalSnapshotState.unknown,
+          remoteSnapshotState: RemoteSnapshotState.unknown,
+        );
+    final AsyncValue<CloudActivationExecutionResult> executionState = ref.watch(
+      cloudActivationExecutionControllerProvider,
+    );
+    final bool canConfirmEnableCloudSync =
+        readinessState.status ==
+            CloudActivationReadinessStatus.waitingForConfirmation &&
+        intentState.pendingChoice == CloudActivationChoice.enableCloudSync;
+    final bool canConfirmStartWithEmptyCloud =
+        readinessState.status ==
+            CloudActivationReadinessStatus.waitingForConfirmation &&
+        intentState.pendingChoice == CloudActivationChoice.startWithEmptyCloud;
+    final bool isExecuting = executionState.isLoading;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Подключение облака')),
@@ -55,6 +122,20 @@ class CloudActivationChoiceScreen extends ConsumerWidget {
                         'Для следующего этапа сохранён выбор: ${cloudActivationChoiceLabel(intentState.pendingChoice!)}. Данные и синхронизация пока не менялись.',
                   ),
                 ],
+                if (canConfirmEnableCloudSync) ...<Widget>[
+                  const SizedBox(height: 12),
+                  const _InfoBanner(
+                    message:
+                        'Перед включением Kopim ещё раз проверит локальное и облачное состояние. Если что-то изменилось, сценарий будет безопасно остановлен без отправки данных.',
+                  ),
+                ],
+                if (canConfirmStartWithEmptyCloud) ...<Widget>[
+                  const SizedBox(height: 12),
+                  const _InfoBanner(
+                    message:
+                        'Перед запуском Kopim создаст backup локальных данных, затем ещё раз проверит локальное и облачное состояние и только после этого очистит активное локальное рабочее пространство. Локальная база не будет загружена в облако.',
+                  ),
+                ],
                 if (state.canChoose) ...<Widget>[
                   const SizedBox(height: 24),
                   for (final CloudActivationDecisionOption option
@@ -66,6 +147,37 @@ class CloudActivationChoiceScreen extends ConsumerWidget {
                           _handleChoice(context, ref, state, option),
                     ),
                     const SizedBox(height: 12),
+                  ],
+                  if (canConfirmEnableCloudSync) ...<Widget>[
+                    const SizedBox(height: 8),
+                    FilledButton(
+                      onPressed: isExecuting
+                          ? null
+                          : () => ref
+                                .read(
+                                  cloudActivationExecutionControllerProvider
+                                      .notifier,
+                                )
+                                .confirmEnableCloudSync(),
+                      child: Text(
+                        isExecuting
+                            ? 'Проверяем и включаем...'
+                            : 'Подтвердить включение',
+                      ),
+                    ),
+                  ],
+                  if (canConfirmStartWithEmptyCloud) ...<Widget>[
+                    const SizedBox(height: 8),
+                    FilledButton(
+                      onPressed: isExecuting
+                          ? null
+                          : () => _confirmStartWithEmptyCloud(context, ref),
+                      child: Text(
+                        isExecuting
+                            ? 'Создаём backup и переключаем...'
+                            : 'Создать backup и начать с пустого облака',
+                      ),
+                    ),
                   ],
                 ] else ...<Widget>[
                   const SizedBox(height: 24),
@@ -80,6 +192,42 @@ class CloudActivationChoiceScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _confirmStartWithEmptyCloud(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final bool confirmed =
+        await showDialog<bool>(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Начать с пустого облака'),
+              content: const Text(
+                'Kopim сначала создаст backup локальных данных, затем очистит активное локальное рабочее пространство и только после этого переключится на новый пустой облачный профиль. Локальные финансовые данные не будут загружены в облако автоматически.',
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Отмена'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('Продолжить'),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+    if (!confirmed || !context.mounted) {
+      return;
+    }
+
+    await ref
+        .read(cloudActivationExecutionControllerProvider.notifier)
+        .confirmStartWithEmptyCloud();
   }
 
   Future<void> _handleChoice(
@@ -172,6 +320,14 @@ class CloudActivationChoiceScreen extends ConsumerWidget {
     );
   }
 
+  String _successMessage(CloudActivationExecutionResult result) {
+    if (result.message != null && result.message!.trim().isNotEmpty) {
+      return result.message!;
+    }
+
+    return 'Облачная синхронизация включена для пустого рабочего пространства.';
+  }
+
   void _showPlaceholderSnackBar(
     BuildContext context,
     CloudActivationDecisionOption option,
@@ -193,6 +349,47 @@ class CloudActivationChoiceScreen extends ConsumerWidget {
       return;
     }
     Navigator.of(context).maybePop();
+  }
+
+  String _executionMessage(CloudActivationExecutionResult result) {
+    if (result.message != null && result.message!.trim().isNotEmpty) {
+      return result.message!;
+    }
+
+    return switch (result.blockReason) {
+      null => 'Не удалось завершить включение облака.',
+      CloudActivationExecutionBlockReason.signInRequired =>
+        'Сначала нужно войти в облачный аккаунт.',
+      CloudActivationExecutionBlockReason.entitlementRequired =>
+        'Для этого шага нужен активный cloud-доступ.',
+      CloudActivationExecutionBlockReason.localNotEmpty =>
+        'Локальное состояние изменилось: найден пользовательский контент или служебные следы, поэтому включение остановлено.',
+      CloudActivationExecutionBlockReason.remoteMetadataPresent =>
+        'В облаке уже есть metadata-состояние. Этот случай остаётся заблокированным до отдельного этапа.',
+      CloudActivationExecutionBlockReason.remoteNotEmpty =>
+        'Удалённое состояние больше не пустое, поэтому включение не выполняется автоматически.',
+      CloudActivationExecutionBlockReason.remotePermissionDenied =>
+        'Не удалось безопасно прочитать облачное состояние из-за прав доступа.',
+      CloudActivationExecutionBlockReason.remoteUnavailable =>
+        'Облачное состояние сейчас недоступно. Попробуйте ещё раз позже.',
+      CloudActivationExecutionBlockReason.staleReadiness =>
+        'Состояние изменилось после выбора сценария. Пройдите readiness/choice ещё раз.',
+      CloudActivationExecutionBlockReason.alreadyCloudEnabled =>
+        'Облачная синхронизация уже включена для текущего аккаунта.',
+      CloudActivationExecutionBlockReason.activationInProgress =>
+        'Включение уже выполняется.',
+      CloudActivationExecutionBlockReason.capabilitiesDisabled =>
+        'Текущая сборка не поддерживает облачную синхронизацию.',
+      CloudActivationExecutionBlockReason.pendingIntentMissing ||
+      CloudActivationExecutionBlockReason.invalidPendingIntent =>
+        'Сначала заново выберите сценарий включения.',
+      CloudActivationExecutionBlockReason.backupExportFailed =>
+        'Не удалось создать backup локальных данных. Локальное рабочее пространство не менялось.',
+      CloudActivationExecutionBlockReason.localResetFailed =>
+        'Backup создан, но локальное рабочее пространство не удалось безопасно очистить. Облако не было включено автоматически.',
+      CloudActivationExecutionBlockReason.runtimeTransitionFailed =>
+        'Флаг активации сохранён, но приложение не смогло безопасно перейти в облачный режим. При следующем входе проверки будут повторены.',
+    };
   }
 }
 

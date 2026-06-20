@@ -17,6 +17,7 @@ import 'package:kopim/features/profile/domain/repositories/user_account_cleanup_
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_decision_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_intent_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:riverpod/src/framework.dart';
 
@@ -25,6 +26,21 @@ class MockConnectivity extends Mock implements Connectivity {}
 class MockAuthSyncService extends Mock implements AuthSyncService {}
 
 class MockLocalAuthRepository extends Mock implements LocalAuthRepository {}
+
+class _FakeDataModeController extends DataModeController {
+  _FakeDataModeController(this._nextState);
+
+  final DataModeState _nextState;
+
+  @override
+  FutureOr<DataModeState> build() async => _nextState;
+
+  @override
+  Future<DataModeState> refreshForCurrentContext() async {
+    state = AsyncData<DataModeState>(_nextState);
+    return _nextState;
+  }
+}
 
 class FakeUserAccountCleanupRepository implements UserAccountCleanupRepository {
   Future<void> Function(String uid)? onDeleteRemoteUserData;
@@ -179,6 +195,7 @@ class FakeAuthRepository implements AuthRepository {
 
 void main() {
   late FakeAuthRepository authRepository;
+  late MockLocalAuthRepository localAuthRepository;
   late MockConnectivity connectivity;
   late MockAuthSyncService authSyncService;
   late FakeUserAccountCleanupRepository cleanupRepository;
@@ -200,15 +217,15 @@ void main() {
 
   setUp(() {
     authRepository = FakeAuthRepository();
-    final MockLocalAuthRepository mockLocalAuth = MockLocalAuthRepository();
+    localAuthRepository = MockLocalAuthRepository();
     when(
-      () => mockLocalAuth.signInAnonymously(),
+      () => localAuthRepository.signInAnonymously(),
     ).thenAnswer((_) async => AuthUser.local(uid: 'local-test-uid'));
     when(
-      () => mockLocalAuth.restoreLocalSession(),
+      () => localAuthRepository.restoreLocalSession(),
     ).thenAnswer((_) async => AuthUser.local(uid: 'local-test-uid'));
     when(
-      () => mockLocalAuth.signInOffline(),
+      () => localAuthRepository.signInOffline(),
     ).thenAnswer((_) async => AuthUser.local(uid: 'local-test-uid'));
     connectivity = MockConnectivity();
     authSyncService = MockAuthSyncService();
@@ -232,13 +249,22 @@ void main() {
       overrides: <Override>[
         authRepositoryProvider.overrideWithValue(authRepository),
         cloudAuthRepositoryProvider.overrideWithValue(authRepository),
-        localAuthRepositoryProvider.overrideWithValue(mockLocalAuth),
+        localAuthRepositoryProvider.overrideWithValue(localAuthRepository),
         activeAuthRepositoryProvider.overrideWithValue(authRepository),
         userAccountCleanupRepositoryProvider.overrideWithValue(
           cleanupRepository,
         ),
         connectivityProvider.overrideWithValue(connectivity),
         authSyncServiceProvider.overrideWithValue(authSyncService),
+        dataModeControllerProvider.overrideWith(
+          () => _FakeDataModeController(
+            const DataModeState(
+              dataMode: DataMode.cloudEnabled,
+              entitlementState: CloudEntitlementState.active,
+              migrationDecision: MigrationDecision.none,
+            ),
+          ),
+        ),
       ],
     );
     container
@@ -447,7 +473,7 @@ void main() {
   );
 
   test(
-    'pending product choice does not widen legacy migration handoff on signIn',
+    'pending product choice does not trigger login sync before explicit activation succeeds',
     () async {
       const AuthUser cloudUser = AuthUser(
         uid: 'cloud-user-1',
@@ -455,7 +481,30 @@ void main() {
         isAnonymous: false,
       );
       authRepository.onSignIn = (SignInRequest request) async => cloudUser;
-      container.read(firebaseAvailabilityProvider.notifier).setAvailable();
+      final ProviderContainer gatedContainer = ProviderContainer(
+        overrides: <Override>[
+          authRepositoryProvider.overrideWithValue(authRepository),
+          cloudAuthRepositoryProvider.overrideWithValue(authRepository),
+          localAuthRepositoryProvider.overrideWithValue(localAuthRepository),
+          activeAuthRepositoryProvider.overrideWithValue(authRepository),
+          userAccountCleanupRepositoryProvider.overrideWithValue(
+            cleanupRepository,
+          ),
+          connectivityProvider.overrideWithValue(connectivity),
+          authSyncServiceProvider.overrideWithValue(authSyncService),
+          dataModeControllerProvider.overrideWith(
+            () => _FakeDataModeController(
+              const DataModeState(
+                dataMode: DataMode.localOnly,
+                entitlementState: CloudEntitlementState.active,
+                migrationDecision: MigrationDecision.none,
+              ),
+            ),
+          ),
+        ],
+      );
+      addTearDown(gatedContainer.dispose);
+      gatedContainer.read(firebaseAvailabilityProvider.notifier).setAvailable();
       when(
         () => authSyncService.synchronizeOnLogin(
           user: any(named: 'user'),
@@ -467,7 +516,7 @@ void main() {
           'Синхронизация заблокирована: legacy handoff остаётся узким.',
         ),
       );
-      container
+      gatedContainer
           .read(cloudActivationIntentProvider.notifier)
           .savePendingChoice(
             choice: CloudActivationChoice.enableCloudSync,
@@ -486,10 +535,10 @@ void main() {
             ),
           );
 
-      final AuthController controller = container.read(
+      final AuthController controller = gatedContainer.read(
         authControllerProvider.notifier,
       );
-      await container.read(authControllerProvider.future);
+      await gatedContainer.read(authControllerProvider.future);
 
       await controller.signIn(
         const SignInRequest.email(
@@ -498,13 +547,13 @@ void main() {
         ),
       );
 
-      verify(
+      verifyNever(
         () => authSyncService.synchronizeOnLogin(
           user: cloudUser,
           previousUser: any(named: 'previousUser'),
           migrationDecision: MigrationDecision.none,
         ),
-      ).called(1);
+      );
     },
   );
 
