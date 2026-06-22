@@ -573,6 +573,45 @@ class OutboxDao {
     return SyncContract.manifestByOutboxType[entityType]?.dependencyOrder ??
         1 << 20;
   }
+
+  Future<List<db.OutboxEntryRow>> selectLocalOnlyOutboxRows() {
+    final SimpleSelectStatement<db.$OutboxEntriesTable, db.OutboxEntryRow>
+    query = _db.select(_db.outboxEntries)
+      ..where((db.$OutboxEntriesTable tbl) => tbl.ownerUid.like('local-%'));
+    return query.get();
+  }
+
+  Future<List<db.OutboxEntryRow>> selectNullOwnerOutboxRows() {
+    final SimpleSelectStatement<db.$OutboxEntriesTable, db.OutboxEntryRow>
+    query = _db.select(_db.outboxEntries)
+      ..where((db.$OutboxEntriesTable tbl) => tbl.ownerUid.isNull());
+    return query.get();
+  }
+
+  Future<void> assertNoDispatchableLocalOnlyOutbox() async {
+    final SimpleSelectStatement<db.$OutboxEntriesTable, db.OutboxEntryRow>
+    query = _db.select(_db.outboxEntries)
+      ..where(
+        (db.$OutboxEntriesTable tbl) =>
+            tbl.status.isIn(<String>[
+              OutboxStatus.pending.name,
+              OutboxStatus.failed.name,
+            ]) &
+            (tbl.ownerUid.like('local-%') | tbl.ownerUid.isNull()),
+      );
+    final List<db.OutboxEntryRow> rows = await query.get();
+    if (rows.isNotEmpty) {
+      throw StateError('Found active local-only or null-owner outbox entries.');
+    }
+  }
+
+  Future<void> consumeLocalOnlyOutboxAfterMigrationSuccess() async {
+    await (_db.delete(_db.outboxEntries)..where(
+          (db.$OutboxEntriesTable tbl) =>
+              tbl.ownerUid.like('local-%') | tbl.ownerUid.isNull(),
+        ))
+        .go();
+  }
 }
 
 class OutboxPendingPlan {

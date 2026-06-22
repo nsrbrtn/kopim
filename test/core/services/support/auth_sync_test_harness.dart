@@ -70,7 +70,7 @@ class FakeTransaction extends Fake implements Transaction {}
 class FakeCategory extends Fake implements Category {}
 
 class FakeSyncOwnershipGuard extends SyncOwnershipGuard {
-  const FakeSyncOwnershipGuard();
+  const FakeSyncOwnershipGuard() : super(null);
 
   @override
   Future<void> ensureCanStartCloudSync({
@@ -83,6 +83,9 @@ class FakeSyncOwnershipGuard extends SyncOwnershipGuard {
   Future<void> ensureOutboxEntryCanBePushed({
     required String currentCloudUid,
     required String? entryOwnerUid,
+    String? entityType,
+    String? entityId,
+    String? payload,
   }) async {}
 }
 

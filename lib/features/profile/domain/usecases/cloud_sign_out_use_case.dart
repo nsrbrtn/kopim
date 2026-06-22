@@ -44,6 +44,8 @@ class CloudSignOutUseCase {
       db.profiles,
     )..where(($ProfilesTable tbl) => tbl.uid.equals(cloudUid))).go();
 
+    await db.updateCurrentSyncState(null, false);
+
     // 7. Очищаем конфликты синхронизации
     await db.delete(db.syncConflicts).go();
 

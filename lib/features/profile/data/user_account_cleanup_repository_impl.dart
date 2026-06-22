@@ -85,6 +85,18 @@ class UserAccountCleanupRepositoryImpl implements UserAccountCleanupRepository {
       await (_database.delete(_database.accounts)).go();
       await (_database.delete(_database.profiles)).go();
       await (_database.delete(_database.outboxEntries)).go();
+      await (_database.delete(_database.localRowOwnership)).go();
+      await (_database.delete(_database.currentSyncStates)).go();
+      await _database
+          .into(_database.currentSyncStates)
+          .insert(
+            const db.CurrentSyncStateRow(
+              id: 1,
+              currentUid: null,
+              syncActive: false,
+              importInProgress: false,
+            ),
+          );
     });
     await _syncMetadataRepository.clear(uid);
   }

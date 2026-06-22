@@ -606,7 +606,7 @@ final class OutboxDaoProvider
   }
 }
 
-String _$outboxDaoHash() => r'6f8c2d0b77ac0c73310c377585768b9d6812fbb2';
+String _$outboxDaoHash() => r'c4633d2605c1e05d758334163c0b8363a81129be';
 
 @ProviderFor(syncConflictDao)
 final syncConflictDaoProvider = SyncConflictDaoProvider._();
@@ -5589,7 +5589,7 @@ final class UserProgressRepositoryProvider
 }
 
 String _$userProgressRepositoryHash() =>
-    r'45cd8ec50b47f83b716c24d37a2fb2d4d475b972';
+    r'893b81c332e5eacf0a035c92efb28edc76e8afbb';
 
 @ProviderFor(cloudSignOutUseCase)
 final cloudSignOutUseCaseProvider = CloudSignOutUseCaseProvider._();
@@ -5922,7 +5922,7 @@ final class SyncServiceProvider
   }
 }
 
-String _$syncServiceHash() => r'1f2a4ad939a717b83effc3e404e26dc67822c884';
+String _$syncServiceHash() => r'1260b99bd86cf252ead60814c375793f6690694e';
 
 @ProviderFor(localProfileRepository)
 final localProfileRepositoryProvider = LocalProfileRepositoryProvider._();
@@ -6151,7 +6151,7 @@ final class ActiveAuthRepositoryProvider
 }
 
 String _$activeAuthRepositoryHash() =>
-    r'9ae3a501e501cbd5a1cc2a735ab586cb2af8aa04';
+    r'bfb8fa029b05212cfe90a705d17c437c5318eac6';
 
 @ProviderFor(authRepository)
 final authRepositoryProvider = AuthRepositoryProvider._();

@@ -311,6 +311,9 @@ class FirebaseSyncService implements SyncService {
       await _syncOwnershipGuard.ensureOutboxEntryCanBePushed(
         currentCloudUid: userId,
         entryOwnerUid: prepared.ownerUid,
+        entityType: prepared.entityType,
+        entityId: prepared.entityId,
+        payload: prepared.payload,
       );
       final Map<String, dynamic> payload = _payloadNormalizer.normalize(
         prepared.entityType,

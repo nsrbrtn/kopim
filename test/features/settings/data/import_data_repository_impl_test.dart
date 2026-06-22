@@ -31,6 +31,7 @@ import 'package:kopim/features/savings/data/sources/local/saving_goal_dao.dart';
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/settings/data/repositories/import_data_repository_impl.dart';
 import 'package:kopim/features/settings/domain/entities/export_bundle.dart';
+import 'package:kopim/features/settings/domain/entities/export_bundle_integrity.dart';
 import 'package:kopim/features/tags/domain/entities/tag.dart';
 import 'package:kopim/features/tags/domain/entities/transaction_tag.dart';
 import 'package:kopim/features/tags/data/sources/local/tag_dao.dart';
@@ -1107,5 +1108,59 @@ void main() {
       pending.map((db.OutboxEntryRow entry) => entry.entityType).toSet(),
       containsAll(<String>{'credit', 'credit_card', 'debt'}),
     );
+  });
+
+  test(
+    'importInProgress is set to true during import and reset to false on success',
+    () async {
+      final DateTime now = DateTime.now();
+      final AccountEntity account = AccountEntity(
+        id: 'acc-test-1',
+        name: 'Card',
+        balanceMinor: BigInt.from(1000),
+        currency: 'USD',
+        currencyScale: 2,
+        type: 'regular',
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      // Verify initial state
+      db.CurrentSyncStateRow syncState = await database
+          .select(database.currentSyncStates)
+          .getSingle();
+      expect(syncState.importInProgress, isFalse);
+
+      // Run import
+      await repository.importData(
+        bundle: bundleFactory(accounts: <AccountEntity>[account]),
+      );
+
+      // Verify post-import state
+      syncState = await database.select(database.currentSyncStates).getSingle();
+      expect(syncState.importInProgress, isFalse);
+    },
+  );
+
+  test('importInProgress is reset to false on import failure', () async {
+    // Verify initial state
+    db.CurrentSyncStateRow syncState = await database
+        .select(database.currentSyncStates)
+        .getSingle();
+    expect(syncState.importInProgress, isFalse);
+
+    // Run import with bundle that has mismatched integrity to trigger exception
+    final ExportBundle invalidBundle = bundleFactory().copyWith(
+      integrity: const ExportBundleIntegrity(
+        format: 'v1',
+        contentHash: 'invalid-hash',
+      ),
+    );
+
+    expect(() => repository.importData(bundle: invalidBundle), throwsException);
+
+    // Verify state after failure
+    syncState = await database.select(database.currentSyncStates).getSingle();
+    expect(syncState.importInProgress, isFalse);
   });
 }

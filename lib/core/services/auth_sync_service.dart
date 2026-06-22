@@ -293,6 +293,7 @@ class AuthSyncService {
     );
 
     _inProgress = true;
+    await _database.updateCurrentSyncState(user.uid, true);
     final bool upgradingFromAnonymous =
         (previousUser?.isAnonymous ?? false) && !user.isAnonymous;
 
@@ -1715,6 +1716,9 @@ class AuthSyncService {
       await _syncOwnershipGuard.ensureOutboxEntryCanBePushed(
         currentCloudUid: userId,
         entryOwnerUid: entry.ownerUid,
+        entityType: entry.entityType,
+        entityId: entry.entityId,
+        payload: entry.payload,
       );
     }
 

@@ -85,6 +85,14 @@ class DataModeController extends _$DataModeController {
     logger.logInfo(
       'DataModeController: initial mode=${initial.dataMode.name}, cloudUser=${currentCloudUser?.uid ?? 'none'}, entitlement=${initial.entitlementState.name}.',
     );
+    unawaited(
+      ref
+          .read(appDatabaseProvider)
+          .updateCurrentSyncState(
+            currentCloudUser?.uid,
+            initial.dataMode == DataMode.cloudEnabled,
+          ),
+    );
     return initial;
   }
 
@@ -115,7 +123,7 @@ class DataModeController extends _$DataModeController {
           .logInfo(
             'DataModeController: entitlement activation result success=${result.success}, state=${result.state.name}, mode=${nextState.dataMode.name}.',
           );
-      state = AsyncValue<DataModeState>.data(nextState);
+      _setState(nextState);
     } catch (e, st) {
       state = AsyncValue<DataModeState>.error(e, st);
     }
@@ -133,7 +141,7 @@ class DataModeController extends _$DataModeController {
       current.entitlementState,
       decisionOverride: decision,
     );
-    state = AsyncValue<DataModeState>.data(nextState);
+    _setState(nextState);
   }
 
   Future<void> _updateState(
@@ -151,7 +159,7 @@ class DataModeController extends _$DataModeController {
           .logInfo(
             'DataModeController: auth change cloudUser=${cloudUser?.uid ?? 'none'}, entitlement=${entitlement.name}, nextMode=${nextState.dataMode.name}.',
           );
-      state = AsyncValue<DataModeState>.data(nextState);
+      _setState(nextState);
     } catch (e, st) {
       state = AsyncValue<DataModeState>.error(e, st);
     }
@@ -176,7 +184,7 @@ class DataModeController extends _$DataModeController {
       currentCloudUser,
       entitlement,
     );
-    state = AsyncValue<DataModeState>.data(nextState);
+    _setState(nextState);
     return nextState;
   }
 
@@ -254,6 +262,20 @@ class DataModeController extends _$DataModeController {
       dataMode: DataMode.cloudEnabled,
       entitlementState: entitlement,
       migrationDecision: MigrationDecision.none,
+    );
+  }
+
+  void _setState(DataModeState nextState) {
+    state = AsyncValue<DataModeState>.data(nextState);
+    final String? currentUid = ref
+        .read(cloudAuthRepositoryProvider)
+        .currentUser
+        ?.uid;
+    final bool syncActive = nextState.dataMode == DataMode.cloudEnabled;
+    unawaited(
+      ref
+          .read(appDatabaseProvider)
+          .updateCurrentSyncState(currentUid, syncActive),
     );
   }
 }

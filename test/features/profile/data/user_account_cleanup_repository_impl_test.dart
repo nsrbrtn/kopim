@@ -120,5 +120,13 @@ void main() {
     expect((await database.select(database.accounts).get()), isEmpty);
     expect((await database.select(database.profiles).get()), isEmpty);
     expect((await database.select(database.outboxEntries).get()), isEmpty);
+    expect((await database.select(database.localRowOwnership).get()), isEmpty);
+
+    final CurrentSyncStateRow syncState = await database
+        .select(database.currentSyncStates)
+        .getSingle();
+    expect(syncState.currentUid, isNull);
+    expect(syncState.syncActive, isFalse);
+    expect(syncState.importInProgress, isFalse);
   });
 }

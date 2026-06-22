@@ -14858,6 +14858,814 @@ class SyncConflictsCompanion extends UpdateCompanion<SyncConflictRow> {
   }
 }
 
+class $LocalRowOwnershipTable extends LocalRowOwnership
+    with TableInfo<$LocalRowOwnershipTable, LocalRowOwnershipRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LocalRowOwnershipTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _entityTypeMeta = const VerificationMeta(
+    'entityType',
+  );
+  @override
+  late final GeneratedColumn<String> entityType = GeneratedColumn<String>(
+    'entity_type',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 50,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _entityIdMeta = const VerificationMeta(
+    'entityId',
+  );
+  @override
+  late final GeneratedColumn<String> entityId = GeneratedColumn<String>(
+    'entity_id',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 50,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _ownerUidMeta = const VerificationMeta(
+    'ownerUid',
+  );
+  @override
+  late final GeneratedColumn<String> ownerUid = GeneratedColumn<String>(
+    'owner_uid',
+    aliasedName,
+    true,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 64,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _ownershipStateMeta = const VerificationMeta(
+    'ownershipState',
+  );
+  @override
+  late final GeneratedColumn<String> ownershipState = GeneratedColumn<String>(
+    'ownership_state',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 32,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceMeta = const VerificationMeta('source');
+  @override
+  late final GeneratedColumn<String> source = GeneratedColumn<String>(
+    'source',
+    aliasedName,
+    false,
+    additionalChecks: GeneratedColumn.checkTextLength(
+      minTextLength: 1,
+      maxTextLength: 32,
+    ),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant<int>(1),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    entityType,
+    entityId,
+    ownerUid,
+    ownershipState,
+    source,
+    updatedAt,
+    version,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'local_row_ownership';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LocalRowOwnershipRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('entity_type')) {
+      context.handle(
+        _entityTypeMeta,
+        entityType.isAcceptableOrUnknown(data['entity_type']!, _entityTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_entityTypeMeta);
+    }
+    if (data.containsKey('entity_id')) {
+      context.handle(
+        _entityIdMeta,
+        entityId.isAcceptableOrUnknown(data['entity_id']!, _entityIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_entityIdMeta);
+    }
+    if (data.containsKey('owner_uid')) {
+      context.handle(
+        _ownerUidMeta,
+        ownerUid.isAcceptableOrUnknown(data['owner_uid']!, _ownerUidMeta),
+      );
+    }
+    if (data.containsKey('ownership_state')) {
+      context.handle(
+        _ownershipStateMeta,
+        ownershipState.isAcceptableOrUnknown(
+          data['ownership_state']!,
+          _ownershipStateMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_ownershipStateMeta);
+    }
+    if (data.containsKey('source')) {
+      context.handle(
+        _sourceMeta,
+        source.isAcceptableOrUnknown(data['source']!, _sourceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {entityType, entityId};
+  @override
+  LocalRowOwnershipRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LocalRowOwnershipRow(
+      entityType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}entity_type'],
+      )!,
+      entityId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}entity_id'],
+      )!,
+      ownerUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner_uid'],
+      ),
+      ownershipState: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}ownership_state'],
+      )!,
+      source: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}version'],
+      )!,
+    );
+  }
+
+  @override
+  $LocalRowOwnershipTable createAlias(String alias) {
+    return $LocalRowOwnershipTable(attachedDatabase, alias);
+  }
+}
+
+class LocalRowOwnershipRow extends DataClass
+    implements Insertable<LocalRowOwnershipRow> {
+  final String entityType;
+  final String entityId;
+  final String? ownerUid;
+  final String ownershipState;
+  final String source;
+  final DateTime updatedAt;
+  final int version;
+  const LocalRowOwnershipRow({
+    required this.entityType,
+    required this.entityId,
+    this.ownerUid,
+    required this.ownershipState,
+    required this.source,
+    required this.updatedAt,
+    required this.version,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['entity_type'] = Variable<String>(entityType);
+    map['entity_id'] = Variable<String>(entityId);
+    if (!nullToAbsent || ownerUid != null) {
+      map['owner_uid'] = Variable<String>(ownerUid);
+    }
+    map['ownership_state'] = Variable<String>(ownershipState);
+    map['source'] = Variable<String>(source);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['version'] = Variable<int>(version);
+    return map;
+  }
+
+  LocalRowOwnershipCompanion toCompanion(bool nullToAbsent) {
+    return LocalRowOwnershipCompanion(
+      entityType: Value(entityType),
+      entityId: Value(entityId),
+      ownerUid: ownerUid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ownerUid),
+      ownershipState: Value(ownershipState),
+      source: Value(source),
+      updatedAt: Value(updatedAt),
+      version: Value(version),
+    );
+  }
+
+  factory LocalRowOwnershipRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LocalRowOwnershipRow(
+      entityType: serializer.fromJson<String>(json['entityType']),
+      entityId: serializer.fromJson<String>(json['entityId']),
+      ownerUid: serializer.fromJson<String?>(json['ownerUid']),
+      ownershipState: serializer.fromJson<String>(json['ownershipState']),
+      source: serializer.fromJson<String>(json['source']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      version: serializer.fromJson<int>(json['version']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'entityType': serializer.toJson<String>(entityType),
+      'entityId': serializer.toJson<String>(entityId),
+      'ownerUid': serializer.toJson<String?>(ownerUid),
+      'ownershipState': serializer.toJson<String>(ownershipState),
+      'source': serializer.toJson<String>(source),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'version': serializer.toJson<int>(version),
+    };
+  }
+
+  LocalRowOwnershipRow copyWith({
+    String? entityType,
+    String? entityId,
+    Value<String?> ownerUid = const Value.absent(),
+    String? ownershipState,
+    String? source,
+    DateTime? updatedAt,
+    int? version,
+  }) => LocalRowOwnershipRow(
+    entityType: entityType ?? this.entityType,
+    entityId: entityId ?? this.entityId,
+    ownerUid: ownerUid.present ? ownerUid.value : this.ownerUid,
+    ownershipState: ownershipState ?? this.ownershipState,
+    source: source ?? this.source,
+    updatedAt: updatedAt ?? this.updatedAt,
+    version: version ?? this.version,
+  );
+  LocalRowOwnershipRow copyWithCompanion(LocalRowOwnershipCompanion data) {
+    return LocalRowOwnershipRow(
+      entityType: data.entityType.present
+          ? data.entityType.value
+          : this.entityType,
+      entityId: data.entityId.present ? data.entityId.value : this.entityId,
+      ownerUid: data.ownerUid.present ? data.ownerUid.value : this.ownerUid,
+      ownershipState: data.ownershipState.present
+          ? data.ownershipState.value
+          : this.ownershipState,
+      source: data.source.present ? data.source.value : this.source,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      version: data.version.present ? data.version.value : this.version,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LocalRowOwnershipRow(')
+          ..write('entityType: $entityType, ')
+          ..write('entityId: $entityId, ')
+          ..write('ownerUid: $ownerUid, ')
+          ..write('ownershipState: $ownershipState, ')
+          ..write('source: $source, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('version: $version')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    entityType,
+    entityId,
+    ownerUid,
+    ownershipState,
+    source,
+    updatedAt,
+    version,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LocalRowOwnershipRow &&
+          other.entityType == this.entityType &&
+          other.entityId == this.entityId &&
+          other.ownerUid == this.ownerUid &&
+          other.ownershipState == this.ownershipState &&
+          other.source == this.source &&
+          other.updatedAt == this.updatedAt &&
+          other.version == this.version);
+}
+
+class LocalRowOwnershipCompanion extends UpdateCompanion<LocalRowOwnershipRow> {
+  final Value<String> entityType;
+  final Value<String> entityId;
+  final Value<String?> ownerUid;
+  final Value<String> ownershipState;
+  final Value<String> source;
+  final Value<DateTime> updatedAt;
+  final Value<int> version;
+  final Value<int> rowid;
+  const LocalRowOwnershipCompanion({
+    this.entityType = const Value.absent(),
+    this.entityId = const Value.absent(),
+    this.ownerUid = const Value.absent(),
+    this.ownershipState = const Value.absent(),
+    this.source = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.version = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LocalRowOwnershipCompanion.insert({
+    required String entityType,
+    required String entityId,
+    this.ownerUid = const Value.absent(),
+    required String ownershipState,
+    required String source,
+    this.updatedAt = const Value.absent(),
+    this.version = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : entityType = Value(entityType),
+       entityId = Value(entityId),
+       ownershipState = Value(ownershipState),
+       source = Value(source);
+  static Insertable<LocalRowOwnershipRow> custom({
+    Expression<String>? entityType,
+    Expression<String>? entityId,
+    Expression<String>? ownerUid,
+    Expression<String>? ownershipState,
+    Expression<String>? source,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? version,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (entityType != null) 'entity_type': entityType,
+      if (entityId != null) 'entity_id': entityId,
+      if (ownerUid != null) 'owner_uid': ownerUid,
+      if (ownershipState != null) 'ownership_state': ownershipState,
+      if (source != null) 'source': source,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (version != null) 'version': version,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LocalRowOwnershipCompanion copyWith({
+    Value<String>? entityType,
+    Value<String>? entityId,
+    Value<String?>? ownerUid,
+    Value<String>? ownershipState,
+    Value<String>? source,
+    Value<DateTime>? updatedAt,
+    Value<int>? version,
+    Value<int>? rowid,
+  }) {
+    return LocalRowOwnershipCompanion(
+      entityType: entityType ?? this.entityType,
+      entityId: entityId ?? this.entityId,
+      ownerUid: ownerUid ?? this.ownerUid,
+      ownershipState: ownershipState ?? this.ownershipState,
+      source: source ?? this.source,
+      updatedAt: updatedAt ?? this.updatedAt,
+      version: version ?? this.version,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (entityType.present) {
+      map['entity_type'] = Variable<String>(entityType.value);
+    }
+    if (entityId.present) {
+      map['entity_id'] = Variable<String>(entityId.value);
+    }
+    if (ownerUid.present) {
+      map['owner_uid'] = Variable<String>(ownerUid.value);
+    }
+    if (ownershipState.present) {
+      map['ownership_state'] = Variable<String>(ownershipState.value);
+    }
+    if (source.present) {
+      map['source'] = Variable<String>(source.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LocalRowOwnershipCompanion(')
+          ..write('entityType: $entityType, ')
+          ..write('entityId: $entityId, ')
+          ..write('ownerUid: $ownerUid, ')
+          ..write('ownershipState: $ownershipState, ')
+          ..write('source: $source, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('version: $version, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CurrentSyncStatesTable extends CurrentSyncStates
+    with TableInfo<$CurrentSyncStatesTable, CurrentSyncStateRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CurrentSyncStatesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant<int>(1),
+  );
+  static const VerificationMeta _currentUidMeta = const VerificationMeta(
+    'currentUid',
+  );
+  @override
+  late final GeneratedColumn<String> currentUid = GeneratedColumn<String>(
+    'current_uid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _syncActiveMeta = const VerificationMeta(
+    'syncActive',
+  );
+  @override
+  late final GeneratedColumn<bool> syncActive = GeneratedColumn<bool>(
+    'sync_active',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("sync_active" IN (0, 1))',
+    ),
+    defaultValue: const Constant<bool>(false),
+  );
+  static const VerificationMeta _importInProgressMeta = const VerificationMeta(
+    'importInProgress',
+  );
+  @override
+  late final GeneratedColumn<bool> importInProgress = GeneratedColumn<bool>(
+    'import_in_progress',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("import_in_progress" IN (0, 1))',
+    ),
+    defaultValue: const Constant<bool>(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    currentUid,
+    syncActive,
+    importInProgress,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'current_sync_state';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CurrentSyncStateRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('current_uid')) {
+      context.handle(
+        _currentUidMeta,
+        currentUid.isAcceptableOrUnknown(data['current_uid']!, _currentUidMeta),
+      );
+    }
+    if (data.containsKey('sync_active')) {
+      context.handle(
+        _syncActiveMeta,
+        syncActive.isAcceptableOrUnknown(data['sync_active']!, _syncActiveMeta),
+      );
+    }
+    if (data.containsKey('import_in_progress')) {
+      context.handle(
+        _importInProgressMeta,
+        importInProgress.isAcceptableOrUnknown(
+          data['import_in_progress']!,
+          _importInProgressMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CurrentSyncStateRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CurrentSyncStateRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      currentUid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}current_uid'],
+      ),
+      syncActive: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}sync_active'],
+      )!,
+      importInProgress: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}import_in_progress'],
+      )!,
+    );
+  }
+
+  @override
+  $CurrentSyncStatesTable createAlias(String alias) {
+    return $CurrentSyncStatesTable(attachedDatabase, alias);
+  }
+}
+
+class CurrentSyncStateRow extends DataClass
+    implements Insertable<CurrentSyncStateRow> {
+  final int id;
+  final String? currentUid;
+  final bool syncActive;
+  final bool importInProgress;
+  const CurrentSyncStateRow({
+    required this.id,
+    this.currentUid,
+    required this.syncActive,
+    required this.importInProgress,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    if (!nullToAbsent || currentUid != null) {
+      map['current_uid'] = Variable<String>(currentUid);
+    }
+    map['sync_active'] = Variable<bool>(syncActive);
+    map['import_in_progress'] = Variable<bool>(importInProgress);
+    return map;
+  }
+
+  CurrentSyncStatesCompanion toCompanion(bool nullToAbsent) {
+    return CurrentSyncStatesCompanion(
+      id: Value(id),
+      currentUid: currentUid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(currentUid),
+      syncActive: Value(syncActive),
+      importInProgress: Value(importInProgress),
+    );
+  }
+
+  factory CurrentSyncStateRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CurrentSyncStateRow(
+      id: serializer.fromJson<int>(json['id']),
+      currentUid: serializer.fromJson<String?>(json['currentUid']),
+      syncActive: serializer.fromJson<bool>(json['syncActive']),
+      importInProgress: serializer.fromJson<bool>(json['importInProgress']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'currentUid': serializer.toJson<String?>(currentUid),
+      'syncActive': serializer.toJson<bool>(syncActive),
+      'importInProgress': serializer.toJson<bool>(importInProgress),
+    };
+  }
+
+  CurrentSyncStateRow copyWith({
+    int? id,
+    Value<String?> currentUid = const Value.absent(),
+    bool? syncActive,
+    bool? importInProgress,
+  }) => CurrentSyncStateRow(
+    id: id ?? this.id,
+    currentUid: currentUid.present ? currentUid.value : this.currentUid,
+    syncActive: syncActive ?? this.syncActive,
+    importInProgress: importInProgress ?? this.importInProgress,
+  );
+  CurrentSyncStateRow copyWithCompanion(CurrentSyncStatesCompanion data) {
+    return CurrentSyncStateRow(
+      id: data.id.present ? data.id.value : this.id,
+      currentUid: data.currentUid.present
+          ? data.currentUid.value
+          : this.currentUid,
+      syncActive: data.syncActive.present
+          ? data.syncActive.value
+          : this.syncActive,
+      importInProgress: data.importInProgress.present
+          ? data.importInProgress.value
+          : this.importInProgress,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CurrentSyncStateRow(')
+          ..write('id: $id, ')
+          ..write('currentUid: $currentUid, ')
+          ..write('syncActive: $syncActive, ')
+          ..write('importInProgress: $importInProgress')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, currentUid, syncActive, importInProgress);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CurrentSyncStateRow &&
+          other.id == this.id &&
+          other.currentUid == this.currentUid &&
+          other.syncActive == this.syncActive &&
+          other.importInProgress == this.importInProgress);
+}
+
+class CurrentSyncStatesCompanion extends UpdateCompanion<CurrentSyncStateRow> {
+  final Value<int> id;
+  final Value<String?> currentUid;
+  final Value<bool> syncActive;
+  final Value<bool> importInProgress;
+  const CurrentSyncStatesCompanion({
+    this.id = const Value.absent(),
+    this.currentUid = const Value.absent(),
+    this.syncActive = const Value.absent(),
+    this.importInProgress = const Value.absent(),
+  });
+  CurrentSyncStatesCompanion.insert({
+    this.id = const Value.absent(),
+    this.currentUid = const Value.absent(),
+    this.syncActive = const Value.absent(),
+    this.importInProgress = const Value.absent(),
+  });
+  static Insertable<CurrentSyncStateRow> custom({
+    Expression<int>? id,
+    Expression<String>? currentUid,
+    Expression<bool>? syncActive,
+    Expression<bool>? importInProgress,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (currentUid != null) 'current_uid': currentUid,
+      if (syncActive != null) 'sync_active': syncActive,
+      if (importInProgress != null) 'import_in_progress': importInProgress,
+    });
+  }
+
+  CurrentSyncStatesCompanion copyWith({
+    Value<int>? id,
+    Value<String?>? currentUid,
+    Value<bool>? syncActive,
+    Value<bool>? importInProgress,
+  }) {
+    return CurrentSyncStatesCompanion(
+      id: id ?? this.id,
+      currentUid: currentUid ?? this.currentUid,
+      syncActive: syncActive ?? this.syncActive,
+      importInProgress: importInProgress ?? this.importInProgress,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (currentUid.present) {
+      map['current_uid'] = Variable<String>(currentUid.value);
+    }
+    if (syncActive.present) {
+      map['sync_active'] = Variable<bool>(syncActive.value);
+    }
+    if (importInProgress.present) {
+      map['import_in_progress'] = Variable<bool>(importInProgress.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CurrentSyncStatesCompanion(')
+          ..write('id: $id, ')
+          ..write('currentUid: $currentUid, ')
+          ..write('syncActive: $syncActive, ')
+          ..write('importInProgress: $importInProgress')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -14894,6 +15702,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $DebtsTable debts = $DebtsTable(this);
   late final $CreditCardsTable creditCards = $CreditCardsTable(this);
   late final $SyncConflictsTable syncConflicts = $SyncConflictsTable(this);
+  late final $LocalRowOwnershipTable localRowOwnership =
+      $LocalRowOwnershipTable(this);
+  late final $CurrentSyncStatesTable currentSyncStates =
+      $CurrentSyncStatesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -14919,6 +15731,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     debts,
     creditCards,
     syncConflicts,
+    localRowOwnership,
+    currentSyncStates,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -27696,6 +28510,455 @@ typedef $$SyncConflictsTableProcessedTableManager =
       SyncConflictRow,
       PrefetchHooks Function()
     >;
+typedef $$LocalRowOwnershipTableCreateCompanionBuilder =
+    LocalRowOwnershipCompanion Function({
+      required String entityType,
+      required String entityId,
+      Value<String?> ownerUid,
+      required String ownershipState,
+      required String source,
+      Value<DateTime> updatedAt,
+      Value<int> version,
+      Value<int> rowid,
+    });
+typedef $$LocalRowOwnershipTableUpdateCompanionBuilder =
+    LocalRowOwnershipCompanion Function({
+      Value<String> entityType,
+      Value<String> entityId,
+      Value<String?> ownerUid,
+      Value<String> ownershipState,
+      Value<String> source,
+      Value<DateTime> updatedAt,
+      Value<int> version,
+      Value<int> rowid,
+    });
+
+class $$LocalRowOwnershipTableFilterComposer
+    extends Composer<_$AppDatabase, $LocalRowOwnershipTable> {
+  $$LocalRowOwnershipTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get entityId => $composableBuilder(
+    column: $table.entityId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ownerUid => $composableBuilder(
+    column: $table.ownerUid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ownershipState => $composableBuilder(
+    column: $table.ownershipState,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$LocalRowOwnershipTableOrderingComposer
+    extends Composer<_$AppDatabase, $LocalRowOwnershipTable> {
+  $$LocalRowOwnershipTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get entityId => $composableBuilder(
+    column: $table.entityId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ownerUid => $composableBuilder(
+    column: $table.ownerUid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ownershipState => $composableBuilder(
+    column: $table.ownershipState,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$LocalRowOwnershipTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LocalRowOwnershipTable> {
+  $$LocalRowOwnershipTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get entityType => $composableBuilder(
+    column: $table.entityType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get entityId =>
+      $composableBuilder(column: $table.entityId, builder: (column) => column);
+
+  GeneratedColumn<String> get ownerUid =>
+      $composableBuilder(column: $table.ownerUid, builder: (column) => column);
+
+  GeneratedColumn<String> get ownershipState => $composableBuilder(
+    column: $table.ownershipState,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<int> get version =>
+      $composableBuilder(column: $table.version, builder: (column) => column);
+}
+
+class $$LocalRowOwnershipTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $LocalRowOwnershipTable,
+          LocalRowOwnershipRow,
+          $$LocalRowOwnershipTableFilterComposer,
+          $$LocalRowOwnershipTableOrderingComposer,
+          $$LocalRowOwnershipTableAnnotationComposer,
+          $$LocalRowOwnershipTableCreateCompanionBuilder,
+          $$LocalRowOwnershipTableUpdateCompanionBuilder,
+          (
+            LocalRowOwnershipRow,
+            BaseReferences<
+              _$AppDatabase,
+              $LocalRowOwnershipTable,
+              LocalRowOwnershipRow
+            >,
+          ),
+          LocalRowOwnershipRow,
+          PrefetchHooks Function()
+        > {
+  $$LocalRowOwnershipTableTableManager(
+    _$AppDatabase db,
+    $LocalRowOwnershipTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LocalRowOwnershipTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$LocalRowOwnershipTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$LocalRowOwnershipTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> entityType = const Value.absent(),
+                Value<String> entityId = const Value.absent(),
+                Value<String?> ownerUid = const Value.absent(),
+                Value<String> ownershipState = const Value.absent(),
+                Value<String> source = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LocalRowOwnershipCompanion(
+                entityType: entityType,
+                entityId: entityId,
+                ownerUid: ownerUid,
+                ownershipState: ownershipState,
+                source: source,
+                updatedAt: updatedAt,
+                version: version,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String entityType,
+                required String entityId,
+                Value<String?> ownerUid = const Value.absent(),
+                required String ownershipState,
+                required String source,
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LocalRowOwnershipCompanion.insert(
+                entityType: entityType,
+                entityId: entityId,
+                ownerUid: ownerUid,
+                ownershipState: ownershipState,
+                source: source,
+                updatedAt: updatedAt,
+                version: version,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$LocalRowOwnershipTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $LocalRowOwnershipTable,
+      LocalRowOwnershipRow,
+      $$LocalRowOwnershipTableFilterComposer,
+      $$LocalRowOwnershipTableOrderingComposer,
+      $$LocalRowOwnershipTableAnnotationComposer,
+      $$LocalRowOwnershipTableCreateCompanionBuilder,
+      $$LocalRowOwnershipTableUpdateCompanionBuilder,
+      (
+        LocalRowOwnershipRow,
+        BaseReferences<
+          _$AppDatabase,
+          $LocalRowOwnershipTable,
+          LocalRowOwnershipRow
+        >,
+      ),
+      LocalRowOwnershipRow,
+      PrefetchHooks Function()
+    >;
+typedef $$CurrentSyncStatesTableCreateCompanionBuilder =
+    CurrentSyncStatesCompanion Function({
+      Value<int> id,
+      Value<String?> currentUid,
+      Value<bool> syncActive,
+      Value<bool> importInProgress,
+    });
+typedef $$CurrentSyncStatesTableUpdateCompanionBuilder =
+    CurrentSyncStatesCompanion Function({
+      Value<int> id,
+      Value<String?> currentUid,
+      Value<bool> syncActive,
+      Value<bool> importInProgress,
+    });
+
+class $$CurrentSyncStatesTableFilterComposer
+    extends Composer<_$AppDatabase, $CurrentSyncStatesTable> {
+  $$CurrentSyncStatesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get currentUid => $composableBuilder(
+    column: $table.currentUid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get syncActive => $composableBuilder(
+    column: $table.syncActive,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get importInProgress => $composableBuilder(
+    column: $table.importInProgress,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CurrentSyncStatesTableOrderingComposer
+    extends Composer<_$AppDatabase, $CurrentSyncStatesTable> {
+  $$CurrentSyncStatesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get currentUid => $composableBuilder(
+    column: $table.currentUid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get syncActive => $composableBuilder(
+    column: $table.syncActive,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get importInProgress => $composableBuilder(
+    column: $table.importInProgress,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CurrentSyncStatesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CurrentSyncStatesTable> {
+  $$CurrentSyncStatesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get currentUid => $composableBuilder(
+    column: $table.currentUid,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get syncActive => $composableBuilder(
+    column: $table.syncActive,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get importInProgress => $composableBuilder(
+    column: $table.importInProgress,
+    builder: (column) => column,
+  );
+}
+
+class $$CurrentSyncStatesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CurrentSyncStatesTable,
+          CurrentSyncStateRow,
+          $$CurrentSyncStatesTableFilterComposer,
+          $$CurrentSyncStatesTableOrderingComposer,
+          $$CurrentSyncStatesTableAnnotationComposer,
+          $$CurrentSyncStatesTableCreateCompanionBuilder,
+          $$CurrentSyncStatesTableUpdateCompanionBuilder,
+          (
+            CurrentSyncStateRow,
+            BaseReferences<
+              _$AppDatabase,
+              $CurrentSyncStatesTable,
+              CurrentSyncStateRow
+            >,
+          ),
+          CurrentSyncStateRow,
+          PrefetchHooks Function()
+        > {
+  $$CurrentSyncStatesTableTableManager(
+    _$AppDatabase db,
+    $CurrentSyncStatesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CurrentSyncStatesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CurrentSyncStatesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CurrentSyncStatesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String?> currentUid = const Value.absent(),
+                Value<bool> syncActive = const Value.absent(),
+                Value<bool> importInProgress = const Value.absent(),
+              }) => CurrentSyncStatesCompanion(
+                id: id,
+                currentUid: currentUid,
+                syncActive: syncActive,
+                importInProgress: importInProgress,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String?> currentUid = const Value.absent(),
+                Value<bool> syncActive = const Value.absent(),
+                Value<bool> importInProgress = const Value.absent(),
+              }) => CurrentSyncStatesCompanion.insert(
+                id: id,
+                currentUid: currentUid,
+                syncActive: syncActive,
+                importInProgress: importInProgress,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CurrentSyncStatesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CurrentSyncStatesTable,
+      CurrentSyncStateRow,
+      $$CurrentSyncStatesTableFilterComposer,
+      $$CurrentSyncStatesTableOrderingComposer,
+      $$CurrentSyncStatesTableAnnotationComposer,
+      $$CurrentSyncStatesTableCreateCompanionBuilder,
+      $$CurrentSyncStatesTableUpdateCompanionBuilder,
+      (
+        CurrentSyncStateRow,
+        BaseReferences<
+          _$AppDatabase,
+          $CurrentSyncStatesTable,
+          CurrentSyncStateRow
+        >,
+      ),
+      CurrentSyncStateRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -27742,4 +29005,8 @@ class $AppDatabaseManager {
       $$CreditCardsTableTableManager(_db, _db.creditCards);
   $$SyncConflictsTableTableManager get syncConflicts =>
       $$SyncConflictsTableTableManager(_db, _db.syncConflicts);
+  $$LocalRowOwnershipTableTableManager get localRowOwnership =>
+      $$LocalRowOwnershipTableTableManager(_db, _db.localRowOwnership);
+  $$CurrentSyncStatesTableTableManager get currentSyncStates =>
+      $$CurrentSyncStatesTableTableManager(_db, _db.currentSyncStates);
 }

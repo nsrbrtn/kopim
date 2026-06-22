@@ -1446,7 +1446,8 @@ LocalSyncIntegrityDiagnosticsService localSyncIntegrityDiagnosticsService(
 ) => LocalSyncIntegrityDiagnosticsService(ref.watch(appDatabaseProvider));
 
 @riverpod
-SyncOwnershipGuard syncOwnershipGuard(Ref ref) => const SyncOwnershipGuard();
+SyncOwnershipGuard syncOwnershipGuard(Ref ref) =>
+    SyncOwnershipGuard(ref.watch(appDatabaseProvider));
 
 @riverpod
 LocalSyncIntegrityReportFormatter localSyncIntegrityReportFormatter(Ref ref) =>

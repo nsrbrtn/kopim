@@ -467,6 +467,39 @@ class SyncConflicts extends Table {
   TextColumn get resolution => text().nullable()();
 }
 
+@DataClassName('LocalRowOwnershipRow')
+class LocalRowOwnership extends Table {
+  @override
+  String get tableName => 'local_row_ownership';
+
+  TextColumn get entityType => text().withLength(min: 1, max: 50)();
+  TextColumn get entityId => text().withLength(min: 1, max: 50)();
+  TextColumn get ownerUid => text().nullable().withLength(min: 1, max: 64)();
+  TextColumn get ownershipState => text().withLength(min: 1, max: 32)();
+  TextColumn get source => text().withLength(min: 1, max: 32)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  IntColumn get version => integer().withDefault(const Constant<int>(1))();
+
+  @override
+  Set<Column<Object>> get primaryKey => <Column<Object>>{entityType, entityId};
+}
+
+@DataClassName('CurrentSyncStateRow')
+class CurrentSyncStates extends Table {
+  @override
+  String get tableName => 'current_sync_state';
+
+  IntColumn get id => integer().withDefault(const Constant<int>(1))();
+  TextColumn get currentUid => text().nullable()();
+  BoolColumn get syncActive =>
+      boolean().withDefault(const Constant<bool>(false))();
+  BoolColumn get importInProgress =>
+      boolean().withDefault(const Constant<bool>(false))();
+
+  @override
+  Set<Column<Object>> get primaryKey => <Column<Object>>{id};
+}
+
 @DriftDatabase(
   tables: <Type>[
     Accounts,
@@ -489,6 +522,8 @@ class SyncConflicts extends Table {
     CreditPaymentSchedules,
     CreditPaymentGroups,
     SyncConflicts,
+    LocalRowOwnership,
+    CurrentSyncStates,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -497,7 +532,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.connect(DatabaseConnection super.connection);
 
   @override
-  int get schemaVersion => 49;
+  int get schemaVersion => 50;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -678,6 +713,21 @@ class AppDatabase extends _$AppDatabase {
               'ON credit_payment_schedules(credit_id, period_key)',
         ),
       );
+      await m.createIndex(
+        Index(
+          'local_row_ownership_owner_state_idx',
+          'CREATE INDEX IF NOT EXISTS local_row_ownership_owner_state_idx '
+              'ON local_row_ownership(owner_uid, ownership_state)',
+        ),
+      );
+      await m.createIndex(
+        Index(
+          'local_row_ownership_state_idx',
+          'CREATE INDEX IF NOT EXISTS local_row_ownership_state_idx '
+              'ON local_row_ownership(ownership_state)',
+        ),
+      );
+      await _createRowOwnershipTriggers(m);
     },
     onUpgrade: (Migrator m, int from, int to) async {
       if (from < 2) {
@@ -1532,9 +1582,40 @@ LEFT JOIN accounts acc ON up.account_id = acc.id
           await m.addColumn(outboxEntries, outboxEntries.ownerUid);
         }
       }
+      if (from < 50) {
+        await m.createTable(localRowOwnership);
+        await m.createTable(currentSyncStates);
+
+        await m.database.customStatement(
+          'INSERT OR IGNORE INTO current_sync_state (id, current_uid, sync_active, import_in_progress) '
+          'VALUES (1, NULL, 0, 0)',
+        );
+
+        await m.createIndex(
+          Index(
+            'local_row_ownership_owner_state_idx',
+            'CREATE INDEX IF NOT EXISTS local_row_ownership_owner_state_idx '
+                'ON local_row_ownership(owner_uid, ownership_state)',
+          ),
+        );
+        await m.createIndex(
+          Index(
+            'local_row_ownership_state_idx',
+            'CREATE INDEX IF NOT EXISTS local_row_ownership_state_idx '
+                'ON local_row_ownership(ownership_state)',
+          ),
+        );
+
+        await _backfillLocalRowOwnership(m);
+        await _createRowOwnershipTriggers(m);
+      }
     },
     beforeOpen: (OpeningDetails details) async {
       await customStatement('PRAGMA foreign_keys = ON');
+      await customStatement(
+        'INSERT OR IGNORE INTO current_sync_state (id, current_uid, sync_active, import_in_progress) '
+        'VALUES (1, NULL, 0, 0)',
+      );
     },
   );
 
@@ -1842,5 +1923,160 @@ WHERE goal_id = ? AND (storage_account_id IS NULL OR storage_account_id = '')
     }
 
     return false;
+  }
+
+  Future<void> updateCurrentSyncState(String? uid, bool syncActive) async {
+    await into(currentSyncStates).insertOnConflictUpdate(
+      CurrentSyncStateRow(
+        id: 1,
+        currentUid: uid,
+        syncActive: syncActive,
+        importInProgress: false,
+      ),
+    );
+  }
+
+  Future<LocalRowOwnershipRow?> getOwnership(
+    String entityType,
+    String entityId,
+  ) async {
+    final SimpleSelectStatement<$LocalRowOwnershipTable, LocalRowOwnershipRow>
+    query = select(localRowOwnership)
+      ..where(
+        ($LocalRowOwnershipTable tbl) =>
+            tbl.entityType.equals(entityType) & tbl.entityId.equals(entityId),
+      );
+    return query.getSingleOrNull();
+  }
+
+  Future<void> _backfillLocalRowOwnership(Migrator m) async {
+    final int nowMs = DateTime.now().millisecondsSinceEpoch;
+
+    // 1. categories (with is_system classification)
+    await m.database.customStatement('''
+      INSERT OR IGNORE INTO local_row_ownership (entity_type, entity_id, ownership_state, owner_uid, source, updated_at, version)
+      SELECT 'category', id, CASE WHEN is_system = 1 THEN 'systemDefault' ELSE 'localOnly' END, NULL, 'schema_backfill', $nowMs, 1 FROM categories
+    ''');
+
+    const List<Map<String, String>> tablesAndTypes = <Map<String, String>>[
+      <String, String>{'table': 'accounts', 'type': 'account'},
+      <String, String>{'table': 'tags', 'type': 'tag'},
+      <String, String>{'table': 'transactions', 'type': 'transaction'},
+      <String, String>{'table': 'budgets', 'type': 'budget'},
+      <String, String>{'table': 'budget_instances', 'type': 'budget_instance'},
+      <String, String>{'table': 'saving_goals', 'type': 'saving_goal'},
+      <String, String>{
+        'table': 'upcoming_payments',
+        'type': 'upcoming_payment',
+      },
+      <String, String>{
+        'table': 'payment_reminders',
+        'type': 'payment_reminder',
+      },
+      <String, String>{'table': 'debts', 'type': 'debt'},
+      <String, String>{'table': 'credits', 'type': 'credit'},
+      <String, String>{'table': 'credit_cards', 'type': 'credit_card'},
+      <String, String>{
+        'table': 'credit_payment_schedules',
+        'type': 'credit_payment_schedule',
+      },
+      <String, String>{
+        'table': 'credit_payment_groups',
+        'type': 'credit_payment_group',
+      },
+    ];
+
+    for (final Map<String, String> item in tablesAndTypes) {
+      final String tableName = item['table']!;
+      final String entityType = item['type']!;
+      if (await _migratorTableExists(m, tableName)) {
+        await m.database.customStatement('''
+          INSERT OR IGNORE INTO local_row_ownership (entity_type, entity_id, ownership_state, owner_uid, source, updated_at, version)
+          SELECT '$entityType', id, 'localOnly', NULL, 'schema_backfill', $nowMs, 1 FROM $tableName
+        ''');
+      }
+    }
+  }
+
+  Future<void> _createRowOwnershipTriggers(Migrator m) async {
+    const List<Map<String, String>> tablesAndTypes = <Map<String, String>>[
+      <String, String>{'table': 'accounts', 'type': 'account'},
+      <String, String>{'table': 'categories', 'type': 'category'},
+      <String, String>{'table': 'tags', 'type': 'tag'},
+      <String, String>{'table': 'transactions', 'type': 'transaction'},
+      <String, String>{'table': 'budgets', 'type': 'budget'},
+      <String, String>{'table': 'budget_instances', 'type': 'budget_instance'},
+      <String, String>{'table': 'saving_goals', 'type': 'saving_goal'},
+      <String, String>{
+        'table': 'upcoming_payments',
+        'type': 'upcoming_payment',
+      },
+      <String, String>{
+        'table': 'payment_reminders',
+        'type': 'payment_reminder',
+      },
+      <String, String>{'table': 'debts', 'type': 'debt'},
+      <String, String>{'table': 'credits', 'type': 'credit'},
+      <String, String>{'table': 'credit_cards', 'type': 'credit_card'},
+      <String, String>{
+        'table': 'credit_payment_schedules',
+        'type': 'credit_payment_schedule',
+      },
+      <String, String>{
+        'table': 'credit_payment_groups',
+        'type': 'credit_payment_group',
+      },
+    ];
+
+    for (final Map<String, String> item in tablesAndTypes) {
+      final String tableName = item['table']!;
+      final String entityType = item['type']!;
+
+      // Insert trigger
+      await m.database.customStatement('''
+        CREATE TRIGGER IF NOT EXISTS ${tableName}_ownership_trigger AFTER INSERT ON $tableName
+        BEGIN
+          INSERT OR REPLACE INTO local_row_ownership (entity_type, entity_id, ownership_state, owner_uid, source, updated_at, version)
+          SELECT
+            '$entityType',
+            NEW.id,
+            CASE
+              WHEN (SELECT import_in_progress FROM current_sync_state WHERE id = 1) = 1 THEN 'localOnly'
+              ${entityType == 'category' ? "WHEN NEW.is_system = 1 THEN 'systemDefault'" : ""}
+              WHEN (SELECT sync_active FROM current_sync_state WHERE id = 1) = 1 THEN 'cloudOwned'
+              ELSE 'localOnly'
+            END,
+            CASE
+              WHEN (SELECT import_in_progress FROM current_sync_state WHERE id = 1) = 1 THEN NULL
+              ${entityType == 'category' ? "WHEN NEW.is_system = 1 THEN NULL" : ""}
+              WHEN (SELECT sync_active FROM current_sync_state WHERE id = 1) = 1 THEN (SELECT current_uid FROM current_sync_state WHERE id = 1)
+              ELSE NULL
+            END,
+            CASE
+              WHEN (SELECT import_in_progress FROM current_sync_state WHERE id = 1) = 1 THEN 'import_restore'
+              ELSE 'local_creation'
+            END,
+            strftime('%s', 'now') * 1000,
+            1;
+        END;
+      ''');
+
+      // Delete trigger
+      await m.database.customStatement('''
+        CREATE TRIGGER IF NOT EXISTS ${tableName}_ownership_delete_trigger AFTER DELETE ON $tableName
+        BEGIN
+          DELETE FROM local_row_ownership WHERE entity_type = '$entityType' AND entity_id = OLD.id;
+        END;
+      ''');
+    }
+  }
+
+  Future<bool> _migratorTableExists(Migrator m, String table) async {
+    final List<QueryRow> res = await m.database
+        .customSelect(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='$table'",
+        )
+        .get();
+    return res.isNotEmpty;
   }
 }

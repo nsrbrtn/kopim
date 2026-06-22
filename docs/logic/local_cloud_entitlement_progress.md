@@ -89,7 +89,32 @@
 
 - [2026-06-20-local-cloud-activation-decision-model-and-choice-screen.md](/home/artem/StudioProjects/kopim/.agent/exec_plans/2026-06-20-local-cloud-activation-decision-model-and-choice-screen.md:1)
 
-### 4. Реальная миграция local -> cloud
+### 4. Первый execution path: enableCloudSync для пустого workspace
+
+Статус: `done`
+
+Что зафиксировано:
+- Условие: локально нет пользовательских данных, в облаке нет данных и метаданных.
+- Активация: сохранение явного флага активации в `CloudActivationStateRepository` для UID со сценарием `enableCloudSync`.
+- Runtime: переход в `DataMode.cloudEnabled` с проверкой флага активации на запуске/логине.
+
+Основной план:
+- [2026-06-20-local-cloud-enable-sync-empty-workspace-execution.md](/home/artem/StudioProjects/kopim/.agent/exec_plans/2026-06-20-local-cloud-enable-sync-empty-workspace-execution.md:1)
+
+### 5. Второй execution path: startWithEmptyCloud
+
+Статус: `done`
+
+Что зафиксировано:
+- Hardening review: атомарность деструктивных действий (SQLite reset до сброса метаданных синка, post-reset валидация).
+- Сохранение данных: экспорт резервной копии перед любыми деструктивными операциями.
+- Reset: сброс локальной БД без генерации outbox rows и tombstones.
+- Регрессии: автотесты на сбои сброса, очистки метаданных, блокировки outbox по `ownerUid` и интеграционный roundtrip-тест.
+
+Основной план:
+- [2026-06-20-local-cloud-start-with-empty-cloud-execution.md](/home/artem/StudioProjects/kopim/.agent/exec_plans/2026-06-20-local-cloud-start-with-empty-cloud-execution.md:1)
+
+### 6. Реальная миграция local -> cloud
 
 Статус: `planned`
 
