@@ -10,6 +10,8 @@ import 'package:kopim/features/profile/presentation/controllers/data_mode_contro
 import 'package:kopim/features/profile/presentation/screens/cloud_activation_preflight_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
 import 'package:kopim/features/profile/presentation/widgets/profile_sync_settings_card.dart';
+import 'package:go_router/go_router.dart';
+import '../router_test_helper.dart';
 
 class _FakeDataModeController extends DataModeController {
   _FakeDataModeController(this._state);
@@ -52,22 +54,25 @@ void main() {
             ),
           ),
         ],
-        child: MaterialApp(
-          routes: <String, WidgetBuilder>{
-            CloudActivationPreflightScreen.routeName: (_) => ProviderScope(
-              overrides: <Override>[
-                cloudActivationPreflightProvider.overrideWithValue(
-                  const CloudActivationPreflightState(
-                    CloudActivationPreflightStatus.signedOut,
+        child: buildTestAppWithRouter(
+          child: const Scaffold(body: ProfileSyncSettingsCard()),
+          additionalRoutes: <RouteBase>[
+            GoRoute(
+              path: CloudActivationPreflightScreen.routeName,
+              builder: (BuildContext context, GoRouterState state) =>
+                  ProviderScope(
+                    overrides: <Override>[
+                      cloudActivationPreflightProvider.overrideWithValue(
+                        const CloudActivationPreflightState(
+                          CloudActivationPreflightStatus.signedOut,
+                        ),
+                      ),
+                    ],
+                    child: const CloudActivationPreflightScreen(),
                   ),
-                ),
-              ],
-              child: const CloudActivationPreflightScreen(),
             ),
-            SignInScreen.routeName: (_) =>
-                const Scaffold(body: Text('sign-in-screen')),
-          },
-          home: const Scaffold(body: ProfileSyncSettingsCard()),
+            mockRoute(SignInScreen.routeName, text: 'sign-in-screen'),
+          ],
         ),
       ),
     );

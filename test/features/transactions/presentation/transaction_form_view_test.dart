@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod/legacy.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/services/analytics_service.dart';
@@ -585,6 +586,234 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.text('Кофе'), findsOneWidget);
+    },
+  );
+
+  testWidgets('carousel interaction keeps section expanded', (
+    WidgetTester tester,
+  ) async {
+    final AccountEntity account = _buildAccount();
+    final List<Category> categories = <Category>[
+      _buildCategory(id: 'cat-1', name: 'Food'),
+    ];
+
+    await _pumpTransactionForm(
+      tester,
+      account: account,
+      categories: categories,
+    );
+
+    final BuildContext context = tester.element(find.byType(Scaffold));
+    final AppLocalizations strings = AppLocalizations.of(context)!;
+
+    final Finder amountFinder = find.byWidgetPredicate(
+      (Widget widget) =>
+          widget is TextField &&
+          widget.decoration?.hintText == strings.addTransactionAmountHint,
+    );
+    expect(amountFinder, findsOneWidget);
+
+    await tester.tap(amountFinder);
+    await tester.enterText(amountFinder, '100');
+    await tester.pump();
+
+    final FocusNode focusNode = tester
+        .widget<TextField>(amountFinder)
+        .focusNode!;
+    expect(focusNode.hasFocus, isTrue);
+
+    final Finder carousel = find.byKey(
+      const ValueKey<String>('transaction_account_field'),
+    );
+    expect(carousel, findsOneWidget);
+
+    await tester.drag(carousel, const Offset(-50, 0));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(focusNode.hasFocus, isTrue);
+    expect(
+      find.byKey(const ValueKey<String>('transaction_account_field')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets(
+    'amount entered + immediate account selection before debounce => latest amount preserved',
+    (WidgetTester tester) async {
+      final AccountEntity account1 = _buildAccount();
+      final AccountEntity account2 = AccountEntity(
+        id: 'acc-2',
+        name: 'Card',
+        balanceMinor: BigInt.from(50000),
+        currency: 'USD',
+        currencyScale: 2,
+        type: 'card',
+        createdAt: DateTime(2023, 1, 1),
+        updatedAt: DateTime(2023, 1, 1),
+        isDeleted: false,
+      );
+      final List<Category> categories = <Category>[
+        _buildCategory(id: 'cat-1', name: 'Food'),
+      ];
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: <Override>[
+            transactionFormAccountsProvider.overrideWith(
+              (Ref ref) => Stream<List<AccountEntity>>.value(<AccountEntity>[
+                account1,
+                account2,
+              ]),
+            ),
+            transactionFormCategoriesProvider.overrideWith(
+              (Ref ref) => Stream<List<Category>>.value(categories),
+            ),
+            transactionFormTagsProvider.overrideWith(
+              (Ref ref) => const Stream<List<TagEntity>>.empty(),
+            ),
+            getAccountByIdUseCaseProvider.overrideWithValue(
+              _StubGetAccountByIdUseCase(<String, AccountEntity>{
+                account1.id: account1,
+                account2.id: account2,
+              }),
+            ),
+            getTransactionTagIdsUseCaseProvider.overrideWithValue(
+              _StubGetTransactionTagIdsUseCase(),
+            ),
+            setTransactionTagsUseCaseProvider.overrideWithValue(
+              _StubSetTransactionTagsUseCase(),
+            ),
+            profileEventRecorderProvider.overrideWithValue(
+              _StubProfileEventRecorder(),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: AddTransactionScreen(),
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      final BuildContext context = tester.element(find.byType(Scaffold));
+      final AppLocalizations strings = AppLocalizations.of(context)!;
+
+      final Finder amountFinder = find.byWidgetPredicate(
+        (Widget widget) =>
+            widget is TextField &&
+            widget.decoration?.hintText == strings.addTransactionAmountHint,
+      );
+
+      await tester.tap(amountFinder);
+      await tester.enterText(amountFinder, '123.45');
+      await tester.pump();
+
+      await tester.tap(find.text('Card'));
+      await tester.pump();
+
+      await tester.pump(const Duration(milliseconds: 300));
+
+      final StateNotifierProvider<
+        TransactionFormController,
+        TransactionDraftState
+      >
+      formProvider = transactionFormControllerProvider(
+        const TransactionFormArgs(),
+      );
+      final ProviderContainer container = ProviderScope.containerOf(context);
+      final TransactionDraftState state = container.read(formProvider);
+
+      expect(state.accountId, equals('acc-2'));
+      expect(state.amount, equals('123.45'));
+    },
+  );
+
+  testWidgets('amount entered + tap note collapses section', (
+    WidgetTester tester,
+  ) async {
+    final AccountEntity account = _buildAccount();
+    final List<Category> categories = <Category>[
+      _buildCategory(id: 'cat-1', name: 'Food'),
+    ];
+
+    await _pumpTransactionForm(
+      tester,
+      account: account,
+      categories: categories,
+    );
+
+    final BuildContext context = tester.element(find.byType(Scaffold));
+    final AppLocalizations strings = AppLocalizations.of(context)!;
+
+    final Finder amountFinder = find.byWidgetPredicate(
+      (Widget widget) =>
+          widget is TextField &&
+          widget.decoration?.hintText == strings.addTransactionAmountHint,
+    );
+
+    await tester.tap(amountFinder);
+    await tester.enterText(amountFinder, '100');
+    await tester.pump();
+
+    final AnimatedCrossFade crossFadeBefore = tester.widget<AnimatedCrossFade>(
+      find.byType(AnimatedCrossFade),
+    );
+    expect(crossFadeBefore.crossFadeState, equals(CrossFadeState.showFirst));
+
+    final Finder noteFinder = find.byType(TextFormField).last;
+    expect(noteFinder, findsOneWidget);
+
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    final AnimatedCrossFade crossFadeAfter = tester.widget<AnimatedCrossFade>(
+      find.byType(AnimatedCrossFade),
+    );
+    expect(crossFadeAfter.crossFadeState, equals(CrossFadeState.showSecond));
+  });
+
+  testWidgets(
+    'invalid amount + account carousel interaction => no collapse or crash',
+    (WidgetTester tester) async {
+      final AccountEntity account = _buildAccount();
+      final List<Category> categories = <Category>[
+        _buildCategory(id: 'cat-1', name: 'Food'),
+      ];
+
+      await _pumpTransactionForm(
+        tester,
+        account: account,
+        categories: categories,
+      );
+
+      final BuildContext context = tester.element(find.byType(Scaffold));
+      final AppLocalizations strings = AppLocalizations.of(context)!;
+
+      final Finder amountFinder = find.byWidgetPredicate(
+        (Widget widget) =>
+            widget is TextField &&
+            widget.decoration?.hintText == strings.addTransactionAmountHint,
+      );
+      await tester.tap(amountFinder);
+      await tester.enterText(amountFinder, '');
+      await tester.pump();
+
+      final Finder carousel = find.byKey(
+        const ValueKey<String>('transaction_account_field'),
+      );
+      await tester.drag(carousel, const Offset(-50, 0));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(
+        find.byKey(const ValueKey<String>('transaction_account_field')),
+        findsOneWidget,
+      );
     },
   );
 }

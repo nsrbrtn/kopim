@@ -634,14 +634,16 @@ AI-онбординг в первой версии не нужен.
 
 Важно: `readyForNextStep` не означает, что приложение уже выполнило миграцию или доказало отсутствие всех рисков. Это только безопасная продуктовая заглушка перед следующим отдельным этапом.
 
+Дальше выбор сценария и первые execution path уже вынесены в отдельные choice/execution слои; сам preflight screen по-прежнему не запускает sync, migration или upload данных.
+
 ### Что пока сознательно не реализовано
 
 * merge local -> cloud;
 * upload локальных данных после preflight;
-* выбор между `stayLocalOnly` / `startWithEmptyCloud` / `migrateLocalToCloud` в реальном UX;
 * server-backed entitlement;
 * trial lifecycle;
 * настоящий web read-only barrier для expired entitlement;
+* реальная миграция `local -> cloud` с upload/merge локальных данных;
 * автоматическое включение sync одним нажатием с preflight screen;
 * изменение `SyncContract`, Drift schema, outbox ordering, ownership guard и auth-sync workflow.
 

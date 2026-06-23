@@ -29,6 +29,10 @@ import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/notification_fallback_presenter.dart';
 import 'package:kopim/core/services/notifications_gateway.dart';
 import 'package:kopim/core/services/push_permission_service.dart';
+import 'package:kopim/core/services/sync/local_snapshot_summary_service.dart';
+import 'package:kopim/core/services/sync/local_to_cloud_migration_inventory_policy.dart';
+import 'package:kopim/core/services/sync/local_to_cloud_migration_inventory_snapshot_builder.dart';
+import 'package:kopim/core/services/sync/local_to_cloud_migration_readiness_service.dart';
 import 'package:kopim/core/services/sync/local_sync_integrity_debug_reporter.dart';
 import 'package:kopim/core/services/sync/local_sync_integrity_diagnostics_service.dart';
 import 'package:kopim/core/services/sync/sync_data_sanitizer.dart';
@@ -386,6 +390,45 @@ final rp.Provider<MigrationWriteGuard> migrationWriteGuardProvider =
       return SharedPrefsMigrationWriteGuard(
         database: ref.watch(appDatabaseProvider),
         stateRepository: ref.watch(migrationFreezeStateRepositoryProvider),
+      );
+    });
+
+final rp.Provider<LocalToCloudMigrationInventoryPolicy>
+localToCloudMigrationInventoryPolicyProvider =
+    rp.Provider<LocalToCloudMigrationInventoryPolicy>((rp.Ref ref) {
+      return LocalToCloudMigrationInventoryPolicy();
+    });
+
+final rp.Provider<LocalToCloudMigrationInventoryValidator>
+localToCloudMigrationInventoryValidatorProvider =
+    rp.Provider<LocalToCloudMigrationInventoryValidator>((rp.Ref ref) {
+      return LocalToCloudMigrationInventoryValidator(
+        policy: ref.watch(localToCloudMigrationInventoryPolicyProvider),
+      );
+    });
+
+final rp.Provider<LocalToCloudMigrationInventorySnapshotBuilder>
+localToCloudMigrationInventorySnapshotBuilderProvider =
+    rp.Provider<LocalToCloudMigrationInventorySnapshotBuilder>((rp.Ref ref) {
+      return LocalToCloudMigrationInventorySnapshotBuilder(
+        ref.watch(appDatabaseProvider),
+      );
+    });
+
+final rp.Provider<LocalToCloudMigrationReadinessService>
+localToCloudMigrationReadinessServiceProvider =
+    rp.Provider<LocalToCloudMigrationReadinessService>((rp.Ref ref) {
+      return LocalToCloudMigrationReadinessService(
+        migrationWriteGuard: ref.watch(migrationWriteGuardProvider),
+        localSnapshotSummaryService: ref.watch(
+          localSnapshotSummaryServiceProvider,
+        ),
+        snapshotBuilder: ref.watch(
+          localToCloudMigrationInventorySnapshotBuilderProvider,
+        ),
+        inventoryValidator: ref.watch(
+          localToCloudMigrationInventoryValidatorProvider,
+        ),
       );
     });
 

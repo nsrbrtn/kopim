@@ -25,7 +25,11 @@ import 'package:kopim/features/profile/presentation/controllers/profile_controll
 import 'package:kopim/features/profile/presentation/controllers/user_progress_controller.dart';
 import 'package:kopim/features/profile/presentation/screens/menu_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_screen.dart';
+import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
 import 'package:kopim/features/profile/presentation/services/profile_event_recorder.dart';
+import 'package:go_router/go_router.dart';
+import 'router_test_helper.dart';
+
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:mocktail/mocktail.dart';
 
@@ -336,10 +340,9 @@ void main() {
             ),
           ),
         ],
-        child: const MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: ProfileScreen(),
+        child: buildTestAppWithRouter(
+          child: const ProfileScreen(),
+          additionalRoutes: <RouteBase>[mockRoute(SignInScreen.routeName)],
         ),
       ),
     );

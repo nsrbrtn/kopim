@@ -85,6 +85,10 @@ class _CloudActivationChoiceScreenState
         readinessState.status ==
             CloudActivationReadinessStatus.waitingForConfirmation &&
         intentState.pendingChoice == CloudActivationChoice.startWithEmptyCloud;
+    final bool canConfirmMigrateLocalToCloud =
+        readinessState.status ==
+            CloudActivationReadinessStatus.waitingForConfirmation &&
+        intentState.pendingChoice == CloudActivationChoice.migrateLocalToCloud;
     final bool isExecuting = executionState.isLoading;
 
     return Scaffold(
@@ -136,6 +140,13 @@ class _CloudActivationChoiceScreenState
                         'Перед запуском Kopim создаст backup локальных данных, затем ещё раз проверит локальное и облачное состояние и только после этого очистит активное локальное рабочее пространство. Локальная база не будет загружена в облако.',
                   ),
                 ],
+                if (canConfirmMigrateLocalToCloud) ...<Widget>[
+                  const SizedBox(height: 12),
+                  const _InfoBanner(
+                    message:
+                        'Следующий шаг пока не запускает upload. Kopim только выполнит migration preflight: включит write-freeze, снимет стабильный локальный snapshot и прогонит inventory/readiness validator. Если хотя бы одна строка небезопасна, перенос останется заблокированным.',
+                  ),
+                ],
                 if (state.canChoose) ...<Widget>[
                   const SizedBox(height: 24),
                   for (final CloudActivationDecisionOption option
@@ -176,6 +187,24 @@ class _CloudActivationChoiceScreenState
                         isExecuting
                             ? 'Создаём backup и переключаем...'
                             : 'Создать backup и начать с пустого облака',
+                      ),
+                    ),
+                  ],
+                  if (canConfirmMigrateLocalToCloud) ...<Widget>[
+                    const SizedBox(height: 8),
+                    FilledButton(
+                      onPressed: isExecuting
+                          ? null
+                          : () => ref
+                                .read(
+                                  cloudActivationExecutionControllerProvider
+                                      .notifier,
+                                )
+                                .confirmMigrateLocalToCloud(),
+                      child: Text(
+                        isExecuting
+                            ? 'Проверяем migration readiness...'
+                            : 'Запустить migration preflight',
                       ),
                     ),
                   ],
@@ -387,6 +416,10 @@ class _CloudActivationChoiceScreenState
         'Не удалось создать backup локальных данных. Локальное рабочее пространство не менялось.',
       CloudActivationExecutionBlockReason.localResetFailed =>
         'Backup создан, но локальное рабочее пространство не удалось безопасно очистить. Облако не было включено автоматически.',
+      CloudActivationExecutionBlockReason.migrationReadinessBlocked =>
+        'Не пройдены проверки готовности к миграции.',
+      CloudActivationExecutionBlockReason.migrationExecutionNotImplemented =>
+        'Перенос данных в облако ещё не поддерживается.',
       CloudActivationExecutionBlockReason.runtimeTransitionFailed =>
         'Флаг активации сохранён, но приложение не смогло безопасно перейти в облачный режим. При следующем входе проверки будут повторены.',
     };

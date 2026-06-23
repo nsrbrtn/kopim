@@ -4,7 +4,11 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_decision_controller.dart';
+import 'package:kopim/features/profile/application/cloud_activation_execution_service.dart';
+
+import 'package:kopim/features/profile/presentation/controllers/cloud_activation_execution_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_intent_controller.dart';
+
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_readiness_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
 import 'package:kopim/features/profile/presentation/models/cloud_activation_readiness_models.dart';
@@ -19,6 +23,21 @@ class _FakeDataModeController extends DataModeController {
   Future<DataModeState> build() async => _state;
 }
 
+class _FakeCloudActivationExecutionController
+    extends CloudActivationExecutionController {
+  _FakeCloudActivationExecutionController(this._state);
+
+  final AsyncValue<CloudActivationExecutionResult> _state;
+
+  @override
+  Future<CloudActivationExecutionResult> build() async {
+    return _state.value ?? const CloudActivationExecutionResult.idle();
+  }
+
+  @override
+  void reset() {}
+}
+
 Widget _buildTestApp({required ProviderContainer container}) {
   return UncontrolledProviderScope(
     container: container,
@@ -28,12 +47,40 @@ Widget _buildTestApp({required ProviderContainer container}) {
 
 ProviderContainer _createContainer(
   CloudActivationDecisionState state, {
+  AsyncValue<CloudActivationReadinessState>? readinessOverride,
   List<Override> extraOverrides = const <Override>[],
 }) {
   return ProviderContainer(
     // ignore: always_specify_types
     overrides: <Override>[
       cloudActivationDecisionProvider.overrideWithValue(state),
+      cloudActivationReadinessProvider.overrideWithValue(
+        readinessOverride ??
+            AsyncData<CloudActivationReadinessState>(
+              CloudActivationReadinessState(
+                status: CloudActivationReadinessStatus.readyForChoice,
+                localSnapshotState: switch (state.localSnapshotState) {
+                  CloudActivationSnapshotState.empty =>
+                    LocalSnapshotState.empty,
+                  CloudActivationSnapshotState.hasData =>
+                    LocalSnapshotState.hasUserData,
+                  CloudActivationSnapshotState.unknown =>
+                    LocalSnapshotState.unknown,
+                },
+                remoteSnapshotState: switch (state.remoteSnapshotState) {
+                  CloudActivationSnapshotState.empty =>
+                    RemoteSnapshotState.empty,
+                  CloudActivationSnapshotState.hasData =>
+                    RemoteSnapshotState.hasUserData,
+                  CloudActivationSnapshotState.unknown =>
+                    RemoteSnapshotState.unknown,
+                },
+                pendingChoice: null,
+                localFingerprint: state.localFingerprint,
+                remoteFingerprint: state.remoteFingerprint,
+              ),
+            ),
+      ),
       ...extraOverrides,
     ],
   );
@@ -76,6 +123,14 @@ void main() {
             'Перед переключением Kopim сначала создаст backup локальных данных, затем очистит активное локальное рабочее пространство и только после этого включит пустое облако.',
       ),
       CloudActivationDecisionOption(
+        choice: CloudActivationChoice.migrateLocalToCloud,
+        title: 'Перенести данные в облако',
+        body: 'Запустить read-only migration preflight без upload execution.',
+        availability: CloudActivationChoiceAvailability.requiresConfirmation,
+        followupNote:
+            'Следующий шаг уже запускает read-only migration preflight: write-freeze, локальный snapshot и inventory validator. Upload в облако всё ещё не выполняется.',
+      ),
+      CloudActivationDecisionOption(
         choice: CloudActivationChoice.mergeLocalAndCloud,
         title: 'Объединить локальные и облачные данные',
         body: 'Сценарий появится позже.',
@@ -100,7 +155,7 @@ void main() {
       200,
       scrollable: find.byType(Scrollable),
     );
-    expect(find.text('Нужно подтверждение'), findsOneWidget);
+    expect(find.text('Нужно подтверждение'), findsNWidgets(2));
     await tester.scrollUntilVisible(
       find.text('Объединить локальные и облачные данные'),
       200,
@@ -149,6 +204,51 @@ void main() {
     );
   });
 
+  testWidgets('shows migration preflight confirmation button', (
+    WidgetTester tester,
+  ) async {
+    _useLargeSurface(tester);
+    addTearDown(tester.view.reset);
+    final ProviderContainer container = _createContainer(
+      blockedState,
+      readinessOverride: const AsyncData<CloudActivationReadinessState>(
+        CloudActivationReadinessState(
+          status: CloudActivationReadinessStatus.waitingForConfirmation,
+          localSnapshotState: LocalSnapshotState.hasUserData,
+          remoteSnapshotState: RemoteSnapshotState.empty,
+          pendingChoice: CloudActivationChoice.migrateLocalToCloud,
+          localFingerprint: 'local:hasData',
+          remoteFingerprint: 'remote:empty|uid:user-1',
+        ),
+      ),
+      extraOverrides: <Override>[
+        cloudActivationIntentProvider.overrideWith(
+          CloudActivationIntentController.new,
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    container
+        .read(cloudActivationIntentProvider.notifier)
+        .savePendingChoice(
+          choice: CloudActivationChoice.migrateLocalToCloud,
+          decisionState: blockedState,
+        );
+
+    await tester.pumpWidget(_buildTestApp(container: container));
+    await tester.scrollUntilVisible(
+      find.text('Запустить migration preflight'),
+      240,
+      scrollable: find.byType(Scrollable),
+    );
+
+    expect(find.text('Запустить migration preflight'), findsOneWidget);
+    expect(
+      find.textContaining('write-freeze, снимет стабильный локальный snapshot'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('shows final confirmation button for startWithEmptyCloud', (
     WidgetTester tester,
   ) async {
@@ -156,21 +256,19 @@ void main() {
     addTearDown(tester.view.reset);
     final ProviderContainer container = _createContainer(
       blockedState,
+      readinessOverride: const AsyncData<CloudActivationReadinessState>(
+        CloudActivationReadinessState(
+          status: CloudActivationReadinessStatus.waitingForConfirmation,
+          localSnapshotState: LocalSnapshotState.hasUserData,
+          remoteSnapshotState: RemoteSnapshotState.empty,
+          pendingChoice: CloudActivationChoice.startWithEmptyCloud,
+          localFingerprint: 'local:hasData',
+          remoteFingerprint: 'remote:empty|uid:user-1',
+        ),
+      ),
       extraOverrides: <Override>[
         cloudActivationIntentProvider.overrideWith(
           CloudActivationIntentController.new,
-        ),
-        cloudActivationReadinessProvider.overrideWithValue(
-          const AsyncData<CloudActivationReadinessState>(
-            CloudActivationReadinessState(
-              status: CloudActivationReadinessStatus.waitingForConfirmation,
-              localSnapshotState: LocalSnapshotState.hasUserData,
-              remoteSnapshotState: RemoteSnapshotState.empty,
-              pendingChoice: CloudActivationChoice.startWithEmptyCloud,
-              localFingerprint: 'local:hasData',
-              remoteFingerprint: 'remote:empty|uid:user-1',
-            ),
-          ),
         ),
       ],
     );
@@ -343,4 +441,70 @@ void main() {
         .value;
     expect(dataModeState.migrationDecision, MigrationDecision.none);
   });
+
+  testWidgets('displays appropriate message on migrationReadinessBlocked', (
+    WidgetTester tester,
+  ) async {
+    _useLargeSurface(tester);
+    addTearDown(tester.view.reset);
+
+    final ProviderContainer container = _createContainer(
+      blockedState,
+      extraOverrides: <Override>[
+        cloudActivationExecutionControllerProvider.overrideWith(
+          () => _FakeCloudActivationExecutionController(
+            const AsyncData<CloudActivationExecutionResult>(
+              CloudActivationExecutionResult.blocked(
+                CloudActivationExecutionBlockReason.migrationReadinessBlocked,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(_buildTestApp(container: container));
+    await tester.pump();
+
+    expect(find.byType(SnackBar), findsOneWidget);
+    expect(
+      find.text('Не пройдены проверки готовности к миграции.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets(
+    'displays appropriate message on migrationExecutionNotImplemented',
+    (WidgetTester tester) async {
+      _useLargeSurface(tester);
+      addTearDown(tester.view.reset);
+
+      final ProviderContainer container = _createContainer(
+        blockedState,
+        extraOverrides: <Override>[
+          cloudActivationExecutionControllerProvider.overrideWith(
+            () => _FakeCloudActivationExecutionController(
+              const AsyncData<CloudActivationExecutionResult>(
+                CloudActivationExecutionResult.blocked(
+                  CloudActivationExecutionBlockReason
+                      .migrationExecutionNotImplemented,
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(_buildTestApp(container: container));
+      await tester.pump();
+
+      expect(find.byType(SnackBar), findsOneWidget);
+      expect(
+        find.text('Перенос данных в облако ещё не поддерживается.'),
+        findsOneWidget,
+      );
+    },
+  );
 }

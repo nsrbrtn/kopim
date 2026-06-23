@@ -58,6 +58,26 @@ class CloudActivationExecutionController
     return result;
   }
 
+  Future<CloudActivationExecutionResult> confirmMigrateLocalToCloud() async {
+    state = const AsyncLoading<CloudActivationExecutionResult>();
+
+    final CloudActivationExecutionResult result = await ref
+        .read(cloudActivationExecutionServiceProvider)
+        .confirmMigrateLocalToCloudPreflight(
+          currentUser: ref.read(authControllerProvider).asData?.value,
+          intentState: ref.read(cloudActivationIntentProvider),
+          currentMode: ref.read(dataModeControllerProvider).value,
+        );
+
+    if (result.status == CloudActivationExecutionStatus.succeeded ||
+        result.status == CloudActivationExecutionStatus.blocked) {
+      ref.read(cloudActivationIntentProvider.notifier).clearPendingChoice();
+    }
+
+    state = AsyncData<CloudActivationExecutionResult>(result);
+    return result;
+  }
+
   void reset() {
     state = const AsyncData<CloudActivationExecutionResult>(
       CloudActivationExecutionResult.idle(),

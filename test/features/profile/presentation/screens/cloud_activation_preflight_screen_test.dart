@@ -7,6 +7,8 @@ import 'package:kopim/features/profile/presentation/controllers/cloud_activation
 import 'package:kopim/features/profile/presentation/screens/cloud_activation_choice_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/cloud_activation_preflight_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
+import 'package:go_router/go_router.dart';
+import '../router_test_helper.dart';
 
 Widget _buildTestApp({required CloudActivationPreflightState state}) {
   return ProviderScope(
@@ -27,14 +29,13 @@ Widget _buildTestApp({required CloudActivationPreflightState state}) {
         ),
       ),
     ],
-    child: MaterialApp(
-      routes: <String, WidgetBuilder>{
-        SignInScreen.routeName: (_) =>
-            const Scaffold(body: Text('sign-in-screen')),
-        CloudActivationChoiceScreen.routeName: (_) =>
-            const Scaffold(body: Text('choice-screen')),
-      },
-      home: const CloudActivationPreflightScreen(),
+    child: buildTestAppWithRouter(
+      child: const CloudActivationPreflightScreen(),
+      initialLocation: '/cloud-activation-preflight',
+      additionalRoutes: <RouteBase>[
+        mockRoute(SignInScreen.routeName, text: 'sign-in-screen'),
+        mockRoute(CloudActivationChoiceScreen.routeName, text: 'choice-screen'),
+      ],
     ),
   );
 }

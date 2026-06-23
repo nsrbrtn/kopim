@@ -19,7 +19,7 @@
 | Readiness / local snapshot classifier | `done` | local+remote read-only snapshot classifier, matrix-driven readiness/choice flow и legacy handoff guard-tests зафиксированы в текущем checkout |
 | Первый execution path: `enableCloudSync` для пустого workspace | `done` | explicit activation flag per UID, final revalidation, guarded runtime transition и auth/startup sync gate зафиксированы в текущем checkout |
 | Второй execution path: `startWithEmptyCloud` | `done` | explicit backup/export перед destructive step, guarded local reset, отдельный activation scenario per UID и targeted regressions зафиксированы в текущем checkout |
-| Реальная миграция `local -> cloud` | `planned` | сознательно отложено |
+| Реальная миграция `local -> cloud` | `in_progress` | upload runtime всё ещё заблокирован, но read-only migration preflight, inventory policy/validator и UI execution handoff уже зафиксированы в checkout |
 | Server-backed entitlement / trial lifecycle | `planned` | сознательно отложено |
 | Web read-only barrier для expired entitlement | `planned` | сознательно отложено |
 
@@ -116,9 +116,17 @@
 
 ### 6. Реальная миграция local -> cloud
 
-Статус: `planned`
+Статус: `in_progress`
 
-Пока не реализуется в текущем безопасном этапе:
+Что уже зафиксировано:
+
+- read-only safety contract для будущего `migrateLocalToCloud`;
+- `LocalToCloudMigrationInventoryPolicy`, `LocalToCloudMigrationInventoryValidator`, `FirestoreDocumentIdSafety`, `LocalToCloudMigrationReadinessResult`;
+- DB-backed inventory snapshot builder и readiness preflight service;
+- сценарий choice/execution для `migrateLocalToCloud`, который сначала запускает только preflight и не может начать upload в обход validator;
+- locked order для будущего runtime: `write-freeze -> stable local snapshot -> inventory/readiness validator -> only then upload`.
+
+Что пока не реализуется в текущем безопасном этапе:
 
 - merge local data в cloud;
 - upload локальной базы после preflight;
@@ -126,11 +134,21 @@
 - изменение auth/sync workflow;
 - изменение `SyncContract`, Drift schema, outbox ordering, ownership guard.
 
+Основной план:
+- [2026-06-21-local-cloud-migrate-local-to-cloud-execution.md](/home/artem/StudioProjects/kopim/.agent/exec_plans/2026-06-21-local-cloud-migrate-local-to-cloud-execution.md:1)
+
+Текущий blocker chain перед реализацией:
+- [2026-06-21-local-ownership-projection-and-outbox-transition-schema.md](/home/artem/StudioProjects/kopim/.agent/exec_plans/2026-06-21-local-ownership-projection-and-outbox-transition-schema.md:1) уже завершён; explicit row ownership, fail-closed integrity checks и legacy local-only outbox transition semantics присутствуют в checkout
+- [2026-06-23-local-cloud-migration-id-safety-and-inventory-proof.md](/home/artem/StudioProjects/kopim/.agent/exec_plans/2026-06-23-local-cloud-migration-id-safety-and-inventory-proof.md:1) уже завершён; read-only safety contract (inventory policy, validator, id safety check) и preflight-интеграция полностью реализованы в checkout
+- [2026-06-21-local-cloud-migration-guard-write-freeze-coverage-execution.md](/home/artem/StudioProjects/kopim/.agent/exec_plans/2026-06-21-local-cloud-migration-guard-write-freeze-coverage-execution.md:1) уже закрыт и остаётся опорным safety-этапом.
+
 ## Ближайший фокус
 
-1. Следующий незакрытый scenario-specific execution path: `migrateLocalToCloud`, но только отдельным plan’ом без переиспользования `startWithEmptyCloud` semantics.
-2. Сохранить текущий fail-closed stage: `startWithEmptyCloud` остаётся отдельным backup/export + local reset flow и не должен расширяться до upload/merge semantics без нового ExecPlan.
-3. `remote=hasOnlyMetadata` для `startWithEmptyCloud` остаётся заблокированным в v1 до отдельного metadata-whitelist этапа с собственными регрессиями.
+1. Parent plan для `migrateLocalToCloud` больше не заблокирован незавершёнными blocker-планами; следующий шаг — отдельная upload/runtime реализация внутри [2026-06-21-local-cloud-migrate-local-to-cloud-execution.md](/home/artem/StudioProjects/kopim/.agent/exec_plans/2026-06-21-local-cloud-migrate-local-to-cloud-execution.md:1).
+2. Read-only migration safety contract уже есть в checkout и подключён в choice/execution preflight:
+   `LocalToCloudMigrationInventoryPolicy`, `LocalToCloudMigrationInventoryValidator`, `FirestoreDocumentIdSafety`, `LocalToCloudMigrationReadinessResult`.
+   Будущий runtime обязан идти в порядке `write-freeze -> stable local snapshot -> inventory/readiness validator -> only then upload`.
+3. Следующий реальный этап: runtime/upload реализация `migrateLocalToCloud` с уже зафиксированным порядком `write-freeze -> stable local snapshot -> inventory/readiness validator -> upload`, не смешивая его со `startWithEmptyCloud`.
 
 ## Как обновлять этот файл
 

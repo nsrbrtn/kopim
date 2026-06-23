@@ -142,10 +142,14 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: overrides,
-        child: const MaterialApp(
+        child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: MenuScreen(),
+          routes: <String, WidgetBuilder>{
+            GeneralSettingsScreen.routeName: (_) =>
+                const GeneralSettingsScreen(),
+          },
+          home: const MenuScreen(),
         ),
       ),
     );

@@ -244,11 +244,15 @@ CloudActivationDecisionState _resolveMatrixScenario(
         title: 'Перенести данные в облако',
         body:
             'Будущий execution flow переноса локальных данных в облако без ручного экспорта.',
-        availability: migrateLocalToCloudRelevant
+        availability:
+            localHasData &&
+                readinessState.remoteSnapshotState == RemoteSnapshotState.empty
+            ? CloudActivationChoiceAvailability.requiresConfirmation
+            : migrateLocalToCloudRelevant
             ? CloudActivationChoiceAvailability.unavailableUntilExecutionFlow
             : CloudActivationChoiceAvailability.unavailableForCurrentScenario,
         followupNote:
-            'Execution flow для миграции ещё не реализован, поэтому перенос сейчас не запускается.',
+            'Следующий шаг уже запускает read-only migration preflight: write-freeze, локальный snapshot и inventory validator. Upload в облако всё ещё не выполняется.',
       ),
       CloudActivationDecisionOption(
         choice: CloudActivationChoice.startWithEmptyCloud,

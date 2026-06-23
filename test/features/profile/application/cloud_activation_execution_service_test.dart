@@ -9,8 +9,12 @@ import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/sync/cloud_snapshot_summary_service.dart';
 import 'package:kopim/core/services/sync/local_snapshot_summary_service.dart';
+import 'package:kopim/core/services/sync/local_to_cloud_migration_inventory_policy.dart';
+import 'package:kopim/core/services/sync/local_to_cloud_migration_inventory_snapshot_builder.dart';
+import 'package:kopim/core/services/sync/local_to_cloud_migration_readiness_service.dart';
 import 'package:kopim/features/profile/application/cloud_activation_execution_service.dart';
 import 'package:kopim/features/profile/application/cloud_activation_runtime_guard.dart';
+import 'package:kopim/features/profile/application/migration_write_guard.dart';
 import 'package:kopim/features/profile/data/cloud_activation_state_repository.dart';
 import 'package:kopim/features/profile/data/cloud_entitlement_repository.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
@@ -168,11 +172,46 @@ class _FakeUserAccountCleanupRepository
   }
 }
 
+class _FakeLocalToCloudMigrationReadinessService
+    extends LocalToCloudMigrationReadinessService {
+  _FakeLocalToCloudMigrationReadinessService(this.result)
+    : super(
+        migrationWriteGuard: const NoopMigrationWriteGuard(),
+        localSnapshotSummaryService: _FakeLocalSnapshotSummaryService(
+          const LocalSnapshotSummary(
+            state: LocalSnapshotState.hasUserData,
+            hasUserData: true,
+            hasSystemData: true,
+            pendingOutboxCount: 0,
+            fingerprint: 'local:hasUserData',
+          ),
+        ),
+        snapshotBuilder: LocalToCloudMigrationInventorySnapshotBuilder(
+          AppDatabase.connect(DatabaseConnection(NativeDatabase.memory())),
+        ),
+        inventoryValidator: LocalToCloudMigrationInventoryValidator(
+          policy: LocalToCloudMigrationInventoryPolicy(),
+        ),
+      );
+
+  final LocalToCloudMigrationPreflightResult result;
+  int callCount = 0;
+
+  @override
+  Future<LocalToCloudMigrationPreflightResult> captureReadiness({
+    String? uid,
+  }) async {
+    callCount += 1;
+    return result;
+  }
+}
+
 CloudActivationExecutionService _buildService({
   required CloudActivationStateRepository activationStateRepository,
   required CloudEntitlementRepository entitlementRepository,
   required LocalSnapshotSummaryService localSnapshotSummaryService,
   required CloudSnapshotSummaryService cloudSnapshotSummaryService,
+  LocalToCloudMigrationReadinessService? localToCloudMigrationReadinessService,
   ExportUserDataUseCase? exportUserDataUseCase,
   UserAccountCleanupRepository? userAccountCleanupRepository,
 }) {
@@ -181,6 +220,26 @@ CloudActivationExecutionService _buildService({
     entitlementRepository: entitlementRepository,
     localSnapshotSummaryService: localSnapshotSummaryService,
     cloudSnapshotSummaryService: cloudSnapshotSummaryService,
+    localToCloudMigrationReadinessService:
+        localToCloudMigrationReadinessService ??
+        _FakeLocalToCloudMigrationReadinessService(
+          const LocalToCloudMigrationPreflightResult.blocked(
+            reason: LocalToCloudMigrationPreflightBlockReason
+                .inventoryReadinessBlocked,
+            readinessResult: LocalToCloudMigrationReadinessResult(
+              status: LocalToCloudMigrationReadinessStatus.blocked,
+              issues: <LocalToCloudMigrationReadinessIssue>[
+                LocalToCloudMigrationReadinessIssue(
+                  code:
+                      LocalToCloudMigrationReadinessReasonCode.unsafeDocumentId,
+                  familyKey: 'transactions',
+                  rowId: 'tx-unsafe',
+                  message: 'Unsafe transaction document ID.',
+                ),
+              ],
+            ),
+          ),
+        ),
     exportUserDataUseCase:
         exportUserDataUseCase ??
         _FakeExportUserDataUseCase(
@@ -742,6 +801,173 @@ void main() {
       );
       expect(cleanupRepository.deleteLocalUserDataCallCount, 1);
       expect(activationRepository.savedState, isNull);
+    },
+  );
+
+  test(
+    'migrateLocalToCloud preflight blocks when inventory readiness is blocked',
+    () async {
+      final _FakeLocalToCloudMigrationReadinessService
+      readinessService = _FakeLocalToCloudMigrationReadinessService(
+        const LocalToCloudMigrationPreflightResult.blocked(
+          reason: LocalToCloudMigrationPreflightBlockReason
+              .inventoryReadinessBlocked,
+          readinessResult: LocalToCloudMigrationReadinessResult(
+            status: LocalToCloudMigrationReadinessStatus.blocked,
+            issues: <LocalToCloudMigrationReadinessIssue>[
+              LocalToCloudMigrationReadinessIssue(
+                code: LocalToCloudMigrationReadinessReasonCode.unsafeDocumentId,
+                familyKey: 'transactions',
+                rowId: 'tx-unsafe',
+                message: 'Unsafe transaction document ID.',
+              ),
+            ],
+          ),
+        ),
+      );
+      final CloudActivationExecutionService service = _buildService(
+        activationStateRepository: _FakeCloudActivationStateRepository(),
+        entitlementRepository: _FakeCloudEntitlementRepository(
+          CloudEntitlementState.active,
+        ),
+        localSnapshotSummaryService: _FakeLocalSnapshotSummaryService(
+          const LocalSnapshotSummary(
+            state: LocalSnapshotState.hasUserData,
+            hasUserData: true,
+            hasSystemData: true,
+            pendingOutboxCount: 0,
+            fingerprint: 'local:hasUserData',
+          ),
+        ),
+        cloudSnapshotSummaryService: _FakeCloudSnapshotSummaryService(
+          const CloudSnapshotSummary(
+            state: RemoteSnapshotState.empty,
+            hasUserData: false,
+            hasMetadata: false,
+            hasTombstonesOnly: false,
+            fingerprint: 'remote:empty|uid:cloud-user-1',
+          ),
+        ),
+        localToCloudMigrationReadinessService: readinessService,
+      );
+
+      final CloudActivationExecutionResult result = await service
+          .confirmMigrateLocalToCloudPreflight(
+            currentUser: const AuthUser(
+              uid: 'cloud-user-1',
+              email: 'user@example.com',
+              isAnonymous: false,
+            ),
+            intentState: const CloudActivationIntentState(
+              pendingChoice: CloudActivationChoice.migrateLocalToCloud,
+              stage: CloudActivationIntentStage.pendingChoice,
+              scenario: CloudActivationScenario.localHasDataRemoteEmpty,
+              localSnapshotState: CloudActivationSnapshotState.hasData,
+              remoteSnapshotState: CloudActivationSnapshotState.empty,
+              localFingerprint: 'local:hasUserData',
+              remoteFingerprint: 'remote:empty|uid:cloud-user-1',
+            ),
+            currentMode: const DataModeState(
+              dataMode: DataMode.localOnly,
+              entitlementState: CloudEntitlementState.active,
+              migrationDecision: MigrationDecision.none,
+            ),
+          );
+
+      expect(result.status, CloudActivationExecutionStatus.blocked);
+      expect(
+        result.blockReason,
+        CloudActivationExecutionBlockReason.migrationReadinessBlocked,
+      );
+      expect(result.message, 'Unsafe transaction document ID.');
+      expect(readinessService.callCount, 1);
+    },
+  );
+
+  test(
+    'migrateLocalToCloud preflight reports not implemented when readiness is ready',
+    () async {
+      final _FakeLocalToCloudMigrationReadinessService readinessService =
+          _FakeLocalToCloudMigrationReadinessService(
+            const LocalToCloudMigrationPreflightResult.ready(
+              localSummary: LocalSnapshotSummary(
+                state: LocalSnapshotState.hasUserData,
+                hasUserData: true,
+                hasSystemData: true,
+                pendingOutboxCount: 0,
+                fingerprint: 'local:hasUserData',
+              ),
+              inventorySnapshot: LocalToCloudMigrationInventorySnapshot(
+                candidateFamilyKeys: <String>{'transactions'},
+                rowsByFamily: <String, List<LocalToCloudMigrationRow>>{
+                  'transactions': <LocalToCloudMigrationRow>[
+                    LocalToCloudMigrationRow(
+                      familyKey: 'transactions',
+                      localRowId: 'tx-1',
+                      reusedDocumentId: 'tx-1',
+                    ),
+                  ],
+                },
+              ),
+              readinessResult: LocalToCloudMigrationReadinessResult.ready(),
+            ),
+          );
+      final CloudActivationExecutionService service = _buildService(
+        activationStateRepository: _FakeCloudActivationStateRepository(),
+        entitlementRepository: _FakeCloudEntitlementRepository(
+          CloudEntitlementState.active,
+        ),
+        localSnapshotSummaryService: _FakeLocalSnapshotSummaryService(
+          const LocalSnapshotSummary(
+            state: LocalSnapshotState.hasUserData,
+            hasUserData: true,
+            hasSystemData: true,
+            pendingOutboxCount: 0,
+            fingerprint: 'local:hasUserData',
+          ),
+        ),
+        cloudSnapshotSummaryService: _FakeCloudSnapshotSummaryService(
+          const CloudSnapshotSummary(
+            state: RemoteSnapshotState.empty,
+            hasUserData: false,
+            hasMetadata: false,
+            hasTombstonesOnly: false,
+            fingerprint: 'remote:empty|uid:cloud-user-1',
+          ),
+        ),
+        localToCloudMigrationReadinessService: readinessService,
+      );
+
+      final CloudActivationExecutionResult result = await service
+          .confirmMigrateLocalToCloudPreflight(
+            currentUser: const AuthUser(
+              uid: 'cloud-user-1',
+              email: 'user@example.com',
+              isAnonymous: false,
+            ),
+            intentState: const CloudActivationIntentState(
+              pendingChoice: CloudActivationChoice.migrateLocalToCloud,
+              stage: CloudActivationIntentStage.pendingChoice,
+              scenario: CloudActivationScenario.localHasDataRemoteEmpty,
+              localSnapshotState: CloudActivationSnapshotState.hasData,
+              remoteSnapshotState: CloudActivationSnapshotState.empty,
+              localFingerprint: 'local:hasUserData',
+              remoteFingerprint: 'remote:empty|uid:cloud-user-1',
+            ),
+            currentMode: const DataModeState(
+              dataMode: DataMode.localOnly,
+              entitlementState: CloudEntitlementState.active,
+              migrationDecision: MigrationDecision.none,
+            ),
+          );
+
+      expect(result.status, CloudActivationExecutionStatus.blocked);
+      expect(
+        result.blockReason,
+        CloudActivationExecutionBlockReason.migrationExecutionNotImplemented,
+      );
+      expect(result.message, contains('Preflight migrateLocalToCloud прошёл'));
+      expect(readinessService.callCount, 1);
     },
   );
 }

@@ -5,6 +5,7 @@ import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/sync/cloud_snapshot_summary_service.dart';
 import 'package:kopim/core/services/sync/local_snapshot_summary_service.dart';
+import 'package:kopim/core/services/sync/local_to_cloud_migration_readiness_service.dart';
 import 'package:kopim/features/profile/application/cloud_activation_runtime_guard.dart';
 import 'package:kopim/features/profile/data/cloud_activation_state_repository.dart';
 import 'package:kopim/features/profile/data/cloud_entitlement_repository.dart';
@@ -35,6 +36,8 @@ enum CloudActivationExecutionBlockReason {
   alreadyCloudEnabled,
   backupExportFailed,
   localResetFailed,
+  migrationReadinessBlocked,
+  migrationExecutionNotImplemented,
   runtimeTransitionFailed,
 }
 
@@ -94,6 +97,8 @@ class CloudActivationExecutionService {
     required CloudEntitlementRepository entitlementRepository,
     required LocalSnapshotSummaryService localSnapshotSummaryService,
     required CloudSnapshotSummaryService cloudSnapshotSummaryService,
+    required LocalToCloudMigrationReadinessService
+    localToCloudMigrationReadinessService,
     required ExportUserDataUseCase exportUserDataUseCase,
     required UserAccountCleanupRepository userAccountCleanupRepository,
     required CloudActivationRuntimeGuard runtimeGuard,
@@ -102,6 +107,8 @@ class CloudActivationExecutionService {
        _entitlementRepository = entitlementRepository,
        _localSnapshotSummaryService = localSnapshotSummaryService,
        _cloudSnapshotSummaryService = cloudSnapshotSummaryService,
+       _localToCloudMigrationReadinessService =
+           localToCloudMigrationReadinessService,
        _exportUserDataUseCase = exportUserDataUseCase,
        _userAccountCleanupRepository = userAccountCleanupRepository,
        _runtimeGuard = runtimeGuard,
@@ -111,6 +118,8 @@ class CloudActivationExecutionService {
   final CloudEntitlementRepository _entitlementRepository;
   final LocalSnapshotSummaryService _localSnapshotSummaryService;
   final CloudSnapshotSummaryService _cloudSnapshotSummaryService;
+  final LocalToCloudMigrationReadinessService
+  _localToCloudMigrationReadinessService;
   final ExportUserDataUseCase _exportUserDataUseCase;
   final UserAccountCleanupRepository _userAccountCleanupRepository;
   final CloudActivationRuntimeGuard _runtimeGuard;
@@ -337,6 +346,70 @@ class CloudActivationExecutionService {
     }
   }
 
+  Future<CloudActivationExecutionResult> confirmMigrateLocalToCloudPreflight({
+    required AuthUser? currentUser,
+    required CloudActivationIntentState intentState,
+    required DataModeState? currentMode,
+  }) async {
+    final CloudActivationExecutionResult? commonBlock =
+        await _validateCommonPreconditions(
+          currentUser: currentUser,
+          intentState: intentState,
+          currentMode: currentMode,
+          expectedChoice: CloudActivationChoice.migrateLocalToCloud,
+        );
+    if (commonBlock != null) {
+      return commonBlock;
+    }
+
+    final LocalSnapshotSummary localSummary = await _localSnapshotSummaryService
+        .summarize();
+    final CloudSnapshotSummary remoteSummary =
+        await _cloudSnapshotSummaryService.summarize(currentUser!.uid);
+    final CloudActivationExecutionResult? precheckBlock =
+        _validateMigrateLocalToCloudSnapshotPair(
+          localSummary: localSummary,
+          remoteSummary: remoteSummary,
+          intentState: intentState,
+        );
+    if (precheckBlock != null) {
+      return precheckBlock;
+    }
+
+    if (!_runtimeGuard.tryAcquire()) {
+      return const CloudActivationExecutionResult.blocked(
+        CloudActivationExecutionBlockReason.activationInProgress,
+      );
+    }
+
+    try {
+      final LocalToCloudMigrationPreflightResult preflight =
+          await _localToCloudMigrationReadinessService.captureReadiness(
+            uid: currentUser.uid,
+          );
+      if (!preflight.isReady) {
+        return CloudActivationExecutionResult.blocked(
+          CloudActivationExecutionBlockReason.migrationReadinessBlocked,
+          message: _migrationReadinessBlockedMessage(preflight),
+        );
+      }
+
+      return const CloudActivationExecutionResult.blocked(
+        CloudActivationExecutionBlockReason.migrationExecutionNotImplemented,
+        message:
+            'Preflight migrateLocalToCloud прошёл успешно: write-freeze, локальный snapshot и inventory validator готовы. Upload execution пока не реализован, поэтому перенос не запускается.',
+      );
+    } catch (error) {
+      _logger.logError(
+        'Migrate-local-to-cloud preflight failed for ${currentUser.uid}: $error',
+        error,
+      );
+      return CloudActivationExecutionResult.failed(message: error.toString());
+    } finally {
+      _runtimeGuard.release();
+    }
+  }
+
   CloudActivationExecutionResult? _validateSnapshotPair({
     required LocalSnapshotSummary localSummary,
     required CloudSnapshotSummary remoteSummary,
@@ -484,6 +557,75 @@ class CloudActivationExecutionService {
 
     return null;
   }
+
+  CloudActivationExecutionResult? _validateMigrateLocalToCloudSnapshotPair({
+    required LocalSnapshotSummary localSummary,
+    required CloudSnapshotSummary remoteSummary,
+    required CloudActivationIntentState intentState,
+  }) {
+    if (localSummary.state != LocalSnapshotState.hasUserData) {
+      return const CloudActivationExecutionResult.blocked(
+        CloudActivationExecutionBlockReason.localNotEmpty,
+      );
+    }
+
+    if (remoteSummary.state == RemoteSnapshotState.hasOnlyMetadata) {
+      return const CloudActivationExecutionResult.blocked(
+        CloudActivationExecutionBlockReason.remoteMetadataPresent,
+      );
+    }
+    if (remoteSummary.state == RemoteSnapshotState.hasUserData ||
+        remoteSummary.state == RemoteSnapshotState.hasTombstonesOnly ||
+        remoteSummary.state == RemoteSnapshotState.activationInProgress) {
+      return const CloudActivationExecutionResult.blocked(
+        CloudActivationExecutionBlockReason.remoteNotEmpty,
+      );
+    }
+    if (remoteSummary.state == RemoteSnapshotState.permissionDenied) {
+      return const CloudActivationExecutionResult.blocked(
+        CloudActivationExecutionBlockReason.remotePermissionDenied,
+      );
+    }
+    if (remoteSummary.state != RemoteSnapshotState.empty) {
+      return const CloudActivationExecutionResult.blocked(
+        CloudActivationExecutionBlockReason.remoteUnavailable,
+      );
+    }
+
+    if (intentState.localFingerprint != null &&
+        intentState.localFingerprint != localSummary.fingerprint) {
+      return const CloudActivationExecutionResult.blocked(
+        CloudActivationExecutionBlockReason.staleReadiness,
+      );
+    }
+    if (intentState.remoteFingerprint != null &&
+        intentState.remoteFingerprint != remoteSummary.fingerprint) {
+      return const CloudActivationExecutionResult.blocked(
+        CloudActivationExecutionBlockReason.staleReadiness,
+      );
+    }
+
+    return null;
+  }
+
+  String _migrationReadinessBlockedMessage(
+    LocalToCloudMigrationPreflightResult preflight,
+  ) {
+    return switch (preflight.blockReason) {
+      LocalToCloudMigrationPreflightBlockReason.freezeAlreadyActive =>
+        'Migration preflight уже выполняется или freeze ещё не снят. Повторите попытку позже.',
+      LocalToCloudMigrationPreflightBlockReason.localSnapshotNotMigratable =>
+        'Локальный snapshot больше не подходит для migrateLocalToCloud: нужны пользовательские данные без pending outbox.',
+      LocalToCloudMigrationPreflightBlockReason.activeMutationsDetected =>
+        'Во время preflight обнаружены активные локальные изменения. Migration readiness остаётся fail-closed.',
+      LocalToCloudMigrationPreflightBlockReason.inventoryReadinessBlocked =>
+        preflight.readinessResult != null &&
+                preflight.readinessResult!.issues.isNotEmpty
+            ? preflight.readinessResult!.issues.first.message
+            : 'Inventory validator заблокировал migrateLocalToCloud.',
+      null => 'Migration readiness preflight завершился блокировкой.',
+    };
+  }
 }
 
 final Provider<CloudActivationExecutionService>
@@ -499,6 +641,9 @@ cloudActivationExecutionServiceProvider =
         ),
         cloudSnapshotSummaryService: ref.watch(
           cloudSnapshotSummaryServiceProvider,
+        ),
+        localToCloudMigrationReadinessService: ref.watch(
+          localToCloudMigrationReadinessServiceProvider,
         ),
         exportUserDataUseCase: ref.watch(exportUserDataUseCaseProvider),
         userAccountCleanupRepository: ref.watch(

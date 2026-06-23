@@ -14,6 +14,7 @@ import 'package:kopim/features/transactions/domain/models/monthly_cashflow_total
 import 'package:kopim/features/transactions/domain/models/transaction_category_totals.dart';
 import 'package:kopim/features/transactions/domain/repositories/transaction_repository.dart';
 import 'package:riverpod/riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class _EmptyTransactionRepository implements TransactionRepository {
   @override
@@ -101,6 +102,12 @@ class _EmptyTransactionRepository implements TransactionRepository {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+  });
+
   group('EditAccountFormController', () {
     test('updates account using addAccountUseCase', () async {
       final _RecordingAccountRepository repository =

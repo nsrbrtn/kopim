@@ -10,6 +10,7 @@ import 'package:riverpod/legacy.dart';
 import 'package:intl/intl.dart';
 import 'package:kopim/core/config/theme_extensions.dart';
 import 'package:kopim/core/formatting/currency_symbols.dart';
+import 'package:kopim/core/money/currency_scale.dart';
 import 'package:kopim/core/utils/helpers.dart';
 import 'package:kopim/core/utils/text_input_formatters.dart';
 import 'package:kopim/core/widgets/phosphor_icon_utils.dart';
@@ -593,6 +594,8 @@ class _AccountDropdownField extends ConsumerStatefulWidget {
 }
 
 class _AccountDropdownFieldState extends ConsumerState<_AccountDropdownField> {
+  final Map<String, NumberFormat> _formatterCache = <String, NumberFormat>{};
+
   TransactionFormProvider get _formProvider =>
       transactionFormControllerProvider(widget.formArgs);
 
@@ -617,7 +620,6 @@ class _AccountDropdownFieldState extends ConsumerState<_AccountDropdownField> {
       });
     }
 
-    final Map<String, NumberFormat> cache = <String, NumberFormat>{};
     final KopimLayout layout = context.kopimLayout;
     final KopimSpacingScale spacing = layout.spacing;
     const double accountRowHeight = 120;
@@ -631,9 +633,11 @@ class _AccountDropdownFieldState extends ConsumerState<_AccountDropdownField> {
           child: _AccountSelectionCard(
             account: accounts[index],
             formatter: _resolveFormatter(
-              cache,
-              accounts[index].currency,
-              strings.localeName,
+              locale: strings.localeName,
+              currency: accounts[index].currency,
+              decimalDigits:
+                  accounts[index].currencyScale ??
+                  resolveCurrencyScale(accounts[index].currency),
             ),
             isSelected:
                 resolvedAccountId != null &&
@@ -643,25 +647,31 @@ class _AccountDropdownFieldState extends ConsumerState<_AccountDropdownField> {
         ),
     ];
 
-    return SizedBox(
-      height: accountRowHeight,
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        child: Row(children: accountCards),
+    return TextFieldTapRegion(
+      child: SizedBox(
+        height: accountRowHeight,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: Row(children: accountCards),
+        ),
       ),
     );
   }
 
-  NumberFormat _resolveFormatter(
-    Map<String, NumberFormat> cache,
-    String currency,
-    String locale,
-  ) {
-    final String symbol = resolveCurrencySymbol(currency, locale: locale);
-    return cache.putIfAbsent(
-      symbol,
-      () => NumberFormat.currency(locale: locale, symbol: symbol),
+  NumberFormat _resolveFormatter({
+    required String locale,
+    required String currency,
+    required int decimalDigits,
+  }) {
+    final String key = '$locale|$currency|$decimalDigits';
+    return _formatterCache.putIfAbsent(
+      key,
+      () => resolveCurrencyFormat(
+        locale: locale,
+        currencyCode: currency,
+        decimalDigits: decimalDigits,
+      ),
     );
   }
 }
@@ -2192,7 +2202,7 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
 
   void _handleFocusChange() {
     if (!_focusNode.hasFocus) {
-      _flushPendingUpdate();
+      _flushPendingUpdate(triggerCommit: true);
     }
   }
 
@@ -2226,7 +2236,7 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
     ref.read(_formProvider.notifier).updateAmount(normalized);
   }
 
-  void _flushPendingUpdate() {
+  void _flushPendingUpdate({bool triggerCommit = true}) {
     _debounce?.cancel();
     final String normalized = _controller.text.replaceAll(',', '.');
     if (_controller.text != normalized) {
@@ -2236,7 +2246,9 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
       );
     }
     _pushUpdate(normalized);
-    _notifyAmountCommitted();
+    if (triggerCommit) {
+      _notifyAmountCommitted();
+    }
   }
 
   void _notifyAmountCommitted() {
@@ -2262,10 +2274,10 @@ class _AmountFieldState extends ConsumerState<_AmountField> {
       ),
       onChanged: _handleChanged,
       onEditingComplete: () {
-        _flushPendingUpdate();
+        _flushPendingUpdate(triggerCommit: true);
         FocusScope.of(context).nextFocus();
       },
-      onTapOutside: (_) => _flushPendingUpdate(),
+      onTapOutside: (_) => _flushPendingUpdate(triggerCommit: false),
       validator: (_) {
         final double? value = ref.read(_formProvider).parsedAmount;
         if (value == null) {

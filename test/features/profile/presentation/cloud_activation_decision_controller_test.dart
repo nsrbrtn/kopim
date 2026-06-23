@@ -120,6 +120,41 @@ void main() {
     },
   );
 
+  test(
+    'local data plus empty remote exposes migrateLocalToCloud as confirmation-gated preflight',
+    () {
+      final CloudActivationDecisionState state =
+          resolveCloudActivationDecisionState(
+            readinessState: readiness(
+              local: LocalSnapshotState.hasUserData,
+              remote: RemoteSnapshotState.empty,
+              scenario:
+                  CloudActivationMatrixScenario.localHasUserDataRemoteEmpty,
+            ),
+          );
+
+      expect(state.status, CloudActivationDecisionStatus.blocked);
+      expect(
+        state.options
+            .firstWhere(
+              (CloudActivationDecisionOption option) =>
+                  option.choice == CloudActivationChoice.migrateLocalToCloud,
+            )
+            .availability,
+        CloudActivationChoiceAvailability.requiresConfirmation,
+      );
+      expect(
+        state.options
+            .firstWhere(
+              (CloudActivationDecisionOption option) =>
+                  option.choice == CloudActivationChoice.startWithEmptyCloud,
+            )
+            .availability,
+        CloudActivationChoiceAvailability.requiresConfirmation,
+      );
+    },
+  );
+
   test('remote user data surfaces replace flow as execution-gated', () {
     final CloudActivationDecisionState state =
         resolveCloudActivationDecisionState(
