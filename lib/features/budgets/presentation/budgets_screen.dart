@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:kopim/core/config/theme_extensions.dart';
 import 'package:kopim/core/widgets/animated_fab.dart';
@@ -140,13 +141,8 @@ NavigationTabContent buildBudgetsTabContent(
           icon: Icon(Icons.add, size: 48, color: colorScheme.primary),
           enableShadow: false,
           foregroundColor: colorScheme.primary,
-          onPressed: () async {
-            await Navigator.of(context).push(
-              MaterialPageRoute<BudgetFormResult>(
-                builder: (BuildContext context) => const BudgetFormScreen(),
-              ),
-            );
-          },
+          onPressed: () =>
+              context.push<BudgetFormResult>(BudgetFormScreen.routeName),
         ),
       );
     },
@@ -189,13 +185,8 @@ NavigationTabContent buildBudgetsTabContent(
         if (items.isEmpty) {
           content = _BudgetsEmptyState(
             strings: strings,
-            onCreate: () async {
-              await Navigator.of(context).push(
-                MaterialPageRoute<BudgetFormResult>(
-                  builder: (BuildContext context) => const BudgetFormScreen(),
-                ),
-              );
-            },
+            onCreate: () =>
+                context.push<BudgetFormResult>(BudgetFormScreen.routeName),
           );
         } else {
           final List<TransactionEntity> transactions =
@@ -220,29 +211,27 @@ NavigationTabContent buildBudgetsTabContent(
                 progress: progress,
                 categorySpend: spendByCategory,
                 enableExpansion: false,
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (BuildContext context) =>
-                          BudgetOverviewScreen(budgetId: progress.budget.id),
-                    ),
-                  );
-                },
+                onTap: () => context.push(
+                  BudgetOverviewScreenArgs(
+                    budgetId: progress.budget.id,
+                  ).location,
+                ),
                 showDetailsButton: false,
-                onOpenDetails: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (BuildContext context) =>
-                          BudgetOverviewScreen(budgetId: progress.budget.id),
-                    ),
-                  );
-                },
+                onOpenDetails: () => context.push(
+                  BudgetOverviewScreenArgs(
+                    budgetId: progress.budget.id,
+                  ).location,
+                ),
                 onEdit: () async {
-                  await Navigator.of(context).push(
-                    MaterialPageRoute<BudgetFormResult>(
-                      builder: (BuildContext context) =>
-                          BudgetFormScreen(initialBudget: progress.budget),
-                    ),
+                  final String location = Uri(
+                    path: BudgetFormScreen.routeName,
+                    queryParameters: <String, String>{
+                      'budgetId': progress.budget.id,
+                    },
+                  ).toString();
+                  await context.push<BudgetFormResult>(
+                    location,
+                    extra: progress.budget,
                   );
                 },
                 onDelete: () async {

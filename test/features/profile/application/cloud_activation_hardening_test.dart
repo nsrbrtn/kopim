@@ -135,6 +135,9 @@ void main() {
                 type: 'expense',
               ),
             );
+        final db.LocalRowOwnershipRow? ownershipBefore = await realDb
+            .getOwnership('transaction', 't1');
+        expect(ownershipBefore, isNotNull);
 
         // Также вставим запись в outbox
         await outboxDao.enqueue(
@@ -167,10 +170,14 @@ void main() {
         final List<db.TransactionRow> transactionsAfter = await realDb
             .select(realDb.transactions)
             .get();
+        final List<db.LocalRowOwnershipRow> ownershipAfter = await realDb
+            .select(realDb.localRowOwnership)
+            .get();
         final int outboxCountAfter = await outboxDao.pendingCount();
 
         expect(categoriesAfter.isEmpty, true);
         expect(transactionsAfter.isEmpty, true);
+        expect(ownershipAfter.isEmpty, true);
         expect(outboxCountAfter, 0);
 
         // Проверяем, что sync metadata была успешно очищена после транзакции

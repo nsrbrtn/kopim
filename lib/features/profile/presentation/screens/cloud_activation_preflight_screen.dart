@@ -140,24 +140,12 @@ class CloudActivationPreflightScreen extends ConsumerWidget {
   ) {
     switch (state.status) {
       case CloudActivationPreflightStatus.signedOut:
-        final GoRouter? router = GoRouter.maybeOf(context);
-        if (router != null) {
-          router.push(SignInScreen.routeName);
-          return;
-        }
-        Navigator.of(context).pushNamed(SignInScreen.routeName);
+        context.push(SignInScreen.routeName);
         return;
       case CloudActivationPreflightStatus.blockedByLocalOnlyData:
       case CloudActivationPreflightStatus.readyForNextStep:
         if (canOpenCloudActivationChoiceScreen(state.status)) {
-          final GoRouter? router = GoRouter.maybeOf(context);
-          if (router != null) {
-            router.push(CloudActivationChoiceScreen.routeName);
-            return;
-          }
-          Navigator.of(
-            context,
-          ).pushNamed(CloudActivationChoiceScreen.routeName);
+          context.push(CloudActivationChoiceScreen.routeName);
           return;
         }
         return;

@@ -63,12 +63,7 @@ class _ProfileSyncSettingsCardState
   }
 
   void _openCloudActivationPreflight(BuildContext context) {
-    final GoRouter? router = GoRouter.maybeOf(context);
-    if (router != null) {
-      router.push(CloudActivationPreflightScreen.routeName);
-      return;
-    }
-    Navigator.of(context).pushNamed(CloudActivationPreflightScreen.routeName);
+    context.push(CloudActivationPreflightScreen.routeName);
   }
 
   @override

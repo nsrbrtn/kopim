@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import 'package:kopim/core/config/theme_extensions.dart';
@@ -16,6 +17,7 @@ import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
 import 'package:kopim/features/budgets/domain/services/budget_category_scope.dart';
 import 'package:kopim/features/budgets/domain/services/budget_schedule.dart';
 import 'package:kopim/features/budgets/presentation/budget_form_screen.dart';
+import 'package:kopim/features/budgets/presentation/budgets_screen.dart';
 import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
 import 'package:kopim/features/budgets/presentation/models/budget_category_spend.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
@@ -32,10 +34,31 @@ import 'package:kopim/features/upcoming_payments/presentation/providers/upcoming
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
+class BudgetOverviewScreenArgs {
+  const BudgetOverviewScreenArgs({required this.budgetId});
+
+  final String budgetId;
+
+  static BudgetOverviewScreenArgs fromState(GoRouterState state) {
+    final String? budgetId = state.uri.queryParameters['budgetId'];
+    if (budgetId == null || budgetId.isEmpty) {
+      throw GoException('budgetId parameter is required');
+    }
+    return BudgetOverviewScreenArgs(budgetId: budgetId);
+  }
+
+  String get location => Uri(
+    path: BudgetOverviewScreen.routeName,
+    queryParameters: <String, String>{'budgetId': budgetId},
+  ).toString();
+}
+
 class BudgetOverviewScreen extends ConsumerStatefulWidget {
   const BudgetOverviewScreen({required this.budgetId, super.key});
 
   final String budgetId;
+
+  static const String routeName = '/budgets/overview';
 
   @override
   ConsumerState<BudgetOverviewScreen> createState() =>
@@ -55,7 +78,26 @@ class _BudgetOverviewScreenState extends ConsumerState<BudgetOverviewScreen> {
     final KopimLayout layout = context.kopimLayout;
     final KopimSpacingScale spacing = layout.spacing;
 
-    final AsyncValue<BudgetProgress> progressAsync = ref.watch(
+    if (widget.budgetId.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: Text(strings.budgetDetailTitle)),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(
+              strings.localeName == 'ru'
+                  ? 'Идентификатор бюджета не указан'
+                  : 'Budget ID not specified',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final AsyncValue<BudgetProgress?> progressAsync = ref.watch(
       budgetProgressByIdProvider(widget.budgetId),
     );
     final AsyncValue<List<TransactionEntity>> transactionsAsync = ref.watch(
@@ -85,27 +127,50 @@ class _BudgetOverviewScreenState extends ConsumerState<BudgetOverviewScreen> {
         title: Text(strings.budgetDetailTitle),
         actions: <Widget>[
           progressAsync.maybeWhen(
-            data: (BudgetProgress progress) => TextButton(
-              onPressed: () async {
-                final BudgetFormResult? result = await Navigator.of(context)
-                    .push<BudgetFormResult>(
-                      MaterialPageRoute<BudgetFormResult>(
-                        builder: (BuildContext context) =>
-                            BudgetFormScreen(initialBudget: progress.budget),
-                      ),
-                    );
-                if (result == BudgetFormResult.deleted && context.mounted) {
-                  Navigator.of(context).pop();
-                }
-              },
-              child: Text(strings.editButtonLabel),
-            ),
+            data: (BudgetProgress? progress) {
+              if (progress == null) return const SizedBox.shrink();
+              return TextButton(
+                onPressed: () async {
+                  final String location = Uri(
+                    path: BudgetFormScreen.routeName,
+                    queryParameters: <String, String>{
+                      'budgetId': progress.budget.id,
+                    },
+                  ).toString();
+                  final BudgetFormResult? result = await context
+                      .push<BudgetFormResult>(location, extra: progress.budget);
+                  if (result == BudgetFormResult.deleted && context.mounted) {
+                    if (context.canPop()) {
+                      context.pop();
+                    } else {
+                      context.go(BudgetsScreen.routeName);
+                    }
+                  }
+                },
+                child: Text(strings.editButtonLabel),
+              );
+            },
             orElse: () => const SizedBox.shrink(),
           ),
         ],
       ),
       body: progressAsync.when(
-        data: (BudgetProgress progress) {
+        data: (BudgetProgress? progress) {
+          if (progress == null) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  strings.localeName == 'ru'
+                      ? 'Бюджет не найден'
+                      : 'Budget not found',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
+                ),
+              ),
+            );
+          }
           final Budget budget = progress.budget;
           final DateTime now = timeService.nowLocal();
           final DateTimeRange selectedRange = _resolveRange(now);

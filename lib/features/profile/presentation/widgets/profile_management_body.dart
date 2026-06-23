@@ -162,27 +162,16 @@ class ProfileManagementBody extends ConsumerWidget {
   }
 
   void _openProfileSettings(BuildContext context) {
-    final GoRouter? router = GoRouter.maybeOf(context);
-    if (router != null) {
-      router.push(ProfileSettingsScreen.routeName);
-      return;
-    }
-    Navigator.of(context).pushNamed(ProfileSettingsScreen.routeName);
+    context.push(ProfileSettingsScreen.routeName);
   }
 
   Future<void> _signOut(BuildContext context, WidgetRef ref) async {
-    final NavigatorState navigator = Navigator.of(context);
-    final GoRouter? router = GoRouter.maybeOf(context);
     try {
       await ref.read(authControllerProvider.notifier).signOut();
       if (!context.mounted) {
         return;
       }
-      if (router != null) {
-        router.go(SignInScreen.routeName);
-        return;
-      }
-      navigator.popUntil((Route<dynamic> route) => route.isFirst);
+      context.go(SignInScreen.routeName);
     } on AuthFailure catch (error) {
       if (!context.mounted) {
         return;

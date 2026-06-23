@@ -1,12 +1,16 @@
 import 'package:drift/drift.dart';
 import 'package:kopim/core/data/database.dart' as db;
+import 'package:kopim/core/services/sync/ownership_projection_resolver.dart';
 
 enum OwnershipIntegrityIssueType {
   missingProjection,
   orphanProjection,
   invalidCloudOwner,
   invalidLocalOwner,
+  invalidOwnershipState,
+  invalidSource,
   unknownEntityType,
+  missingInheritedParentOwnership,
 }
 
 class OwnershipIntegrityIssue {
@@ -24,9 +28,11 @@ class OwnershipIntegrityIssue {
 }
 
 class OwnershipProjectionIntegrityService {
-  const OwnershipProjectionIntegrityService(this._db);
+  OwnershipProjectionIntegrityService(this._db)
+    : _resolver = OwnershipProjectionResolver(_db);
 
   final db.AppDatabase _db;
+  final OwnershipProjectionResolver _resolver;
 
   Future<List<OwnershipIntegrityIssue>> runDiagnostics() async {
     final List<OwnershipIntegrityIssue> issues = <OwnershipIntegrityIssue>[];
@@ -67,9 +73,12 @@ class OwnershipProjectionIntegrityService {
     ];
 
     final Map<String, Set<String>> existingIdsByType = <String, Set<String>>{};
-    final Set<String> knownEntityTypes = tablesAndTypes
-        .map((Map<String, String> item) => item['type']!)
-        .toSet();
+    final Set<String> knownEntityTypes = <String>{
+      ...tablesAndTypes.map((Map<String, String> item) => item['type']!),
+      ...kExcludedOwnershipEntityTypes,
+      'transaction_tag',
+      'goal_account_link',
+    };
 
     for (final Map<String, String> item in tablesAndTypes) {
       final String tableName = item['table']!;
@@ -119,6 +128,28 @@ class OwnershipProjectionIntegrityService {
       }
 
       // Check invalid ownerUid / state combinations
+      if (!kOwnershipStates.contains(r.ownershipState)) {
+        issues.add(
+          OwnershipIntegrityIssue(
+            type: OwnershipIntegrityIssueType.invalidOwnershipState,
+            entityType: r.entityType,
+            entityId: r.entityId,
+            message: 'Неизвестный ownershipState: ${r.ownershipState}.',
+          ),
+        );
+      }
+
+      if (!kOwnershipSources.contains(r.source)) {
+        issues.add(
+          OwnershipIntegrityIssue(
+            type: OwnershipIntegrityIssueType.invalidSource,
+            entityType: r.entityType,
+            entityId: r.entityId,
+            message: 'Неизвестный source: ${r.source}.',
+          ),
+        );
+      }
+
       if (r.ownershipState == 'cloudOwned' && r.ownerUid == null) {
         issues.add(
           OwnershipIntegrityIssue(
@@ -145,7 +176,7 @@ class OwnershipProjectionIntegrityService {
       }
     }
 
-    // 3. Validate missing ownership projections
+    // 3. Validate missing ownership projections for direct-projection families
     for (final Map<String, String> item in tablesAndTypes) {
       final String entityType = item['type']!;
       final Set<String> businessIds =
@@ -161,6 +192,48 @@ class OwnershipProjectionIntegrityService {
             entityType: entityType,
             entityId: id,
             message: 'Отсутствует запись владения для строки $entityType:$id.',
+          ),
+        );
+      }
+    }
+
+    // 4. Validate inherited ownership coverage for link entities.
+    final List<db.TransactionTagRow> transactionTagRows = await _db
+        .select(_db.transactionTags)
+        .get();
+    for (final db.TransactionTagRow row in transactionTagRows) {
+      final db.LocalRowOwnershipRow? ownership = await _resolver
+          .resolveTransactionTagOwnership(transactionId: row.transactionId);
+      if (ownership == null) {
+        issues.add(
+          OwnershipIntegrityIssue(
+            type: OwnershipIntegrityIssueType.missingInheritedParentOwnership,
+            entityType: 'transaction_tag',
+            entityId: '${row.transactionId}:${row.tagId}',
+            message:
+                'Для transaction_tag отсутствует запись владения родительской transaction:${row.transactionId}.',
+          ),
+        );
+      }
+    }
+
+    final List<db.GoalAccountLinkRow> goalAccountLinkRows = await _db
+        .select(_db.goalAccountLinks)
+        .get();
+    for (final db.GoalAccountLinkRow row in goalAccountLinkRows) {
+      final db.LocalRowOwnershipRow? ownership = await _resolver
+          .resolveGoalAccountLinkOwnership(
+            goalId: row.goalId,
+            accountId: row.accountId,
+          );
+      if (ownership == null) {
+        issues.add(
+          OwnershipIntegrityIssue(
+            type: OwnershipIntegrityIssueType.missingInheritedParentOwnership,
+            entityType: 'goal_account_link',
+            entityId: '${row.goalId}:${row.accountId}',
+            message:
+                'Для goal_account_link отсутствует запись владения родительской saving_goal:${row.goalId}.',
           ),
         );
       }

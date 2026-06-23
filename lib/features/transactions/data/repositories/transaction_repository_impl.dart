@@ -1,6 +1,7 @@
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/money/money_utils.dart';
+import 'package:kopim/features/profile/application/migration_write_guard.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
 import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
@@ -26,13 +27,16 @@ class TransactionRepositoryImpl implements TransactionRepository {
     required SavingGoalDao savingGoalDao,
     required GoalContributionDao goalContributionDao,
     required OutboxDao outboxDao,
+    MigrationWriteGuard? migrationWriteGuard,
   }) : _database = database,
        _transactionDao = transactionDao,
        _accountDao = accountDao,
        _creditDao = creditDao,
        _savingGoalDao = savingGoalDao,
        _contributionDao = goalContributionDao,
-       _outboxDao = outboxDao;
+       _outboxDao = outboxDao,
+       _migrationWriteGuard =
+           migrationWriteGuard ?? const NoopMigrationWriteGuard();
 
   final db.AppDatabase _database;
   final TransactionDao _transactionDao;
@@ -41,6 +45,7 @@ class TransactionRepositoryImpl implements TransactionRepository {
   final SavingGoalDao _savingGoalDao;
   final GoalContributionDao _contributionDao;
   final OutboxDao _outboxDao;
+  final MigrationWriteGuard _migrationWriteGuard;
   static const String _entityType = 'transaction';
   static const String _accountEntityType = 'account';
   static const String _savingGoalEntityType = 'saving_goal';
@@ -254,35 +259,42 @@ class TransactionRepositoryImpl implements TransactionRepository {
 
   @override
   Future<void> upsert(TransactionEntity transaction) async {
-    final DateTime now = _utcNow();
-    final TransactionEntity toPersist = transaction.copyWith(updatedAt: now);
-    await _database.transaction(() async {
-      final db.TransactionRow? previousRow = await _transactionDao.findById(
-        toPersist.id,
-      );
-      final TransactionEntity? previous = previousRow != null
-          ? _mapToDomain(previousRow)
-          : null;
-      await _transactionDao.upsert(toPersist);
-      await _applyAccountBalanceChanges(
-        previous: previous,
-        current: toPersist,
-        updatedAt: now,
-      );
-      await _outboxDao.enqueue(
-        entityType: _entityType,
-        entityId: toPersist.id,
-        operation: OutboxOperation.upsert,
-        payload: _mapTransactionPayload(toPersist),
-        baseRemoteUpdatedAt: previous?.updatedAt,
-        baseRemoteIsDeleted: previous?.isDeleted,
-      );
-      await _reconcileSavingGoalContribution(
-        previous: previous,
-        current: toPersist,
-        updatedAt: now,
-      );
-    });
+    await _migrationWriteGuard.runRepositoryWrite(
+      entityType: _entityType,
+      action: () async {
+        final DateTime now = _utcNow();
+        final TransactionEntity toPersist = transaction.copyWith(
+          updatedAt: now,
+        );
+        await _database.transaction(() async {
+          final db.TransactionRow? previousRow = await _transactionDao.findById(
+            toPersist.id,
+          );
+          final TransactionEntity? previous = previousRow != null
+              ? _mapToDomain(previousRow)
+              : null;
+          await _transactionDao.upsert(toPersist);
+          await _applyAccountBalanceChanges(
+            previous: previous,
+            current: toPersist,
+            updatedAt: now,
+          );
+          await _outboxDao.enqueue(
+            entityType: _entityType,
+            entityId: toPersist.id,
+            operation: OutboxOperation.upsert,
+            payload: _mapTransactionPayload(toPersist),
+            baseRemoteUpdatedAt: previous?.updatedAt,
+            baseRemoteIsDeleted: previous?.isDeleted,
+          );
+          await _reconcileSavingGoalContribution(
+            previous: previous,
+            current: toPersist,
+            updatedAt: now,
+          );
+        });
+      },
+    );
   }
 
   DateTime _parseMonthKey(String key) {
@@ -298,29 +310,34 @@ class TransactionRepositoryImpl implements TransactionRepository {
 
   @override
   Future<void> softDelete(String id) async {
-    final DateTime now = _utcNow();
-    await _database.transaction(() async {
-      final db.TransactionRow? row = await _transactionDao.findById(id);
-      if (row == null) return;
-      final TransactionEntity previous = _mapToDomain(row);
-      await _transactionDao.markDeleted(id, now);
-      final Map<String, dynamic> payload = _mapTransactionPayload(
-        previous.copyWith(isDeleted: true, updatedAt: now),
-      );
-      await _outboxDao.enqueue(
-        entityType: _entityType,
-        entityId: id,
-        operation: OutboxOperation.delete,
-        payload: payload,
-        baseRemoteUpdatedAt: previous.updatedAt,
-        baseRemoteIsDeleted: previous.isDeleted,
-      );
-      await _runDeleteSideEffectsBestEffort(
-        previous: previous,
-        row: row,
-        now: now,
-      );
-    });
+    await _migrationWriteGuard.runRepositoryWrite(
+      entityType: _entityType,
+      action: () async {
+        final DateTime now = _utcNow();
+        await _database.transaction(() async {
+          final db.TransactionRow? row = await _transactionDao.findById(id);
+          if (row == null) return;
+          final TransactionEntity previous = _mapToDomain(row);
+          await _transactionDao.markDeleted(id, now);
+          final Map<String, dynamic> payload = _mapTransactionPayload(
+            previous.copyWith(isDeleted: true, updatedAt: now),
+          );
+          await _outboxDao.enqueue(
+            entityType: _entityType,
+            entityId: id,
+            operation: OutboxOperation.delete,
+            payload: payload,
+            baseRemoteUpdatedAt: previous.updatedAt,
+            baseRemoteIsDeleted: previous.isDeleted,
+          );
+          await _runDeleteSideEffectsBestEffort(
+            previous: previous,
+            row: row,
+            now: now,
+          );
+        });
+      },
+    );
   }
 
   Future<void> _runDeleteSideEffectsBestEffort({

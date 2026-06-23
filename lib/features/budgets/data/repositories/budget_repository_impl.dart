@@ -1,5 +1,6 @@
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
+import 'package:kopim/features/profile/application/migration_write_guard.dart';
 import 'package:kopim/features/budgets/data/sources/local/budget_dao.dart';
 import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
@@ -11,15 +12,19 @@ class BudgetRepositoryImpl implements BudgetRepository {
     required BudgetDao budgetDao,
     required BudgetInstanceDao budgetInstanceDao,
     required OutboxDao outboxDao,
+    MigrationWriteGuard? migrationWriteGuard,
   }) : _database = database,
        _budgetDao = budgetDao,
        _budgetInstanceDao = budgetInstanceDao,
-       _outboxDao = outboxDao;
+       _outboxDao = outboxDao,
+       _migrationWriteGuard =
+           migrationWriteGuard ?? const NoopMigrationWriteGuard();
 
   final db.AppDatabase _database;
   final BudgetDao _budgetDao;
   final BudgetInstanceDao _budgetInstanceDao;
   final OutboxDao _outboxDao;
+  final MigrationWriteGuard _migrationWriteGuard;
 
   static const String _budgetEntityType = 'budget';
   static const String _instanceEntityType = 'budget_instance';
@@ -41,37 +46,50 @@ class BudgetRepositoryImpl implements BudgetRepository {
 
   @override
   Future<void> upsert(Budget budget) async {
-    final DateTime now = DateTime.now();
-    final Budget toPersist = budget.copyWith(updatedAt: now);
-    await _database.transaction(() async {
-      await _budgetDao.upsert(toPersist);
-      await _outboxDao.enqueue(
-        entityType: _budgetEntityType,
-        entityId: toPersist.id,
-        operation: OutboxOperation.upsert,
-        payload: _mapBudgetPayload(toPersist),
-      );
-    });
+    await _migrationWriteGuard.runRepositoryWrite(
+      entityType: _budgetEntityType,
+      action: () async {
+        final DateTime now = DateTime.now();
+        final Budget toPersist = budget.copyWith(updatedAt: now);
+        await _database.transaction(() async {
+          await _budgetDao.upsert(toPersist);
+          await _outboxDao.enqueue(
+            entityType: _budgetEntityType,
+            entityId: toPersist.id,
+            operation: OutboxOperation.upsert,
+            payload: _mapBudgetPayload(toPersist),
+          );
+        });
+      },
+    );
   }
 
   @override
   Future<void> softDelete(String id) async {
-    final DateTime now = DateTime.now();
-    await _database.transaction(() async {
-      await _budgetDao.markDeleted(id, now);
-      final Budget? budget = await _budgetDao.findById(id);
-      if (budget == null) {
-        return;
-      }
-      final Budget removed = budget.copyWith(isDeleted: true, updatedAt: now);
-      await _outboxDao.enqueue(
-        entityType: _budgetEntityType,
-        entityId: id,
-        operation: OutboxOperation.delete,
-        payload: _mapBudgetPayload(removed),
-      );
-      await _budgetInstanceDao.deleteByBudgetId(id);
-    });
+    await _migrationWriteGuard.runRepositoryWrite(
+      entityType: _budgetEntityType,
+      action: () async {
+        final DateTime now = DateTime.now();
+        await _database.transaction(() async {
+          await _budgetDao.markDeleted(id, now);
+          final Budget? budget = await _budgetDao.findById(id);
+          if (budget == null) {
+            return;
+          }
+          final Budget removed = budget.copyWith(
+            isDeleted: true,
+            updatedAt: now,
+          );
+          await _outboxDao.enqueue(
+            entityType: _budgetEntityType,
+            entityId: id,
+            operation: OutboxOperation.delete,
+            payload: _mapBudgetPayload(removed),
+          );
+          await _budgetInstanceDao.deleteByBudgetId(id);
+        });
+      },
+    );
   }
 
   @override
@@ -86,35 +104,45 @@ class BudgetRepositoryImpl implements BudgetRepository {
 
   @override
   Future<void> upsertInstance(BudgetInstance instance) async {
-    final DateTime now = DateTime.now();
-    final BudgetInstance toPersist = instance.copyWith(updatedAt: now);
-    await _database.transaction(() async {
-      await _budgetInstanceDao.upsert(toPersist);
-      await _outboxDao.enqueue(
-        entityType: _instanceEntityType,
-        entityId: toPersist.id,
-        operation: OutboxOperation.upsert,
-        payload: _mapInstancePayload(toPersist),
-      );
-    });
+    await _migrationWriteGuard.runRepositoryWrite(
+      entityType: _instanceEntityType,
+      action: () async {
+        final DateTime now = DateTime.now();
+        final BudgetInstance toPersist = instance.copyWith(updatedAt: now);
+        await _database.transaction(() async {
+          await _budgetInstanceDao.upsert(toPersist);
+          await _outboxDao.enqueue(
+            entityType: _instanceEntityType,
+            entityId: toPersist.id,
+            operation: OutboxOperation.upsert,
+            payload: _mapInstancePayload(toPersist),
+          );
+        });
+      },
+    );
   }
 
   @override
   Future<void> deleteInstance(String id) async {
-    final BudgetInstance? instance = await _budgetInstanceDao.findById(id);
-    if (instance == null) {
-      return;
-    }
-    final DateTime now = DateTime.now();
-    await _database.transaction(() async {
-      await _budgetInstanceDao.deleteById(id);
-      await _outboxDao.enqueue(
-        entityType: _instanceEntityType,
-        entityId: id,
-        operation: OutboxOperation.delete,
-        payload: _mapInstancePayload(instance.copyWith(updatedAt: now)),
-      );
-    });
+    await _migrationWriteGuard.runRepositoryWrite(
+      entityType: _instanceEntityType,
+      action: () async {
+        final BudgetInstance? instance = await _budgetInstanceDao.findById(id);
+        if (instance == null) {
+          return;
+        }
+        final DateTime now = DateTime.now();
+        await _database.transaction(() async {
+          await _budgetInstanceDao.deleteById(id);
+          await _outboxDao.enqueue(
+            entityType: _instanceEntityType,
+            entityId: id,
+            operation: OutboxOperation.delete,
+            payload: _mapInstancePayload(instance.copyWith(updatedAt: now)),
+          );
+        });
+      },
+    );
   }
 
   Map<String, dynamic> _mapBudgetPayload(Budget budget) {

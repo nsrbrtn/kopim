@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
+import 'package:kopim/features/profile/application/migration_write_guard.dart';
 import 'package:kopim/features/tags/data/sources/local/tag_dao.dart';
 import 'package:kopim/features/tags/domain/entities/tag.dart';
 import 'package:kopim/features/tags/domain/repositories/tag_repository.dart';
@@ -10,13 +11,17 @@ class TagRepositoryImpl implements TagRepository {
     required db.AppDatabase database,
     required TagDao tagDao,
     required OutboxDao outboxDao,
+    MigrationWriteGuard? migrationWriteGuard,
   }) : _database = database,
        _tagDao = tagDao,
-       _outboxDao = outboxDao;
+       _outboxDao = outboxDao,
+       _migrationWriteGuard =
+           migrationWriteGuard ?? const NoopMigrationWriteGuard();
 
   final db.AppDatabase _database;
   final TagDao _tagDao;
   final OutboxDao _outboxDao;
+  final MigrationWriteGuard _migrationWriteGuard;
 
   static const String _entityType = 'tag';
 
@@ -65,36 +70,46 @@ class TagRepositoryImpl implements TagRepository {
 
   @override
   Future<void> upsert(TagEntity tag) async {
-    final DateTime now = DateTime.now();
-    final TagEntity toPersist = tag.copyWith(updatedAt: now);
-    await _database.transaction(() async {
-      await _tagDao.upsert(toPersist);
-      await _outboxDao.enqueue(
-        entityType: _entityType,
-        entityId: toPersist.id,
-        operation: OutboxOperation.upsert,
-        payload: _mapTagPayload(toPersist),
-      );
-    });
+    await _migrationWriteGuard.runRepositoryWrite(
+      entityType: _entityType,
+      action: () async {
+        final DateTime now = DateTime.now();
+        final TagEntity toPersist = tag.copyWith(updatedAt: now);
+        await _database.transaction(() async {
+          await _tagDao.upsert(toPersist);
+          await _outboxDao.enqueue(
+            entityType: _entityType,
+            entityId: toPersist.id,
+            operation: OutboxOperation.upsert,
+            payload: _mapTagPayload(toPersist),
+          );
+        });
+      },
+    );
   }
 
   @override
   Future<void> softDelete(String id) async {
-    final DateTime now = DateTime.now();
-    await _database.transaction(() async {
-      await _tagDao.markDeleted(id, now);
-      final db.TagRow? row = await _tagDao.findById(id);
-      if (row == null) return;
-      final TagEntity deleted = _tagDao
-          .mapRowToEntity(row)
-          .copyWith(isDeleted: true, updatedAt: now);
-      await _outboxDao.enqueue(
-        entityType: _entityType,
-        entityId: id,
-        operation: OutboxOperation.delete,
-        payload: _mapTagPayload(deleted),
-      );
-    });
+    await _migrationWriteGuard.runRepositoryWrite(
+      entityType: _entityType,
+      action: () async {
+        final DateTime now = DateTime.now();
+        await _database.transaction(() async {
+          await _tagDao.markDeleted(id, now);
+          final db.TagRow? row = await _tagDao.findById(id);
+          if (row == null) return;
+          final TagEntity deleted = _tagDao
+              .mapRowToEntity(row)
+              .copyWith(isDeleted: true, updatedAt: now);
+          await _outboxDao.enqueue(
+            entityType: _entityType,
+            entityId: id,
+            operation: OutboxOperation.delete,
+            payload: _mapTagPayload(deleted),
+          );
+        });
+      },
+    );
   }
 
   Map<String, dynamic> _mapTagPayload(TagEntity tag) {

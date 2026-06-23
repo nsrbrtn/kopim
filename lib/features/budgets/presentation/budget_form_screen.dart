@@ -24,16 +24,69 @@ import 'package:kopim/l10n/app_localizations.dart';
 
 enum BudgetFormResult { saved, deleted }
 
-class BudgetFormScreen extends ConsumerStatefulWidget {
-  const BudgetFormScreen({this.initialBudget, super.key});
+class BudgetFormScreen extends ConsumerWidget {
+  const BudgetFormScreen({this.initialBudget, this.initialBudgetId, super.key});
+
+  final Budget? initialBudget;
+  final String? initialBudgetId;
+
+  static const String routeName = '/budgets/form';
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (initialBudget == null &&
+        initialBudgetId != null &&
+        initialBudgetId!.isNotEmpty) {
+      final AsyncValue<List<Budget>> budgetsAsync = ref.watch(
+        budgetsStreamProvider,
+      );
+      return budgetsAsync.when(
+        data: (List<Budget> list) {
+          final Budget? budget = list.firstWhereOrNull(
+            (Budget b) => b.id == initialBudgetId,
+          );
+          if (budget == null) {
+            final AppLocalizations strings = AppLocalizations.of(context)!;
+            return Scaffold(
+              appBar: AppBar(title: Text(strings.budgetDetailTitle)),
+              body: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    strings.localeName == 'ru'
+                        ? 'Бюджет не найден'
+                        : 'Budget not found',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }
+          return _BudgetFormContent(initialBudget: budget);
+        },
+        loading: () =>
+            const Scaffold(body: Center(child: CircularProgressIndicator())),
+        error: (Object err, StackTrace? stack) =>
+            Scaffold(body: Center(child: Text(err.toString()))),
+      );
+    }
+
+    return _BudgetFormContent(initialBudget: initialBudget);
+  }
+}
+
+class _BudgetFormContent extends ConsumerStatefulWidget {
+  const _BudgetFormContent({this.initialBudget});
 
   final Budget? initialBudget;
 
   @override
-  ConsumerState<BudgetFormScreen> createState() => _BudgetFormScreenState();
+  ConsumerState<_BudgetFormContent> createState() => _BudgetFormContentState();
 }
 
-class _BudgetFormScreenState extends ConsumerState<BudgetFormScreen> {
+class _BudgetFormContentState extends ConsumerState<_BudgetFormContent> {
   late final TextEditingController _titleController;
   late final TextEditingController _amountController;
   final Map<String, TextEditingController> _categoryAmountControllers =

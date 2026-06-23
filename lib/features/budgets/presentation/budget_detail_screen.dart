@@ -31,7 +31,7 @@ class BudgetDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
-    final AsyncValue<BudgetProgress> progressAsync = ref.watch(
+    final AsyncValue<BudgetProgress?> progressAsync = ref.watch(
       budgetProgressByIdProvider(budgetId),
     );
     final AsyncValue<List<TransactionEntity>> transactionsAsync = ref.watch(
@@ -45,25 +45,45 @@ class BudgetDetailScreen extends ConsumerWidget {
             icon: const Icon(Icons.settings_outlined),
             tooltip: strings.editButtonLabel,
             onPressed: progressAsync.maybeWhen(
-              data: (BudgetProgress progress) => () async {
-                final BudgetFormResult? result = await Navigator.of(context)
-                    .push<BudgetFormResult>(
-                      MaterialPageRoute<BudgetFormResult>(
-                        builder: (BuildContext context) =>
-                            BudgetFormScreen(initialBudget: progress.budget),
-                      ),
-                    );
-                if (result == BudgetFormResult.deleted && context.mounted) {
-                  Navigator.of(context).pop();
-                }
-              },
+              data: (BudgetProgress? progress) => progress == null
+                  ? null
+                  : () async {
+                      final BudgetFormResult? result =
+                          await Navigator.of(context).push<BudgetFormResult>(
+                            MaterialPageRoute<BudgetFormResult>(
+                              builder: (BuildContext context) =>
+                                  BudgetFormScreen(
+                                    initialBudget: progress.budget,
+                                  ),
+                            ),
+                          );
+                      if (result == BudgetFormResult.deleted &&
+                          context.mounted) {
+                        Navigator.of(context).pop();
+                      }
+                    },
               orElse: () => null,
             ),
           ),
         ],
       ),
       body: progressAsync.when<Widget>(
-        data: (BudgetProgress progress) {
+        data: (BudgetProgress? progress) {
+          if (progress == null) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  strings.localeName == 'ru'
+                      ? 'Бюджет не найден'
+                      : 'Budget not found',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                ),
+              ),
+            );
+          }
           return _BudgetDetailBody(transactionsAsync: transactionsAsync);
         },
         loading: () => const Center(child: CircularProgressIndicator()),

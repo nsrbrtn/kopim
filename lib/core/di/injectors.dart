@@ -110,7 +110,9 @@ import 'package:kopim/features/profile/data/auth_repository_impl.dart';
 import 'package:kopim/features/profile/data/local_auth_repository.dart';
 import 'package:kopim/features/profile/data/local_profile_repository.dart';
 import 'package:kopim/features/profile/data/cloud_entitlement_repository.dart';
+import 'package:kopim/features/profile/data/migration_freeze_state_repository.dart';
 import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
+import 'package:kopim/features/profile/application/migration_write_guard.dart';
 import 'package:kopim/core/services/noop_sync_service.dart';
 import 'package:kopim/core/services/sync/sync_ownership_guard.dart';
 import 'package:kopim/features/profile/data/local/profile_dao.dart';
@@ -373,6 +375,20 @@ Connectivity connectivity(Ref ref) => Connectivity();
 @riverpod
 Uuid uuidGenerator(Ref ref) => const Uuid();
 
+final rp.Provider<MigrationFreezeStateRepository>
+migrationFreezeStateRepositoryProvider =
+    rp.Provider<MigrationFreezeStateRepository>((rp.Ref ref) {
+      return SharedPrefsMigrationFreezeStateRepository();
+    });
+
+final rp.Provider<MigrationWriteGuard> migrationWriteGuardProvider =
+    rp.Provider<MigrationWriteGuard>((rp.Ref ref) {
+      return SharedPrefsMigrationWriteGuard(
+        database: ref.watch(appDatabaseProvider),
+        stateRepository: ref.watch(migrationFreezeStateRepositoryProvider),
+      );
+    });
+
 @Riverpod(keepAlive: true)
 AiAssistantService aiAssistantService(Ref ref) {
   return AiAssistantService(
@@ -391,14 +407,19 @@ AppDatabase appDatabase(Ref ref) {
 }
 
 @riverpod
-OutboxDao outboxDao(Ref ref) => OutboxDao(ref.watch(appDatabaseProvider), () {
-  try {
-    final AuthRepository activeAuth = ref.read(activeAuthRepositoryProvider);
-    return activeAuth.currentUser?.uid;
-  } catch (_) {
-    return null;
-  }
-}, ref.watch(loggerServiceProvider));
+OutboxDao outboxDao(Ref ref) => OutboxDao(
+  ref.watch(appDatabaseProvider),
+  () {
+    try {
+      final AuthRepository activeAuth = ref.read(activeAuthRepositoryProvider);
+      return activeAuth.currentUser?.uid;
+    } catch (_) {
+      return null;
+    }
+  },
+  ref.watch(loggerServiceProvider),
+  ref.watch(migrationWriteGuardProvider),
+);
 
 @riverpod
 SyncConflictDao syncConflictDao(Ref ref) =>
@@ -732,6 +753,7 @@ AccountRepository accountRepository(Ref ref) => AccountRepositoryImpl(
   database: ref.watch(appDatabaseProvider),
   accountDao: ref.watch(accountDaoProvider),
   outboxDao: ref.watch(outboxDaoProvider),
+  migrationWriteGuard: ref.watch(migrationWriteGuardProvider),
 );
 
 @riverpod
@@ -740,6 +762,7 @@ AccountTypeBackfillService accountTypeBackfillService(Ref ref) =>
       database: ref.watch(appDatabaseProvider),
       accountDao: ref.watch(accountDaoProvider),
       outboxDao: ref.watch(outboxDaoProvider),
+      migrationWriteGuard: ref.watch(migrationWriteGuardProvider),
       loggerService: ref.watch(loggerServiceProvider),
       analyticsService: ref.watch(analyticsServiceProvider),
     );
@@ -750,6 +773,7 @@ CreditRepository creditRepository(Ref ref) => CreditRepositoryImpl(
   creditDao: ref.watch(creditDaoProvider),
   creditPaymentDao: ref.watch(creditPaymentDaoProvider),
   outboxDao: ref.watch(outboxDaoProvider),
+  migrationWriteGuard: ref.watch(migrationWriteGuardProvider),
 );
 
 @riverpod
@@ -757,6 +781,7 @@ CreditCardRepository creditCardRepository(Ref ref) => CreditCardRepositoryImpl(
   database: ref.watch(appDatabaseProvider),
   creditCardDao: ref.watch(creditCardDaoProvider),
   outboxDao: ref.watch(outboxDaoProvider),
+  migrationWriteGuard: ref.watch(migrationWriteGuardProvider),
 );
 
 final rp.Provider<DebtRepository> debtRepositoryProvider =
@@ -765,6 +790,7 @@ final rp.Provider<DebtRepository> debtRepositoryProvider =
         database: ref.watch(appDatabaseProvider),
         debtDao: ref.watch(debtDaoProvider),
         outboxDao: ref.watch(outboxDaoProvider),
+        migrationWriteGuard: ref.watch(migrationWriteGuardProvider),
       );
     });
 
@@ -1022,6 +1048,7 @@ CategoryRepository categoryRepository(Ref ref) => CategoryRepositoryImpl(
   database: ref.watch(appDatabaseProvider),
   categoryDao: ref.watch(categoryDaoProvider),
   outboxDao: ref.watch(outboxDaoProvider),
+  migrationWriteGuard: ref.watch(migrationWriteGuardProvider),
 );
 
 @riverpod
@@ -1029,6 +1056,7 @@ TagRepository tagRepository(Ref ref) => TagRepositoryImpl(
   database: ref.watch(appDatabaseProvider),
   tagDao: ref.watch(tagDaoProvider),
   outboxDao: ref.watch(outboxDaoProvider),
+  migrationWriteGuard: ref.watch(migrationWriteGuardProvider),
 );
 
 @riverpod
@@ -1038,6 +1066,7 @@ TransactionTagsRepository transactionTagsRepository(Ref ref) =>
       transactionTagsDao: ref.watch(transactionTagsDaoProvider),
       tagDao: ref.watch(tagDaoProvider),
       outboxDao: ref.watch(outboxDaoProvider),
+      migrationWriteGuard: ref.watch(migrationWriteGuardProvider),
     );
 
 @riverpod
@@ -1092,6 +1121,7 @@ TransactionRepository transactionRepository(Ref ref) =>
       savingGoalDao: ref.watch(savingGoalDaoProvider),
       goalContributionDao: ref.watch(goalContributionDaoProvider),
       outboxDao: ref.watch(outboxDaoProvider),
+      migrationWriteGuard: ref.watch(migrationWriteGuardProvider),
     );
 
 @riverpod
@@ -1100,6 +1130,7 @@ BudgetRepository budgetRepository(Ref ref) => BudgetRepositoryImpl(
   budgetDao: ref.watch(budgetDaoProvider),
   budgetInstanceDao: ref.watch(budgetInstanceDaoProvider),
   outboxDao: ref.watch(outboxDaoProvider),
+  migrationWriteGuard: ref.watch(migrationWriteGuardProvider),
 );
 
 @riverpod
@@ -1121,6 +1152,7 @@ SavingGoalRepository savingGoalRepository(Ref ref) => SavingGoalRepositoryImpl(
   transactionDao: ref.watch(transactionDaoProvider),
   goalContributionDao: ref.watch(goalContributionDaoProvider),
   outboxDao: ref.watch(outboxDaoProvider),
+  migrationWriteGuard: ref.watch(migrationWriteGuardProvider),
   analyticsService: ref.watch(analyticsServiceProvider),
   loggerService: ref.watch(loggerServiceProvider),
   uuidGenerator: ref.watch(uuidGeneratorProvider),
@@ -1132,6 +1164,7 @@ UpcomingPaymentsRepository upcomingPaymentsRepository(Ref ref) =>
       database: ref.watch(appDatabaseProvider),
       dao: ref.watch(upcomingPaymentsDaoProvider),
       outboxDao: ref.watch(outboxDaoProvider),
+      migrationWriteGuard: ref.watch(migrationWriteGuardProvider),
     );
 
 @riverpod
@@ -1140,6 +1173,7 @@ PaymentRemindersRepository paymentRemindersRepository(Ref ref) =>
       database: ref.watch(appDatabaseProvider),
       dao: ref.watch(paymentRemindersDaoProvider),
       outboxDao: ref.watch(outboxDaoProvider),
+      migrationWriteGuard: ref.watch(migrationWriteGuardProvider),
     );
 
 final rp.Provider<AddTransactionUseCase> addTransactionUseCaseProvider =
@@ -1517,6 +1551,7 @@ AuthSyncService authSyncService(Ref ref) => AuthSyncService(
   dataSanitizer: ref.watch(syncDataSanitizerProvider),
   syncMetadataRepository: ref.watch(syncMetadataRepositoryProvider),
   syncOwnershipGuard: ref.watch(syncOwnershipGuardProvider),
+  migrationWriteGuard: ref.watch(migrationWriteGuardProvider),
   accountTypeBackfillService: ref.watch(accountTypeBackfillServiceProvider),
   integrityDiagnosticsService: ref.watch(
     localSyncIntegrityDiagnosticsServiceProvider,

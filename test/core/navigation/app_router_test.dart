@@ -32,6 +32,117 @@ import 'package:kopim/features/transactions/presentation/controllers/all_transac
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 import 'package:kopim/core/application/app_startup_controller.dart';
 import 'package:kopim/l10n/app_localizations.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/features/budgets/domain/entities/budget.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_progress.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_period.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_scope.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_instance.dart';
+import 'package:kopim/features/budgets/domain/entities/budget_instance_status.dart';
+import 'package:kopim/features/budgets/domain/repositories/budget_repository.dart';
+import 'package:kopim/features/budgets/domain/use_cases/save_budget_use_case.dart';
+import 'package:kopim/features/budgets/domain/use_cases/delete_budget_use_case.dart';
+import 'package:kopim/features/budgets/domain/use_cases/compute_budget_progress_use_case.dart';
+import 'package:kopim/features/budgets/presentation/budget_overview_screen.dart';
+import 'package:kopim/features/budgets/presentation/budget_form_screen.dart';
+import 'package:kopim/features/budgets/presentation/budgets_screen.dart';
+import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
+import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
+import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
+import 'package:kopim/core/config/app_runtime.dart';
+import 'package:kopim/features/upcoming_payments/domain/services/time_service.dart';
+import 'package:kopim/features/profile/presentation/controllers/active_currency_code_provider.dart';
+import 'package:kopim/features/upcoming_payments/domain/models/upcoming_item.dart';
+import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
+import 'package:kopim/features/upcoming_payments/domain/providers/upcoming_payments_providers.dart';
+import 'package:kopim/features/upcoming_payments/presentation/providers/upcoming_payment_selection_providers.dart';
+
+class _FakeConnectivity implements Connectivity {
+  @override
+  Future<List<ConnectivityResult>> checkConnectivity() async =>
+      const <ConnectivityResult>[ConnectivityResult.wifi];
+
+  @override
+  Stream<List<ConnectivityResult>> get onConnectivityChanged =>
+      const Stream<List<ConnectivityResult>>.empty();
+}
+
+class _FakeTimeService implements TimeService {
+  @override
+  DateTime nowLocal() => DateTime(2024, 1, 15);
+
+  @override
+  int nowMs() => DateTime(2024, 1, 15).millisecondsSinceEpoch;
+
+  @override
+  DateTime toLocal(int epochMs) =>
+      DateTime.fromMillisecondsSinceEpoch(epochMs, isUtc: false);
+
+  @override
+  int toEpochMs(DateTime dt) => dt.millisecondsSinceEpoch;
+
+  @override
+  DateTime atLocalDateTime(
+    int year,
+    int month,
+    int day,
+    int hour,
+    int minute,
+  ) => DateTime(year, month, day, hour, minute);
+
+  @override
+  int parseHhmmToMinutes(String hhmm) {
+    final List<String> parts = hhmm.split(':');
+    return int.parse(parts[0]) * 60 + int.parse(parts[1]);
+  }
+}
+
+class _FakeBudgetRepository implements BudgetRepository {
+  @override
+  Future<Budget?> findById(String id) async => null;
+
+  @override
+  Future<void> softDelete(String id) async {}
+
+  @override
+  Future<void> deleteInstance(String id) async {}
+
+  @override
+  Future<List<BudgetInstance>> loadInstances(String budgetId) async =>
+      const <BudgetInstance>[];
+
+  @override
+  Future<List<Budget>> loadBudgets() async => const <Budget>[];
+
+  @override
+  Future<void> upsert(Budget budget) async {}
+
+  @override
+  Future<void> upsertInstance(BudgetInstance instance) async {}
+
+  @override
+  Stream<List<BudgetInstance>> watchInstances(String budgetId) =>
+      const Stream<List<BudgetInstance>>.empty();
+
+  @override
+  Stream<List<Budget>> watchBudgets() => const Stream<List<Budget>>.empty();
+}
+
+class _FakeDataModeController extends DataModeController {
+  _FakeDataModeController(this._nextState);
+
+  final DataModeState _nextState;
+
+  @override
+  FutureOr<DataModeState> build() async => _nextState;
+
+  @override
+  Future<DataModeState> refreshForCurrentContext() async {
+    state = AsyncData<DataModeState>(_nextState);
+    return _nextState;
+  }
+}
 
 class _FakeAppStartupController extends AppStartupController {
   @override
@@ -117,6 +228,15 @@ void main() {
     photoUrl: null,
     updatedAt: DateTime.utc(2024, 1, 1),
   );
+
+  Future<void> setWindowSize(WidgetTester tester, Size size) async {
+    tester.view.physicalSize = size;
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+  }
 
   Future<void> disposeApp(WidgetTester tester) async {
     await tester.pumpWidget(const SizedBox.shrink());
@@ -384,6 +504,428 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
 
     expect(find.byType(CloudActivationChoiceScreen), findsOneWidget);
+    await disposeApp(tester);
+  });
+
+  testWidgets('navigates to budget overview screen with budgetId query param', (
+    WidgetTester tester,
+  ) async {
+    final Budget budget = Budget(
+      id: 'budget-1',
+      title: 'Food & Trans',
+      period: BudgetPeriod.monthly,
+      startDate: DateTime(2024, 1, 1),
+      amountMinor: BigInt.from(80000),
+      amountScale: 2,
+      scope: BudgetScope.byCategory,
+      categories: const <String>['cat-1'],
+      createdAt: DateTime(2024, 1, 1),
+      updatedAt: DateTime(2024, 1, 1),
+    );
+    final BudgetInstance instance = BudgetInstance(
+      id: 'instance-1',
+      budgetId: 'budget-1',
+      periodStart: DateTime(2024, 1, 1),
+      periodEnd: DateTime(2024, 1, 31),
+      amountMinor: BigInt.from(80000),
+      spentMinor: BigInt.from(0),
+      amountScale: 2,
+      status: BudgetInstanceStatus.active,
+      createdAt: DateTime(2024, 1, 1),
+      updatedAt: DateTime(2024, 1, 1),
+    );
+    final BudgetProgress progress = BudgetProgress(
+      budget: budget,
+      instance: instance,
+      spent: MoneyAmount(minor: BigInt.from(0), scale: 2),
+      remaining: MoneyAmount(minor: BigInt.from(80000), scale: 2),
+      utilization: 0.0,
+      isExceeded: false,
+    );
+
+    await pumpApp(
+      tester,
+      authOverride: authControllerProvider.overrideWith(
+        () => _FakeAuthController(testUser),
+      ),
+      extraOverrides: <Override>[
+        budgetProgressByIdProvider(
+          'budget-1',
+        ).overrideWithValue(AsyncValue<BudgetProgress?>.data(progress)),
+        budgetTransactionsStreamProvider.overrideWith(
+          (Ref ref) => Stream<List<TransactionEntity>>.value(
+            const <TransactionEntity>[],
+          ),
+        ),
+        budgetCategoriesStreamProvider.overrideWith(
+          (Ref ref) => Stream<List<Category>>.value(const <Category>[]),
+        ),
+        budgetAccountsStreamProvider.overrideWith(
+          (Ref ref) =>
+              Stream<List<AccountEntity>>.value(const <AccountEntity>[]),
+        ),
+        homeUpcomingItemsProvider(limit: 12).overrideWithValue(
+          const AsyncValue<List<UpcomingItem>>.data(<UpcomingItem>[]),
+        ),
+        watchUpcomingPaymentsProvider.overrideWith(
+          (Ref ref) =>
+              Stream<List<UpcomingPayment>>.value(const <UpcomingPayment>[]),
+        ),
+        upcomingPaymentAccountsProvider.overrideWith(
+          (Ref ref) =>
+              Stream<List<AccountEntity>>.value(const <AccountEntity>[]),
+        ),
+        upcomingPaymentCategoriesProvider.overrideWith(
+          (Ref ref) => Stream<List<Category>>.value(const <Category>[]),
+        ),
+        timeServiceProvider.overrideWithValue(_FakeTimeService()),
+        activeCurrencyCodeProvider.overrideWithValue('USD'),
+      ],
+    );
+
+    final BuildContext context = tester.element(find.byType(MaterialApp));
+    final ProviderContainer container = ProviderScope.containerOf(context);
+    final GoRouter router = container.read(appRouterProvider);
+
+    router.go(const BudgetOverviewScreenArgs(budgetId: 'budget-1').location);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(BudgetOverviewScreen), findsOneWidget);
+    await disposeApp(tester);
+  });
+
+  testWidgets(
+    'renders not found error in budget overview when budgetId does not exist',
+    (WidgetTester tester) async {
+      await pumpApp(
+        tester,
+        authOverride: authControllerProvider.overrideWith(
+          () => _FakeAuthController(testUser),
+        ),
+        extraOverrides: <Override>[
+          budgetProgressByIdProvider(
+            'non-existent',
+          ).overrideWithValue(const AsyncValue<BudgetProgress?>.data(null)),
+          budgetTransactionsStreamProvider.overrideWith(
+            (Ref ref) => Stream<List<TransactionEntity>>.value(
+              const <TransactionEntity>[],
+            ),
+          ),
+          budgetCategoriesStreamProvider.overrideWith(
+            (Ref ref) => Stream<List<Category>>.value(const <Category>[]),
+          ),
+          budgetAccountsStreamProvider.overrideWith(
+            (Ref ref) =>
+                Stream<List<AccountEntity>>.value(const <AccountEntity>[]),
+          ),
+          homeUpcomingItemsProvider(limit: 12).overrideWithValue(
+            const AsyncValue<List<UpcomingItem>>.data(<UpcomingItem>[]),
+          ),
+          watchUpcomingPaymentsProvider.overrideWith(
+            (Ref ref) =>
+                Stream<List<UpcomingPayment>>.value(const <UpcomingPayment>[]),
+          ),
+          upcomingPaymentAccountsProvider.overrideWith(
+            (Ref ref) =>
+                Stream<List<AccountEntity>>.value(const <AccountEntity>[]),
+          ),
+          upcomingPaymentCategoriesProvider.overrideWith(
+            (Ref ref) => Stream<List<Category>>.value(const <Category>[]),
+          ),
+          timeServiceProvider.overrideWithValue(_FakeTimeService()),
+          activeCurrencyCodeProvider.overrideWithValue('USD'),
+        ],
+      );
+
+      final BuildContext context = tester.element(find.byType(MaterialApp));
+      final ProviderContainer container = ProviderScope.containerOf(context);
+      final GoRouter router = container.read(appRouterProvider);
+
+      router.go(
+        const BudgetOverviewScreenArgs(budgetId: 'non-existent').location,
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BudgetOverviewScreen), findsOneWidget);
+      final BuildContext screenContext = tester.element(
+        find.byType(BudgetOverviewScreen),
+      );
+      final AppLocalizations strings = AppLocalizations.of(screenContext)!;
+      expect(
+        find.textContaining(
+          strings.localeName == 'ru' ? 'Бюджет не найден' : 'Budget not found',
+        ),
+        findsOneWidget,
+      );
+      await disposeApp(tester);
+    },
+  );
+
+  testWidgets(
+    'navigates to budget form screen in creation mode (no budgetId, no extra)',
+    (WidgetTester tester) async {
+      await pumpApp(
+        tester,
+        authOverride: authControllerProvider.overrideWith(
+          () => _FakeAuthController(testUser),
+        ),
+        extraOverrides: <Override>[
+          saveBudgetUseCaseProvider.overrideWithValue(
+            SaveBudgetUseCase(repository: _FakeBudgetRepository()),
+          ),
+          deleteBudgetUseCaseProvider.overrideWithValue(
+            DeleteBudgetUseCase(repository: _FakeBudgetRepository()),
+          ),
+          budgetCategoriesStreamProvider.overrideWith(
+            (Ref ref) => Stream<List<Category>>.value(const <Category>[]),
+          ),
+          budgetAccountsStreamProvider.overrideWith(
+            (Ref ref) =>
+                Stream<List<AccountEntity>>.value(const <AccountEntity>[]),
+          ),
+        ],
+      );
+
+      final BuildContext context = tester.element(find.byType(MaterialApp));
+      final ProviderContainer container = ProviderScope.containerOf(context);
+      final GoRouter router = container.read(appRouterProvider);
+
+      router.go(BudgetFormScreen.routeName);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BudgetFormScreen), findsOneWidget);
+      await disposeApp(tester);
+    },
+  );
+
+  testWidgets(
+    'navigates to budget form screen in edit mode (via query parameter with fallback)',
+    (WidgetTester tester) async {
+      final Budget budget = Budget(
+        id: 'budget-1',
+        title: 'Food & Trans',
+        period: BudgetPeriod.monthly,
+        startDate: DateTime(2024, 1, 1),
+        amountMinor: BigInt.from(80000),
+        amountScale: 2,
+        scope: BudgetScope.byCategory,
+        categories: const <String>['cat-1'],
+        createdAt: DateTime(2024, 1, 1),
+        updatedAt: DateTime(2024, 1, 1),
+      );
+
+      await pumpApp(
+        tester,
+        authOverride: authControllerProvider.overrideWith(
+          () => _FakeAuthController(testUser),
+        ),
+        extraOverrides: <Override>[
+          saveBudgetUseCaseProvider.overrideWithValue(
+            SaveBudgetUseCase(repository: _FakeBudgetRepository()),
+          ),
+          deleteBudgetUseCaseProvider.overrideWithValue(
+            DeleteBudgetUseCase(repository: _FakeBudgetRepository()),
+          ),
+          budgetsStreamProvider.overrideWith(
+            (Ref ref) => Stream<List<Budget>>.value(<Budget>[budget]),
+          ),
+          budgetCategoriesStreamProvider.overrideWith(
+            (Ref ref) => Stream<List<Category>>.value(const <Category>[]),
+          ),
+          budgetAccountsStreamProvider.overrideWith(
+            (Ref ref) =>
+                Stream<List<AccountEntity>>.value(const <AccountEntity>[]),
+          ),
+        ],
+      );
+
+      final BuildContext context = tester.element(find.byType(MaterialApp));
+      final ProviderContainer container = ProviderScope.containerOf(context);
+      final GoRouter router = container.read(appRouterProvider);
+
+      final String location = Uri(
+        path: BudgetFormScreen.routeName,
+        queryParameters: <String, String>{'budgetId': 'budget-1'},
+      ).toString();
+
+      router.go(location);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BudgetFormScreen), findsOneWidget);
+      expect(find.text('Food & Trans'), findsWidgets);
+      await disposeApp(tester);
+    },
+  );
+
+  testWidgets('navigates to sign in screen with signUp query param', (
+    WidgetTester tester,
+  ) async {
+    await setWindowSize(tester, const Size(800, 1200));
+    final _FakeConnectivity connectivity = _FakeConnectivity();
+    await pumpApp(
+      tester,
+      authOverride: authControllerProvider.overrideWith(
+        () => _MutableAuthController(null),
+      ),
+      extraOverrides: <Override>[
+        connectivityProvider.overrideWithValue(connectivity),
+        dataModeControllerProvider.overrideWith(
+          () => _FakeDataModeController(
+            const DataModeState(
+              dataMode: DataMode.cloudEnabled,
+              entitlementState: CloudEntitlementState.active,
+              migrationDecision: MigrationDecision.none,
+            ),
+          ),
+        ),
+      ],
+    );
+
+    final BuildContext context = tester.element(find.byType(MaterialApp));
+    final ProviderContainer container = ProviderScope.containerOf(context);
+    final GoRouter router = container.read(appRouterProvider);
+
+    final String location = Uri(
+      path: SignInScreen.routeName,
+      queryParameters: <String, String>{'signUp': 'true'},
+    ).toString();
+
+    router.go(location);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.byType(SignInScreen), findsOneWidget);
+    expect(find.text('Создать'), findsOneWidget);
+    expect(find.text('Войти в аккаунт'), findsOneWidget);
+    await disposeApp(tester);
+  });
+
+  testWidgets('BudgetOverviewScreen deleted fallback routing', (
+    WidgetTester tester,
+  ) async {
+    await setWindowSize(tester, const Size(800, 1200));
+    final Budget budget = Budget(
+      id: 'budget-1',
+      title: 'Food & Trans',
+      period: BudgetPeriod.monthly,
+      startDate: DateTime(2024, 1, 1),
+      amountMinor: BigInt.from(80000),
+      amountScale: 2,
+      scope: BudgetScope.byCategory,
+      categories: const <String>['cat-1'],
+      createdAt: DateTime(2024, 1, 1),
+      updatedAt: DateTime(2024, 1, 1),
+    );
+    final BudgetInstance instance = BudgetInstance(
+      id: 'instance-1',
+      budgetId: 'budget-1',
+      periodStart: DateTime(2024, 1, 1),
+      periodEnd: DateTime(2024, 1, 31),
+      amountMinor: BigInt.from(80000),
+      spentMinor: BigInt.from(0),
+      amountScale: 2,
+      status: BudgetInstanceStatus.active,
+      createdAt: DateTime(2024, 1, 1),
+      updatedAt: DateTime(2024, 1, 1),
+    );
+    final BudgetProgress progress = BudgetProgress(
+      budget: budget,
+      instance: instance,
+      spent: MoneyAmount(minor: BigInt.from(0), scale: 2),
+      remaining: MoneyAmount(minor: BigInt.from(80000), scale: 2),
+      utilization: 0.0,
+      isExceeded: false,
+    );
+
+    await pumpApp(
+      tester,
+      authOverride: authControllerProvider.overrideWith(
+        () => _FakeAuthController(testUser),
+      ),
+      extraOverrides: <Override>[
+        budgetProgressByIdProvider(
+          'budget-1',
+        ).overrideWithValue(AsyncValue<BudgetProgress?>.data(progress)),
+        budgetsWithProgressProvider.overrideWithValue(
+          AsyncValue<List<BudgetProgress>>.data(<BudgetProgress>[progress]),
+        ),
+        budgetTransactionsStreamProvider.overrideWith(
+          (Ref ref) => Stream<List<TransactionEntity>>.value(
+            const <TransactionEntity>[],
+          ),
+        ),
+        budgetsStreamProvider.overrideWith(
+          (Ref ref) => Stream<List<Budget>>.value(<Budget>[budget]),
+        ),
+        budgetCategoriesStreamProvider.overrideWith(
+          (Ref ref) => Stream<List<Category>>.value(const <Category>[]),
+        ),
+        budgetAccountsStreamProvider.overrideWith(
+          (Ref ref) =>
+              Stream<List<AccountEntity>>.value(const <AccountEntity>[]),
+        ),
+        homeUpcomingItemsProvider(limit: 12).overrideWithValue(
+          const AsyncValue<List<UpcomingItem>>.data(<UpcomingItem>[]),
+        ),
+        watchUpcomingPaymentsProvider.overrideWith(
+          (Ref ref) =>
+              Stream<List<UpcomingPayment>>.value(const <UpcomingPayment>[]),
+        ),
+        upcomingPaymentAccountsProvider.overrideWith(
+          (Ref ref) =>
+              Stream<List<AccountEntity>>.value(const <AccountEntity>[]),
+        ),
+        upcomingPaymentCategoriesProvider.overrideWith(
+          (Ref ref) => Stream<List<Category>>.value(const <Category>[]),
+        ),
+        timeServiceProvider.overrideWithValue(_FakeTimeService()),
+        activeCurrencyCodeProvider.overrideWithValue('USD'),
+        saveBudgetUseCaseProvider.overrideWithValue(
+          SaveBudgetUseCase(repository: _FakeBudgetRepository()),
+        ),
+        deleteBudgetUseCaseProvider.overrideWithValue(
+          DeleteBudgetUseCase(repository: _FakeBudgetRepository()),
+        ),
+        computeBudgetProgressUseCaseProvider.overrideWithValue(
+          ComputeBudgetProgressUseCase(),
+        ),
+      ],
+    );
+
+    final BuildContext context = tester.element(find.byType(MaterialApp));
+    final ProviderContainer container = ProviderScope.containerOf(context);
+    final GoRouter router = container.read(appRouterProvider);
+
+    router.go(const BudgetOverviewScreenArgs(budgetId: 'budget-1').location);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(BudgetOverviewScreen), findsOneWidget);
+
+    final BuildContext screenContext = tester.element(
+      find.byType(BudgetOverviewScreen),
+    );
+    final AppLocalizations strings = AppLocalizations.of(screenContext)!;
+    final Finder editBtn = find.text(strings.editButtonLabel);
+    expect(editBtn, findsOneWidget);
+    await tester.tap(editBtn);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(BudgetFormScreen), findsOneWidget);
+
+    final Finder deleteBtn = find.text(strings.deleteButtonLabel);
+    expect(deleteBtn, findsOneWidget);
+    await tester.tap(deleteBtn);
+    await tester.pumpAndSettle();
+
+    final Finder confirmBtn = find.descendant(
+      of: find.byType(AlertDialog),
+      matching: find.text(strings.deleteButtonLabel),
+    );
+    expect(confirmBtn, findsOneWidget);
+    await tester.tap(confirmBtn);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(BudgetsScreen), findsOneWidget);
     await disposeApp(tester);
   });
 }

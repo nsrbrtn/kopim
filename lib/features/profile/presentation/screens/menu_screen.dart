@@ -232,7 +232,8 @@ class MenuScreen extends ConsumerWidget {
         actions: <Widget>[
           IconButton(
             tooltip: strings.profileGeneralSettingsTooltip,
-            onPressed: () => _openGeneralSettings(context),
+            onPressed: () =>
+                _pushRoute(context, GeneralSettingsScreen.routeName),
             icon: const Icon(Icons.settings_outlined),
           ),
         ],
@@ -440,12 +441,4 @@ class _SettingsErrorMessage extends StatelessWidget {
       ),
     );
   }
-}
-
-Future<void> _openGeneralSettings(BuildContext context) async {
-  await Navigator.of(context, rootNavigator: true).push(
-    MaterialPageRoute<void>(
-      builder: (BuildContext context) => const GeneralSettingsScreen(),
-    ),
-  );
 }

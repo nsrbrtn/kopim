@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import 'package:kopim/core/config/theme_extensions.dart';
@@ -185,7 +186,7 @@ class HomeBudgetProgressCard extends ConsumerWidget {
       );
     }
 
-    final AsyncValue<BudgetProgress> progressAsync = ref.watch(
+    final AsyncValue<BudgetProgress?> progressAsync = ref.watch(
       budgetProgressByIdProvider(budgetId),
     );
     final AsyncValue<List<Category>> categoriesAsync = ref.watch(
@@ -196,13 +197,11 @@ class HomeBudgetProgressCard extends ConsumerWidget {
     );
 
     final VoidCallback? progressTap = progressAsync.maybeWhen(
-      data: (BudgetProgress progress) => () {
-        Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) => BudgetOverviewScreen(budgetId: progress.budget.id),
-          ),
-        );
-      },
+      data: (BudgetProgress? progress) => progress != null
+          ? () => context.push(
+              BudgetOverviewScreenArgs(budgetId: progress.budget.id).location,
+            )
+          : null,
       orElse: () => null,
     );
 
@@ -219,7 +218,17 @@ class HomeBudgetProgressCard extends ConsumerWidget {
             ),
             const SizedBox(height: 4),
             progressAsync.when(
-              data: (BudgetProgress progress) {
+              data: (BudgetProgress? progress) {
+                if (progress == null) {
+                  return Text(
+                    strings.localeName == 'ru'
+                        ? 'Бюджет не найден'
+                        : 'Budget not found',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.error,
+                    ),
+                  );
+                }
                 final NumberFormat currencyFormat = resolveCurrencyFormat(
                   locale: strings.localeName,
                   currencyCode: currencyCode,

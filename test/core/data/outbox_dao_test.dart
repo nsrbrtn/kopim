@@ -3,14 +3,18 @@ import 'dart:convert';
 import 'package:drift/drift.dart' show DatabaseConnection, Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kopim/core/data/database.dart';
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
+import 'package:kopim/features/profile/application/migration_write_guard.dart';
+import 'package:kopim/features/profile/data/migration_freeze_state_repository.dart';
 
 void main() {
   late AppDatabase database;
   late OutboxDao outboxDao;
 
   setUp(() {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
     database = AppDatabase.connect(DatabaseConnection(NativeDatabase.memory()));
     outboxDao = OutboxDao(database);
   });
@@ -37,6 +41,34 @@ void main() {
         jsonDecode(entry.payload) as Map<String, dynamic>;
     expect(payload['id'], 'acc-1');
   });
+
+  test(
+    'enqueue blocks covered entities while migration freeze is active',
+    () async {
+      final SharedPrefsMigrationFreezeStateRepository stateRepository =
+          SharedPrefsMigrationFreezeStateRepository();
+      final SharedPrefsMigrationWriteGuard guard =
+          SharedPrefsMigrationWriteGuard(
+            database: database,
+            stateRepository: stateRepository,
+          );
+      outboxDao = OutboxDao(database, null, null, guard);
+      await guard.activateFreeze(
+        uid: 'cloud-user-1',
+        phase: 'upload_in_progress',
+      );
+
+      await expectLater(
+        outboxDao.enqueue(
+          entityType: 'account',
+          entityId: 'acc-1',
+          operation: OutboxOperation.upsert,
+          payload: <String, dynamic>{'id': 'acc-1'},
+        ),
+        throwsA(isA<MigrationFreezeActive>()),
+      );
+    },
+  );
 
   test('prepareForSend increments attempt count and updates status', () async {
     final int id = await outboxDao.enqueue(
@@ -415,6 +447,96 @@ void main() {
           plan.blockedByDependencyCycle.map((OutboxEntryRow e) => e.id).toSet(),
           <int>{catAId, catBId},
         );
+      },
+    );
+
+    test(
+      '6. local-only and null-owner outbox rows stay blocked until explicit success cleanup',
+      () async {
+        await database
+            .into(database.outboxEntries)
+            .insert(
+              const OutboxEntriesCompanion(
+                entityType: Value<String>('account'),
+                entityId: Value<String>('acc-local'),
+                operation: Value<String>('upsert'),
+                payload: Value<String>('{}'),
+                status: Value<String>('pending'),
+                ownerUid: Value<String?>('local-user-123'),
+              ),
+            );
+        await database
+            .into(database.outboxEntries)
+            .insert(
+              const OutboxEntriesCompanion(
+                entityType: Value<String>('account'),
+                entityId: Value<String>('acc-null'),
+                operation: Value<String>('upsert'),
+                payload: Value<String>('{}'),
+                status: Value<String>('failed'),
+                ownerUid: Value<String?>(null),
+              ),
+            );
+
+        expect(
+          () => outboxDao.assertNoDispatchableLocalOnlyOutbox(),
+          throwsStateError,
+        );
+
+        final List<OutboxEntryRow> beforeCleanup = await database
+            .select(database.outboxEntries)
+            .get();
+        expect(beforeCleanup, hasLength(2));
+      },
+    );
+
+    test(
+      '7. consumeLocalOnlyOutboxAfterMigrationSuccess deletes only local/null outbox rows',
+      () async {
+        await database
+            .into(database.outboxEntries)
+            .insert(
+              const OutboxEntriesCompanion(
+                entityType: Value<String>('account'),
+                entityId: Value<String>('acc-local'),
+                operation: Value<String>('upsert'),
+                payload: Value<String>('{}'),
+                status: Value<String>('pending'),
+                ownerUid: Value<String?>('local-user-123'),
+              ),
+            );
+        await database
+            .into(database.outboxEntries)
+            .insert(
+              const OutboxEntriesCompanion(
+                entityType: Value<String>('account'),
+                entityId: Value<String>('acc-null'),
+                operation: Value<String>('upsert'),
+                payload: Value<String>('{}'),
+                status: Value<String>('pending'),
+                ownerUid: Value<String?>(null),
+              ),
+            );
+        await database
+            .into(database.outboxEntries)
+            .insert(
+              const OutboxEntriesCompanion(
+                entityType: Value<String>('account'),
+                entityId: Value<String>('acc-cloud'),
+                operation: Value<String>('upsert'),
+                payload: Value<String>('{}'),
+                status: Value<String>('pending'),
+                ownerUid: Value<String?>('cloud-user-123'),
+              ),
+            );
+
+        await outboxDao.consumeLocalOnlyOutboxAfterMigrationSuccess();
+
+        final List<OutboxEntryRow> remaining = await database
+            .select(database.outboxEntries)
+            .get();
+        expect(remaining, hasLength(1));
+        expect(remaining.single.entityId, 'acc-cloud');
       },
     );
   });

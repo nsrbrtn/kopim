@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
+import 'package:kopim/features/profile/application/migration_write_guard.dart';
 import 'package:kopim/features/accounts/data/mappers/account_sync_payload_mapper.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
@@ -13,13 +14,17 @@ class AccountRepositoryImpl implements AccountRepository {
     required db.AppDatabase database,
     required AccountDao accountDao,
     required OutboxDao outboxDao,
+    MigrationWriteGuard? migrationWriteGuard,
   }) : _database = database,
        _accountDao = accountDao,
-       _outboxDao = outboxDao;
+       _outboxDao = outboxDao,
+       _migrationWriteGuard =
+           migrationWriteGuard ?? const NoopMigrationWriteGuard();
 
   final db.AppDatabase _database;
   final AccountDao _accountDao;
   final OutboxDao _outboxDao;
+  final MigrationWriteGuard _migrationWriteGuard;
 
   static const String _entityType = 'account';
 
@@ -46,55 +51,65 @@ class AccountRepositoryImpl implements AccountRepository {
 
   @override
   Future<void> upsert(AccountEntity account) async {
-    final DateTime now = DateTime.now();
-    final AccountEntity toPersist = account.copyWith(
-      updatedAt: now,
-      typeVersion: resolveStoredAccountTypeVersion(
-        account.type,
-        currentTypeVersion: account.typeVersion,
-      ),
+    await _migrationWriteGuard.runRepositoryWrite(
+      entityType: _entityType,
+      action: () async {
+        final DateTime now = DateTime.now();
+        final AccountEntity toPersist = account.copyWith(
+          updatedAt: now,
+          typeVersion: resolveStoredAccountTypeVersion(
+            account.type,
+            currentTypeVersion: account.typeVersion,
+          ),
+        );
+        await _database.transaction(() async {
+          if (toPersist.isPrimary) {
+            await _accountDao.clearPrimaryExcept(toPersist.id, now);
+          }
+          await _accountDao.upsert(toPersist);
+          await _outboxDao.enqueue(
+            entityType: _entityType,
+            entityId: toPersist.id,
+            operation: OutboxOperation.upsert,
+            payload: _mapAccountPayload(toPersist),
+            baseRemoteUpdatedAt: account.updatedAt,
+            baseRemoteIsDeleted: account.isDeleted,
+            baseRemoteTypeVersion: account.typeVersion,
+          );
+        });
+      },
     );
-    await _database.transaction(() async {
-      if (toPersist.isPrimary) {
-        await _accountDao.clearPrimaryExcept(toPersist.id, now);
-      }
-      await _accountDao.upsert(toPersist);
-      await _outboxDao.enqueue(
-        entityType: _entityType,
-        entityId: toPersist.id,
-        operation: OutboxOperation.upsert,
-        payload: _mapAccountPayload(toPersist),
-        baseRemoteUpdatedAt: account.updatedAt,
-        baseRemoteIsDeleted: account.isDeleted,
-        baseRemoteTypeVersion: account.typeVersion,
-      );
-    });
   }
 
   @override
   Future<void> softDelete(String id) async {
-    final DateTime now = DateTime.now();
-    await _database.transaction(() async {
-      final db.AccountRow? originalRow = await _accountDao.findById(id);
-      if (originalRow == null) return;
-      final AccountEntity original = _mapToDomain(originalRow);
+    await _migrationWriteGuard.runRepositoryWrite(
+      entityType: _entityType,
+      action: () async {
+        final DateTime now = DateTime.now();
+        await _database.transaction(() async {
+          final db.AccountRow? originalRow = await _accountDao.findById(id);
+          if (originalRow == null) return;
+          final AccountEntity original = _mapToDomain(originalRow);
 
-      await _accountDao.markDeleted(id, now);
-      final db.AccountRow? row = await _accountDao.findById(id);
-      if (row == null) return;
-      final Map<String, dynamic> payload = _mapAccountPayload(
-        _mapToDomain(row).copyWith(isDeleted: true, updatedAt: now),
-      );
-      await _outboxDao.enqueue(
-        entityType: _entityType,
-        entityId: id,
-        operation: OutboxOperation.delete,
-        payload: payload,
-        baseRemoteUpdatedAt: original.updatedAt,
-        baseRemoteIsDeleted: original.isDeleted,
-        baseRemoteTypeVersion: original.typeVersion,
-      );
-    });
+          await _accountDao.markDeleted(id, now);
+          final db.AccountRow? row = await _accountDao.findById(id);
+          if (row == null) return;
+          final Map<String, dynamic> payload = _mapAccountPayload(
+            _mapToDomain(row).copyWith(isDeleted: true, updatedAt: now),
+          );
+          await _outboxDao.enqueue(
+            entityType: _entityType,
+            entityId: id,
+            operation: OutboxOperation.delete,
+            payload: payload,
+            baseRemoteUpdatedAt: original.updatedAt,
+            baseRemoteIsDeleted: original.isDeleted,
+            baseRemoteTypeVersion: original.typeVersion,
+          );
+        });
+      },
+    );
   }
 
   Map<String, dynamic> _mapAccountPayload(AccountEntity account) {

@@ -3,11 +3,14 @@ import 'dart:convert';
 import 'package:drift/drift.dart' show DatabaseConnection;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/money/money.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
+import 'package:kopim/features/profile/application/migration_write_guard.dart';
+import 'package:kopim/features/profile/data/migration_freeze_state_repository.dart';
 import 'package:kopim/features/accounts/data/services/account_type_backfill_service.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
@@ -79,6 +82,7 @@ void main() {
   });
 
   setUp(() {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
     database = db.AppDatabase.connect(
       DatabaseConnection(NativeDatabase.memory()),
     );
@@ -272,6 +276,71 @@ void main() {
     verify(
       () => analytics.logEvent('import_restore_completed', any()),
     ).called(2);
+  });
+
+  test('import блокируется во время migration freeze', () async {
+    final SharedPrefsMigrationWriteGuard guard = SharedPrefsMigrationWriteGuard(
+      database: database,
+      stateRepository: SharedPrefsMigrationFreezeStateRepository(),
+    );
+    outboxDao = OutboxDao(database, null, null, guard);
+    backfillService = AccountTypeBackfillService(
+      database: database,
+      accountDao: accountDao,
+      outboxDao: outboxDao,
+      migrationWriteGuard: guard,
+      loggerService: logger,
+      analyticsService: analytics,
+    );
+    repository = ImportDataRepositoryImpl(
+      database: database,
+      accountDao: accountDao,
+      categoryDao: categoryDao,
+      tagDao: tagDao,
+      transactionTagsDao: transactionTagsDao,
+      creditDao: creditDao,
+      creditCardDao: creditCardDao,
+      debtDao: debtDao,
+      creditPaymentDao: creditPaymentDao,
+      budgetDao: budgetDao,
+      budgetInstanceDao: budgetInstanceDao,
+      savingGoalDao: savingGoalDao,
+      goalAccountLinkDao: goalAccountLinkDao,
+      upcomingPaymentsDao: upcomingPaymentsDao,
+      paymentRemindersDao: paymentRemindersDao,
+      transactionDao: transactionDao,
+      profileDao: profileDao,
+      outboxDao: outboxDao,
+      migrationWriteGuard: guard,
+      levelPolicy: const SimpleLevelPolicy(),
+      loggerService: logger,
+      analyticsService: analytics,
+      accountTypeBackfillService: backfillService,
+    );
+    await guard.activateFreeze(
+      uid: 'cloud-user-1',
+      phase: 'pre_inventory_capture',
+    );
+
+    await expectLater(
+      repository.importData(
+        bundle: bundleFactory(
+          accounts: <AccountEntity>[
+            AccountEntity(
+              id: 'acc-1',
+              name: 'Main',
+              balanceMinor: BigInt.zero,
+              currency: 'USD',
+              currencyScale: 2,
+              type: 'bank',
+              createdAt: DateTime.utc(2024, 1, 1),
+              updatedAt: DateTime.utc(2024, 1, 1),
+            ),
+          ],
+        ),
+      ),
+      throwsA(isA<MigrationFreezeActive>()),
+    );
   });
 
   test(
@@ -1162,5 +1231,34 @@ void main() {
     // Verify state after failure
     syncState = await database.select(database.currentSyncStates).getSingle();
     expect(syncState.importInProgress, isFalse);
+  });
+
+  test('import restores user rows as localOnly, not cloudOwned', () async {
+    await database.updateCurrentSyncState('cloud-user-1', true);
+
+    final DateTime now = DateTime.utc(2024, 6, 1);
+    final AccountEntity account = AccountEntity(
+      id: 'acc-import-1',
+      name: 'Imported',
+      balanceMinor: BigInt.from(1000),
+      currency: 'USD',
+      currencyScale: 2,
+      type: 'regular',
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    await repository.importData(
+      bundle: bundleFactory(accounts: <AccountEntity>[account]),
+    );
+
+    final db.LocalRowOwnershipRow? ownership = await database.getOwnership(
+      'account',
+      'acc-import-1',
+    );
+    expect(ownership, isNotNull);
+    expect(ownership!.ownershipState, 'localOnly');
+    expect(ownership.ownerUid, isNull);
+    expect(ownership.source, 'import_restore');
   });
 }

@@ -3,8 +3,11 @@ import 'dart:convert';
 import 'package:drift/drift.dart' show DatabaseConnection;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
+import 'package:kopim/features/profile/application/migration_write_guard.dart';
+import 'package:kopim/features/profile/data/migration_freeze_state_repository.dart';
 import 'package:kopim/features/accounts/data/repositories/account_repository_impl.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
@@ -14,6 +17,7 @@ void main() {
   late AccountRepositoryImpl repository;
 
   setUp(() {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
     database = db.AppDatabase.connect(
       DatabaseConnection(NativeDatabase.memory()),
     );
@@ -118,5 +122,29 @@ void main() {
     final Map<String, dynamic> payload =
         jsonDecode(deleteEntry.payload) as Map<String, dynamic>;
     expect(payload['isDeleted'], true);
+  });
+
+  test('upsert is blocked when migration freeze is active', () async {
+    final SharedPrefsMigrationWriteGuard guard = SharedPrefsMigrationWriteGuard(
+      database: database,
+      stateRepository: SharedPrefsMigrationFreezeStateRepository(),
+    );
+    repository = AccountRepositoryImpl(
+      database: database,
+      accountDao: AccountDao(database),
+      outboxDao: OutboxDao(database, null, null, guard),
+      migrationWriteGuard: guard,
+    );
+    await guard.activateFreeze(
+      uid: 'cloud-user-1',
+      phase: 'pre_inventory_capture',
+    );
+
+    await expectLater(
+      repository.upsert(buildAccount()),
+      throwsA(isA<MigrationFreezeActive>()),
+    );
+    expect(await database.select(database.accounts).get(), isEmpty);
+    expect(await database.select(database.outboxEntries).get(), isEmpty);
   });
 }

@@ -80,6 +80,29 @@ void main() {
     expect(summary.pendingOutboxCount, 0);
   });
 
+  test(
+    'ownership projection rows alone do not make snapshot report user data',
+    () async {
+      await database
+          .into(database.localRowOwnership)
+          .insert(
+            const LocalRowOwnershipCompanion(
+              entityType: Value<String>('account'),
+              entityId: Value<String>('acc-orphan'),
+              ownershipState: Value<String>('localOnly'),
+              ownerUid: Value<String?>(null),
+              source: Value<String>('schema_backfill'),
+            ),
+          );
+
+      final LocalSnapshotSummary summary = await service.summarize();
+
+      expect(summary.state, LocalSnapshotState.empty);
+      expect(summary.hasUserData, isFalse);
+      expect(summary.hasSystemData, isFalse);
+    },
+  );
+
   test('returns hasPendingOutbox when pending local changes exist', () async {
     await outboxDao.enqueue(
       entityType: 'profile',

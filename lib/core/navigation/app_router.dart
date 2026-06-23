@@ -12,6 +12,9 @@ import 'package:kopim/features/accounts/presentation/edit_account_screen.dart';
 import 'package:kopim/features/analytics/presentation/analytics_screen.dart';
 import 'package:kopim/features/app_shell/presentation/widgets/main_navigation_shell.dart';
 import 'package:kopim/features/budgets/presentation/budgets_screen.dart';
+import 'package:kopim/features/budgets/presentation/budget_overview_screen.dart';
+import 'package:kopim/features/budgets/presentation/budget_form_screen.dart';
+import 'package:kopim/features/budgets/domain/entities/budget.dart';
 import 'package:kopim/features/categories/presentation/screens/manage_categories_screen.dart';
 import 'package:kopim/features/overview/presentation/overview_screen.dart';
 import 'package:kopim/features/overview/presentation/overview_settings_screen.dart';
@@ -94,6 +97,26 @@ final Provider<GoRouter> appRouterProvider = Provider<GoRouter>((Ref ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (BuildContext context, GoRouterState state) {
           return const BudgetsScreen();
+        },
+      ),
+      GoRoute(
+        path: BudgetOverviewScreen.routeName,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (BuildContext context, GoRouterState state) {
+          final String? budgetId = state.uri.queryParameters['budgetId'];
+          return BudgetOverviewScreen(budgetId: budgetId ?? '');
+        },
+      ),
+      GoRoute(
+        path: BudgetFormScreen.routeName,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (BuildContext context, GoRouterState state) {
+          final String? budgetId = state.uri.queryParameters['budgetId'];
+          final Budget? budget = state.extra as Budget?;
+          return BudgetFormScreen(
+            initialBudgetId: budgetId,
+            initialBudget: budget,
+          );
         },
       ),
       GoRoute(
@@ -298,7 +321,10 @@ final Provider<GoRouter> appRouterProvider = Provider<GoRouter>((Ref ref) {
         path: SignInScreen.routeName,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (BuildContext context, GoRouterState state) {
-          return const SignInScreen();
+          final String? signUpParam = state.uri.queryParameters['signUp'];
+          final bool startInSignUpMode =
+              signUpParam == 'true' || (state.extra as bool? ?? false);
+          return SignInScreen(startInSignUpMode: startInSignUpMode);
         },
       ),
     ],

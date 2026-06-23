@@ -46,6 +46,7 @@ import 'package:kopim/features/savings/data/sources/remote/saving_goal_remote_da
 import 'package:kopim/features/savings/domain/entities/saving_goal.dart';
 import 'package:kopim/features/profile/data/local/profile_dao.dart';
 import 'package:kopim/features/profile/data/remote/profile_remote_data_source.dart';
+import 'package:kopim/features/profile/application/migration_write_guard.dart';
 import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/tags/data/sources/local/tag_dao.dart';
@@ -125,6 +126,7 @@ class AuthSyncService {
     required SyncDataSanitizer dataSanitizer,
     required SyncMetadataRepository syncMetadataRepository,
     required SyncOwnershipGuard syncOwnershipGuard,
+    MigrationWriteGuard? migrationWriteGuard,
     AccountTypeBackfillService? accountTypeBackfillService,
     GoalContributionRebuildService? goalContributionRebuildService,
     LocalSyncIntegrityDiagnosticsService? integrityDiagnosticsService,
@@ -168,10 +170,16 @@ class AuthSyncService {
        _firestore = firestore,
        _logger = loggerService,
        _analyticsService = analyticsService,
+       _migrationWriteGuard =
+           migrationWriteGuard ?? const NoopMigrationWriteGuard(),
        _accountTypeBackfillService = accountTypeBackfillService,
        _goalContributionRebuildService =
            goalContributionRebuildService ??
-           GoalContributionRebuildService(database),
+           GoalContributionRebuildService(
+             database,
+             migrationWriteGuard:
+                 migrationWriteGuard ?? const NoopMigrationWriteGuard(),
+           ),
        _integrityDiagnosticsService =
            integrityDiagnosticsService ??
            LocalSyncIntegrityDiagnosticsService(database),
@@ -266,6 +274,7 @@ class AuthSyncService {
   final SyncDataSanitizer _dataSanitizer;
   final SyncMetadataRepository _syncMetadataRepository;
   final SyncOwnershipGuard _syncOwnershipGuard;
+  final MigrationWriteGuard _migrationWriteGuard;
 
   bool _inProgress = false;
 
@@ -274,370 +283,388 @@ class AuthSyncService {
     AuthUser? previousUser,
     MigrationDecision migrationDecision = MigrationDecision.none,
   }) async {
-    if (_inProgress) {
-      _logger.logInfo('AuthSyncService: synchronization already running, skip');
-      return;
-    }
-    if (user.isAnonymous) {
-      _logger.logInfo(
-        'AuthSyncService: skip sync for anonymous user ${user.uid}.',
-      );
-      return;
-    }
-
-    final bool hasLocalData = await _database.hasAnyLocalOnlyData();
-    await _syncOwnershipGuard.ensureCanStartCloudSync(
-      currentCloudUid: user.uid,
-      migrationDecision: migrationDecision,
-      hasLocalData: hasLocalData,
-    );
-
-    _inProgress = true;
-    await _database.updateCurrentSyncState(user.uid, true);
-    final bool upgradingFromAnonymous =
-        (previousUser?.isAnonymous ?? false) && !user.isAnonymous;
-
-    final Map<String, dynamic> syncContext = <String, dynamic>{
-      'userId': user.uid,
-      'upgradedFromAnonymous': upgradingFromAnonymous ? 1 : 0,
-    };
-
-    await _analyticsService.logEvent('auth_sync_start', syncContext);
-    _logger.logInfo(
-      'AuthSyncService: starting login sync for ${user.uid}, upgraded: $upgradingFromAnonymous.',
-    );
-
-    List<db.OutboxEntryRow> preparedEntries = <db.OutboxEntryRow>[];
-    bool wasFallbackUsed = false;
-    try {
-      // 1. recoverStaleSending()
-      await _outboxDao.resetStaleSendingToPending(
-        cutoff: DateTime.now().subtract(_staleSendingRecoveryWindow),
-      );
-
-      // 2. pullRemoteRegistry()
-      final _RemoteRegistryPullResult registryResult =
-          await _pullRemoteRegistry(user.uid);
-      final Map<String, Map<String, _RemoteEntityMetadata>> remoteMetadata =
-          registryResult.metadata;
-      wasFallbackUsed = registryResult.wasFallbackUsed;
-
-      // 3. readOutbox()
-      final OutboxPendingPlan pendingPlan = await _outboxDao.fetchPendingPlan(
-        limit: 10000,
-      );
-      await _recordDependencyCycleConflicts(
-        pendingPlan.blockedByDependencyCycle,
-      );
-      final List<db.OutboxEntryRow> allPending =
-          pendingPlan.dispatchableEntries;
-
-      // 4. classifyOutboxEntries()
-      final List<db.OutboxEntryRow> safeEntries = <db.OutboxEntryRow>[];
-      final List<db.OutboxEntryRow> conflictedEntries = <db.OutboxEntryRow>[];
-      final List<db.OutboxEntryRow> staleEntries = <db.OutboxEntryRow>[];
-
-      for (final db.OutboxEntryRow entry in allPending) {
-        final Map<String, dynamic> payload = _payloadNormalizer.normalize(
-          entry.entityType,
-          _outboxDao.decodePayload(entry),
-        );
-
-        if (entry.entityType == entityTypeCategory) {
-          final Category category = Category.fromJson(payload);
-          if (category.isMissingReferencePlaceholder) {
-            continue;
-          }
-        }
-
-        final _RemoteEntityMetadata? remoteMeta =
-            remoteMetadata[entry.entityType]?[_registryEntityKey(
-              entityType: entry.entityType,
-              entityId: entry.entityId,
-            )];
-
-        if (remoteMeta != null) {
-          final DateTime? localUpdatedAt = _extractOutboxUpdatedAt(
-            entry.entityType,
-            payload,
+    return _migrationWriteGuard.runBackgroundMutation(
+      action: () async {
+        if (_inProgress) {
+          _logger.logInfo(
+            'AuthSyncService: synchronization already running, skip',
           );
-          bool isStale = false;
-
-          if (entry.entityType == entityTypeAccount) {
-            final int localTypeVersion = _extractAccountTypeVersion(payload);
-            final int remoteTypeVersion = remoteMeta.typeVersion ?? 0;
-            if (localTypeVersion < remoteTypeVersion) {
-              isStale = true;
-              _logger.logInfo(
-                'AuthSyncService: prevented legacy rollback for account '
-                '${entry.entityId} (local=$localTypeVersion, remote=$remoteTypeVersion).',
-              );
-              unawaited(
-                _analyticsService.logEvent(
-                  'account_type_rollback_prevented',
-                  <String, dynamic>{
-                    'localTypeVersion': localTypeVersion,
-                    'remoteTypeVersion': remoteTypeVersion,
-                  },
-                ),
-              );
-            }
-          }
-
-          if (!isStale && localUpdatedAt != null) {
-            if (localUpdatedAt.isBefore(remoteMeta.updatedAt)) {
-              isStale = true;
-            }
-          }
-
-          if (isStale) {
-            staleEntries.add(entry);
-            continue;
-          }
+          return;
+        }
+        if (user.isAnonymous) {
+          _logger.logInfo(
+            'AuthSyncService: skip sync for anonymous user ${user.uid}.',
+          );
+          return;
         }
 
-        if (_hasRemoteChangedSinceBase(
-          remote: remoteMeta,
-          outboxEntry: entry,
-        )) {
-          conflictedEntries.add(entry);
-        } else {
-          safeEntries.add(entry);
-        }
-      }
-
-      // 5. persistConflicts()
-      for (final db.OutboxEntryRow entry in conflictedEntries) {
-        final Map<String, dynamic> payload = _payloadNormalizer.normalize(
-          entry.entityType,
-          _outboxDao.decodePayload(entry),
+        final bool hasLocalData = await _database.hasAnyLocalOnlyData();
+        await _syncOwnershipGuard.ensureCanStartCloudSync(
+          currentCloudUid: user.uid,
+          migrationDecision: migrationDecision,
+          hasLocalData: hasLocalData,
         );
-        final DateTime localUpdatedAt =
-            _extractOutboxUpdatedAt(entry.entityType, payload) ??
-            DateTime.now();
-        final _RemoteEntityMetadata? remoteMeta =
-            remoteMetadata[entry.entityType]?[_registryEntityKey(
-              entityType: entry.entityType,
-              entityId: entry.entityId,
-            )];
 
-        final SyncConflictType conflictType =
-            (entry.operation == 'delete' || (remoteMeta?.isDeleted ?? false))
-            ? SyncConflictType.deleteUpdate
-            : SyncConflictType.updateUpdate;
+        _inProgress = true;
+        await _database.updateCurrentSyncState(user.uid, true);
+        final bool upgradingFromAnonymous =
+            (previousUser?.isAnonymous ?? false) && !user.isAnonymous;
 
-        final String conflictKey =
-            '${entry.entityType}_${entry.entityId}_${conflictType.value}';
-        final Map<String, String> metadata = <String, String>{
-          'localUpdatedAt': localUpdatedAt.toIso8601String(),
-          'operation': entry.operation,
+        final Map<String, dynamic> syncContext = <String, dynamic>{
+          'userId': user.uid,
+          'upgradedFromAnonymous': upgradingFromAnonymous ? 1 : 0,
         };
-        if (remoteMeta != null) {
-          metadata['remoteUpdatedAt'] = remoteMeta.updatedAt.toIso8601String();
-        }
 
-        await _syncConflictDao.upsertConflict(
-          conflictKey: conflictKey,
-          entityType: entry.entityType,
-          entityId: entry.entityId,
-          conflictType: conflictType.value,
-          severity: 'warning',
-          status: 'pending',
-          localPayloadJson: jsonEncode(payload),
-          metadataJson: jsonEncode(metadata),
-        );
-      }
-
-      // 6. pushSafeEntriesInChunks()
-      final List<db.OutboxEntryRow> successfullyPushed = <db.OutboxEntryRow>[];
-
-      if (staleEntries.isNotEmpty) {
-        final List<int> staleIds = staleEntries
-            .map((db.OutboxEntryRow e) => e.id)
-            .toList();
-        await _outboxDao.markBatchAsSent(staleIds);
-        await _outboxDao.pruneSent();
-        successfullyPushed.addAll(staleEntries);
-      }
-
-      int currentBatchSize = pushBatchSize;
-      int chunkIdx = 0;
-
-      while (chunkIdx < safeEntries.length) {
-        final int chunkSize = (chunkIdx + currentBatchSize > safeEntries.length)
-            ? safeEntries.length - chunkIdx
-            : currentBatchSize;
-        final List<db.OutboxEntryRow> chunk = safeEntries.sublist(
-          chunkIdx,
-          chunkIdx + chunkSize,
+        await _analyticsService.logEvent('auth_sync_start', syncContext);
+        _logger.logInfo(
+          'AuthSyncService: starting login sync for ${user.uid}, upgraded: $upgradingFromAnonymous.',
         );
 
-        final List<int> chunkIds = chunk
-            .map((db.OutboxEntryRow e) => e.id)
-            .toList();
-        await _database.transaction(() async {
-          for (final db.OutboxEntryRow entry in chunk) {
-            await _outboxDao.prepareForSend(entry);
-          }
-        });
-
+        List<db.OutboxEntryRow> preparedEntries = <db.OutboxEntryRow>[];
+        bool wasFallbackUsed = false;
         try {
-          final _PushChunkResult result = await _pushSafeChunkWithRegistryGuard(
-            user.uid,
-            chunk,
+          // 1. recoverStaleSending()
+          await _outboxDao.resetStaleSendingToPending(
+            cutoff: DateTime.now().subtract(_staleSendingRecoveryWindow),
           );
 
-          if (result.conflicted.isNotEmpty) {
-            final List<int> conflictedIds = result.conflicted
+          // 2. pullRemoteRegistry()
+          final _RemoteRegistryPullResult registryResult =
+              await _pullRemoteRegistry(user.uid);
+          final Map<String, Map<String, _RemoteEntityMetadata>> remoteMetadata =
+              registryResult.metadata;
+          wasFallbackUsed = registryResult.wasFallbackUsed;
+
+          // 3. readOutbox()
+          final OutboxPendingPlan pendingPlan = await _outboxDao
+              .fetchPendingPlan(limit: 10000);
+          await _recordDependencyCycleConflicts(
+            pendingPlan.blockedByDependencyCycle,
+          );
+          final List<db.OutboxEntryRow> allPending =
+              pendingPlan.dispatchableEntries;
+
+          // 4. classifyOutboxEntries()
+          final List<db.OutboxEntryRow> safeEntries = <db.OutboxEntryRow>[];
+          final List<db.OutboxEntryRow> conflictedEntries =
+              <db.OutboxEntryRow>[];
+          final List<db.OutboxEntryRow> staleEntries = <db.OutboxEntryRow>[];
+
+          for (final db.OutboxEntryRow entry in allPending) {
+            final Map<String, dynamic> payload = _payloadNormalizer.normalize(
+              entry.entityType,
+              _outboxDao.decodePayload(entry),
+            );
+
+            if (entry.entityType == entityTypeCategory) {
+              final Category category = Category.fromJson(payload);
+              if (category.isMissingReferencePlaceholder) {
+                continue;
+              }
+            }
+
+            final _RemoteEntityMetadata? remoteMeta =
+                remoteMetadata[entry.entityType]?[_registryEntityKey(
+                  entityType: entry.entityType,
+                  entityId: entry.entityId,
+                )];
+
+            if (remoteMeta != null) {
+              final DateTime? localUpdatedAt = _extractOutboxUpdatedAt(
+                entry.entityType,
+                payload,
+              );
+              bool isStale = false;
+
+              if (entry.entityType == entityTypeAccount) {
+                final int localTypeVersion = _extractAccountTypeVersion(
+                  payload,
+                );
+                final int remoteTypeVersion = remoteMeta.typeVersion ?? 0;
+                if (localTypeVersion < remoteTypeVersion) {
+                  isStale = true;
+                  _logger.logInfo(
+                    'AuthSyncService: prevented legacy rollback for account '
+                    '${entry.entityId} (local=$localTypeVersion, remote=$remoteTypeVersion).',
+                  );
+                  unawaited(
+                    _analyticsService.logEvent(
+                      'account_type_rollback_prevented',
+                      <String, dynamic>{
+                        'localTypeVersion': localTypeVersion,
+                        'remoteTypeVersion': remoteTypeVersion,
+                      },
+                    ),
+                  );
+                }
+              }
+
+              if (!isStale && localUpdatedAt != null) {
+                if (localUpdatedAt.isBefore(remoteMeta.updatedAt)) {
+                  isStale = true;
+                }
+              }
+
+              if (isStale) {
+                staleEntries.add(entry);
+                continue;
+              }
+            }
+
+            if (_hasRemoteChangedSinceBase(
+              remote: remoteMeta,
+              outboxEntry: entry,
+            )) {
+              conflictedEntries.add(entry);
+            } else {
+              safeEntries.add(entry);
+            }
+          }
+
+          // 5. persistConflicts()
+          for (final db.OutboxEntryRow entry in conflictedEntries) {
+            final Map<String, dynamic> payload = _payloadNormalizer.normalize(
+              entry.entityType,
+              _outboxDao.decodePayload(entry),
+            );
+            final DateTime localUpdatedAt =
+                _extractOutboxUpdatedAt(entry.entityType, payload) ??
+                DateTime.now();
+            final _RemoteEntityMetadata? remoteMeta =
+                remoteMetadata[entry.entityType]?[_registryEntityKey(
+                  entityType: entry.entityType,
+                  entityId: entry.entityId,
+                )];
+
+            final SyncConflictType conflictType =
+                (entry.operation == 'delete' ||
+                    (remoteMeta?.isDeleted ?? false))
+                ? SyncConflictType.deleteUpdate
+                : SyncConflictType.updateUpdate;
+
+            final String conflictKey =
+                '${entry.entityType}_${entry.entityId}_${conflictType.value}';
+            final Map<String, String> metadata = <String, String>{
+              'localUpdatedAt': localUpdatedAt.toIso8601String(),
+              'operation': entry.operation,
+            };
+            if (remoteMeta != null) {
+              metadata['remoteUpdatedAt'] = remoteMeta.updatedAt
+                  .toIso8601String();
+            }
+
+            await _syncConflictDao.upsertConflict(
+              conflictKey: conflictKey,
+              entityType: entry.entityType,
+              entityId: entry.entityId,
+              conflictType: conflictType.value,
+              severity: 'warning',
+              status: 'pending',
+              localPayloadJson: jsonEncode(payload),
+              metadataJson: jsonEncode(metadata),
+            );
+          }
+
+          // 6. pushSafeEntriesInChunks()
+          final List<db.OutboxEntryRow> successfullyPushed =
+              <db.OutboxEntryRow>[];
+
+          if (staleEntries.isNotEmpty) {
+            final List<int> staleIds = staleEntries
                 .map((db.OutboxEntryRow e) => e.id)
                 .toList();
-            await _outboxDao.resetAllToPending(conflictedIds);
+            await _outboxDao.markBatchAsSent(staleIds);
+            await _outboxDao.pruneSent();
+            successfullyPushed.addAll(staleEntries);
+          }
 
-            for (final db.OutboxEntryRow entry in result.conflicted) {
-              final Map<String, dynamic> payload = _payloadNormalizer.normalize(
-                entry.entityType,
-                _outboxDao.decodePayload(entry),
-              );
-              final DateTime localUpdatedAt =
-                  _extractOutboxUpdatedAt(entry.entityType, payload) ??
-                  DateTime.now();
-              const SyncConflictType conflictType =
-                  SyncConflictType.updateUpdate;
-              final String conflictKey =
-                  '${entry.entityType}_${entry.entityId}_${conflictType.value}';
-              final Map<String, String> metadata = <String, String>{
-                'localUpdatedAt': localUpdatedAt.toIso8601String(),
-                'operation': entry.operation,
-                'note': 'Registry changed during transaction',
-              };
+          int currentBatchSize = pushBatchSize;
+          int chunkIdx = 0;
 
-              await _syncConflictDao.upsertConflict(
-                conflictKey: conflictKey,
-                entityType: entry.entityType,
-                entityId: entry.entityId,
-                conflictType: conflictType.value,
-                severity: 'warning',
-                status: 'pending',
-                localPayloadJson: jsonEncode(payload),
-                metadataJson: jsonEncode(metadata),
+          while (chunkIdx < safeEntries.length) {
+            final int chunkSize =
+                (chunkIdx + currentBatchSize > safeEntries.length)
+                ? safeEntries.length - chunkIdx
+                : currentBatchSize;
+            final List<db.OutboxEntryRow> chunk = safeEntries.sublist(
+              chunkIdx,
+              chunkIdx + chunkSize,
+            );
+
+            final List<int> chunkIds = chunk
+                .map((db.OutboxEntryRow e) => e.id)
+                .toList();
+            await _database.transaction(() async {
+              for (final db.OutboxEntryRow entry in chunk) {
+                await _outboxDao.prepareForSend(entry);
+              }
+            });
+
+            try {
+              final _PushChunkResult result =
+                  await _pushSafeChunkWithRegistryGuard(user.uid, chunk);
+
+              if (result.conflicted.isNotEmpty) {
+                final List<int> conflictedIds = result.conflicted
+                    .map((db.OutboxEntryRow e) => e.id)
+                    .toList();
+                await _outboxDao.resetAllToPending(conflictedIds);
+
+                for (final db.OutboxEntryRow entry in result.conflicted) {
+                  final Map<String, dynamic> payload = _payloadNormalizer
+                      .normalize(
+                        entry.entityType,
+                        _outboxDao.decodePayload(entry),
+                      );
+                  final DateTime localUpdatedAt =
+                      _extractOutboxUpdatedAt(entry.entityType, payload) ??
+                      DateTime.now();
+                  const SyncConflictType conflictType =
+                      SyncConflictType.updateUpdate;
+                  final String conflictKey =
+                      '${entry.entityType}_${entry.entityId}_${conflictType.value}';
+                  final Map<String, String> metadata = <String, String>{
+                    'localUpdatedAt': localUpdatedAt.toIso8601String(),
+                    'operation': entry.operation,
+                    'note': 'Registry changed during transaction',
+                  };
+
+                  await _syncConflictDao.upsertConflict(
+                    conflictKey: conflictKey,
+                    entityType: entry.entityType,
+                    entityId: entry.entityId,
+                    conflictType: conflictType.value,
+                    severity: 'warning',
+                    status: 'pending',
+                    localPayloadJson: jsonEncode(payload),
+                    metadataJson: jsonEncode(metadata),
+                  );
+                }
+              }
+
+              if (result.pushed.isNotEmpty) {
+                successfullyPushed.addAll(result.pushed);
+                final List<int> pushedIds = result.pushed
+                    .map((db.OutboxEntryRow e) => e.id)
+                    .toList();
+                await _outboxDao.markBatchAsSent(pushedIds);
+                await _outboxDao.pruneSent();
+              }
+
+              chunkIdx += chunkSize;
+            } catch (e) {
+              final bool isRetryable =
+                  e.toString().contains('RESOURCE_EXHAUSTED') ||
+                  e.toString().contains('ABORTED') ||
+                  e.toString().contains('ResourceExhausted');
+
+              if (isRetryable && currentBatchSize > 50) {
+                currentBatchSize = (currentBatchSize / 2).floor().clamp(
+                  50,
+                  300,
+                );
+                _logger.logInfo(
+                  'AuthSyncService: Resource exhausted or aborted, retrying chunk with batch size: $currentBatchSize',
+                );
+                await _outboxDao.resetAllToPending(chunkIds);
+                continue;
+              } else {
+                await _outboxDao.resetAllToPending(chunkIds);
+                rethrow;
+              }
+            }
+          }
+
+          preparedEntries = successfullyPushed;
+
+          // 8. fullPullAndMerge()
+          final _RemoteSnapshot remoteSnapshot = await _fetchRemoteSnapshot(
+            user.uid,
+          );
+          await _persistMergedState(
+            remoteSnapshot: remoteSnapshot,
+            processedEntries: successfullyPushed,
+            user: user,
+          );
+
+          final DateTime syncCompletionTime = DateTime.now().toUtc();
+          for (final SyncEntityManifestEntry entry in SyncContract.manifest) {
+            if (entry.outboxEntityType != null) {
+              await _syncMetadataRepository.setLastPulledAt(
+                user.uid,
+                entry.outboxEntityType!,
+                syncCompletionTime,
               );
             }
           }
 
-          if (result.pushed.isNotEmpty) {
-            successfullyPushed.addAll(result.pushed);
-            final List<int> pushedIds = result.pushed
-                .map((db.OutboxEntryRow e) => e.id)
-                .toList();
-            await _outboxDao.markBatchAsSent(pushedIds);
-            await _outboxDao.pruneSent();
+          final List<db.OutboxEntryRow> backfillEntries =
+              await _runDeferredAccountTypeBackfill(user.uid);
+          if (backfillEntries.isNotEmpty) {
+            preparedEntries = <db.OutboxEntryRow>[
+              ...preparedEntries,
+              ...backfillEntries,
+            ];
           }
 
-          chunkIdx += chunkSize;
-        } catch (e) {
-          final bool isRetryable =
-              e.toString().contains('RESOURCE_EXHAUSTED') ||
-              e.toString().contains('ABORTED') ||
-              e.toString().contains('ResourceExhausted');
-
-          if (isRetryable && currentBatchSize > 50) {
-            currentBatchSize = (currentBatchSize / 2).floor().clamp(50, 300);
-            _logger.logInfo(
-              'AuthSyncService: Resource exhausted or aborted, retrying chunk with batch size: $currentBatchSize',
-            );
-            await _outboxDao.resetAllToPending(chunkIds);
-            continue;
-          } else {
-            await _outboxDao.resetAllToPending(chunkIds);
-            rethrow;
+          // 9. bootstrapRegistry()
+          if (wasFallbackUsed) {
+            await _bootstrapRegistry(user.uid);
           }
-        }
-      }
 
-      preparedEntries = successfullyPushed;
-
-      // 8. fullPullAndMerge()
-      final _RemoteSnapshot remoteSnapshot = await _fetchRemoteSnapshot(
-        user.uid,
-      );
-      await _persistMergedState(
-        remoteSnapshot: remoteSnapshot,
-        processedEntries: successfullyPushed,
-        user: user,
-      );
-
-      final DateTime syncCompletionTime = DateTime.now().toUtc();
-      for (final SyncEntityManifestEntry entry in SyncContract.manifest) {
-        if (entry.outboxEntityType != null) {
-          await _syncMetadataRepository.setLastPulledAt(
-            user.uid,
-            entry.outboxEntityType!,
-            syncCompletionTime,
+          await _runIntegrityDiagnostics(context: 'auth_sync');
+          await _analyticsService.logEvent(
+            'auth_sync_success',
+            <String, dynamic>{
+              ...syncContext,
+              'pendingEntries': preparedEntries.length,
+              'remoteAccounts': remoteSnapshot.accounts.length,
+              'remoteCategories': remoteSnapshot.categories.length,
+              'remoteTransactions': remoteSnapshot.transactions.length,
+              'remoteCredits': remoteSnapshot.credits.length,
+              'remoteCreditCards': remoteSnapshot.creditCards.length,
+              'remoteDebts': remoteSnapshot.debts.length,
+              'remoteCreditPaymentGroups':
+                  remoteSnapshot.creditPaymentGroups.length,
+              'remoteCreditPaymentSchedules':
+                  remoteSnapshot.creditPaymentSchedules.length,
+              'remoteBudgets': remoteSnapshot.budgets.length,
+              'remoteBudgetInstances': remoteSnapshot.budgetInstances.length,
+              'remoteSavingGoals': remoteSnapshot.savingGoals.length,
+              'remoteRecurringPayments': remoteSnapshot.upcomingPayments.length,
+            },
           );
+
+          _logger.logInfo(
+            'AuthSyncService: login sync completed for ${user.uid}. '
+            'Accounts: ${remoteSnapshot.accounts.length}, '
+            'Categories: ${remoteSnapshot.categories.length}, '
+            'Transactions: ${remoteSnapshot.transactions.length}.',
+          );
+        } catch (error, stackTrace) {
+          _logger.logError(
+            'AuthSyncService: synchronization failed for ${user.uid}',
+            error,
+          );
+          // ignore: avoid_print
+          print('CRITICAL SYNC ERROR: $error');
+          // ignore: avoid_print
+          print(stackTrace);
+          _analyticsService.reportError(error, stackTrace);
+          if (preparedEntries.isNotEmpty) {
+            await _outboxDao.resetAllToPending(
+              preparedEntries.map((db.OutboxEntryRow entry) => entry.id),
+            );
+          }
+          throw const AuthFailure(
+            code: 'sync-failed',
+            message: 'Failed to synchronize data. Please try again later.',
+          );
+        } finally {
+          _inProgress = false;
         }
-      }
-
-      final List<db.OutboxEntryRow> backfillEntries =
-          await _runDeferredAccountTypeBackfill(user.uid);
-      if (backfillEntries.isNotEmpty) {
-        preparedEntries = <db.OutboxEntryRow>[
-          ...preparedEntries,
-          ...backfillEntries,
-        ];
-      }
-
-      // 9. bootstrapRegistry()
-      if (wasFallbackUsed) {
-        await _bootstrapRegistry(user.uid);
-      }
-
-      await _runIntegrityDiagnostics(context: 'auth_sync');
-      await _analyticsService.logEvent('auth_sync_success', <String, dynamic>{
-        ...syncContext,
-        'pendingEntries': preparedEntries.length,
-        'remoteAccounts': remoteSnapshot.accounts.length,
-        'remoteCategories': remoteSnapshot.categories.length,
-        'remoteTransactions': remoteSnapshot.transactions.length,
-        'remoteCredits': remoteSnapshot.credits.length,
-        'remoteCreditCards': remoteSnapshot.creditCards.length,
-        'remoteDebts': remoteSnapshot.debts.length,
-        'remoteCreditPaymentGroups': remoteSnapshot.creditPaymentGroups.length,
-        'remoteCreditPaymentSchedules':
-            remoteSnapshot.creditPaymentSchedules.length,
-        'remoteBudgets': remoteSnapshot.budgets.length,
-        'remoteBudgetInstances': remoteSnapshot.budgetInstances.length,
-        'remoteSavingGoals': remoteSnapshot.savingGoals.length,
-        'remoteRecurringPayments': remoteSnapshot.upcomingPayments.length,
-      });
-
-      _logger.logInfo(
-        'AuthSyncService: login sync completed for ${user.uid}. '
-        'Accounts: ${remoteSnapshot.accounts.length}, '
-        'Categories: ${remoteSnapshot.categories.length}, '
-        'Transactions: ${remoteSnapshot.transactions.length}.',
-      );
-    } catch (error, stackTrace) {
-      _logger.logError(
-        'AuthSyncService: synchronization failed for ${user.uid}',
-        error,
-      );
-      // ignore: avoid_print
-      print('CRITICAL SYNC ERROR: $error');
-      // ignore: avoid_print
-      print(stackTrace);
-      _analyticsService.reportError(error, stackTrace);
-      if (preparedEntries.isNotEmpty) {
-        await _outboxDao.resetAllToPending(
-          preparedEntries.map((db.OutboxEntryRow entry) => entry.id),
-        );
-      }
-      throw const AuthFailure(
-        code: 'sync-failed',
-        message: 'Failed to synchronize data. Please try again later.',
-      );
-    } finally {
-      _inProgress = false;
-    }
+      },
+    );
   }
 
   List<T> _filterChanged<T>({
@@ -667,870 +694,884 @@ class AuthSyncService {
   }
 
   Future<int> performIncrementalSync(String userId) async {
-    final Map<String, DateTime> updatedCursors = <String, DateTime>{};
-    final Map<String, DateTime> cursors = <String, DateTime>{};
+    return _migrationWriteGuard.runBackgroundMutation(
+      action: () async {
+        final Map<String, DateTime> updatedCursors = <String, DateTime>{};
+        final Map<String, DateTime> cursors = <String, DateTime>{};
 
-    for (final SyncEntityManifestEntry entry in SyncContract.manifest) {
-      if (entry.outboxEntityType != null && entry.participatesInLoginSync) {
-        final DateTime? lastPulled = await _syncMetadataRepository
-            .getLastPulledAt(userId, entry.outboxEntityType!);
-        if (lastPulled == null) {
-          _logger.logWarning(
-            'AuthSyncService: lastPulledAt is null for ${entry.outboxEntityType}. Full sync required.',
-          );
-          throw StateError('full_sync_required');
-        }
-        cursors[entry.outboxEntityType!] = lastPulled;
-      }
-    }
-
-    final List<AccountEntity> pulledAccounts = <AccountEntity>[];
-    final List<Category> pulledCategories = <Category>[];
-    final List<TagEntity> pulledTags = <TagEntity>[];
-    final List<TransactionTagEntity> pulledTransactionTags =
-        <TransactionTagEntity>[];
-    final List<TransactionEntity> pulledTransactions = <TransactionEntity>[];
-    final List<CreditEntity> pulledCredits = <CreditEntity>[];
-    final List<CreditCardEntity> pulledCreditCards = <CreditCardEntity>[];
-    final List<DebtEntity> pulledDebts = <DebtEntity>[];
-    final List<CreditPaymentGroupEntity> pulledCreditPaymentGroups =
-        <CreditPaymentGroupEntity>[];
-    final List<CreditPaymentScheduleEntity> pulledCreditPaymentSchedules =
-        <CreditPaymentScheduleEntity>[];
-    final List<Budget> pulledBudgets = <Budget>[];
-    final List<BudgetInstance> pulledBudgetInstances = <BudgetInstance>[];
-    final List<SavingGoal> pulledSavingGoals = <SavingGoal>[];
-    final List<UpcomingPayment> pulledUpcomingPayments = <UpcomingPayment>[];
-    final List<PaymentReminder> pulledPaymentReminders = <PaymentReminder>[];
-    Profile? pulledProfile;
-
-    final List<Future<void>> fetchTasks = <Future<void>>[];
-
-    void addFetchTask<T>({
-      required SyncEntityManifestEntry entry,
-      required String timeField,
-      required bool isMs,
-      required T Function(QueryDocumentSnapshot<Map<String, dynamic>> doc)
-      fromDocument,
-      required void Function(List<T> items) onFetched,
-      required DateTime Function(T) getUpdatedAt,
-    }) {
-      fetchTasks.add(() async {
-        final DateTime since = cursors[entry.outboxEntityType!]!.subtract(
-          const Duration(seconds: 5),
-        );
-        final dynamic sinceVal = isMs
-            ? since.millisecondsSinceEpoch
-            : Timestamp.fromDate(since);
-
-        Query<Map<String, dynamic>> query = _firestore
-            .collection('users')
-            .doc(userId)
-            .collection(entry.remoteCollection!)
-            .where(timeField, isGreaterThan: sinceVal)
-            .orderBy(timeField)
-            .limit(100);
-
-        QuerySnapshot<Map<String, dynamic>> snapshot = await query.get();
-        final List<T> parsedDocs = snapshot.docs.map(fromDocument).toList();
-
-        while (snapshot.docs.length == 100) {
-          final QueryDocumentSnapshot<Map<String, dynamic>> lastDoc =
-              snapshot.docs.last;
-          final dynamic lastVal = lastDoc.data()[timeField];
-          if (lastVal == null) break;
-
-          query = _firestore
-              .collection('users')
-              .doc(userId)
-              .collection(entry.remoteCollection!)
-              .where(timeField, isGreaterThan: sinceVal)
-              .orderBy(timeField)
-              .startAfter(<dynamic>[lastVal])
-              .limit(100);
-
-          snapshot = await query.get();
-          parsedDocs.addAll(snapshot.docs.map(fromDocument));
-        }
-
-        if (parsedDocs.isNotEmpty) {
-          onFetched(parsedDocs);
-          DateTime maxTime = getUpdatedAt(parsedDocs.first);
-          for (final T item in parsedDocs) {
-            final DateTime itemTime = getUpdatedAt(item);
-            if (itemTime.isAfter(maxTime)) {
-              maxTime = itemTime;
+        for (final SyncEntityManifestEntry entry in SyncContract.manifest) {
+          if (entry.outboxEntityType != null && entry.participatesInLoginSync) {
+            final DateTime? lastPulled = await _syncMetadataRepository
+                .getLastPulledAt(userId, entry.outboxEntityType!);
+            if (lastPulled == null) {
+              _logger.logWarning(
+                'AuthSyncService: lastPulledAt is null for ${entry.outboxEntityType}. Full sync required.',
+              );
+              throw StateError('full_sync_required');
             }
+            cursors[entry.outboxEntityType!] = lastPulled;
           }
-          updatedCursors[entry.outboxEntityType!] = maxTime;
         }
-      }());
-    }
 
-    for (final SyncEntityManifestEntry entry in SyncContract.manifest) {
-      if (entry.outboxEntityType == null || !entry.participatesInLoginSync) {
-        continue;
-      }
+        final List<AccountEntity> pulledAccounts = <AccountEntity>[];
+        final List<Category> pulledCategories = <Category>[];
+        final List<TagEntity> pulledTags = <TagEntity>[];
+        final List<TransactionTagEntity> pulledTransactionTags =
+            <TransactionTagEntity>[];
+        final List<TransactionEntity> pulledTransactions =
+            <TransactionEntity>[];
+        final List<CreditEntity> pulledCredits = <CreditEntity>[];
+        final List<CreditCardEntity> pulledCreditCards = <CreditCardEntity>[];
+        final List<DebtEntity> pulledDebts = <DebtEntity>[];
+        final List<CreditPaymentGroupEntity> pulledCreditPaymentGroups =
+            <CreditPaymentGroupEntity>[];
+        final List<CreditPaymentScheduleEntity> pulledCreditPaymentSchedules =
+            <CreditPaymentScheduleEntity>[];
+        final List<Budget> pulledBudgets = <Budget>[];
+        final List<BudgetInstance> pulledBudgetInstances = <BudgetInstance>[];
+        final List<SavingGoal> pulledSavingGoals = <SavingGoal>[];
+        final List<UpcomingPayment> pulledUpcomingPayments =
+            <UpcomingPayment>[];
+        final List<PaymentReminder> pulledPaymentReminders =
+            <PaymentReminder>[];
+        Profile? pulledProfile;
 
-      switch (entry.outboxEntityType) {
-        case 'account':
-          addFetchTask<AccountEntity>(
-            entry: entry,
-            timeField: 'updatedAt',
-            isMs: false,
-            fromDocument: _accountRemoteDataSource.fromDocument,
-            onFetched: pulledAccounts.addAll,
-            getUpdatedAt: (AccountEntity e) => e.updatedAt,
-          );
-          break;
-        case 'category':
-          addFetchTask<Category>(
-            entry: entry,
-            timeField: 'updatedAt',
-            isMs: false,
-            fromDocument: _categoryRemoteDataSource.fromDocument,
-            onFetched: pulledCategories.addAll,
-            getUpdatedAt: (Category e) => e.updatedAt,
-          );
-          break;
-        case 'tag':
-          addFetchTask<TagEntity>(
-            entry: entry,
-            timeField: 'updatedAt',
-            isMs: false,
-            fromDocument: _tagRemoteDataSource.fromDocument,
-            onFetched: pulledTags.addAll,
-            getUpdatedAt: (TagEntity e) => e.updatedAt,
-          );
-          break;
-        case 'transaction_tag':
-          addFetchTask<TransactionTagEntity>(
-            entry: entry,
-            timeField: 'updatedAt',
-            isMs: false,
-            fromDocument: _transactionTagRemoteDataSource.fromDocument,
-            onFetched: pulledTransactionTags.addAll,
-            getUpdatedAt: (TransactionTagEntity e) => e.updatedAt,
-          );
-          break;
-        case 'transaction':
-          addFetchTask<TransactionEntity>(
-            entry: entry,
-            timeField: 'updatedAt',
-            isMs: false,
-            fromDocument: _transactionRemoteDataSource.fromDocument,
-            onFetched: pulledTransactions.addAll,
-            getUpdatedAt: (TransactionEntity e) => e.updatedAt,
-          );
-          break;
-        case 'credit':
-          addFetchTask<CreditEntity>(
-            entry: entry,
-            timeField: 'updatedAt',
-            isMs: false,
-            fromDocument: _creditRemoteDataSource.fromDocument,
-            onFetched: pulledCredits.addAll,
-            getUpdatedAt: (CreditEntity e) => e.updatedAt,
-          );
-          break;
-        case 'credit_card':
-          addFetchTask<CreditCardEntity>(
-            entry: entry,
-            timeField: 'updatedAt',
-            isMs: false,
-            fromDocument: _creditCardRemoteDataSource.fromDocument,
-            onFetched: pulledCreditCards.addAll,
-            getUpdatedAt: (CreditCardEntity e) => e.updatedAt,
-          );
-          break;
-        case 'debt':
-          addFetchTask<DebtEntity>(
-            entry: entry,
-            timeField: 'updatedAt',
-            isMs: false,
-            fromDocument: _debtRemoteDataSource.fromDocument,
-            onFetched: pulledDebts.addAll,
-            getUpdatedAt: (DebtEntity e) => e.updatedAt,
-          );
-          break;
-        case 'credit_payment_group':
-          addFetchTask<CreditPaymentGroupEntity>(
-            entry: entry,
-            timeField: 'updatedAt',
-            isMs: false,
-            fromDocument: _creditPaymentGroupRemoteDataSource.fromDocument,
-            onFetched: pulledCreditPaymentGroups.addAll,
-            getUpdatedAt: (CreditPaymentGroupEntity e) =>
-                e.updatedAt ?? e.createdAt ?? e.paidAt,
-          );
-          break;
-        case 'credit_payment_schedule':
-          addFetchTask<CreditPaymentScheduleEntity>(
-            entry: entry,
-            timeField: 'updatedAt',
-            isMs: false,
-            fromDocument: _creditPaymentScheduleRemoteDataSource.fromDocument,
-            onFetched: pulledCreditPaymentSchedules.addAll,
-            getUpdatedAt: (CreditPaymentScheduleEntity e) =>
-                e.updatedAt ?? e.createdAt ?? e.dueDate,
-          );
-          break;
-        case 'budget':
-          addFetchTask<Budget>(
-            entry: entry,
-            timeField: 'updatedAt',
-            isMs: false,
-            fromDocument: _budgetRemoteDataSource.fromDocument,
-            onFetched: pulledBudgets.addAll,
-            getUpdatedAt: (Budget e) => e.updatedAt,
-          );
-          break;
-        case 'budget_instance':
-          addFetchTask<BudgetInstance>(
-            entry: entry,
-            timeField: 'updatedAt',
-            isMs: false,
-            fromDocument: _budgetInstanceRemoteDataSource.fromDocument,
-            onFetched: pulledBudgetInstances.addAll,
-            getUpdatedAt: (BudgetInstance e) => e.updatedAt,
-          );
-          break;
-        case 'saving_goal':
-          addFetchTask<SavingGoal>(
-            entry: entry,
-            timeField: 'updatedAt',
-            isMs: false,
-            fromDocument: _savingGoalRemoteDataSource.fromDocument,
-            onFetched: pulledSavingGoals.addAll,
-            getUpdatedAt: (SavingGoal e) => e.updatedAt,
-          );
-          break;
-        case 'upcoming_payment':
-          addFetchTask<UpcomingPayment>(
-            entry: entry,
-            timeField: 'updatedAtMs',
-            isMs: true,
-            fromDocument: _upcomingPaymentRemoteDataSource.fromDocument,
-            onFetched: pulledUpcomingPayments.addAll,
-            getUpdatedAt: (UpcomingPayment e) =>
-                DateTime.fromMillisecondsSinceEpoch(e.updatedAtMs),
-          );
-          break;
-        case 'payment_reminder':
-          addFetchTask<PaymentReminder>(
-            entry: entry,
-            timeField: 'updatedAtMs',
-            isMs: true,
-            fromDocument: _paymentReminderRemoteDataSource.fromDocument,
-            onFetched: pulledPaymentReminders.addAll,
-            getUpdatedAt: (PaymentReminder e) =>
-                DateTime.fromMillisecondsSinceEpoch(e.updatedAtMs),
-          );
-          break;
-      }
-    }
+        final List<Future<void>> fetchTasks = <Future<void>>[];
 
-    fetchTasks.add(() async {
-      final Profile? profile = await _profileRemoteDataSource.fetch(userId);
-      if (profile != null) {
-        pulledProfile = profile;
-        final DateTime profileTime = profile.updatedAt;
-        final DateTime? lastPulled = await _syncMetadataRepository
-            .getLastPulledAt(userId, 'profile');
-        if (lastPulled == null || profileTime.isAfter(lastPulled)) {
-          updatedCursors['profile'] = profileTime;
+        void addFetchTask<T>({
+          required SyncEntityManifestEntry entry,
+          required String timeField,
+          required bool isMs,
+          required T Function(QueryDocumentSnapshot<Map<String, dynamic>> doc)
+          fromDocument,
+          required void Function(List<T> items) onFetched,
+          required DateTime Function(T) getUpdatedAt,
+        }) {
+          fetchTasks.add(() async {
+            final DateTime since = cursors[entry.outboxEntityType!]!.subtract(
+              const Duration(seconds: 5),
+            );
+            final dynamic sinceVal = isMs
+                ? since.millisecondsSinceEpoch
+                : Timestamp.fromDate(since);
+
+            Query<Map<String, dynamic>> query = _firestore
+                .collection('users')
+                .doc(userId)
+                .collection(entry.remoteCollection!)
+                .where(timeField, isGreaterThan: sinceVal)
+                .orderBy(timeField)
+                .limit(100);
+
+            QuerySnapshot<Map<String, dynamic>> snapshot = await query.get();
+            final List<T> parsedDocs = snapshot.docs.map(fromDocument).toList();
+
+            while (snapshot.docs.length == 100) {
+              final QueryDocumentSnapshot<Map<String, dynamic>> lastDoc =
+                  snapshot.docs.last;
+              final dynamic lastVal = lastDoc.data()[timeField];
+              if (lastVal == null) break;
+
+              query = _firestore
+                  .collection('users')
+                  .doc(userId)
+                  .collection(entry.remoteCollection!)
+                  .where(timeField, isGreaterThan: sinceVal)
+                  .orderBy(timeField)
+                  .startAfter(<dynamic>[lastVal])
+                  .limit(100);
+
+              snapshot = await query.get();
+              parsedDocs.addAll(snapshot.docs.map(fromDocument));
+            }
+
+            if (parsedDocs.isNotEmpty) {
+              onFetched(parsedDocs);
+              DateTime maxTime = getUpdatedAt(parsedDocs.first);
+              for (final T item in parsedDocs) {
+                final DateTime itemTime = getUpdatedAt(item);
+                if (itemTime.isAfter(maxTime)) {
+                  maxTime = itemTime;
+                }
+              }
+              updatedCursors[entry.outboxEntityType!] = maxTime;
+            }
+          }());
         }
-      }
-    }());
 
-    await Future.wait(fetchTasks);
+        for (final SyncEntityManifestEntry entry in SyncContract.manifest) {
+          if (entry.outboxEntityType == null ||
+              !entry.participatesInLoginSync) {
+            continue;
+          }
 
-    final int totalPulled =
-        pulledAccounts.length +
-        pulledCategories.length +
-        pulledTags.length +
-        pulledTransactionTags.length +
-        pulledTransactions.length +
-        pulledCredits.length +
-        pulledCreditCards.length +
-        pulledDebts.length +
-        pulledCreditPaymentGroups.length +
-        pulledCreditPaymentSchedules.length +
-        pulledBudgets.length +
-        pulledBudgetInstances.length +
-        pulledSavingGoals.length +
-        pulledUpcomingPayments.length +
-        pulledPaymentReminders.length +
-        (pulledProfile != null ? 1 : 0);
-
-    if (totalPulled == 0) {
-      return 0;
-    }
-
-    final List<AccountEntity> localAccounts = await _accountDao
-        .getAllAccounts();
-    final List<Category> localCategories = await _categoryDao
-        .getAllCategories();
-    final List<TagEntity> localTags = await _tagDao.getAllTags();
-    final List<TransactionEntity> localTransactions = await _transactionDao
-        .getAllTransactions();
-    final List<TransactionTagEntity> localTransactionTags =
-        (await _transactionTagsDao.getAllTransactionTags())
-            .map(_transactionTagsDao.mapRowToEntity)
-            .toList();
-    final List<CreditEntity> localCredits = (await _creditDao.getAllCredits())
-        .map(_creditDao.mapRowToEntity)
-        .toList();
-    final List<CreditCardEntity> localCreditCards =
-        (await _creditCardDao.getAllCreditCards())
-            .map(_creditCardDao.mapRowToEntity)
-            .toList();
-    final List<DebtEntity> localDebts = (await _debtDao.getAllDebts())
-        .map(_debtDao.mapRowToEntity)
-        .toList();
-    final List<CreditPaymentGroupEntity> localCreditPaymentGroups =
-        await _creditPaymentDao.getAllPaymentGroups();
-    final List<CreditPaymentScheduleEntity> localCreditPaymentSchedules =
-        await _creditPaymentDao.getAllScheduleItems();
-    final List<Budget> localBudgets = await _budgetDao.getAllBudgets();
-    final List<BudgetInstance> localBudgetInstances = await _budgetInstanceDao
-        .getAllInstances();
-    final List<SavingGoal> localSavingGoals =
-        await _loadLocalSavingGoalsWithStorageAccounts();
-    final List<UpcomingPayment> localUpcomingPayments =
-        await _upcomingPaymentsDao.getAll();
-    final List<PaymentReminder> localPaymentReminders =
-        await _paymentRemindersDao.getAll();
-
-    final List<AccountEntity> changedAccounts = _filterChanged(
-      local: localAccounts,
-      remote: pulledAccounts,
-      getId: (AccountEntity e) => e.id,
-      getUpdatedAt: (AccountEntity e) => e.updatedAt,
-    );
-    final List<TagEntity> changedTags = _filterChanged(
-      local: localTags,
-      remote: pulledTags,
-      getId: (TagEntity e) => e.id,
-      getUpdatedAt: (TagEntity e) => e.updatedAt,
-    );
-    final List<TransactionTagEntity> changedTransactionTags = _filterChanged(
-      local: localTransactionTags,
-      remote: pulledTransactionTags,
-      getId: _transactionTagKey,
-      getUpdatedAt: (TransactionTagEntity e) => e.updatedAt,
-    );
-    final List<CreditEntity> changedCredits = _filterChanged(
-      local: localCredits,
-      remote: pulledCredits,
-      getId: (CreditEntity e) => e.id,
-      getUpdatedAt: (CreditEntity e) => e.updatedAt,
-    );
-    final List<CreditCardEntity> changedCreditCards = _filterChanged(
-      local: localCreditCards,
-      remote: pulledCreditCards,
-      getId: (CreditCardEntity e) => e.id,
-      getUpdatedAt: (CreditCardEntity e) => e.updatedAt,
-    );
-    final List<DebtEntity> changedDebts = _filterChanged(
-      local: localDebts,
-      remote: pulledDebts,
-      getId: (DebtEntity e) => e.id,
-      getUpdatedAt: (DebtEntity e) => e.updatedAt,
-    );
-    final List<CreditPaymentGroupEntity> changedCreditPaymentGroups =
-        _filterChanged(
-          local: localCreditPaymentGroups,
-          remote: pulledCreditPaymentGroups,
-          getId: (CreditPaymentGroupEntity e) => e.id,
-          getUpdatedAt: (CreditPaymentGroupEntity e) =>
-              e.updatedAt ?? e.createdAt ?? e.paidAt,
-        );
-    final List<CreditPaymentScheduleEntity> changedCreditPaymentSchedules =
-        _filterChanged(
-          local: localCreditPaymentSchedules,
-          remote: pulledCreditPaymentSchedules,
-          getId: (CreditPaymentScheduleEntity e) => e.id,
-          getUpdatedAt: (CreditPaymentScheduleEntity e) =>
-              e.updatedAt ?? e.createdAt ?? e.dueDate,
-        );
-    final List<BudgetInstance> changedBudgetInstances = _filterChanged(
-      local: localBudgetInstances,
-      remote: pulledBudgetInstances,
-      getId: (BudgetInstance e) => e.id,
-      getUpdatedAt: (BudgetInstance e) => e.updatedAt,
-    );
-    final List<SavingGoal> changedSavingGoals = _filterChanged(
-      local: localSavingGoals,
-      remote: pulledSavingGoals,
-      getId: (SavingGoal e) => e.id,
-      getUpdatedAt: (SavingGoal e) => e.updatedAt,
-    );
-    final List<UpcomingPayment> changedUpcomingPayments = _filterChanged(
-      local: localUpcomingPayments,
-      remote: pulledUpcomingPayments,
-      getId: (UpcomingPayment e) => e.id,
-      getUpdatedAt: (UpcomingPayment e) =>
-          DateTime.fromMillisecondsSinceEpoch(e.updatedAtMs),
-    );
-    final List<PaymentReminder> changedPaymentReminders = _filterChanged(
-      local: localPaymentReminders,
-      remote: pulledPaymentReminders,
-      getId: (PaymentReminder e) => e.id,
-      getUpdatedAt: (PaymentReminder e) =>
-          DateTime.fromMillisecondsSinceEpoch(e.updatedAtMs),
-    );
-
-    final List<Category> allMergedCategories = _mergeEntities<Category>(
-      local: localCategories,
-      remote: pulledCategories,
-      getId: (Category e) => e.id,
-      getUpdatedAt: (Category e) => e.updatedAt,
-    );
-    final _CategorySanitizationResult sanitizedCategories = _sanitizeCategories(
-      allMergedCategories,
-    );
-    final List<Category> normalizedCategories = sanitizedCategories.categories;
-    final Map<String, String> categoryIdMapping = sanitizedCategories.idMapping;
-
-    final List<Category> changedNormalizedCategories = _filterChanged(
-      local: localCategories,
-      remote: normalizedCategories,
-      getId: (Category e) => e.id,
-      getUpdatedAt: (Category e) => e.updatedAt,
-    );
-
-    final List<TransactionEntity> normalizedTransactions =
-        _normalizeTransactions(
-          _mergeEntities<TransactionEntity>(
-            local: localTransactions,
-            remote: pulledTransactions,
-            getId: (TransactionEntity e) => e.id,
-            getUpdatedAt: (TransactionEntity e) => e.updatedAt,
-          ),
-          categoryIdMapping,
-        );
-    final List<TransactionEntity> changedNormalizedTransactions =
-        _filterChanged(
-          local: localTransactions,
-          remote: normalizedTransactions,
-          getId: (TransactionEntity e) => e.id,
-          getUpdatedAt: (TransactionEntity e) => e.updatedAt,
-        );
-
-    final List<Budget> normalizedBudgets = _normalizeBudgets(
-      _mergeEntities<Budget>(
-        local: localBudgets,
-        remote: pulledBudgets,
-        getId: (Budget e) => e.id,
-        getUpdatedAt: (Budget e) => e.updatedAt,
-      ),
-      categoryIdMapping,
-    );
-    final List<Budget> changedNormalizedBudgets = _filterChanged(
-      local: localBudgets,
-      remote: normalizedBudgets,
-      getId: (Budget e) => e.id,
-      getUpdatedAt: (Budget e) => e.updatedAt,
-    );
-
-    await _database.transaction(() async {
-      // Tier 1: Base
-      if (changedAccounts.isNotEmpty) {
-        await _accountDao.upsertAll(changedAccounts);
-      }
-      if (changedNormalizedCategories.isNotEmpty) {
-        await _categoryDao.upsertAll(changedNormalizedCategories);
-      }
-      if (changedTags.isNotEmpty) {
-        await _tagDao.upsertAll(changedTags);
-      }
-
-      final List<AccountEntity> finalMergedAccounts =
-          _mergeEntities<AccountEntity>(
-            local: localAccounts,
-            remote: pulledAccounts,
-            getId: (AccountEntity e) => e.id,
-            getUpdatedAt: (AccountEntity e) => e.updatedAt,
-          );
-      final Set<String> validAccountIds = finalMergedAccounts
-          .map((AccountEntity e) => e.id)
-          .toSet();
-      final Set<String> validCategoryIds = normalizedCategories
-          .map((Category e) => e.id)
-          .toSet();
-      final Set<String> validTagIds = _mergeEntities<TagEntity>(
-        local: localTags,
-        remote: pulledTags,
-        getId: (TagEntity e) => e.id,
-        getUpdatedAt: (TagEntity e) => e.updatedAt,
-      ).map((TagEntity e) => e.id).toSet();
-
-      // Tier 2: Credits, Debts, Goals
-      if (changedCredits.isNotEmpty) {
-        final List<CreditEntity> sanitizedCredits = _dataSanitizer
-            .sanitizeCredits(
-              credits: _mergeEntities<CreditEntity>(
-                local: localCredits,
-                remote: pulledCredits,
-                getId: (CreditEntity e) => e.id,
+          switch (entry.outboxEntityType) {
+            case 'account':
+              addFetchTask<AccountEntity>(
+                entry: entry,
+                timeField: 'updatedAt',
+                isMs: false,
+                fromDocument: _accountRemoteDataSource.fromDocument,
+                onFetched: pulledAccounts.addAll,
+                getUpdatedAt: (AccountEntity e) => e.updatedAt,
+              );
+              break;
+            case 'category':
+              addFetchTask<Category>(
+                entry: entry,
+                timeField: 'updatedAt',
+                isMs: false,
+                fromDocument: _categoryRemoteDataSource.fromDocument,
+                onFetched: pulledCategories.addAll,
+                getUpdatedAt: (Category e) => e.updatedAt,
+              );
+              break;
+            case 'tag':
+              addFetchTask<TagEntity>(
+                entry: entry,
+                timeField: 'updatedAt',
+                isMs: false,
+                fromDocument: _tagRemoteDataSource.fromDocument,
+                onFetched: pulledTags.addAll,
+                getUpdatedAt: (TagEntity e) => e.updatedAt,
+              );
+              break;
+            case 'transaction_tag':
+              addFetchTask<TransactionTagEntity>(
+                entry: entry,
+                timeField: 'updatedAt',
+                isMs: false,
+                fromDocument: _transactionTagRemoteDataSource.fromDocument,
+                onFetched: pulledTransactionTags.addAll,
+                getUpdatedAt: (TransactionTagEntity e) => e.updatedAt,
+              );
+              break;
+            case 'transaction':
+              addFetchTask<TransactionEntity>(
+                entry: entry,
+                timeField: 'updatedAt',
+                isMs: false,
+                fromDocument: _transactionRemoteDataSource.fromDocument,
+                onFetched: pulledTransactions.addAll,
+                getUpdatedAt: (TransactionEntity e) => e.updatedAt,
+              );
+              break;
+            case 'credit':
+              addFetchTask<CreditEntity>(
+                entry: entry,
+                timeField: 'updatedAt',
+                isMs: false,
+                fromDocument: _creditRemoteDataSource.fromDocument,
+                onFetched: pulledCredits.addAll,
                 getUpdatedAt: (CreditEntity e) => e.updatedAt,
-              ),
-              validAccountIds: validAccountIds,
-              validCategoryIds: validCategoryIds,
-            );
-        final List<CreditEntity> finalChangedCredits = _filterChanged(
-          local: localCredits,
-          remote: sanitizedCredits,
-          getId: (CreditEntity e) => e.id,
-          getUpdatedAt: (CreditEntity e) => e.updatedAt,
-        );
-        if (finalChangedCredits.isNotEmpty) {
-          await _creditDao.upsertAll(finalChangedCredits);
-        }
-      }
-
-      if (changedCreditCards.isNotEmpty) {
-        final List<CreditCardEntity> sanitizedCards = _dataSanitizer
-            .sanitizeCreditCards(
-              creditCards: _mergeEntities<CreditCardEntity>(
-                local: localCreditCards,
-                remote: pulledCreditCards,
-                getId: (CreditCardEntity e) => e.id,
+              );
+              break;
+            case 'credit_card':
+              addFetchTask<CreditCardEntity>(
+                entry: entry,
+                timeField: 'updatedAt',
+                isMs: false,
+                fromDocument: _creditCardRemoteDataSource.fromDocument,
+                onFetched: pulledCreditCards.addAll,
                 getUpdatedAt: (CreditCardEntity e) => e.updatedAt,
-              ),
-              validAccountIds: validAccountIds,
-            );
-        final List<CreditCardEntity> finalChangedCards = _filterChanged(
-          local: localCreditCards,
-          remote: sanitizedCards,
-          getId: (CreditCardEntity e) => e.id,
-          getUpdatedAt: (CreditCardEntity e) => e.updatedAt,
-        );
-        if (finalChangedCards.isNotEmpty) {
-          await _creditCardDao.upsertAll(finalChangedCards);
-        }
-      }
-
-      if (changedDebts.isNotEmpty) {
-        final List<DebtEntity> sanitizedDebts = _dataSanitizer.sanitizeDebts(
-          debts: _mergeEntities<DebtEntity>(
-            local: localDebts,
-            remote: pulledDebts,
-            getId: (DebtEntity e) => e.id,
-            getUpdatedAt: (DebtEntity e) => e.updatedAt,
-          ),
-          validAccountIds: validAccountIds,
-        );
-        final List<DebtEntity> finalChangedDebts = _filterChanged(
-          local: localDebts,
-          remote: sanitizedDebts,
-          getId: (DebtEntity e) => e.id,
-          getUpdatedAt: (DebtEntity e) => e.updatedAt,
-        );
-        if (finalChangedDebts.isNotEmpty) {
-          await _debtDao.upsertAll(finalChangedDebts);
-        }
-      }
-
-      if (changedSavingGoals.isNotEmpty) {
-        await _savingGoalDao.upsertAll(changedSavingGoals);
-        await _goalAccountLinkDao.replaceLinksByGoal(
-          accountIdsByGoalId: <String, Iterable<String>>{
-            for (final SavingGoal goal in changedSavingGoals)
-              goal.id: goal.effectiveStorageAccountIds,
-          },
-        );
-      }
-
-      final List<SavingGoal> finalMergedGoals = _mergeEntities<SavingGoal>(
-        local: localSavingGoals,
-        remote: pulledSavingGoals,
-        getId: (SavingGoal e) => e.id,
-        getUpdatedAt: (SavingGoal e) => e.updatedAt,
-      );
-      final Set<String> validSavingGoalIds = finalMergedGoals
-          .map((SavingGoal e) => e.id)
-          .toSet();
-
-      final List<CreditEntity> finalMergedCredits =
-          _mergeEntities<CreditEntity>(
-            local: localCredits,
-            remote: pulledCredits,
-            getId: (CreditEntity e) => e.id,
-            getUpdatedAt: (CreditEntity e) => e.updatedAt,
-          );
-      final Set<String> validCreditIds = finalMergedCredits
-          .map((CreditEntity e) => e.id)
-          .toSet();
-
-      // Tier 3: Schedules, Groups, Transactions, Rules
-      if (changedCreditPaymentSchedules.isNotEmpty) {
-        final List<CreditPaymentScheduleEntity> sanitizedSchedules =
-            _dataSanitizer.sanitizeCreditPaymentSchedules(
-              schedules: _mergeEntities<CreditPaymentScheduleEntity>(
-                local: localCreditPaymentSchedules,
-                remote: pulledCreditPaymentSchedules,
-                getId: (CreditPaymentScheduleEntity e) => e.id,
-                getUpdatedAt: (CreditPaymentScheduleEntity e) =>
-                    e.updatedAt ?? e.createdAt ?? e.dueDate,
-              ),
-              validCreditIds: validCreditIds,
-            );
-        final List<CreditPaymentScheduleEntity> finalChangedSchedules =
-            _filterChanged(
-              local: localCreditPaymentSchedules,
-              remote: sanitizedSchedules,
-              getId: (CreditPaymentScheduleEntity e) => e.id,
-              getUpdatedAt: (CreditPaymentScheduleEntity e) =>
-                  e.updatedAt ?? e.createdAt ?? e.dueDate,
-            );
-        if (finalChangedSchedules.isNotEmpty) {
-          await _creditPaymentDao.upsertSchedule(finalChangedSchedules);
-        }
-      }
-
-      final List<CreditPaymentScheduleEntity> finalMergedSchedules =
-          _mergeEntities<CreditPaymentScheduleEntity>(
-            local: localCreditPaymentSchedules,
-            remote: pulledCreditPaymentSchedules,
-            getId: (CreditPaymentScheduleEntity e) => e.id,
-            getUpdatedAt: (CreditPaymentScheduleEntity e) =>
-                e.updatedAt ?? e.createdAt ?? e.dueDate,
-          );
-      final Set<String> validScheduleIds = finalMergedSchedules
-          .where((CreditPaymentScheduleEntity e) => !e.isDeleted)
-          .map((CreditPaymentScheduleEntity e) => e.id)
-          .toSet();
-
-      if (changedCreditPaymentGroups.isNotEmpty) {
-        final List<CreditPaymentGroupEntity> sanitizedGroups = _dataSanitizer
-            .sanitizeCreditPaymentGroups(
-              groups: _mergeEntities<CreditPaymentGroupEntity>(
-                local: localCreditPaymentGroups,
-                remote: pulledCreditPaymentGroups,
-                getId: (CreditPaymentGroupEntity e) => e.id,
+              );
+              break;
+            case 'debt':
+              addFetchTask<DebtEntity>(
+                entry: entry,
+                timeField: 'updatedAt',
+                isMs: false,
+                fromDocument: _debtRemoteDataSource.fromDocument,
+                onFetched: pulledDebts.addAll,
+                getUpdatedAt: (DebtEntity e) => e.updatedAt,
+              );
+              break;
+            case 'credit_payment_group':
+              addFetchTask<CreditPaymentGroupEntity>(
+                entry: entry,
+                timeField: 'updatedAt',
+                isMs: false,
+                fromDocument: _creditPaymentGroupRemoteDataSource.fromDocument,
+                onFetched: pulledCreditPaymentGroups.addAll,
                 getUpdatedAt: (CreditPaymentGroupEntity e) =>
                     e.updatedAt ?? e.createdAt ?? e.paidAt,
-              ),
-              validCreditIds: validCreditIds,
-              validAccountIds: validAccountIds,
-              validScheduleIds: validScheduleIds,
-            );
-        final List<CreditPaymentGroupEntity> finalChangedGroups =
-            _filterChanged(
-              local: localCreditPaymentGroups,
-              remote: sanitizedGroups,
-              getId: (CreditPaymentGroupEntity e) => e.id,
-              getUpdatedAt: (CreditPaymentGroupEntity e) =>
-                  e.updatedAt ?? e.createdAt ?? e.paidAt,
-            );
-        if (finalChangedGroups.isNotEmpty) {
-          await _creditPaymentDao.upsertPaymentGroups(finalChangedGroups);
+              );
+              break;
+            case 'credit_payment_schedule':
+              addFetchTask<CreditPaymentScheduleEntity>(
+                entry: entry,
+                timeField: 'updatedAt',
+                isMs: false,
+                fromDocument:
+                    _creditPaymentScheduleRemoteDataSource.fromDocument,
+                onFetched: pulledCreditPaymentSchedules.addAll,
+                getUpdatedAt: (CreditPaymentScheduleEntity e) =>
+                    e.updatedAt ?? e.createdAt ?? e.dueDate,
+              );
+              break;
+            case 'budget':
+              addFetchTask<Budget>(
+                entry: entry,
+                timeField: 'updatedAt',
+                isMs: false,
+                fromDocument: _budgetRemoteDataSource.fromDocument,
+                onFetched: pulledBudgets.addAll,
+                getUpdatedAt: (Budget e) => e.updatedAt,
+              );
+              break;
+            case 'budget_instance':
+              addFetchTask<BudgetInstance>(
+                entry: entry,
+                timeField: 'updatedAt',
+                isMs: false,
+                fromDocument: _budgetInstanceRemoteDataSource.fromDocument,
+                onFetched: pulledBudgetInstances.addAll,
+                getUpdatedAt: (BudgetInstance e) => e.updatedAt,
+              );
+              break;
+            case 'saving_goal':
+              addFetchTask<SavingGoal>(
+                entry: entry,
+                timeField: 'updatedAt',
+                isMs: false,
+                fromDocument: _savingGoalRemoteDataSource.fromDocument,
+                onFetched: pulledSavingGoals.addAll,
+                getUpdatedAt: (SavingGoal e) => e.updatedAt,
+              );
+              break;
+            case 'upcoming_payment':
+              addFetchTask<UpcomingPayment>(
+                entry: entry,
+                timeField: 'updatedAtMs',
+                isMs: true,
+                fromDocument: _upcomingPaymentRemoteDataSource.fromDocument,
+                onFetched: pulledUpcomingPayments.addAll,
+                getUpdatedAt: (UpcomingPayment e) =>
+                    DateTime.fromMillisecondsSinceEpoch(e.updatedAtMs),
+              );
+              break;
+            case 'payment_reminder':
+              addFetchTask<PaymentReminder>(
+                entry: entry,
+                timeField: 'updatedAtMs',
+                isMs: true,
+                fromDocument: _paymentReminderRemoteDataSource.fromDocument,
+                onFetched: pulledPaymentReminders.addAll,
+                getUpdatedAt: (PaymentReminder e) =>
+                    DateTime.fromMillisecondsSinceEpoch(e.updatedAtMs),
+              );
+              break;
+          }
         }
-      }
 
-      final List<CreditPaymentGroupEntity> finalMergedGroups =
-          _mergeEntities<CreditPaymentGroupEntity>(
-            local: localCreditPaymentGroups,
-            remote: pulledCreditPaymentGroups,
-            getId: (CreditPaymentGroupEntity e) => e.id,
-            getUpdatedAt: (CreditPaymentGroupEntity e) =>
-                e.updatedAt ?? e.createdAt ?? e.paidAt,
-          );
-      final Set<String> validPaymentGroupIds = finalMergedGroups
-          .where((CreditPaymentGroupEntity e) => !e.isDeleted)
-          .map((CreditPaymentGroupEntity e) => e.id)
-          .toSet();
-      final Set<String> allPhysicalPaymentGroupIds = finalMergedGroups
-          .map((CreditPaymentGroupEntity e) => e.id)
-          .toSet();
+        fetchTasks.add(() async {
+          final Profile? profile = await _profileRemoteDataSource.fetch(userId);
+          if (profile != null) {
+            pulledProfile = profile;
+            final DateTime profileTime = profile.updatedAt;
+            final DateTime? lastPulled = await _syncMetadataRepository
+                .getLastPulledAt(userId, 'profile');
+            if (lastPulled == null || profileTime.isAfter(lastPulled)) {
+              updatedCursors['profile'] = profileTime;
+            }
+          }
+        }());
 
-      if (changedNormalizedTransactions.isNotEmpty) {
-        final List<TransactionEntity> repairedTransactions =
-            await _resolveOrphanedCreditPaymentLinks(
-              transactions: normalizedTransactions,
-              validPaymentGroupIds: validPaymentGroupIds,
-              allPhysicalPaymentGroupIds: allPhysicalPaymentGroupIds,
-            );
-        final List<TransactionEntity> sanitizedTransactions = _dataSanitizer
-            .sanitizeTransactions(
-              transactions: repairedTransactions,
-              validAccountIds: validAccountIds,
-              validCategoryIds: validCategoryIds,
-              validSavingGoalIds: validSavingGoalIds,
-              validPaymentGroupIds: allPhysicalPaymentGroupIds,
-            );
-        final List<TransactionEntity> finalChangedTransactions = _filterChanged(
-          local: localTransactions,
-          remote: sanitizedTransactions,
-          getId: (TransactionEntity e) => e.id,
-          getUpdatedAt: (TransactionEntity e) => e.updatedAt,
+        await Future.wait(fetchTasks);
+
+        final int totalPulled =
+            pulledAccounts.length +
+            pulledCategories.length +
+            pulledTags.length +
+            pulledTransactionTags.length +
+            pulledTransactions.length +
+            pulledCredits.length +
+            pulledCreditCards.length +
+            pulledDebts.length +
+            pulledCreditPaymentGroups.length +
+            pulledCreditPaymentSchedules.length +
+            pulledBudgets.length +
+            pulledBudgetInstances.length +
+            pulledSavingGoals.length +
+            pulledUpcomingPayments.length +
+            pulledPaymentReminders.length +
+            (pulledProfile != null ? 1 : 0);
+
+        if (totalPulled == 0) {
+          return 0;
+        }
+
+        final List<AccountEntity> localAccounts = await _accountDao
+            .getAllAccounts();
+        final List<Category> localCategories = await _categoryDao
+            .getAllCategories();
+        final List<TagEntity> localTags = await _tagDao.getAllTags();
+        final List<TransactionEntity> localTransactions = await _transactionDao
+            .getAllTransactions();
+        final List<TransactionTagEntity> localTransactionTags =
+            (await _transactionTagsDao.getAllTransactionTags())
+                .map(_transactionTagsDao.mapRowToEntity)
+                .toList();
+        final List<CreditEntity> localCredits =
+            (await _creditDao.getAllCredits())
+                .map(_creditDao.mapRowToEntity)
+                .toList();
+        final List<CreditCardEntity> localCreditCards =
+            (await _creditCardDao.getAllCreditCards())
+                .map(_creditCardDao.mapRowToEntity)
+                .toList();
+        final List<DebtEntity> localDebts = (await _debtDao.getAllDebts())
+            .map(_debtDao.mapRowToEntity)
+            .toList();
+        final List<CreditPaymentGroupEntity> localCreditPaymentGroups =
+            await _creditPaymentDao.getAllPaymentGroups();
+        final List<CreditPaymentScheduleEntity> localCreditPaymentSchedules =
+            await _creditPaymentDao.getAllScheduleItems();
+        final List<Budget> localBudgets = await _budgetDao.getAllBudgets();
+        final List<BudgetInstance> localBudgetInstances =
+            await _budgetInstanceDao.getAllInstances();
+        final List<SavingGoal> localSavingGoals =
+            await _loadLocalSavingGoalsWithStorageAccounts();
+        final List<UpcomingPayment> localUpcomingPayments =
+            await _upcomingPaymentsDao.getAll();
+        final List<PaymentReminder> localPaymentReminders =
+            await _paymentRemindersDao.getAll();
+
+        final List<AccountEntity> changedAccounts = _filterChanged(
+          local: localAccounts,
+          remote: pulledAccounts,
+          getId: (AccountEntity e) => e.id,
+          getUpdatedAt: (AccountEntity e) => e.updatedAt,
         );
-        if (finalChangedTransactions.isNotEmpty) {
-          await _transactionDao.upsertAll(finalChangedTransactions);
-        }
-      }
-
-      if (changedTransactionTags.isNotEmpty) {
-        final List<TransactionTagEntity> finalMergedTransactionTags =
-            _mergeEntities<TransactionTagEntity>(
+        final List<TagEntity> changedTags = _filterChanged(
+          local: localTags,
+          remote: pulledTags,
+          getId: (TagEntity e) => e.id,
+          getUpdatedAt: (TagEntity e) => e.updatedAt,
+        );
+        final List<TransactionTagEntity> changedTransactionTags =
+            _filterChanged(
               local: localTransactionTags,
               remote: pulledTransactionTags,
               getId: _transactionTagKey,
               getUpdatedAt: (TransactionTagEntity e) => e.updatedAt,
             );
-        final List<TransactionEntity> finalMergedTransactions =
-            _mergeEntities<TransactionEntity>(
-              local: localTransactions,
-              remote: pulledTransactions,
-              getId: (TransactionEntity e) => e.id,
-              getUpdatedAt: (TransactionEntity e) => e.updatedAt,
-            );
-        final Set<String> validTransactionIds = finalMergedTransactions
-            .map((TransactionEntity e) => e.id)
-            .toSet();
-        final List<TransactionTagEntity> sanitizedTransactionTags =
-            _dataSanitizer.sanitizeTransactionTags(
-              transactionTags: finalMergedTransactionTags,
-              validTransactionIds: validTransactionIds,
-              validTagIds: validTagIds,
-            );
-        final List<TransactionTagEntity> finalChangedTransactionTags =
+        final List<CreditEntity> changedCredits = _filterChanged(
+          local: localCredits,
+          remote: pulledCredits,
+          getId: (CreditEntity e) => e.id,
+          getUpdatedAt: (CreditEntity e) => e.updatedAt,
+        );
+        final List<CreditCardEntity> changedCreditCards = _filterChanged(
+          local: localCreditCards,
+          remote: pulledCreditCards,
+          getId: (CreditCardEntity e) => e.id,
+          getUpdatedAt: (CreditCardEntity e) => e.updatedAt,
+        );
+        final List<DebtEntity> changedDebts = _filterChanged(
+          local: localDebts,
+          remote: pulledDebts,
+          getId: (DebtEntity e) => e.id,
+          getUpdatedAt: (DebtEntity e) => e.updatedAt,
+        );
+        final List<CreditPaymentGroupEntity> changedCreditPaymentGroups =
             _filterChanged(
-              local: localTransactionTags,
-              remote: sanitizedTransactionTags,
-              getId: _transactionTagKey,
-              getUpdatedAt: (TransactionTagEntity e) => e.updatedAt,
+              local: localCreditPaymentGroups,
+              remote: pulledCreditPaymentGroups,
+              getId: (CreditPaymentGroupEntity e) => e.id,
+              getUpdatedAt: (CreditPaymentGroupEntity e) =>
+                  e.updatedAt ?? e.createdAt ?? e.paidAt,
             );
-        if (finalChangedTransactionTags.isNotEmpty) {
-          await _transactionTagsDao.upsertAll(finalChangedTransactionTags);
-        }
-      }
-
-      if (changedUpcomingPayments.isNotEmpty) {
-        final List<UpcomingPayment> sanitizedPayments = _dataSanitizer
-            .sanitizeUpcomingPayments(
-              payments: _mergeEntities<UpcomingPayment>(
-                local: localUpcomingPayments,
-                remote: pulledUpcomingPayments,
-                getId: (UpcomingPayment e) => e.id,
-                getUpdatedAt: (UpcomingPayment e) =>
-                    DateTime.fromMillisecondsSinceEpoch(e.updatedAtMs),
-              ),
-              validAccountIds: validAccountIds,
-              validCategoryIds: validCategoryIds,
+        final List<CreditPaymentScheduleEntity> changedCreditPaymentSchedules =
+            _filterChanged(
+              local: localCreditPaymentSchedules,
+              remote: pulledCreditPaymentSchedules,
+              getId: (CreditPaymentScheduleEntity e) => e.id,
+              getUpdatedAt: (CreditPaymentScheduleEntity e) =>
+                  e.updatedAt ?? e.createdAt ?? e.dueDate,
             );
-        final List<UpcomingPayment> finalChangedPayments = _filterChanged(
+        final List<BudgetInstance> changedBudgetInstances = _filterChanged(
+          local: localBudgetInstances,
+          remote: pulledBudgetInstances,
+          getId: (BudgetInstance e) => e.id,
+          getUpdatedAt: (BudgetInstance e) => e.updatedAt,
+        );
+        final List<SavingGoal> changedSavingGoals = _filterChanged(
+          local: localSavingGoals,
+          remote: pulledSavingGoals,
+          getId: (SavingGoal e) => e.id,
+          getUpdatedAt: (SavingGoal e) => e.updatedAt,
+        );
+        final List<UpcomingPayment> changedUpcomingPayments = _filterChanged(
           local: localUpcomingPayments,
-          remote: sanitizedPayments,
+          remote: pulledUpcomingPayments,
           getId: (UpcomingPayment e) => e.id,
           getUpdatedAt: (UpcomingPayment e) =>
               DateTime.fromMillisecondsSinceEpoch(e.updatedAtMs),
         );
-        for (final UpcomingPayment payment in finalChangedPayments) {
-          await _upcomingPaymentsDao.upsert(payment);
-        }
-      }
+        final List<PaymentReminder> changedPaymentReminders = _filterChanged(
+          local: localPaymentReminders,
+          remote: pulledPaymentReminders,
+          getId: (PaymentReminder e) => e.id,
+          getUpdatedAt: (PaymentReminder e) =>
+              DateTime.fromMillisecondsSinceEpoch(e.updatedAtMs),
+        );
 
-      if (changedPaymentReminders.isNotEmpty) {
-        for (final PaymentReminder reminder in changedPaymentReminders) {
-          await _paymentRemindersDao.upsert(reminder);
-        }
-      }
+        final List<Category> allMergedCategories = _mergeEntities<Category>(
+          local: localCategories,
+          remote: pulledCategories,
+          getId: (Category e) => e.id,
+          getUpdatedAt: (Category e) => e.updatedAt,
+        );
+        final _CategorySanitizationResult sanitizedCategories =
+            _sanitizeCategories(allMergedCategories);
+        final List<Category> normalizedCategories =
+            sanitizedCategories.categories;
+        final Map<String, String> categoryIdMapping =
+            sanitizedCategories.idMapping;
 
-      if (changedNormalizedBudgets.isNotEmpty) {
-        await _budgetDao.upsertAll(changedNormalizedBudgets);
-      }
+        final List<Category> changedNormalizedCategories = _filterChanged(
+          local: localCategories,
+          remote: normalizedCategories,
+          getId: (Category e) => e.id,
+          getUpdatedAt: (Category e) => e.updatedAt,
+        );
 
-      final List<Budget> finalMergedBudgets = _mergeEntities<Budget>(
-        local: localBudgets,
-        remote: pulledBudgets,
-        getId: (Budget e) => e.id,
-        getUpdatedAt: (Budget e) => e.updatedAt,
-      );
-      final Set<String> validBudgetIds = finalMergedBudgets
-          .map((Budget e) => e.id)
-          .toSet();
-
-      // Tier 4: Strongly Dependent
-      if (changedBudgetInstances.isNotEmpty) {
-        final List<BudgetInstance> sanitizedInstances = _dataSanitizer
-            .sanitizeBudgetInstances(
-              instances: _mergeEntities<BudgetInstance>(
-                local: localBudgetInstances,
-                remote: pulledBudgetInstances,
-                getId: (BudgetInstance e) => e.id,
-                getUpdatedAt: (BudgetInstance e) => e.updatedAt,
+        final List<TransactionEntity> normalizedTransactions =
+            _normalizeTransactions(
+              _mergeEntities<TransactionEntity>(
+                local: localTransactions,
+                remote: pulledTransactions,
+                getId: (TransactionEntity e) => e.id,
+                getUpdatedAt: (TransactionEntity e) => e.updatedAt,
               ),
-              validBudgetIds: validBudgetIds,
+              categoryIdMapping,
             );
-        final List<BudgetInstance> finalChangedInstances = _filterChanged(
-          local: localBudgetInstances,
-          remote: sanitizedInstances,
-          getId: (BudgetInstance e) => e.id,
-          getUpdatedAt: (BudgetInstance e) => e.updatedAt,
-        );
-        if (finalChangedInstances.isNotEmpty) {
-          await _budgetInstanceDao.upsertAll(finalChangedInstances);
-        }
-      }
-
-      if (pulledProfile != null) {
-        final Profile? mergedProfile = _mergeProfile(
-          await _profileDao.getProfile(userId),
-          pulledProfile,
-        );
-        if (mergedProfile != null) {
-          await _profileDao.upsert(mergedProfile);
-        }
-      }
-
-      // 6. Recalculate balances if needed
-      if (pulledTransactions.isNotEmpty || pulledAccounts.isNotEmpty) {
-        final List<TransactionEntity> finalMergedTransactions =
-            _mergeEntities<TransactionEntity>(
+        final List<TransactionEntity> changedNormalizedTransactions =
+            _filterChanged(
               local: localTransactions,
-              remote: pulledTransactions,
+              remote: normalizedTransactions,
               getId: (TransactionEntity e) => e.id,
               getUpdatedAt: (TransactionEntity e) => e.updatedAt,
             );
-        final List<AccountEntity> recalculatedAccounts =
-            await _recalculateBalances(
-              accounts: finalMergedAccounts,
-              transactions: finalMergedTransactions,
+
+        final List<Budget> normalizedBudgets = _normalizeBudgets(
+          _mergeEntities<Budget>(
+            local: localBudgets,
+            remote: pulledBudgets,
+            getId: (Budget e) => e.id,
+            getUpdatedAt: (Budget e) => e.updatedAt,
+          ),
+          categoryIdMapping,
+        );
+        final List<Budget> changedNormalizedBudgets = _filterChanged(
+          local: localBudgets,
+          remote: normalizedBudgets,
+          getId: (Budget e) => e.id,
+          getUpdatedAt: (Budget e) => e.updatedAt,
+        );
+
+        await _database.transaction(() async {
+          // Tier 1: Base
+          if (changedAccounts.isNotEmpty) {
+            await _accountDao.upsertAll(changedAccounts);
+          }
+          if (changedNormalizedCategories.isNotEmpty) {
+            await _categoryDao.upsertAll(changedNormalizedCategories);
+          }
+          if (changedTags.isNotEmpty) {
+            await _tagDao.upsertAll(changedTags);
+          }
+
+          final List<AccountEntity> finalMergedAccounts =
+              _mergeEntities<AccountEntity>(
+                local: localAccounts,
+                remote: pulledAccounts,
+                getId: (AccountEntity e) => e.id,
+                getUpdatedAt: (AccountEntity e) => e.updatedAt,
+              );
+          final Set<String> validAccountIds = finalMergedAccounts
+              .map((AccountEntity e) => e.id)
+              .toSet();
+          final Set<String> validCategoryIds = normalizedCategories
+              .map((Category e) => e.id)
+              .toSet();
+          final Set<String> validTagIds = _mergeEntities<TagEntity>(
+            local: localTags,
+            remote: pulledTags,
+            getId: (TagEntity e) => e.id,
+            getUpdatedAt: (TagEntity e) => e.updatedAt,
+          ).map((TagEntity e) => e.id).toSet();
+
+          // Tier 2: Credits, Debts, Goals
+          if (changedCredits.isNotEmpty) {
+            final List<CreditEntity> sanitizedCredits = _dataSanitizer
+                .sanitizeCredits(
+                  credits: _mergeEntities<CreditEntity>(
+                    local: localCredits,
+                    remote: pulledCredits,
+                    getId: (CreditEntity e) => e.id,
+                    getUpdatedAt: (CreditEntity e) => e.updatedAt,
+                  ),
+                  validAccountIds: validAccountIds,
+                  validCategoryIds: validCategoryIds,
+                );
+            final List<CreditEntity> finalChangedCredits = _filterChanged(
+              local: localCredits,
+              remote: sanitizedCredits,
+              getId: (CreditEntity e) => e.id,
+              getUpdatedAt: (CreditEntity e) => e.updatedAt,
             );
-        final Map<String, AccountEntity> localAccountsMap =
-            <String, AccountEntity>{
-              for (final AccountEntity a in localAccounts) a.id: a,
-            };
-        final List<AccountEntity> accountsToUpdate = recalculatedAccounts.where(
-          (AccountEntity a) {
-            final AccountEntity? local = localAccountsMap[a.id];
-            return local == null || local.balanceMinor != a.balanceMinor;
-          },
-        ).toList();
-        if (accountsToUpdate.isNotEmpty) {
-          await _accountDao.upsertAll(accountsToUpdate);
+            if (finalChangedCredits.isNotEmpty) {
+              await _creditDao.upsertAll(finalChangedCredits);
+            }
+          }
+
+          if (changedCreditCards.isNotEmpty) {
+            final List<CreditCardEntity> sanitizedCards = _dataSanitizer
+                .sanitizeCreditCards(
+                  creditCards: _mergeEntities<CreditCardEntity>(
+                    local: localCreditCards,
+                    remote: pulledCreditCards,
+                    getId: (CreditCardEntity e) => e.id,
+                    getUpdatedAt: (CreditCardEntity e) => e.updatedAt,
+                  ),
+                  validAccountIds: validAccountIds,
+                );
+            final List<CreditCardEntity> finalChangedCards = _filterChanged(
+              local: localCreditCards,
+              remote: sanitizedCards,
+              getId: (CreditCardEntity e) => e.id,
+              getUpdatedAt: (CreditCardEntity e) => e.updatedAt,
+            );
+            if (finalChangedCards.isNotEmpty) {
+              await _creditCardDao.upsertAll(finalChangedCards);
+            }
+          }
+
+          if (changedDebts.isNotEmpty) {
+            final List<DebtEntity> sanitizedDebts = _dataSanitizer
+                .sanitizeDebts(
+                  debts: _mergeEntities<DebtEntity>(
+                    local: localDebts,
+                    remote: pulledDebts,
+                    getId: (DebtEntity e) => e.id,
+                    getUpdatedAt: (DebtEntity e) => e.updatedAt,
+                  ),
+                  validAccountIds: validAccountIds,
+                );
+            final List<DebtEntity> finalChangedDebts = _filterChanged(
+              local: localDebts,
+              remote: sanitizedDebts,
+              getId: (DebtEntity e) => e.id,
+              getUpdatedAt: (DebtEntity e) => e.updatedAt,
+            );
+            if (finalChangedDebts.isNotEmpty) {
+              await _debtDao.upsertAll(finalChangedDebts);
+            }
+          }
+
+          if (changedSavingGoals.isNotEmpty) {
+            await _savingGoalDao.upsertAll(changedSavingGoals);
+            await _goalAccountLinkDao.replaceLinksByGoal(
+              accountIdsByGoalId: <String, Iterable<String>>{
+                for (final SavingGoal goal in changedSavingGoals)
+                  goal.id: goal.effectiveStorageAccountIds,
+              },
+            );
+          }
+
+          final List<SavingGoal> finalMergedGoals = _mergeEntities<SavingGoal>(
+            local: localSavingGoals,
+            remote: pulledSavingGoals,
+            getId: (SavingGoal e) => e.id,
+            getUpdatedAt: (SavingGoal e) => e.updatedAt,
+          );
+          final Set<String> validSavingGoalIds = finalMergedGoals
+              .map((SavingGoal e) => e.id)
+              .toSet();
+
+          final List<CreditEntity> finalMergedCredits =
+              _mergeEntities<CreditEntity>(
+                local: localCredits,
+                remote: pulledCredits,
+                getId: (CreditEntity e) => e.id,
+                getUpdatedAt: (CreditEntity e) => e.updatedAt,
+              );
+          final Set<String> validCreditIds = finalMergedCredits
+              .map((CreditEntity e) => e.id)
+              .toSet();
+
+          // Tier 3: Schedules, Groups, Transactions, Rules
+          if (changedCreditPaymentSchedules.isNotEmpty) {
+            final List<CreditPaymentScheduleEntity> sanitizedSchedules =
+                _dataSanitizer.sanitizeCreditPaymentSchedules(
+                  schedules: _mergeEntities<CreditPaymentScheduleEntity>(
+                    local: localCreditPaymentSchedules,
+                    remote: pulledCreditPaymentSchedules,
+                    getId: (CreditPaymentScheduleEntity e) => e.id,
+                    getUpdatedAt: (CreditPaymentScheduleEntity e) =>
+                        e.updatedAt ?? e.createdAt ?? e.dueDate,
+                  ),
+                  validCreditIds: validCreditIds,
+                );
+            final List<CreditPaymentScheduleEntity> finalChangedSchedules =
+                _filterChanged(
+                  local: localCreditPaymentSchedules,
+                  remote: sanitizedSchedules,
+                  getId: (CreditPaymentScheduleEntity e) => e.id,
+                  getUpdatedAt: (CreditPaymentScheduleEntity e) =>
+                      e.updatedAt ?? e.createdAt ?? e.dueDate,
+                );
+            if (finalChangedSchedules.isNotEmpty) {
+              await _creditPaymentDao.upsertSchedule(finalChangedSchedules);
+            }
+          }
+
+          final List<CreditPaymentScheduleEntity> finalMergedSchedules =
+              _mergeEntities<CreditPaymentScheduleEntity>(
+                local: localCreditPaymentSchedules,
+                remote: pulledCreditPaymentSchedules,
+                getId: (CreditPaymentScheduleEntity e) => e.id,
+                getUpdatedAt: (CreditPaymentScheduleEntity e) =>
+                    e.updatedAt ?? e.createdAt ?? e.dueDate,
+              );
+          final Set<String> validScheduleIds = finalMergedSchedules
+              .where((CreditPaymentScheduleEntity e) => !e.isDeleted)
+              .map((CreditPaymentScheduleEntity e) => e.id)
+              .toSet();
+
+          if (changedCreditPaymentGroups.isNotEmpty) {
+            final List<CreditPaymentGroupEntity> sanitizedGroups =
+                _dataSanitizer.sanitizeCreditPaymentGroups(
+                  groups: _mergeEntities<CreditPaymentGroupEntity>(
+                    local: localCreditPaymentGroups,
+                    remote: pulledCreditPaymentGroups,
+                    getId: (CreditPaymentGroupEntity e) => e.id,
+                    getUpdatedAt: (CreditPaymentGroupEntity e) =>
+                        e.updatedAt ?? e.createdAt ?? e.paidAt,
+                  ),
+                  validCreditIds: validCreditIds,
+                  validAccountIds: validAccountIds,
+                  validScheduleIds: validScheduleIds,
+                );
+            final List<CreditPaymentGroupEntity> finalChangedGroups =
+                _filterChanged(
+                  local: localCreditPaymentGroups,
+                  remote: sanitizedGroups,
+                  getId: (CreditPaymentGroupEntity e) => e.id,
+                  getUpdatedAt: (CreditPaymentGroupEntity e) =>
+                      e.updatedAt ?? e.createdAt ?? e.paidAt,
+                );
+            if (finalChangedGroups.isNotEmpty) {
+              await _creditPaymentDao.upsertPaymentGroups(finalChangedGroups);
+            }
+          }
+
+          final List<CreditPaymentGroupEntity> finalMergedGroups =
+              _mergeEntities<CreditPaymentGroupEntity>(
+                local: localCreditPaymentGroups,
+                remote: pulledCreditPaymentGroups,
+                getId: (CreditPaymentGroupEntity e) => e.id,
+                getUpdatedAt: (CreditPaymentGroupEntity e) =>
+                    e.updatedAt ?? e.createdAt ?? e.paidAt,
+              );
+          final Set<String> validPaymentGroupIds = finalMergedGroups
+              .where((CreditPaymentGroupEntity e) => !e.isDeleted)
+              .map((CreditPaymentGroupEntity e) => e.id)
+              .toSet();
+          final Set<String> allPhysicalPaymentGroupIds = finalMergedGroups
+              .map((CreditPaymentGroupEntity e) => e.id)
+              .toSet();
+
+          if (changedNormalizedTransactions.isNotEmpty) {
+            final List<TransactionEntity> repairedTransactions =
+                await _resolveOrphanedCreditPaymentLinks(
+                  transactions: normalizedTransactions,
+                  validPaymentGroupIds: validPaymentGroupIds,
+                  allPhysicalPaymentGroupIds: allPhysicalPaymentGroupIds,
+                );
+            final List<TransactionEntity> sanitizedTransactions = _dataSanitizer
+                .sanitizeTransactions(
+                  transactions: repairedTransactions,
+                  validAccountIds: validAccountIds,
+                  validCategoryIds: validCategoryIds,
+                  validSavingGoalIds: validSavingGoalIds,
+                  validPaymentGroupIds: allPhysicalPaymentGroupIds,
+                );
+            final List<TransactionEntity> finalChangedTransactions =
+                _filterChanged(
+                  local: localTransactions,
+                  remote: sanitizedTransactions,
+                  getId: (TransactionEntity e) => e.id,
+                  getUpdatedAt: (TransactionEntity e) => e.updatedAt,
+                );
+            if (finalChangedTransactions.isNotEmpty) {
+              await _transactionDao.upsertAll(finalChangedTransactions);
+            }
+          }
+
+          if (changedTransactionTags.isNotEmpty) {
+            final List<TransactionTagEntity> finalMergedTransactionTags =
+                _mergeEntities<TransactionTagEntity>(
+                  local: localTransactionTags,
+                  remote: pulledTransactionTags,
+                  getId: _transactionTagKey,
+                  getUpdatedAt: (TransactionTagEntity e) => e.updatedAt,
+                );
+            final List<TransactionEntity> finalMergedTransactions =
+                _mergeEntities<TransactionEntity>(
+                  local: localTransactions,
+                  remote: pulledTransactions,
+                  getId: (TransactionEntity e) => e.id,
+                  getUpdatedAt: (TransactionEntity e) => e.updatedAt,
+                );
+            final Set<String> validTransactionIds = finalMergedTransactions
+                .map((TransactionEntity e) => e.id)
+                .toSet();
+            final List<TransactionTagEntity> sanitizedTransactionTags =
+                _dataSanitizer.sanitizeTransactionTags(
+                  transactionTags: finalMergedTransactionTags,
+                  validTransactionIds: validTransactionIds,
+                  validTagIds: validTagIds,
+                );
+            final List<TransactionTagEntity> finalChangedTransactionTags =
+                _filterChanged(
+                  local: localTransactionTags,
+                  remote: sanitizedTransactionTags,
+                  getId: _transactionTagKey,
+                  getUpdatedAt: (TransactionTagEntity e) => e.updatedAt,
+                );
+            if (finalChangedTransactionTags.isNotEmpty) {
+              await _transactionTagsDao.upsertAll(finalChangedTransactionTags);
+            }
+          }
+
+          if (changedUpcomingPayments.isNotEmpty) {
+            final List<UpcomingPayment> sanitizedPayments = _dataSanitizer
+                .sanitizeUpcomingPayments(
+                  payments: _mergeEntities<UpcomingPayment>(
+                    local: localUpcomingPayments,
+                    remote: pulledUpcomingPayments,
+                    getId: (UpcomingPayment e) => e.id,
+                    getUpdatedAt: (UpcomingPayment e) =>
+                        DateTime.fromMillisecondsSinceEpoch(e.updatedAtMs),
+                  ),
+                  validAccountIds: validAccountIds,
+                  validCategoryIds: validCategoryIds,
+                );
+            final List<UpcomingPayment> finalChangedPayments = _filterChanged(
+              local: localUpcomingPayments,
+              remote: sanitizedPayments,
+              getId: (UpcomingPayment e) => e.id,
+              getUpdatedAt: (UpcomingPayment e) =>
+                  DateTime.fromMillisecondsSinceEpoch(e.updatedAtMs),
+            );
+            for (final UpcomingPayment payment in finalChangedPayments) {
+              await _upcomingPaymentsDao.upsert(payment);
+            }
+          }
+
+          if (changedPaymentReminders.isNotEmpty) {
+            for (final PaymentReminder reminder in changedPaymentReminders) {
+              await _paymentRemindersDao.upsert(reminder);
+            }
+          }
+
+          if (changedNormalizedBudgets.isNotEmpty) {
+            await _budgetDao.upsertAll(changedNormalizedBudgets);
+          }
+
+          final List<Budget> finalMergedBudgets = _mergeEntities<Budget>(
+            local: localBudgets,
+            remote: pulledBudgets,
+            getId: (Budget e) => e.id,
+            getUpdatedAt: (Budget e) => e.updatedAt,
+          );
+          final Set<String> validBudgetIds = finalMergedBudgets
+              .map((Budget e) => e.id)
+              .toSet();
+
+          // Tier 4: Strongly Dependent
+          if (changedBudgetInstances.isNotEmpty) {
+            final List<BudgetInstance> sanitizedInstances = _dataSanitizer
+                .sanitizeBudgetInstances(
+                  instances: _mergeEntities<BudgetInstance>(
+                    local: localBudgetInstances,
+                    remote: pulledBudgetInstances,
+                    getId: (BudgetInstance e) => e.id,
+                    getUpdatedAt: (BudgetInstance e) => e.updatedAt,
+                  ),
+                  validBudgetIds: validBudgetIds,
+                );
+            final List<BudgetInstance> finalChangedInstances = _filterChanged(
+              local: localBudgetInstances,
+              remote: sanitizedInstances,
+              getId: (BudgetInstance e) => e.id,
+              getUpdatedAt: (BudgetInstance e) => e.updatedAt,
+            );
+            if (finalChangedInstances.isNotEmpty) {
+              await _budgetInstanceDao.upsertAll(finalChangedInstances);
+            }
+          }
+
+          if (pulledProfile != null) {
+            final Profile? mergedProfile = _mergeProfile(
+              await _profileDao.getProfile(userId),
+              pulledProfile,
+            );
+            if (mergedProfile != null) {
+              await _profileDao.upsert(mergedProfile);
+            }
+          }
+
+          // 6. Recalculate balances if needed
+          if (pulledTransactions.isNotEmpty || pulledAccounts.isNotEmpty) {
+            final List<TransactionEntity> finalMergedTransactions =
+                _mergeEntities<TransactionEntity>(
+                  local: localTransactions,
+                  remote: pulledTransactions,
+                  getId: (TransactionEntity e) => e.id,
+                  getUpdatedAt: (TransactionEntity e) => e.updatedAt,
+                );
+            final List<AccountEntity> recalculatedAccounts =
+                await _recalculateBalances(
+                  accounts: finalMergedAccounts,
+                  transactions: finalMergedTransactions,
+                );
+            final Map<String, AccountEntity> localAccountsMap =
+                <String, AccountEntity>{
+                  for (final AccountEntity a in localAccounts) a.id: a,
+                };
+            final List<AccountEntity> accountsToUpdate = recalculatedAccounts
+                .where((AccountEntity a) {
+                  final AccountEntity? local = localAccountsMap[a.id];
+                  return local == null || local.balanceMinor != a.balanceMinor;
+                })
+                .toList();
+            if (accountsToUpdate.isNotEmpty) {
+              await _accountDao.upsertAll(accountsToUpdate);
+            }
+          }
+
+          // 7. Rebuild contributions
+          if (pulledTransactions.isNotEmpty || pulledSavingGoals.isNotEmpty) {
+            await _goalContributionRebuildService.rebuild();
+          }
+        });
+
+        // 8. Update cursors in SharedPreferences only after successful commit
+        for (final MapEntry<String, DateTime> entry in updatedCursors.entries) {
+          await _syncMetadataRepository.setLastPulledAt(
+            userId,
+            entry.key,
+            entry.value,
+          );
         }
-      }
 
-      // 7. Rebuild contributions
-      if (pulledTransactions.isNotEmpty || pulledSavingGoals.isNotEmpty) {
-        await _goalContributionRebuildService.rebuild();
-      }
-    });
-
-    // 8. Update cursors in SharedPreferences only after successful commit
-    for (final MapEntry<String, DateTime> entry in updatedCursors.entries) {
-      await _syncMetadataRepository.setLastPulledAt(
-        userId,
-        entry.key,
-        entry.value,
-      );
-    }
-
-    return totalPulled;
+        return totalPulled;
+      },
+    );
   }
 
   Future<void> _recordDependencyCycleConflicts(

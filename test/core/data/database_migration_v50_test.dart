@@ -204,6 +204,194 @@ void main() {
       },
     );
 
+    test('every direct-projection family gets ownership coverage', () async {
+      await database
+          .into(database.accounts)
+          .insert(
+            AccountsCompanion.insert(
+              id: 'acc-1',
+              name: 'Wallet',
+              balance: 100,
+              currency: 'USD',
+              type: 'cash',
+            ),
+          );
+      await database
+          .into(database.categories)
+          .insert(
+            CategoriesCompanion.insert(
+              id: 'cat-1',
+              name: 'Food',
+              type: 'expense',
+              isSystem: const Value<bool>(false),
+            ),
+          );
+      await database
+          .into(database.tags)
+          .insert(
+            TagsCompanion.insert(id: 'tag-1', name: 'Urgent', color: '#FF0000'),
+          );
+      await database
+          .into(database.budgets)
+          .insert(
+            BudgetsCompanion.insert(
+              id: 'budget-1',
+              title: 'Monthly',
+              period: 'month',
+              startDate: DateTime.utc(2024, 1, 1),
+              amount: 1000,
+              scope: 'global',
+            ),
+          );
+      await database
+          .into(database.budgetInstances)
+          .insert(
+            BudgetInstancesCompanion.insert(
+              id: 'budget-instance-1',
+              budgetId: 'budget-1',
+              periodStart: DateTime.utc(2024, 1, 1),
+              periodEnd: DateTime.utc(2024, 1, 31),
+              amount: 1000,
+              spent: const Value<double>(0),
+            ),
+          );
+      await database
+          .into(database.savingGoals)
+          .insert(
+            SavingGoalsCompanion.insert(
+              id: 'goal-1',
+              userId: 'local-user-1',
+              name: 'Trip',
+              targetAmount: 10000,
+            ),
+          );
+      await database
+          .into(database.transactions)
+          .insert(
+            TransactionsCompanion.insert(
+              id: 'tx-1',
+              accountId: 'acc-1',
+              amount: 100,
+              date: DateTime.utc(2024, 1, 1),
+              type: 'expense',
+              categoryId: const Value<String?>('cat-1'),
+            ),
+          );
+      await database
+          .into(database.upcomingPayments)
+          .insert(
+            UpcomingPaymentsCompanion.insert(
+              id: 'up-1',
+              title: 'Rent',
+              accountId: 'acc-1',
+              categoryId: 'cat-1',
+              amount: 1200,
+              dayOfMonth: 1,
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+      await database
+          .into(database.paymentReminders)
+          .insert(
+            PaymentRemindersCompanion.insert(
+              id: 'rem-1',
+              title: 'Reminder',
+              amount: 10,
+              whenAt: 1,
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+      await database
+          .into(database.debts)
+          .insert(
+            DebtsCompanion.insert(
+              id: 'debt-1',
+              accountId: 'acc-1',
+              amount: 500,
+              dueDate: DateTime.utc(2024, 2, 1),
+            ),
+          );
+      await database
+          .into(database.credits)
+          .insert(
+            CreditsCompanion.insert(
+              id: 'credit-1',
+              accountId: 'acc-1',
+              totalAmount: 1000,
+              interestRate: 10,
+              termMonths: 12,
+              startDate: DateTime.utc(2024, 1, 1),
+            ),
+          );
+      await database
+          .into(database.creditCards)
+          .insert(
+            CreditCardsCompanion.insert(
+              id: 'card-1',
+              accountId: 'acc-1',
+              creditLimit: 2000,
+              statementDay: 1,
+              paymentDueDays: 20,
+              interestRateAnnual: 12,
+            ),
+          );
+      await database
+          .into(database.creditPaymentSchedules)
+          .insert(
+            CreditPaymentSchedulesCompanion.insert(
+              id: 'sched-1',
+              creditId: 'credit-1',
+              periodKey: '2024-01',
+              dueDate: DateTime.utc(2024, 1, 20),
+              status: 'pending',
+              principalAmountMinor: '1000',
+              interestAmountMinor: '100',
+              totalAmountMinor: '1100',
+            ),
+          );
+      await database
+          .into(database.creditPaymentGroups)
+          .insert(
+            CreditPaymentGroupsCompanion.insert(
+              id: 'group-1',
+              creditId: 'credit-1',
+              sourceAccountId: 'acc-1',
+              paidAt: DateTime.utc(2024, 1, 20),
+              totalOutflowMinor: '1100',
+              principalPaidMinor: '1000',
+              interestPaidMinor: '100',
+              feesPaidMinor: '0',
+            ),
+          );
+
+      final Set<String> coveredTypes =
+          (await database.select(database.localRowOwnership).get())
+              .map((LocalRowOwnershipRow row) => row.entityType)
+              .toSet();
+
+      expect(
+        coveredTypes,
+        containsAll(<String>{
+          'account',
+          'category',
+          'tag',
+          'transaction',
+          'budget',
+          'budget_instance',
+          'saving_goal',
+          'upcoming_payment',
+          'payment_reminder',
+          'debt',
+          'credit',
+          'credit_card',
+          'credit_payment_schedule',
+          'credit_payment_group',
+        }),
+      );
+    });
+
     test(
       'inserts during import are flagged as import_restore and localOnly',
       () async {
@@ -239,6 +427,7 @@ void main() {
         expect(importedAccOwner!.ownershipState, 'localOnly');
         expect(importedAccOwner.ownerUid, isNull);
         expect(importedAccOwner.source, 'import_restore');
+        expect(importedAccOwner.version, 1);
       },
     );
   });

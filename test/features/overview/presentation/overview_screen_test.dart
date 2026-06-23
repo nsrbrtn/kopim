@@ -128,6 +128,14 @@ void main() {
       findsOneWidget,
     );
     expect(find.textContaining('₽'), findsWidgets);
+
+    expect(find.text('Aug'), findsOneWidget);
+    expect(find.text('Sep'), findsOneWidget);
+    expect(find.text('Oct'), findsOneWidget);
+    expect(find.text('Nov'), findsOneWidget);
+    expect(find.text('Dec'), findsOneWidget);
+    expect(find.text('Jan'), findsOneWidget);
+    expect(find.text('Feb'), findsOneWidget);
   });
 
   testWidgets('по нажатию на иконку вопроса открывается попап логики индекса', (

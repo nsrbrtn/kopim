@@ -3,10 +3,13 @@ import 'dart:convert';
 import 'package:drift/drift.dart' show DatabaseConnection;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/services/analytics_service.dart';
 import 'package:kopim/core/services/logger_service.dart';
+import 'package:kopim/features/profile/application/migration_write_guard.dart';
+import 'package:kopim/features/profile/data/migration_freeze_state_repository.dart';
 import 'package:kopim/features/accounts/data/services/account_type_backfill_service.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
 import 'package:kopim/features/accounts/domain/entities/account_entity.dart';
@@ -23,6 +26,7 @@ void main() {
   late _MockAnalyticsService analytics;
 
   setUp(() {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
     database = db.AppDatabase.connect(
       DatabaseConnection(NativeDatabase.memory()),
     );
@@ -161,5 +165,26 @@ void main() {
         .select(database.outboxEntries)
         .get();
     expect(outbox, isEmpty);
+  });
+
+  test('backfill блокируется во время migration freeze', () async {
+    final SharedPrefsMigrationWriteGuard guard = SharedPrefsMigrationWriteGuard(
+      database: database,
+      stateRepository: SharedPrefsMigrationFreezeStateRepository(),
+    );
+    service = AccountTypeBackfillService(
+      database: database,
+      accountDao: AccountDao(database),
+      outboxDao: OutboxDao(database, null, null, guard),
+      migrationWriteGuard: guard,
+      loggerService: logger,
+      analyticsService: analytics,
+    );
+    await guard.activateFreeze(
+      uid: 'cloud-user-1',
+      phase: 'pre_inventory_capture',
+    );
+
+    await expectLater(service.run(), throwsA(isA<MigrationFreezeActive>()));
   });
 }

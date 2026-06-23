@@ -5,18 +5,26 @@ import 'package:drift/drift.dart';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/sync/sync_contract.dart';
+import 'package:kopim/features/profile/application/migration_write_guard.dart';
 
 enum OutboxOperation { upsert, delete }
 
 enum OutboxStatus { pending, sending, sent, failed }
 
 class OutboxDao {
-  OutboxDao(this._db, [String? Function()? currentUidProvider, this._logger])
-    : _currentUidProvider = currentUidProvider ?? (() => null);
+  OutboxDao(
+    this._db, [
+    String? Function()? currentUidProvider,
+    this._logger,
+    MigrationWriteGuard? migrationWriteGuard,
+  ]) : _currentUidProvider = currentUidProvider ?? (() => null),
+       _migrationWriteGuard =
+           migrationWriteGuard ?? const NoopMigrationWriteGuard();
 
   final db.AppDatabase _db;
   final String? Function() _currentUidProvider;
   final LoggerService? _logger;
+  final MigrationWriteGuard _migrationWriteGuard;
   static const List<OutboxStatus> _compactableStatuses = <OutboxStatus>[
     OutboxStatus.pending,
     OutboxStatus.failed,
@@ -46,6 +54,9 @@ class OutboxDao {
     bool? baseRemoteIsDeleted,
     int? baseRemoteTypeVersion,
   }) async {
+    await _migrationWriteGuard.ensureOutboxMutationAllowed(
+      entityType: entityType,
+    );
     final DateTime now = DateTime.now();
     final String encodedPayload = jsonEncode(payload);
     final String? ownerUid = _currentUidProvider();

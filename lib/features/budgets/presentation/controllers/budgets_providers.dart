@@ -326,14 +326,13 @@ AsyncValue<List<BudgetCategorySpend>> budgetCategorySpend(Ref ref) {
 }
 
 @riverpod
-AsyncValue<BudgetProgress> budgetProgressById(Ref ref, String budgetId) {
+AsyncValue<BudgetProgress?> budgetProgressById(Ref ref, String budgetId) {
   final AsyncValue<List<BudgetProgress>> listAsync = ref.watch(
     budgetsWithProgressProvider,
   );
   return listAsync.whenData(
-    (List<BudgetProgress> items) => items.firstWhere(
+    (List<BudgetProgress> items) => items.firstWhereOrNull(
       (BudgetProgress progress) => progress.budget.id == budgetId,
-      orElse: () => throw StateError('Budget $budgetId not found'),
     ),
   );
 }

@@ -318,11 +318,11 @@ final budgetProgressByIdProvider = BudgetProgressByIdFamily._();
 final class BudgetProgressByIdProvider
     extends
         $FunctionalProvider<
-          AsyncValue<BudgetProgress>,
-          AsyncValue<BudgetProgress>,
-          AsyncValue<BudgetProgress>
+          AsyncValue<BudgetProgress?>,
+          AsyncValue<BudgetProgress?>,
+          AsyncValue<BudgetProgress?>
         >
-    with $Provider<AsyncValue<BudgetProgress>> {
+    with $Provider<AsyncValue<BudgetProgress?>> {
   BudgetProgressByIdProvider._({
     required BudgetProgressByIdFamily super.from,
     required String super.argument,
@@ -346,21 +346,21 @@ final class BudgetProgressByIdProvider
 
   @$internal
   @override
-  $ProviderElement<AsyncValue<BudgetProgress>> $createElement(
+  $ProviderElement<AsyncValue<BudgetProgress?>> $createElement(
     $ProviderPointer pointer,
   ) => $ProviderElement(pointer);
 
   @override
-  AsyncValue<BudgetProgress> create(Ref ref) {
+  AsyncValue<BudgetProgress?> create(Ref ref) {
     final argument = this.argument as String;
     return budgetProgressById(ref, argument);
   }
 
   /// {@macro riverpod.override_with_value}
-  Override overrideWithValue(AsyncValue<BudgetProgress> value) {
+  Override overrideWithValue(AsyncValue<BudgetProgress?> value) {
     return $ProviderOverride(
       origin: this,
-      providerOverride: $SyncValueProvider<AsyncValue<BudgetProgress>>(value),
+      providerOverride: $SyncValueProvider<AsyncValue<BudgetProgress?>>(value),
     );
   }
 
@@ -376,10 +376,10 @@ final class BudgetProgressByIdProvider
 }
 
 String _$budgetProgressByIdHash() =>
-    r'98be397fb4e2bcc3eccd0b1156e268c66a63f52b';
+    r'c9188de5bbcb1c66a72a977c9660bb3c32522338';
 
 final class BudgetProgressByIdFamily extends $Family
-    with $FunctionalFamilyOverride<AsyncValue<BudgetProgress>, String> {
+    with $FunctionalFamilyOverride<AsyncValue<BudgetProgress?>, String> {
   BudgetProgressByIdFamily._()
     : super(
         retry: null,

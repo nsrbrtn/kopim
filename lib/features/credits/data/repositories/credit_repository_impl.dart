@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
+import 'package:kopim/features/profile/application/migration_write_guard.dart';
 import 'package:kopim/features/credits/data/sources/local/credit_dao.dart';
 import 'package:kopim/features/credits/data/sources/local/credit_payment_dao.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
@@ -15,11 +16,14 @@ class CreditRepositoryImpl implements CreditRepository {
     required CreditDao creditDao,
     required CreditPaymentDao creditPaymentDao,
     required OutboxDao outboxDao,
+    MigrationWriteGuard? migrationWriteGuard,
     CreditPaymentScheduleValidator? scheduleValidator,
   }) : _database = database,
        _creditDao = creditDao,
        _creditPaymentDao = creditPaymentDao,
        _outboxDao = outboxDao,
+       _migrationWriteGuard =
+           migrationWriteGuard ?? const NoopMigrationWriteGuard(),
        _scheduleValidator =
            scheduleValidator ?? const CreditPaymentScheduleValidator();
 
@@ -27,6 +31,7 @@ class CreditRepositoryImpl implements CreditRepository {
   final CreditDao _creditDao;
   final CreditPaymentDao _creditPaymentDao;
   final OutboxDao _outboxDao;
+  final MigrationWriteGuard _migrationWriteGuard;
   final CreditPaymentScheduleValidator _scheduleValidator;
 
   static const String _entityType = 'credit';
@@ -72,65 +77,79 @@ class CreditRepositoryImpl implements CreditRepository {
 
   @override
   Future<void> deleteCredit(String id) async {
-    final DateTime now = DateTime.now();
-    await _database.transaction(() async {
-      final List<CreditPaymentGroupEntity> existingGroups =
-          await _creditPaymentDao.getPaymentGroups(id);
-      final List<CreditPaymentScheduleEntity> existingSchedule =
-          await _creditPaymentDao.getSchedule(id);
-      await _creditPaymentDao.markPaymentArtifactsDeletedByCreditId(id, now);
-      await _creditDao.markDeleted(id, now);
-      final db.CreditRow? row = await _creditDao.findById(id);
-      for (final CreditPaymentGroupEntity group in existingGroups) {
-        await _outboxDao.enqueue(
-          entityType: _paymentGroupEntityType,
-          entityId: group.id,
-          operation: OutboxOperation.delete,
-          payload: _mapPaymentGroupPayload(
-            group.copyWith(isDeleted: true, updatedAt: now),
-          ),
-        );
-      }
-      for (final CreditPaymentScheduleEntity item in existingSchedule) {
-        await _outboxDao.enqueue(
-          entityType: _paymentScheduleEntityType,
-          entityId: item.id,
-          operation: OutboxOperation.delete,
-          payload: _mapPaymentSchedulePayload(
-            item.copyWith(isDeleted: true, updatedAt: now),
-          ),
-        );
-      }
-      if (row == null) return;
-      final CreditEntity entity = _creditDao
-          .mapRowToEntity(row)
-          .copyWith(isDeleted: true, updatedAt: now);
-      await _outboxDao.enqueue(
-        entityType: _entityType,
-        entityId: id,
-        operation: OutboxOperation.delete,
-        payload: _mapCreditPayload(entity),
-      );
-    });
+    await _migrationWriteGuard.runRepositoryWrite(
+      entityType: _entityType,
+      action: () async {
+        final DateTime now = DateTime.now();
+        await _database.transaction(() async {
+          final List<CreditPaymentGroupEntity> existingGroups =
+              await _creditPaymentDao.getPaymentGroups(id);
+          final List<CreditPaymentScheduleEntity> existingSchedule =
+              await _creditPaymentDao.getSchedule(id);
+          await _creditPaymentDao.markPaymentArtifactsDeletedByCreditId(
+            id,
+            now,
+          );
+          await _creditDao.markDeleted(id, now);
+          final db.CreditRow? row = await _creditDao.findById(id);
+          for (final CreditPaymentGroupEntity group in existingGroups) {
+            await _outboxDao.enqueue(
+              entityType: _paymentGroupEntityType,
+              entityId: group.id,
+              operation: OutboxOperation.delete,
+              payload: _mapPaymentGroupPayload(
+                group.copyWith(isDeleted: true, updatedAt: now),
+              ),
+            );
+          }
+          for (final CreditPaymentScheduleEntity item in existingSchedule) {
+            await _outboxDao.enqueue(
+              entityType: _paymentScheduleEntityType,
+              entityId: item.id,
+              operation: OutboxOperation.delete,
+              payload: _mapPaymentSchedulePayload(
+                item.copyWith(isDeleted: true, updatedAt: now),
+              ),
+            );
+          }
+          if (row == null) return;
+          final CreditEntity entity = _creditDao
+              .mapRowToEntity(row)
+              .copyWith(isDeleted: true, updatedAt: now);
+          await _outboxDao.enqueue(
+            entityType: _entityType,
+            entityId: id,
+            operation: OutboxOperation.delete,
+            payload: _mapCreditPayload(entity),
+          );
+        });
+      },
+    );
   }
 
   Future<void> _upsert(CreditEntity credit) async {
-    final DateTime now = DateTime.now();
-    final int totalAmountScale =
-        credit.totalAmountScale ?? await _resolveAccountScale(credit.accountId);
-    final CreditEntity toPersist = credit.copyWith(
-      updatedAt: now,
-      totalAmountScale: totalAmountScale,
+    await _migrationWriteGuard.runRepositoryWrite(
+      entityType: _entityType,
+      action: () async {
+        final DateTime now = DateTime.now();
+        final int totalAmountScale =
+            credit.totalAmountScale ??
+            await _resolveAccountScale(credit.accountId);
+        final CreditEntity toPersist = credit.copyWith(
+          updatedAt: now,
+          totalAmountScale: totalAmountScale,
+        );
+        await _database.transaction(() async {
+          await _creditDao.upsert(toPersist);
+          await _outboxDao.enqueue(
+            entityType: _entityType,
+            entityId: toPersist.id,
+            operation: OutboxOperation.upsert,
+            payload: _mapCreditPayload(toPersist),
+          );
+        });
+      },
     );
-    await _database.transaction(() async {
-      await _creditDao.upsert(toPersist);
-      await _outboxDao.enqueue(
-        entityType: _entityType,
-        entityId: toPersist.id,
-        operation: OutboxOperation.upsert,
-        payload: _mapCreditPayload(toPersist),
-      );
-    });
   }
 
   Future<int> _resolveAccountScale(String accountId) async {
@@ -165,17 +184,22 @@ class CreditRepositoryImpl implements CreditRepository {
               item.copyWith(createdAt: item.createdAt ?? now, updatedAt: now),
         )
         .toList(growable: false);
-    await _database.transaction(() async {
-      await _creditPaymentDao.upsertSchedule(toPersist);
-      for (final CreditPaymentScheduleEntity item in toPersist) {
-        await _outboxDao.enqueue(
-          entityType: _paymentScheduleEntityType,
-          entityId: item.id,
-          operation: OutboxOperation.upsert,
-          payload: _mapPaymentSchedulePayload(item),
-        );
-      }
-    });
+    await _migrationWriteGuard.runRepositoryWrite(
+      entityType: _paymentScheduleEntityType,
+      action: () async {
+        await _database.transaction(() async {
+          await _creditPaymentDao.upsertSchedule(toPersist);
+          for (final CreditPaymentScheduleEntity item in toPersist) {
+            await _outboxDao.enqueue(
+              entityType: _paymentScheduleEntityType,
+              entityId: item.id,
+              operation: OutboxOperation.upsert,
+              payload: _mapPaymentSchedulePayload(item),
+            );
+          }
+        });
+      },
+    );
   }
 
   @override
@@ -193,15 +217,20 @@ class CreditRepositoryImpl implements CreditRepository {
     _scheduleValidator.validate(item);
     final DateTime now = DateTime.now().toUtc();
     final CreditPaymentScheduleEntity toPersist = item.copyWith(updatedAt: now);
-    await _database.transaction(() async {
-      await _creditPaymentDao.updateScheduleItem(toPersist);
-      await _outboxDao.enqueue(
-        entityType: _paymentScheduleEntityType,
-        entityId: toPersist.id,
-        operation: OutboxOperation.upsert,
-        payload: _mapPaymentSchedulePayload(toPersist),
-      );
-    });
+    await _migrationWriteGuard.runRepositoryWrite(
+      entityType: _paymentScheduleEntityType,
+      action: () async {
+        await _database.transaction(() async {
+          await _creditPaymentDao.updateScheduleItem(toPersist);
+          await _outboxDao.enqueue(
+            entityType: _paymentScheduleEntityType,
+            entityId: toPersist.id,
+            operation: OutboxOperation.upsert,
+            payload: _mapPaymentSchedulePayload(toPersist),
+          );
+        });
+      },
+    );
   }
 
   @override
@@ -211,15 +240,20 @@ class CreditRepositoryImpl implements CreditRepository {
       createdAt: group.createdAt ?? now,
       updatedAt: now,
     );
-    await _database.transaction(() async {
-      await _creditPaymentDao.insertPaymentGroup(toPersist);
-      await _outboxDao.enqueue(
-        entityType: _paymentGroupEntityType,
-        entityId: toPersist.id,
-        operation: OutboxOperation.upsert,
-        payload: _mapPaymentGroupPayload(toPersist),
-      );
-    });
+    await _migrationWriteGuard.runRepositoryWrite(
+      entityType: _paymentGroupEntityType,
+      action: () async {
+        await _database.transaction(() async {
+          await _creditPaymentDao.insertPaymentGroup(toPersist);
+          await _outboxDao.enqueue(
+            entityType: _paymentGroupEntityType,
+            entityId: toPersist.id,
+            operation: OutboxOperation.upsert,
+            payload: _mapPaymentGroupPayload(toPersist),
+          );
+        });
+      },
+    );
   }
 
   @override
@@ -230,18 +264,25 @@ class CreditRepositoryImpl implements CreditRepository {
       updatedAt: now,
     );
     bool inserted = false;
-    await _database.transaction(() async {
-      inserted = await _creditPaymentDao.insertPaymentGroupIfAbsent(toPersist);
-      if (!inserted) {
-        return;
-      }
-      await _outboxDao.enqueue(
-        entityType: _paymentGroupEntityType,
-        entityId: toPersist.id,
-        operation: OutboxOperation.upsert,
-        payload: _mapPaymentGroupPayload(toPersist),
-      );
-    });
+    await _migrationWriteGuard.runRepositoryWrite(
+      entityType: _paymentGroupEntityType,
+      action: () async {
+        await _database.transaction(() async {
+          inserted = await _creditPaymentDao.insertPaymentGroupIfAbsent(
+            toPersist,
+          );
+          if (!inserted) {
+            return;
+          }
+          await _outboxDao.enqueue(
+            entityType: _paymentGroupEntityType,
+            entityId: toPersist.id,
+            operation: OutboxOperation.upsert,
+            payload: _mapPaymentGroupPayload(toPersist),
+          );
+        });
+      },
+    );
     return inserted;
   }
 
@@ -249,15 +290,20 @@ class CreditRepositoryImpl implements CreditRepository {
   Future<void> updatePaymentGroup(CreditPaymentGroupEntity group) async {
     final DateTime now = DateTime.now().toUtc();
     final CreditPaymentGroupEntity toPersist = group.copyWith(updatedAt: now);
-    await _database.transaction(() async {
-      await _creditPaymentDao.updatePaymentGroup(toPersist);
-      await _outboxDao.enqueue(
-        entityType: _paymentGroupEntityType,
-        entityId: toPersist.id,
-        operation: OutboxOperation.upsert,
-        payload: _mapPaymentGroupPayload(toPersist),
-      );
-    });
+    await _migrationWriteGuard.runRepositoryWrite(
+      entityType: _paymentGroupEntityType,
+      action: () async {
+        await _database.transaction(() async {
+          await _creditPaymentDao.updatePaymentGroup(toPersist);
+          await _outboxDao.enqueue(
+            entityType: _paymentGroupEntityType,
+            entityId: toPersist.id,
+            operation: OutboxOperation.upsert,
+            payload: _mapPaymentGroupPayload(toPersist),
+          );
+        });
+      },
+    );
   }
 
   @override

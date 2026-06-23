@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/widgets/kopim_dropdown_field.dart';
@@ -461,11 +462,11 @@ class _AnonymousUpgradeBanner extends StatelessWidget {
           const SizedBox(height: 8),
           FilledButton.icon(
             onPressed: () {
-              Navigator.of(context, rootNavigator: true).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => const SignInScreen(startInSignUpMode: true),
-                ),
-              );
+              final String location = Uri(
+                path: SignInScreen.routeName,
+                queryParameters: <String, String>{'signUp': 'true'},
+              ).toString();
+              context.push(location, extra: true);
             },
             icon: const Icon(Icons.person_add_alt_1_outlined),
             label: Text(strings.profileRegisterCta),

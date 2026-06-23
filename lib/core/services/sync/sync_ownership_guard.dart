@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/data/database.dart';
+import 'package:kopim/core/services/sync/ownership_projection_resolver.dart';
 
 class SyncOwnershipException implements Exception {
   const SyncOwnershipException(this.message);
@@ -15,6 +16,8 @@ class SyncOwnershipGuard {
   const SyncOwnershipGuard([this._db]);
 
   final AppDatabase? _db;
+  OwnershipProjectionResolver? get _resolver =>
+      _db == null ? null : OwnershipProjectionResolver(_db);
 
   Future<void> ensureCanStartCloudSync({
     required String currentCloudUid,
@@ -90,35 +93,66 @@ class SyncOwnershipGuard {
 
     String checkType = entityType;
     String checkId = entityId;
-
     if (entityType == 'transaction_tag') {
-      if (payload == null) {
-        throw const SyncOwnershipException(
-          'Ошибка валидации: transaction_tag не содержит payload.',
-        );
-      }
+      checkType = 'transaction';
       try {
         final Map<String, dynamic> decoded =
-            jsonDecode(payload) as Map<String, dynamic>;
+            jsonDecode(payload ?? '') as Map<String, dynamic>;
         final String? transactionId = decoded['transactionId'] as String?;
-        if (transactionId == null) {
+        if (transactionId == null || transactionId.isEmpty) {
           throw const SyncOwnershipException(
             'Ошибка валидации: transaction_tag не содержит transactionId.',
           );
         }
-        checkType = 'transaction';
         checkId = transactionId;
+      } on SyncOwnershipException {
+        rethrow;
       } catch (e) {
+        if (payload == null) {
+          throw const SyncOwnershipException(
+            'Ошибка валидации: transaction_tag не содержит payload.',
+          );
+        }
         throw SyncOwnershipException(
           'Не удалось извлечь transactionId из transaction_tag: $e',
         );
       }
+    } else if (entityType == 'goal_account_link') {
+      checkType = 'saving_goal';
+      try {
+        final Map<String, dynamic> decoded =
+            jsonDecode(payload ?? '') as Map<String, dynamic>;
+        final String? goalId = decoded['goalId'] as String?;
+        if (goalId == null || goalId.isEmpty) {
+          throw const SyncOwnershipException(
+            'Ошибка валидации: goal_account_link не содержит goalId.',
+          );
+        }
+        checkId = goalId;
+      } on SyncOwnershipException {
+        rethrow;
+      } catch (e) {
+        if (payload == null) {
+          throw const SyncOwnershipException(
+            'Ошибка валидации: goal_account_link не содержит payload.',
+          );
+        }
+        throw SyncOwnershipException(
+          'Не удалось извлечь goalId из goal_account_link: $e',
+        );
+      }
     }
 
-    final LocalRowOwnershipRow? ownership = await _db.getOwnership(
-      checkType,
-      checkId,
-    );
+    final LocalRowOwnershipRow? ownership;
+    try {
+      ownership = await _resolver!.resolveForDispatch(
+        entityType: entityType,
+        entityId: entityId,
+        payload: payload,
+      );
+    } on OwnershipLookupException catch (error) {
+      throw SyncOwnershipException(error.message);
+    }
     if (ownership == null) {
       throw SyncOwnershipException(
         'Валидация владельца провалена: отсутствует запись владения для $checkType:$checkId.',

@@ -606,7 +606,7 @@ final class OutboxDaoProvider
   }
 }
 
-String _$outboxDaoHash() => r'c4633d2605c1e05d758334163c0b8363a81129be';
+String _$outboxDaoHash() => r'0957b644e35f50deec3cf500cd2c3ab99c1a8fbd';
 
 @ProviderFor(syncConflictDao)
 final syncConflictDaoProvider = SyncConflictDaoProvider._();
@@ -2885,7 +2885,7 @@ final class AccountRepositoryProvider
   }
 }
 
-String _$accountRepositoryHash() => r'35504303f5e7045ab7c337f1041ee01cffb06875';
+String _$accountRepositoryHash() => r'2dc6b98dc1c3174ce6583115f318785161e88926';
 
 @ProviderFor(accountTypeBackfillService)
 final accountTypeBackfillServiceProvider =
@@ -2934,7 +2934,7 @@ final class AccountTypeBackfillServiceProvider
 }
 
 String _$accountTypeBackfillServiceHash() =>
-    r'20229259185d147fcdf74cdb7186da84591ba659';
+    r'a7a222a1eef70c8c85e6ec61c4c3928782cc5013';
 
 @ProviderFor(creditRepository)
 final creditRepositoryProvider = CreditRepositoryProvider._();
@@ -2980,7 +2980,7 @@ final class CreditRepositoryProvider
   }
 }
 
-String _$creditRepositoryHash() => r'e87b92b5018d6ea3c41907acac546945e64b1f0a';
+String _$creditRepositoryHash() => r'1e9d7c17824402fe68d3bab68bab23571122a14f';
 
 @ProviderFor(creditCardRepository)
 final creditCardRepositoryProvider = CreditCardRepositoryProvider._();
@@ -3028,7 +3028,7 @@ final class CreditCardRepositoryProvider
 }
 
 String _$creditCardRepositoryHash() =>
-    r'8ea137b07ab450daed1850a29a9d2e869d051b38';
+    r'8eb56f3340340c654c28bac8ec4431ad3dbe2a11';
 
 @ProviderFor(addAccountUseCase)
 final addAccountUseCaseProvider = AddAccountUseCaseProvider._();
@@ -4234,7 +4234,7 @@ final class CategoryRepositoryProvider
 }
 
 String _$categoryRepositoryHash() =>
-    r'ea2f9b89aa4534b1f6d340901c364a0ba4a14e19';
+    r'a6d7b1bb6e2c307ba9577dc20435e7330effccaf';
 
 @ProviderFor(tagRepository)
 final tagRepositoryProvider = TagRepositoryProvider._();
@@ -4275,7 +4275,7 @@ final class TagRepositoryProvider
   }
 }
 
-String _$tagRepositoryHash() => r'dddb65cb3e6adfc367ec6c204b75ca418f74a25f';
+String _$tagRepositoryHash() => r'55e3a4ced58aa5e82eaa12d5ac21e27ce2bcae56';
 
 @ProviderFor(transactionTagsRepository)
 final transactionTagsRepositoryProvider = TransactionTagsRepositoryProvider._();
@@ -4323,7 +4323,7 @@ final class TransactionTagsRepositoryProvider
 }
 
 String _$transactionTagsRepositoryHash() =>
-    r'02a529325a184c6859d80a154289002c99cfe4ba';
+    r'a3a4dfd9f3ee000fd93a286484355f974ceede75';
 
 @ProviderFor(saveCategoryUseCase)
 final saveCategoryUseCaseProvider = SaveCategoryUseCaseProvider._();
@@ -4747,7 +4747,7 @@ final class TransactionRepositoryProvider
 }
 
 String _$transactionRepositoryHash() =>
-    r'8d28764f47b8160dbfc32945061b52b146d5ee42';
+    r'fa2844a47cc95fd7876ff4435d9dd4764bd3857f';
 
 @ProviderFor(budgetRepository)
 final budgetRepositoryProvider = BudgetRepositoryProvider._();
@@ -4793,7 +4793,7 @@ final class BudgetRepositoryProvider
   }
 }
 
-String _$budgetRepositoryHash() => r'04bad8edb2ea732d9f98e0e2c0bbcf28348162f3';
+String _$budgetRepositoryHash() => r'1ef9db6835cf3e6cc01b71c1b72ab7068f8ac0d1';
 
 @ProviderFor(homeDashboardPreferencesRepository)
 final homeDashboardPreferencesRepositoryProvider =
@@ -4944,7 +4944,7 @@ final class SavingGoalRepositoryProvider
 }
 
 String _$savingGoalRepositoryHash() =>
-    r'e396773165770c6b959617015ecd4790d516b3ae';
+    r'508bde8ad3eb088261b8b4466347405d07c9c617';
 
 @ProviderFor(upcomingPaymentsRepository)
 final upcomingPaymentsRepositoryProvider =
@@ -4993,7 +4993,7 @@ final class UpcomingPaymentsRepositoryProvider
 }
 
 String _$upcomingPaymentsRepositoryHash() =>
-    r'b55dcccc5491b95755d298709e950cf3a242635b';
+    r'af7fbe8e3f07687577c1d24c4d7f9bd15fa1d972';
 
 @ProviderFor(paymentRemindersRepository)
 final paymentRemindersRepositoryProvider =
@@ -5042,7 +5042,7 @@ final class PaymentRemindersRepositoryProvider
 }
 
 String _$paymentRemindersRepositoryHash() =>
-    r'c7fbc9d2010c930e99b76b8a9f84fc4da9b0c9b4';
+    r'253ac32cdae7526fbfc3bd01a33866ae35df1827';
 
 @ProviderFor(watchAccountTransactionsUseCase)
 final watchAccountTransactionsUseCaseProvider =
@@ -6338,7 +6338,7 @@ final class SyncOwnershipGuardProvider
 }
 
 String _$syncOwnershipGuardHash() =>
-    r'17537e94af1eea2a8ebd11554f4b860b6c8adb60';
+    r'c96239a24df832a18a24396335b155c0d56eada3';
 
 @ProviderFor(localSyncIntegrityReportFormatter)
 final localSyncIntegrityReportFormatterProvider =
@@ -6483,4 +6483,4 @@ final class AuthSyncServiceProvider
   }
 }
 
-String _$authSyncServiceHash() => r'ca1a8ab7483ae95ff7737dd03dc67a392e07c022';
+String _$authSyncServiceHash() => r'f39d1fece49b71a82edc2a38b78aa31c6a027e08';

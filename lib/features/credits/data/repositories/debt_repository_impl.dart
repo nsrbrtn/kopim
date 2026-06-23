@@ -1,5 +1,6 @@
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
+import 'package:kopim/features/profile/application/migration_write_guard.dart';
 import 'package:kopim/features/credits/data/sources/local/debt_dao.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
 import 'package:kopim/features/credits/domain/repositories/debt_repository.dart';
@@ -9,13 +10,17 @@ class DebtRepositoryImpl implements DebtRepository {
     required db.AppDatabase database,
     required DebtDao debtDao,
     required OutboxDao outboxDao,
+    MigrationWriteGuard? migrationWriteGuard,
   }) : _database = database,
        _debtDao = debtDao,
-       _outboxDao = outboxDao;
+       _outboxDao = outboxDao,
+       _migrationWriteGuard =
+           migrationWriteGuard ?? const NoopMigrationWriteGuard();
 
   final db.AppDatabase _database;
   final DebtDao _debtDao;
   final OutboxDao _outboxDao;
+  final MigrationWriteGuard _migrationWriteGuard;
 
   static const String _entityType = 'debt';
 
@@ -44,40 +49,50 @@ class DebtRepositoryImpl implements DebtRepository {
 
   @override
   Future<void> deleteDebt(String id) async {
-    final DateTime now = DateTime.now();
-    await _database.transaction(() async {
-      await _debtDao.markDeleted(id, now);
-      final db.DebtRow? row = await _debtDao.findById(id);
-      if (row == null) return;
-      final DebtEntity entity = _debtDao
-          .mapRowToEntity(row)
-          .copyWith(isDeleted: true, updatedAt: now);
-      await _outboxDao.enqueue(
-        entityType: _entityType,
-        entityId: id,
-        operation: OutboxOperation.delete,
-        payload: _mapDebtPayload(entity),
-      );
-    });
+    await _migrationWriteGuard.runRepositoryWrite(
+      entityType: _entityType,
+      action: () async {
+        final DateTime now = DateTime.now();
+        await _database.transaction(() async {
+          await _debtDao.markDeleted(id, now);
+          final db.DebtRow? row = await _debtDao.findById(id);
+          if (row == null) return;
+          final DebtEntity entity = _debtDao
+              .mapRowToEntity(row)
+              .copyWith(isDeleted: true, updatedAt: now);
+          await _outboxDao.enqueue(
+            entityType: _entityType,
+            entityId: id,
+            operation: OutboxOperation.delete,
+            payload: _mapDebtPayload(entity),
+          );
+        });
+      },
+    );
   }
 
   Future<void> _upsert(DebtEntity debt) async {
-    final DateTime now = DateTime.now();
-    final int amountScale =
-        debt.amountScale ?? await _resolveAccountScale(debt.accountId);
-    final DebtEntity toPersist = debt.copyWith(
-      updatedAt: now,
-      amountScale: amountScale,
+    await _migrationWriteGuard.runRepositoryWrite(
+      entityType: _entityType,
+      action: () async {
+        final DateTime now = DateTime.now();
+        final int amountScale =
+            debt.amountScale ?? await _resolveAccountScale(debt.accountId);
+        final DebtEntity toPersist = debt.copyWith(
+          updatedAt: now,
+          amountScale: amountScale,
+        );
+        await _database.transaction(() async {
+          await _debtDao.upsert(toPersist);
+          await _outboxDao.enqueue(
+            entityType: _entityType,
+            entityId: toPersist.id,
+            operation: OutboxOperation.upsert,
+            payload: _mapDebtPayload(toPersist),
+          );
+        });
+      },
     );
-    await _database.transaction(() async {
-      await _debtDao.upsert(toPersist);
-      await _outboxDao.enqueue(
-        entityType: _entityType,
-        entityId: toPersist.id,
-        operation: OutboxOperation.upsert,
-        payload: _mapDebtPayload(toPersist),
-      );
-    });
   }
 
   Future<int> _resolveAccountScale(String accountId) async {

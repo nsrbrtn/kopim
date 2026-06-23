@@ -1,6 +1,7 @@
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
 import 'package:kopim/core/domain/icons/phosphor_icon_descriptor.dart';
+import 'package:kopim/features/profile/application/migration_write_guard.dart';
 import 'package:kopim/features/categories/data/sources/local/category_dao.dart';
 import 'package:kopim/features/categories/domain/entities/category.dart';
 import 'package:kopim/features/categories/domain/entities/category_tree_node.dart';
@@ -11,13 +12,17 @@ class CategoryRepositoryImpl implements CategoryRepository {
     required db.AppDatabase database,
     required CategoryDao categoryDao,
     required OutboxDao outboxDao,
+    MigrationWriteGuard? migrationWriteGuard,
   }) : _database = database,
        _categoryDao = categoryDao,
-       _outboxDao = outboxDao;
+       _outboxDao = outboxDao,
+       _migrationWriteGuard =
+           migrationWriteGuard ?? const NoopMigrationWriteGuard();
 
   final db.AppDatabase _database;
   final CategoryDao _categoryDao;
   final OutboxDao _outboxDao;
+  final MigrationWriteGuard _migrationWriteGuard;
 
   static const String _entityType = 'category';
 
@@ -62,64 +67,77 @@ class CategoryRepositoryImpl implements CategoryRepository {
 
   @override
   Future<void> upsert(Category category) async {
-    final DateTime now = DateTime.now();
-    final Category toPersist = category.copyWith(updatedAt: now);
-    await _database.transaction(() async {
-      await _categoryDao.upsert(toPersist);
-      await _outboxDao.enqueue(
-        entityType: _entityType,
-        entityId: toPersist.id,
-        operation: OutboxOperation.upsert,
-        payload: _mapCategoryPayload(toPersist),
-        baseRemoteUpdatedAt: category.updatedAt,
-        baseRemoteIsDeleted: category.isDeleted,
-      );
-    });
+    await _migrationWriteGuard.runRepositoryWrite(
+      entityType: _entityType,
+      action: () async {
+        final DateTime now = DateTime.now();
+        final Category toPersist = category.copyWith(updatedAt: now);
+        await _database.transaction(() async {
+          await _categoryDao.upsert(toPersist);
+          await _outboxDao.enqueue(
+            entityType: _entityType,
+            entityId: toPersist.id,
+            operation: OutboxOperation.upsert,
+            payload: _mapCategoryPayload(toPersist),
+            baseRemoteUpdatedAt: category.updatedAt,
+            baseRemoteIsDeleted: category.isDeleted,
+          );
+        });
+      },
+    );
   }
 
   @override
   Future<void> softDelete(String id) async {
-    final DateTime now = DateTime.now();
-    await _database.transaction(() async {
-      final db.CategoryRow? originalRow = await _categoryDao.findById(id);
-      if (originalRow == null) return;
-      final Category original = _mapToDomain(originalRow);
+    await _migrationWriteGuard.runRepositoryWrite(
+      entityType: _entityType,
+      action: () async {
+        final DateTime now = DateTime.now();
+        await _database.transaction(() async {
+          final db.CategoryRow? originalRow = await _categoryDao.findById(id);
+          if (originalRow == null) return;
+          final Category original = _mapToDomain(originalRow);
 
-      await _categoryDao.markDeleted(id, now);
-      final db.CategoryRow? row = await _categoryDao.findById(id);
-      if (row == null) return;
-      final Category deleted = _mapToDomain(
-        row,
-      ).copyWith(isDeleted: true, updatedAt: now);
-      final List<Category> allCategories = await _categoryDao
-          .getAllCategories();
-      final List<Category> descendants = _collectDescendants(id, allCategories);
-      for (final Category child in descendants) {
-        if (child.isDeleted) {
-          continue;
-        }
-        await _categoryDao.markDeleted(child.id, now);
-        final Map<String, dynamic> childPayload = _mapCategoryPayload(
-          child.copyWith(isDeleted: true, updatedAt: now),
-        );
-        await _outboxDao.enqueue(
-          entityType: _entityType,
-          entityId: child.id,
-          operation: OutboxOperation.delete,
-          payload: childPayload,
-          baseRemoteUpdatedAt: child.updatedAt,
-          baseRemoteIsDeleted: child.isDeleted,
-        );
-      }
-      await _outboxDao.enqueue(
-        entityType: _entityType,
-        entityId: id,
-        operation: OutboxOperation.delete,
-        payload: _mapCategoryPayload(deleted),
-        baseRemoteUpdatedAt: original.updatedAt,
-        baseRemoteIsDeleted: original.isDeleted,
-      );
-    });
+          await _categoryDao.markDeleted(id, now);
+          final db.CategoryRow? row = await _categoryDao.findById(id);
+          if (row == null) return;
+          final Category deleted = _mapToDomain(
+            row,
+          ).copyWith(isDeleted: true, updatedAt: now);
+          final List<Category> allCategories = await _categoryDao
+              .getAllCategories();
+          final List<Category> descendants = _collectDescendants(
+            id,
+            allCategories,
+          );
+          for (final Category child in descendants) {
+            if (child.isDeleted) {
+              continue;
+            }
+            await _categoryDao.markDeleted(child.id, now);
+            final Map<String, dynamic> childPayload = _mapCategoryPayload(
+              child.copyWith(isDeleted: true, updatedAt: now),
+            );
+            await _outboxDao.enqueue(
+              entityType: _entityType,
+              entityId: child.id,
+              operation: OutboxOperation.delete,
+              payload: childPayload,
+              baseRemoteUpdatedAt: child.updatedAt,
+              baseRemoteIsDeleted: child.isDeleted,
+            );
+          }
+          await _outboxDao.enqueue(
+            entityType: _entityType,
+            entityId: id,
+            operation: OutboxOperation.delete,
+            payload: _mapCategoryPayload(deleted),
+            baseRemoteUpdatedAt: original.updatedAt,
+            baseRemoteIsDeleted: original.isDeleted,
+          );
+        });
+      },
+    );
   }
 
   Map<String, dynamic> _mapCategoryPayload(Category category) {

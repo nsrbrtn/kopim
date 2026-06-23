@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:kopim/core/data/database.dart' as db;
 import 'package:kopim/core/data/outbox/outbox_dao.dart';
+import 'package:kopim/features/profile/application/migration_write_guard.dart';
 import 'package:kopim/features/credits/data/sources/local/credit_card_dao.dart';
 import 'package:kopim/features/credits/domain/entities/credit_card_entity.dart';
 import 'package:kopim/features/credits/domain/repositories/credit_card_repository.dart';
@@ -10,13 +11,17 @@ class CreditCardRepositoryImpl implements CreditCardRepository {
     required db.AppDatabase database,
     required CreditCardDao creditCardDao,
     required OutboxDao outboxDao,
+    MigrationWriteGuard? migrationWriteGuard,
   }) : _database = database,
        _creditCardDao = creditCardDao,
-       _outboxDao = outboxDao;
+       _outboxDao = outboxDao,
+       _migrationWriteGuard =
+           migrationWriteGuard ?? const NoopMigrationWriteGuard();
 
   final db.AppDatabase _database;
   final CreditCardDao _creditCardDao;
   final OutboxDao _outboxDao;
+  final MigrationWriteGuard _migrationWriteGuard;
 
   static const String _entityType = 'credit_card';
 
@@ -56,41 +61,51 @@ class CreditCardRepositoryImpl implements CreditCardRepository {
 
   @override
   Future<void> deleteCreditCard(String id) async {
-    final DateTime now = DateTime.now();
-    await _database.transaction(() async {
-      await _creditCardDao.markDeleted(id, now);
-      final db.CreditCardRow? row = await _creditCardDao.findById(id);
-      if (row == null) return;
-      final CreditCardEntity entity = _creditCardDao
-          .mapRowToEntity(row)
-          .copyWith(isDeleted: true, updatedAt: now);
-      await _outboxDao.enqueue(
-        entityType: _entityType,
-        entityId: id,
-        operation: OutboxOperation.delete,
-        payload: _mapPayload(entity),
-      );
-    });
+    await _migrationWriteGuard.runRepositoryWrite(
+      entityType: _entityType,
+      action: () async {
+        final DateTime now = DateTime.now();
+        await _database.transaction(() async {
+          await _creditCardDao.markDeleted(id, now);
+          final db.CreditCardRow? row = await _creditCardDao.findById(id);
+          if (row == null) return;
+          final CreditCardEntity entity = _creditCardDao
+              .mapRowToEntity(row)
+              .copyWith(isDeleted: true, updatedAt: now);
+          await _outboxDao.enqueue(
+            entityType: _entityType,
+            entityId: id,
+            operation: OutboxOperation.delete,
+            payload: _mapPayload(entity),
+          );
+        });
+      },
+    );
   }
 
   Future<void> _upsert(CreditCardEntity creditCard) async {
-    final DateTime now = DateTime.now();
-    final int creditLimitScale =
-        creditCard.creditLimitScale ??
-        await _resolveAccountScale(creditCard.accountId);
-    final CreditCardEntity toPersist = creditCard.copyWith(
-      updatedAt: now,
-      creditLimitScale: creditLimitScale,
+    await _migrationWriteGuard.runRepositoryWrite(
+      entityType: _entityType,
+      action: () async {
+        final DateTime now = DateTime.now();
+        final int creditLimitScale =
+            creditCard.creditLimitScale ??
+            await _resolveAccountScale(creditCard.accountId);
+        final CreditCardEntity toPersist = creditCard.copyWith(
+          updatedAt: now,
+          creditLimitScale: creditLimitScale,
+        );
+        await _database.transaction(() async {
+          await _creditCardDao.upsert(toPersist);
+          await _outboxDao.enqueue(
+            entityType: _entityType,
+            entityId: toPersist.id,
+            operation: OutboxOperation.upsert,
+            payload: _mapPayload(toPersist),
+          );
+        });
+      },
     );
-    await _database.transaction(() async {
-      await _creditCardDao.upsert(toPersist);
-      await _outboxDao.enqueue(
-        entityType: _entityType,
-        entityId: toPersist.id,
-        operation: OutboxOperation.upsert,
-        payload: _mapPayload(toPersist),
-      );
-    });
   }
 
   Future<int> _resolveAccountScale(String accountId) async {

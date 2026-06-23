@@ -190,13 +190,14 @@ class _FinancialIndexCard extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           SizedBox(
-            height: 58,
+            height: 80,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: List<Widget>.generate(monthlyScores.length, (
                 int index,
               ) {
                 final int score = monthlyScores[index];
+                final DateTime month = monthlyPoints[index].month;
                 final bool isCurrent = index == monthlyScores.length - 1;
                 final double normalized = score / 100;
                 final double relative = maxScore <= 0 ? 0 : score / maxScore;
@@ -207,44 +208,66 @@ class _FinancialIndexCard extends ConsumerWidget {
                 final Color barColor = isCurrent
                     ? chartColor
                     : chartColor.withValues(alpha: 0.32 + relative * 0.28);
+                final String monthLabel = DateFormat.MMM(
+                  strings.localeName,
+                ).format(month);
                 return Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 2),
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Stack(
-                        fit: StackFit.expand,
-                        alignment: Alignment.bottomCenter,
-                        children: <Widget>[
-                          DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: colors.surfaceContainerHighest.withValues(
-                                alpha: 0.18,
-                              ),
-                              borderRadius: const BorderRadius.vertical(
-                                top: Radius.circular(3),
-                              ),
-                            ),
-                            child: Align(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: <Widget>[
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Stack(
+                              fit: StackFit.expand,
                               alignment: Alignment.bottomCenter,
-                              child: FractionallySizedBox(
-                                heightFactor: heightFactor,
-                                widthFactor: 1,
-                                alignment: Alignment.bottomCenter,
-                                child: DecoratedBox(
+                              children: <Widget>[
+                                DecoratedBox(
                                   decoration: BoxDecoration(
-                                    color: barColor,
+                                    color: colors.surfaceContainerHighest
+                                        .withValues(alpha: 0.18),
                                     borderRadius: const BorderRadius.vertical(
                                       top: Radius.circular(3),
                                     ),
                                   ),
-                                  child: const SizedBox.expand(),
+                                  child: Align(
+                                    alignment: Alignment.bottomCenter,
+                                    child: FractionallySizedBox(
+                                      heightFactor: heightFactor,
+                                      widthFactor: 1,
+                                      alignment: Alignment.bottomCenter,
+                                      child: DecoratedBox(
+                                        decoration: BoxDecoration(
+                                          color: barColor,
+                                          borderRadius:
+                                              const BorderRadius.vertical(
+                                                top: Radius.circular(3),
+                                              ),
+                                        ),
+                                        child: const SizedBox.expand(),
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          monthLabel,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: isCurrent ? colors.primary : colors.outline,
+                            fontWeight: isCurrent
+                                ? FontWeight.w600
+                                : FontWeight.w400,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
                   ),
                 );
@@ -375,12 +398,17 @@ class _BalanceCard extends ConsumerWidget {
       orElse: () => null,
     );
     final bool hasAllowance = allowance != null;
+    final String currencyCode = ref.watch(activeCurrencyCodeProvider);
+    final NumberFormat currencyFormat = resolveCurrencyFormat(
+      locale: strings.localeName,
+      currencyCode: currencyCode,
+    );
     final Money dailyMoney = Money(
       minor: allowance?.dailyAllowance.minor.abs() ?? BigInt.zero,
-      currency: 'XXX',
+      currency: currencyCode,
       scale: allowance?.dailyAllowance.scale ?? 2,
     );
-    final String dailyAmount = dailyMoney.toDecimalString();
+    final String dailyAmount = currencyFormat.format(dailyMoney.toDouble());
     final String dailyPrefix =
         hasAllowance && allowance.dailyAllowance.minor < BigInt.zero ? '-' : '';
     final String horizonLabel = hasAllowance
