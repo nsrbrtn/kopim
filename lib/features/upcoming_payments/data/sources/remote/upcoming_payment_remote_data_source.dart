@@ -57,6 +57,9 @@ class UpcomingPaymentRemoteDataSource {
     return snapshot.docs.map(fromDocument).toList(growable: false);
   }
 
+  Map<String, dynamic> toFirestorePayload(UpcomingPayment payment) =>
+      _mapPayment(payment);
+
   Map<String, dynamic> _mapPayment(UpcomingPayment payment) {
     return <String, dynamic>{
       'id': payment.id,

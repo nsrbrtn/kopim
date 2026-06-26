@@ -52,6 +52,8 @@ class SavingGoalRemoteDataSource {
     return snapshot.docs.map(fromDocument).toList(growable: false);
   }
 
+  Map<String, dynamic> toFirestorePayload(SavingGoal goal) => _mapGoal(goal);
+
   Map<String, dynamic> _mapGoal(SavingGoal goal) {
     return <String, dynamic>{
       'id': goal.id,

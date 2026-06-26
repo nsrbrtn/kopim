@@ -60,6 +60,9 @@ class CreditPaymentGroupRemoteDataSource {
     return snapshot.docs.map(fromDocument).toList(growable: false);
   }
 
+  Map<String, dynamic> toFirestorePayload(CreditPaymentGroupEntity group) =>
+      _mapGroup(group);
+
   Map<String, dynamic> _mapGroup(CreditPaymentGroupEntity group) {
     final Money totalOutflow = group.totalOutflow;
     final Money principalPaid = group.principalPaid;

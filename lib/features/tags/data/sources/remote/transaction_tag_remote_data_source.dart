@@ -62,6 +62,9 @@ class TransactionTagRemoteDataSource {
     return snapshot.docs.map(fromDocument).toList();
   }
 
+  Map<String, dynamic> toFirestorePayload(TransactionTagEntity link) =>
+      mapLink(link);
+
   Map<String, dynamic> mapLink(TransactionTagEntity link) {
     return <String, dynamic>{
       'transactionId': link.transactionId,

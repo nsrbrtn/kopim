@@ -37,6 +37,26 @@ class CloudActivationIntentState {
   bool get hasPendingChoice =>
       pendingChoice != null &&
       stage == CloudActivationIntentStage.pendingChoice;
+
+  CloudActivationIntentState copyWith({
+    CloudActivationChoice? pendingChoice,
+    CloudActivationIntentStage? stage,
+    CloudActivationScenario? scenario,
+    CloudActivationSnapshotState? localSnapshotState,
+    CloudActivationSnapshotState? remoteSnapshotState,
+    String? localFingerprint,
+    String? remoteFingerprint,
+  }) {
+    return CloudActivationIntentState(
+      pendingChoice: pendingChoice ?? this.pendingChoice,
+      stage: stage ?? this.stage,
+      scenario: scenario ?? this.scenario,
+      localSnapshotState: localSnapshotState ?? this.localSnapshotState,
+      remoteSnapshotState: remoteSnapshotState ?? this.remoteSnapshotState,
+      localFingerprint: localFingerprint ?? this.localFingerprint,
+      remoteFingerprint: remoteFingerprint ?? this.remoteFingerprint,
+    );
+  }
 }
 
 class CloudActivationIntentController

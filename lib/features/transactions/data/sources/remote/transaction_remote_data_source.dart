@@ -65,6 +65,9 @@ class TransactionRemoteDataSource {
     return snapshot.docs.map(fromDocument).toList();
   }
 
+  Map<String, dynamic> toFirestorePayload(TransactionEntity transaction) =>
+      mapTransaction(transaction);
+
   Map<String, dynamic> mapTransaction(TransactionEntity transaction) {
     final TransactionEntity normalized =
         SyncContract.normalizeTransactionForPortableSync(transaction);

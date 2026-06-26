@@ -235,7 +235,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             errorMessage == 'invalid-credential');
 
     final String logoAsset = theme.brightness == Brightness.dark
-        ? 'assets/icons/logo_dark.png'
+        ? 'assets/icons/kopim_logo.png'
         : 'assets/icons/logo_light.png';
 
     final TextStyle subHeaderStyle = TextStyle(

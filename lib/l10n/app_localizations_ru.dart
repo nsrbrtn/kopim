@@ -1356,6 +1356,56 @@ class AppLocalizationsRu extends AppLocalizations {
       'Войдите, чтобы синхронизировать данные.';
 
   @override
+  String homeSyncStatusSuccessWithCount(int count) {
+    return 'Синхронизация успешна: получено $count изменений.';
+  }
+
+  @override
+  String get homeSyncStatusPushFailed =>
+      'Не удалось отправить локальные изменения. Попробуйте позже.';
+
+  @override
+  String get homeSyncStatusBlockedByLocalData =>
+      'Синхронизация заблокирована: требуется решение по локальным данным перед включением облака.';
+
+  @override
+  String get homeSyncStatusDependencyCycle =>
+      'Локальные изменения содержат циклическую зависимость и не были отправлены. Требуется исправление данных.';
+
+  @override
+  String get homeSyncStatusFullSyncRequired =>
+      'Требуется полная синхронизация. Пожалуйста, перезапустите приложение.';
+
+  @override
+  String homeSyncStatusError(String error) {
+    return 'Ошибка синхронизации: $error';
+  }
+
+  @override
+  String get homeSyncStatusDisabledByBuild =>
+      'Эта версия работает только локально.';
+
+  @override
+  String get homeSyncStatusRequiresEntitlement =>
+      'Синхронизация выключена. Сначала активируйте облачный доступ.';
+
+  @override
+  String get homeSyncStatusRequiresSignIn =>
+      'Войдите в аккаунт, чтобы включить синхронизацию.';
+
+  @override
+  String get homeSyncStatusBlockedByLocalDataFeature =>
+      'Нужно действие перед включением синхронизации.';
+
+  @override
+  String get homeSyncStatusUnavailable =>
+      'Состояние синхронизации еще уточняется.';
+
+  @override
+  String get homeSyncStatusTemporarilyUnavailable =>
+      'Синхронизация временно недоступна.';
+
+  @override
   String homeTotalBalance(String amount) {
     return 'Суммарный баланс: $amount';
   }

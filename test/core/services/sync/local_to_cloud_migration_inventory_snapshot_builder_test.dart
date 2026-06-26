@@ -23,7 +23,7 @@ void main() {
   });
 
   test(
-    'builds snapshot with current candidate families and hashed transaction tag IDs',
+    'builds snapshot with current candidate families and transaction tag doc IDs aligned to remote shape',
     () async {
       await database
           .into(database.accounts)
@@ -83,7 +83,7 @@ void main() {
       final LocalToCloudMigrationRow row =
           snapshot.rowsByFamily['transaction_tags']!.single;
       expect(row.localRowId, 'txn-1::tag-1');
-      expect(row.reusedDocumentId, hasLength(40));
+      expect(row.reusedDocumentId, 'txn-1::tag-1');
       expect(row.references, hasLength(2));
     },
   );

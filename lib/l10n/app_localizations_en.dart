@@ -1347,6 +1347,55 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeSyncStatusAuthRequired => 'Sign in to sync your data.';
 
   @override
+  String homeSyncStatusSuccessWithCount(int count) {
+    return 'Sync successful: received $count changes.';
+  }
+
+  @override
+  String get homeSyncStatusPushFailed =>
+      'Failed to send local changes. Please try again later.';
+
+  @override
+  String get homeSyncStatusBlockedByLocalData =>
+      'Sync is blocked because local data needs a separate decision before cloud can be enabled.';
+
+  @override
+  String get homeSyncStatusDependencyCycle =>
+      'Local changes contain a dependency cycle and were not sent. Data repair is required.';
+
+  @override
+  String get homeSyncStatusFullSyncRequired =>
+      'Full sync required. Please restart the app.';
+
+  @override
+  String homeSyncStatusError(String error) {
+    return 'Sync error: $error';
+  }
+
+  @override
+  String get homeSyncStatusDisabledByBuild =>
+      'This build works in local-only mode.';
+
+  @override
+  String get homeSyncStatusRequiresEntitlement =>
+      'Sync is disabled. Activate cloud access first.';
+
+  @override
+  String get homeSyncStatusRequiresSignIn => 'Sign in to enable sync.';
+
+  @override
+  String get homeSyncStatusBlockedByLocalDataFeature =>
+      'Action is required before sync can be enabled.';
+
+  @override
+  String get homeSyncStatusUnavailable =>
+      'Sync availability is still being checked.';
+
+  @override
+  String get homeSyncStatusTemporarilyUnavailable =>
+      'Sync is temporarily unavailable.';
+
+  @override
   String homeTotalBalance(String amount) {
     return 'Total balance: $amount';
   }

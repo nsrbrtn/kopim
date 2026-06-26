@@ -422,6 +422,20 @@ class _CloudActivationChoiceScreenState
         'Перенос данных в облако ещё не поддерживается.',
       CloudActivationExecutionBlockReason.runtimeTransitionFailed =>
         'Флаг активации сохранён, но приложение не смогло безопасно перейти в облачный режим. При следующем входе проверки будут повторены.',
+      CloudActivationExecutionBlockReason.migrationNetworkRetryable =>
+        'Ошибка сети при миграции. Проверьте подключение и повторите попытку.',
+      CloudActivationExecutionBlockReason.migrationRemoteOccupied =>
+        'Облако уже занято другой миграцией или содержит существующие данные.',
+      CloudActivationExecutionBlockReason.migrationPayloadMismatch =>
+        'Несоответствие данных при проверке remote/local payload.',
+      CloudActivationExecutionBlockReason.migrationUidChanged =>
+        'UID пользователя изменился во время миграции.',
+      CloudActivationExecutionBlockReason.migrationLocalDataChanged =>
+        'Локальные данные изменились. Пройдите проверку готовности заново.',
+      CloudActivationExecutionBlockReason.migrationConversionIntegrityFailed =>
+        'Ошибка проверки целостности локальной базы данных после конверсии.',
+      CloudActivationExecutionBlockReason.migrationUnknownFailure =>
+        'Неизвестная ошибка во время выполнения миграции.',
     };
   }
 }

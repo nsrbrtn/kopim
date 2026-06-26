@@ -64,6 +64,9 @@ class CreditCardRemoteDataSource {
     return snapshot.docs.map(fromDocument).toList(growable: false);
   }
 
+  Map<String, dynamic> toFirestorePayload(CreditCardEntity creditCard) =>
+      _mapCreditCard(creditCard);
+
   Map<String, dynamic> _mapCreditCard(CreditCardEntity creditCard) {
     final MoneyAmount limit = creditCard.creditLimitValue;
     return <String, dynamic>{

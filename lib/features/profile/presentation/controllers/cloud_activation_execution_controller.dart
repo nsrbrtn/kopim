@@ -61,7 +61,7 @@ class CloudActivationExecutionController
   Future<CloudActivationExecutionResult> confirmMigrateLocalToCloud() async {
     state = const AsyncLoading<CloudActivationExecutionResult>();
 
-    final CloudActivationExecutionResult result = await ref
+    final CloudActivationExecutionResult preflightResult = await ref
         .read(cloudActivationExecutionServiceProvider)
         .confirmMigrateLocalToCloudPreflight(
           currentUser: ref.read(authControllerProvider).asData?.value,
@@ -69,13 +69,35 @@ class CloudActivationExecutionController
           currentMode: ref.read(dataModeControllerProvider).value,
         );
 
-    if (result.status == CloudActivationExecutionStatus.succeeded ||
-        result.status == CloudActivationExecutionStatus.blocked) {
+    if (preflightResult.status != CloudActivationExecutionStatus.succeeded) {
+      if (preflightResult.status == CloudActivationExecutionStatus.blocked) {
+        ref.read(cloudActivationIntentProvider.notifier).clearPendingChoice();
+      }
+      state = AsyncData<CloudActivationExecutionResult>(preflightResult);
+      return preflightResult;
+    }
+
+    final CloudActivationExecutionResult execResult = await ref
+        .read(cloudActivationExecutionServiceProvider)
+        .confirmMigrateLocalToCloudExecution(
+          currentUser: ref.read(authControllerProvider).asData?.value,
+          intentState: ref.read(cloudActivationIntentProvider),
+          currentMode: ref.read(dataModeControllerProvider).value,
+          refreshRuntimeMode: () => ref
+              .read(dataModeControllerProvider.notifier)
+              .refreshForCurrentContext(),
+        );
+
+    if (execResult.status == CloudActivationExecutionStatus.succeeded ||
+        (execResult.status == CloudActivationExecutionStatus.blocked &&
+            execResult.blockReason !=
+                CloudActivationExecutionBlockReason
+                    .migrationNetworkRetryable)) {
       ref.read(cloudActivationIntentProvider.notifier).clearPendingChoice();
     }
 
-    state = AsyncData<CloudActivationExecutionResult>(result);
-    return result;
+    state = AsyncData<CloudActivationExecutionResult>(execResult);
+    return execResult;
   }
 
   void reset() {

@@ -59,6 +59,8 @@ class TagRemoteDataSource {
     return snapshot.docs.map(fromDocument).toList();
   }
 
+  Map<String, dynamic> toFirestorePayload(TagEntity tag) => mapTag(tag);
+
   Map<String, dynamic> mapTag(TagEntity tag) {
     return <String, dynamic>{
       'id': tag.id,

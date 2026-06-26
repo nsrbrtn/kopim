@@ -539,5 +539,58 @@ void main() {
         expect(remaining.single.entityId, 'acc-cloud');
       },
     );
+
+    test(
+      '8. consumeMigrationOutboxEntries deletes only matching targets from plan',
+      () async {
+        await database
+            .into(database.outboxEntries)
+            .insert(
+              const OutboxEntriesCompanion(
+                entityType: Value<String>('account'),
+                entityId: Value<String>('acc-1'),
+                operation: Value<String>('upsert'),
+                payload: Value<String>('{}'),
+                status: Value<String>('pending'),
+                ownerUid: Value<String?>('local-user-123'),
+              ),
+            );
+        await database
+            .into(database.outboxEntries)
+            .insert(
+              const OutboxEntriesCompanion(
+                entityType: Value<String>('transaction'),
+                entityId: Value<String>('tx-1'),
+                operation: Value<String>('upsert'),
+                payload: Value<String>('{}'),
+                status: Value<String>('pending'),
+                ownerUid: Value<String?>(null),
+              ),
+            );
+        await database
+            .into(database.outboxEntries)
+            .insert(
+              const OutboxEntriesCompanion(
+                entityType: Value<String>('account'),
+                entityId: Value<String>('acc-2'),
+                operation: Value<String>('upsert'),
+                payload: Value<String>('{}'),
+                status: Value<String>('pending'),
+                ownerUid: Value<String?>('local-user-123'),
+              ),
+            );
+
+        await outboxDao.consumeMigrationOutboxEntries(const <(String, String)>[
+          ('account', 'acc-1'),
+          ('transaction', 'tx-1'),
+        ]);
+
+        final List<OutboxEntryRow> remaining = await database
+            .select(database.outboxEntries)
+            .get();
+        expect(remaining, hasLength(1));
+        expect(remaining.single.entityId, 'acc-2');
+      },
+    );
   });
 }

@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/drift.dart' show DatabaseConnection;
 import 'package:drift/native.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/data/database.dart';
@@ -15,17 +16,25 @@ import 'package:kopim/core/services/sync/local_to_cloud_migration_readiness_serv
 import 'package:kopim/features/profile/application/cloud_activation_execution_service.dart';
 import 'package:kopim/features/profile/application/cloud_activation_runtime_guard.dart';
 import 'package:kopim/features/profile/application/migration_write_guard.dart';
+import 'package:kopim/features/profile/application/local_to_cloud_migration_upload_service.dart';
+import 'package:kopim/features/profile/application/local_to_cloud_migration_remote_verification_service.dart';
+import 'package:kopim/features/profile/application/local_to_cloud_migration_local_ownership_conversion_service.dart';
 import 'package:kopim/features/profile/data/cloud_activation_state_repository.dart';
 import 'package:kopim/features/profile/data/cloud_entitlement_repository.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/cloud_activation_state.dart';
+import 'package:kopim/features/profile/domain/entities/local_to_cloud_migration_state.dart';
+import 'package:kopim/features/profile/data/local_to_cloud_migration_state_repository.dart';
 import 'package:kopim/features/profile/domain/repositories/user_account_cleanup_repository.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_decision_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_intent_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
 import 'package:kopim/features/profile/presentation/models/cloud_activation_readiness_models.dart';
+import 'package:kopim/features/settings/domain/entities/export_bundle.dart';
 import 'package:kopim/features/settings/domain/repositories/export_file_saver.dart';
+import 'package:kopim/features/settings/domain/services/export_bundle_integrity_service.dart';
 import 'package:kopim/features/settings/domain/use_cases/export_user_data_use_case.dart';
+import 'package:kopim/features/settings/domain/use_cases/prepare_export_bundle_use_case.dart';
 
 class _FakeLoggerService extends LoggerService {
   @override
@@ -107,12 +116,18 @@ class _FakeLocalSnapshotSummaryService extends LocalSnapshotSummaryService {
 
   final LocalSnapshotSummary _summary;
   LocalSnapshotSummary? postResetSummary;
+  LocalSnapshotSummary? guardedSummary;
   bool isResetDone = false;
+  int callCount = 0;
 
   @override
   Future<LocalSnapshotSummary> summarize({
     bool includeActivationGuard = true,
   }) async {
+    callCount += 1;
+    if (callCount > 1 && guardedSummary != null) {
+      return guardedSummary!;
+    }
     if (isResetDone && postResetSummary != null) {
       return postResetSummary!;
     }
@@ -206,17 +221,122 @@ class _FakeLocalToCloudMigrationReadinessService
   }
 }
 
+class _FakeLocalToCloudMigrationStateRepository
+    implements LocalToCloudMigrationStateRepository {
+  LocalToCloudMigrationState? state;
+
+  @override
+  Future<void> clearStateForUid(String uid) async {
+    if (state?.uid == uid) {
+      state = null;
+    }
+  }
+
+  @override
+  Future<LocalToCloudMigrationState?> getStateForUid(String uid) async {
+    if (state?.uid == uid) {
+      return state;
+    }
+    return null;
+  }
+
+  @override
+  Future<void> saveState(LocalToCloudMigrationState value) async {
+    state = value;
+  }
+}
+
+class _FakePrepareExportBundleUseCase implements PrepareExportBundleUseCase {
+  _FakePrepareExportBundleUseCase(this.bundle);
+
+  ExportBundle bundle;
+  int callCount = 0;
+
+  @override
+  Future<ExportBundle> call() async {
+    callCount += 1;
+    return bundle;
+  }
+}
+
+ExportBundle _sampleExportBundle() {
+  final ExportBundle baseBundle = ExportBundle(
+    schemaVersion: '2026-01',
+    generatedAt: DateTime.utc(2024, 1, 1),
+  );
+  const ExportBundleIntegrityService integrityService =
+      ExportBundleIntegrityService();
+
+  return baseBundle.copyWith(
+    integrity: integrityService.buildIntegrity(baseBundle),
+  );
+}
+
 CloudActivationExecutionService _buildService({
   required CloudActivationStateRepository activationStateRepository,
+  LocalToCloudMigrationStateRepository? migrationStateRepository,
   required CloudEntitlementRepository entitlementRepository,
   required LocalSnapshotSummaryService localSnapshotSummaryService,
   required CloudSnapshotSummaryService cloudSnapshotSummaryService,
   LocalToCloudMigrationReadinessService? localToCloudMigrationReadinessService,
+  PrepareExportBundleUseCase? prepareExportBundleUseCase,
   ExportUserDataUseCase? exportUserDataUseCase,
   UserAccountCleanupRepository? userAccountCleanupRepository,
+  FirebaseFirestore? firestore,
+  LocalToCloudMigrationUploadService? uploadService,
+  LocalToCloudMigrationRemoteVerificationService? remoteVerificationService,
+  LocalToCloudMigrationLocalOwnershipConversionService?
+  localOwnershipConversionService,
 }) {
+  final FirebaseFirestore actualFirestore =
+      firestore ?? FakeFirebaseFirestore();
+  final LocalToCloudMigrationStateRepository actualMigrationStateRepo =
+      migrationStateRepository ?? _FakeLocalToCloudMigrationStateRepository();
+  final PrepareExportBundleUseCase actualPrepareExportBundle =
+      prepareExportBundleUseCase ??
+      _FakePrepareExportBundleUseCase(_sampleExportBundle());
+  final LoggerService actualLogger = _FakeLoggerService();
+
+  final LocalToCloudMigrationUploadService actualUpload =
+      uploadService ??
+      LocalToCloudMigrationUploadService(
+        firestore: actualFirestore,
+        migrationStateRepository: actualMigrationStateRepo,
+        prepareExportBundleUseCase: actualPrepareExportBundle,
+        uploaders: const <String, LocalToCloudMigrationEntityUploader>{},
+        logger: actualLogger,
+      );
+
+  final LocalToCloudMigrationRemoteVerificationService actualVerify =
+      remoteVerificationService ??
+      LocalToCloudMigrationRemoteVerificationService(
+        migrationStateRepository: actualMigrationStateRepo,
+        prepareExportBundleUseCase: actualPrepareExportBundle,
+        readers: const <String, LocalToCloudMigrationRemoteCollectionReader>{},
+        expectedPayloadBuilders:
+            const <String, LocalToCloudMigrationExpectedRemotePayloadBuilder>{},
+        logger: actualLogger,
+      );
+
+  final AppDatabase testDb = AppDatabase(
+    DatabaseConnection(NativeDatabase.memory()),
+  );
+  final LocalToCloudMigrationLocalOwnershipConversionService actualConvert =
+      localOwnershipConversionService ??
+      LocalToCloudMigrationLocalOwnershipConversionService(
+        database: testDb,
+        outboxDao: OutboxDao(testDb),
+        migrationStateRepository: actualMigrationStateRepo,
+        logger: actualLogger,
+      );
+
   return CloudActivationExecutionService(
+    firestore: actualFirestore,
+    uploadService: actualUpload,
+    remoteVerificationService: actualVerify,
+    localOwnershipConversionService: actualConvert,
     activationStateRepository: activationStateRepository,
+    migrationStateRepository: actualMigrationStateRepo,
     entitlementRepository: entitlementRepository,
     localSnapshotSummaryService: localSnapshotSummaryService,
     cloudSnapshotSummaryService: cloudSnapshotSummaryService,
@@ -240,6 +360,7 @@ CloudActivationExecutionService _buildService({
             ),
           ),
         ),
+    prepareExportBundleUseCase: actualPrepareExportBundle,
     exportUserDataUseCase:
         exportUserDataUseCase ??
         _FakeExportUserDataUseCase(
@@ -248,7 +369,7 @@ CloudActivationExecutionService _buildService({
     userAccountCleanupRepository:
         userAccountCleanupRepository ?? _FakeUserAccountCleanupRepository(),
     runtimeGuard: CloudActivationRuntimeGuard(),
-    logger: _FakeLoggerService(),
+    logger: actualLogger,
   );
 }
 
@@ -885,8 +1006,16 @@ void main() {
   );
 
   test(
-    'migrateLocalToCloud preflight reports not implemented when readiness is ready',
+    'migrateLocalToCloud preflight persists prepared migration state when readiness is ready',
     () async {
+      final _FakeLocalToCloudMigrationStateRepository migrationStateRepository =
+          _FakeLocalToCloudMigrationStateRepository();
+      final _FakePrepareExportBundleUseCase prepareExportBundleUseCase =
+          _FakePrepareExportBundleUseCase(_sampleExportBundle());
+      final _FakeExportUserDataUseCase exportUserDataUseCase =
+          _FakeExportUserDataUseCase(
+            ExportFileSaveResult.success(filePath: '/tmp/migrate-backup.json'),
+          );
       final _FakeLocalToCloudMigrationReadinessService readinessService =
           _FakeLocalToCloudMigrationReadinessService(
             const LocalToCloudMigrationPreflightResult.ready(
@@ -914,6 +1043,7 @@ void main() {
           );
       final CloudActivationExecutionService service = _buildService(
         activationStateRepository: _FakeCloudActivationStateRepository(),
+        migrationStateRepository: migrationStateRepository,
         entitlementRepository: _FakeCloudEntitlementRepository(
           CloudEntitlementState.active,
         ),
@@ -936,6 +1066,230 @@ void main() {
           ),
         ),
         localToCloudMigrationReadinessService: readinessService,
+        prepareExportBundleUseCase: prepareExportBundleUseCase,
+        exportUserDataUseCase: exportUserDataUseCase,
+      );
+
+      final CloudActivationExecutionResult result = await service
+          .confirmMigrateLocalToCloudPreflight(
+            currentUser: const AuthUser(
+              uid: 'cloud-user-1',
+              email: 'user@example.com',
+              isAnonymous: false,
+            ),
+            intentState: const CloudActivationIntentState(
+              pendingChoice: CloudActivationChoice.migrateLocalToCloud,
+              stage: CloudActivationIntentStage.pendingChoice,
+              scenario: CloudActivationScenario.localHasDataRemoteEmpty,
+              localSnapshotState: CloudActivationSnapshotState.hasData,
+              remoteSnapshotState: CloudActivationSnapshotState.empty,
+              localFingerprint: 'local:hasUserData',
+              remoteFingerprint: 'remote:empty|uid:cloud-user-1',
+            ),
+            currentMode: const DataModeState(
+              dataMode: DataMode.localOnly,
+              entitlementState: CloudEntitlementState.active,
+              migrationDecision: MigrationDecision.none,
+            ),
+          );
+
+      expect(result.status, CloudActivationExecutionStatus.succeeded);
+      expect(result.blockReason, isNull);
+      expect(result.message, contains('backup создан'));
+      expect(readinessService.callCount, 1);
+      expect(prepareExportBundleUseCase.callCount, 1);
+      expect(exportUserDataUseCase.callCount, 1);
+      expect(migrationStateRepository.state, isNotNull);
+      expect(
+        migrationStateRepository.state!.stage,
+        LocalToCloudMigrationStage.backupCreated,
+      );
+      expect(
+        migrationStateRepository.state!.plan.localFingerprint,
+        'local:hasUserData',
+      );
+      expect(
+        migrationStateRepository.state!.backupArtifactReference,
+        '/tmp/migrate-backup.json',
+      );
+      expect(
+        migrationStateRepository.state!.backupChecksum,
+        prepareExportBundleUseCase.bundle.integrity!.contentHash,
+      );
+      expect(migrationStateRepository.state!.plan.totalRowCount, 1);
+      expect(
+        migrationStateRepository.state!.plan.rows.single.documentId,
+        'tx-1',
+      );
+    },
+  );
+
+  test(
+    'migrateLocalToCloud fails when backup export cannot be saved',
+    () async {
+      final _FakeLocalToCloudMigrationStateRepository migrationStateRepository =
+          _FakeLocalToCloudMigrationStateRepository();
+      final _FakeLocalToCloudMigrationReadinessService readinessService =
+          _FakeLocalToCloudMigrationReadinessService(
+            const LocalToCloudMigrationPreflightResult.ready(
+              localSummary: LocalSnapshotSummary(
+                state: LocalSnapshotState.hasUserData,
+                hasUserData: true,
+                hasSystemData: true,
+                pendingOutboxCount: 0,
+                fingerprint: 'local:hasUserData',
+              ),
+              inventorySnapshot: LocalToCloudMigrationInventorySnapshot(
+                candidateFamilyKeys: <String>{'transactions'},
+                rowsByFamily: <String, List<LocalToCloudMigrationRow>>{
+                  'transactions': <LocalToCloudMigrationRow>[
+                    LocalToCloudMigrationRow(
+                      familyKey: 'transactions',
+                      localRowId: 'tx-1',
+                      reusedDocumentId: 'tx-1',
+                    ),
+                  ],
+                },
+              ),
+              readinessResult: LocalToCloudMigrationReadinessResult.ready(),
+            ),
+          );
+
+      final CloudActivationExecutionService service = _buildService(
+        activationStateRepository: _FakeCloudActivationStateRepository(),
+        migrationStateRepository: migrationStateRepository,
+        entitlementRepository: _FakeCloudEntitlementRepository(
+          CloudEntitlementState.active,
+        ),
+        localSnapshotSummaryService: _FakeLocalSnapshotSummaryService(
+          const LocalSnapshotSummary(
+            state: LocalSnapshotState.hasUserData,
+            hasUserData: true,
+            hasSystemData: true,
+            pendingOutboxCount: 0,
+            fingerprint: 'local:hasUserData',
+          ),
+        ),
+        cloudSnapshotSummaryService: _FakeCloudSnapshotSummaryService(
+          const CloudSnapshotSummary(
+            state: RemoteSnapshotState.empty,
+            hasUserData: false,
+            hasMetadata: false,
+            hasTombstonesOnly: false,
+            fingerprint: 'remote:empty|uid:cloud-user-1',
+          ),
+        ),
+        localToCloudMigrationReadinessService: readinessService,
+        prepareExportBundleUseCase: _FakePrepareExportBundleUseCase(
+          _sampleExportBundle(),
+        ),
+        exportUserDataUseCase: _FakeExportUserDataUseCase(
+          ExportFileSaveResult.failure('save_failed'),
+        ),
+      );
+
+      final CloudActivationExecutionResult result = await service
+          .confirmMigrateLocalToCloudPreflight(
+            currentUser: const AuthUser(
+              uid: 'cloud-user-1',
+              email: 'user@example.com',
+              isAnonymous: false,
+            ),
+            intentState: const CloudActivationIntentState(
+              pendingChoice: CloudActivationChoice.migrateLocalToCloud,
+              stage: CloudActivationIntentStage.pendingChoice,
+              scenario: CloudActivationScenario.localHasDataRemoteEmpty,
+              localSnapshotState: CloudActivationSnapshotState.hasData,
+              remoteSnapshotState: CloudActivationSnapshotState.empty,
+              localFingerprint: 'local:hasUserData',
+              remoteFingerprint: 'remote:empty|uid:cloud-user-1',
+            ),
+            currentMode: const DataModeState(
+              dataMode: DataMode.localOnly,
+              entitlementState: CloudEntitlementState.active,
+              migrationDecision: MigrationDecision.none,
+            ),
+          );
+
+      expect(result.status, CloudActivationExecutionStatus.failed);
+      expect(
+        result.blockReason,
+        CloudActivationExecutionBlockReason.backupExportFailed,
+      );
+      expect(migrationStateRepository.state, isNull);
+    },
+  );
+
+  test(
+    'migrateLocalToCloud blocks when local fingerprint changes after backup',
+    () async {
+      final _FakeLocalSnapshotSummaryService localSnapshotSummaryService =
+          _FakeLocalSnapshotSummaryService(
+            const LocalSnapshotSummary(
+              state: LocalSnapshotState.hasUserData,
+              hasUserData: true,
+              hasSystemData: true,
+              pendingOutboxCount: 0,
+              fingerprint: 'local:hasUserData',
+            ),
+          );
+      localSnapshotSummaryService.guardedSummary = const LocalSnapshotSummary(
+        state: LocalSnapshotState.hasUserData,
+        hasUserData: true,
+        hasSystemData: true,
+        pendingOutboxCount: 0,
+        fingerprint: 'local:changed-after-backup',
+      );
+
+      final _FakeLocalToCloudMigrationStateRepository migrationStateRepository =
+          _FakeLocalToCloudMigrationStateRepository();
+      final CloudActivationExecutionService service = _buildService(
+        activationStateRepository: _FakeCloudActivationStateRepository(),
+        migrationStateRepository: migrationStateRepository,
+        entitlementRepository: _FakeCloudEntitlementRepository(
+          CloudEntitlementState.active,
+        ),
+        localSnapshotSummaryService: localSnapshotSummaryService,
+        cloudSnapshotSummaryService: _FakeCloudSnapshotSummaryService(
+          const CloudSnapshotSummary(
+            state: RemoteSnapshotState.empty,
+            hasUserData: false,
+            hasMetadata: false,
+            hasTombstonesOnly: false,
+            fingerprint: 'remote:empty|uid:cloud-user-1',
+          ),
+        ),
+        localToCloudMigrationReadinessService:
+            _FakeLocalToCloudMigrationReadinessService(
+              const LocalToCloudMigrationPreflightResult.ready(
+                localSummary: LocalSnapshotSummary(
+                  state: LocalSnapshotState.hasUserData,
+                  hasUserData: true,
+                  hasSystemData: true,
+                  pendingOutboxCount: 0,
+                  fingerprint: 'local:hasUserData',
+                ),
+                inventorySnapshot: LocalToCloudMigrationInventorySnapshot(
+                  candidateFamilyKeys: <String>{'transactions'},
+                  rowsByFamily: <String, List<LocalToCloudMigrationRow>>{
+                    'transactions': <LocalToCloudMigrationRow>[
+                      LocalToCloudMigrationRow(
+                        familyKey: 'transactions',
+                        localRowId: 'tx-1',
+                        reusedDocumentId: 'tx-1',
+                      ),
+                    ],
+                  },
+                ),
+                readinessResult: LocalToCloudMigrationReadinessResult.ready(),
+              ),
+            ),
+        prepareExportBundleUseCase: _FakePrepareExportBundleUseCase(
+          _sampleExportBundle(),
+        ),
+        exportUserDataUseCase: _FakeExportUserDataUseCase(
+          ExportFileSaveResult.success(filePath: '/tmp/migrate-backup.json'),
+        ),
       );
 
       final CloudActivationExecutionResult result = await service
@@ -964,10 +1318,9 @@ void main() {
       expect(result.status, CloudActivationExecutionStatus.blocked);
       expect(
         result.blockReason,
-        CloudActivationExecutionBlockReason.migrationExecutionNotImplemented,
+        CloudActivationExecutionBlockReason.staleReadiness,
       );
-      expect(result.message, contains('Preflight migrateLocalToCloud прошёл'));
-      expect(readinessService.callCount, 1);
+      expect(migrationStateRepository.state, isNull);
     },
   );
 }

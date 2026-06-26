@@ -1681,6 +1681,64 @@
   "@homeSyncStatusAuthRequired": {
     "description": "Показывается, когда нет авторизации для синхронизации"
   },
+  "homeSyncStatusSuccessWithCount": "Синхронизация успешна: получено {count} изменений.",
+  "@homeSyncStatusSuccessWithCount": {
+    "description": "Показывается после успешной синхронизации с количеством изменений",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeSyncStatusPushFailed": "Не удалось отправить локальные изменения. Попробуйте позже.",
+  "@homeSyncStatusPushFailed": {
+    "description": "Показывается, когда не удалось отправить локальные изменения"
+  },
+  "homeSyncStatusBlockedByLocalData": "Синхронизация заблокирована: требуется решение по локальным данным перед включением облака.",
+  "@homeSyncStatusBlockedByLocalData": {
+    "description": "Показывается, когда синхронизация заблокирована локальными данными"
+  },
+  "homeSyncStatusDependencyCycle": "Локальные изменения содержат циклическую зависимость и не были отправлены. Требуется исправление данных.",
+  "@homeSyncStatusDependencyCycle": {
+    "description": "Показывается при циклической зависимости в локальных изменениях"
+  },
+  "homeSyncStatusFullSyncRequired": "Требуется полная синхронизация. Пожалуйста, перезапустите приложение.",
+  "@homeSyncStatusFullSyncRequired": {
+    "description": "Показывается, когда требуется полная синхронизация"
+  },
+  "homeSyncStatusError": "Ошибка синхронизации: {error}",
+  "@homeSyncStatusError": {
+    "description": "Показывается при ошибке синхронизации",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "homeSyncStatusDisabledByBuild": "Эта версия работает только локально.",
+  "@homeSyncStatusDisabledByBuild": {
+    "description": "Показывается, когда синхронизация отключена в сборке"
+  },
+  "homeSyncStatusRequiresEntitlement": "Синхронизация выключена. Сначала активируйте облачный доступ.",
+  "@homeSyncStatusRequiresEntitlement": {
+    "description": "Показывается, когда требуется активация облачного доступа"
+  },
+  "homeSyncStatusRequiresSignIn": "Войдите в аккаунт, чтобы включить синхронизацию.",
+  "@homeSyncStatusRequiresSignIn": {
+    "description": "Показывается, когда требуется войти в аккаунт"
+  },
+  "homeSyncStatusBlockedByLocalDataFeature": "Нужно действие перед включением синхронизации.",
+  "@homeSyncStatusBlockedByLocalDataFeature": {
+    "description": "Показывается, когда доступ заблокирован локальными данными"
+  },
+  "homeSyncStatusUnavailable": "Состояние синхронизации еще уточняется.",
+  "@homeSyncStatusUnavailable": {
+    "description": "Показывается, когда доступность синхронизации проверяется"
+  },
+  "homeSyncStatusTemporarilyUnavailable": "Синхронизация временно недоступна.",
+  "@homeSyncStatusTemporarilyUnavailable": {
+    "description": "Показывается, когда синхронизация временно недоступна"
+  },
   "homeTotalBalance": "Суммарный баланс: {amount}",
   "@homeTotalBalance": {
     "description": "Заголовок AppBar с суммарным балансом",

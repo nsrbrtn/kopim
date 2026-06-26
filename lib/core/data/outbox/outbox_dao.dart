@@ -623,6 +623,22 @@ class OutboxDao {
         ))
         .go();
   }
+
+  Future<void> consumeMigrationOutboxEntries(
+    List<(String entityType, String entityId)> targets,
+  ) async {
+    await _db.transaction(() async {
+      for (final (String entityType, String entityId) in targets) {
+        await (_db.delete(_db.outboxEntries)..where(
+              (db.$OutboxEntriesTable tbl) =>
+                  tbl.entityType.equals(entityType) &
+                  tbl.entityId.equals(entityId) &
+                  (tbl.ownerUid.like('local-%') | tbl.ownerUid.isNull()),
+            ))
+            .go();
+      }
+    });
+  }
 }
 
 class OutboxPendingPlan {

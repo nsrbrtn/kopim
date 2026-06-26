@@ -58,6 +58,8 @@ class DebtRemoteDataSource {
     return snapshot.docs.map(fromDocument).toList(growable: false);
   }
 
+  Map<String, dynamic> toFirestorePayload(DebtEntity debt) => _mapDebt(debt);
+
   Map<String, dynamic> _mapDebt(DebtEntity debt) {
     final MoneyAmount amount = debt.amountValue;
     return <String, dynamic>{

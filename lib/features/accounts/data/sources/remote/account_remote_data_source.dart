@@ -62,6 +62,9 @@ class AccountRemoteDataSource {
     return snapshot.docs.map(fromDocument).toList();
   }
 
+  Map<String, dynamic> toFirestorePayload(AccountEntity account) =>
+      mapAccount(account);
+
   Map<String, dynamic> mapAccount(AccountEntity account) {
     final MoneyAmount balance = account.balanceAmount;
     final MoneyAmount openingBalance = account.openingBalanceAmount;

@@ -13,7 +13,7 @@ class AppSplashPlaceholder extends StatelessWidget {
     final Brightness brightness = MediaQuery.platformBrightnessOf(context);
     final bool isDark = brightness == Brightness.dark;
     final String logoAsset = isDark
-        ? 'assets/icons/logo_dark.png'
+        ? 'assets/icons/kopim_logo.png'
         : 'assets/icons/logo_light.png';
 
     return ColoredBox(

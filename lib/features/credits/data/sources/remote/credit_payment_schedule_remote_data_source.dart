@@ -69,6 +69,10 @@ class CreditPaymentScheduleRemoteDataSource {
     return snapshot.docs.map(fromDocument).toList(growable: false);
   }
 
+  Map<String, dynamic> toFirestorePayload(
+    CreditPaymentScheduleEntity schedule,
+  ) => _mapSchedule(schedule);
+
   Map<String, dynamic> _mapSchedule(CreditPaymentScheduleEntity schedule) {
     final Money totalAmount = schedule.totalAmount;
     final Money principalAmount = schedule.principalAmount;

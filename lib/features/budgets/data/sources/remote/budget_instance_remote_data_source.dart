@@ -66,6 +66,9 @@ class BudgetInstanceRemoteDataSource {
     return snapshot.docs.map(fromDocument).toList();
   }
 
+  Map<String, dynamic> toFirestorePayload(BudgetInstance instance) =>
+      _mapInstance(instance);
+
   Map<String, dynamic> _mapInstance(BudgetInstance instance) {
     final MoneyAmount amount = instance.amountValue;
     final MoneyAmount spent = instance.spentValue;

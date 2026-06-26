@@ -1681,6 +1681,64 @@
   "@homeSyncStatusAuthRequired": {
     "description": "Shown when user is not authenticated for sync"
   },
+  "homeSyncStatusSuccessWithCount": "Sync successful: received {count} changes.",
+  "@homeSyncStatusSuccessWithCount": {
+    "description": "Shown after manual sync completes with a count of pulled changes",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeSyncStatusPushFailed": "Failed to send local changes. Please try again later.",
+  "@homeSyncStatusPushFailed": {
+    "description": "Shown when push fails during manual sync"
+  },
+  "homeSyncStatusBlockedByLocalData": "Sync is blocked because local data needs a separate decision before cloud can be enabled.",
+  "@homeSyncStatusBlockedByLocalData": {
+    "description": "Shown when sync is blocked by local data"
+  },
+  "homeSyncStatusDependencyCycle": "Local changes contain a dependency cycle and were not sent. Data repair is required.",
+  "@homeSyncStatusDependencyCycle": {
+    "description": "Shown when local changes contain a dependency cycle"
+  },
+  "homeSyncStatusFullSyncRequired": "Full sync required. Please restart the app.",
+  "@homeSyncStatusFullSyncRequired": {
+    "description": "Shown when full sync is required"
+  },
+  "homeSyncStatusError": "Sync error: {error}",
+  "@homeSyncStatusError": {
+    "description": "Shown when sync fails with an error",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "homeSyncStatusDisabledByBuild": "This build works in local-only mode.",
+  "@homeSyncStatusDisabledByBuild": {
+    "description": "Shown when sync is disabled by build"
+  },
+  "homeSyncStatusRequiresEntitlement": "Sync is disabled. Activate cloud access first.",
+  "@homeSyncStatusRequiresEntitlement": {
+    "description": "Shown when sync requires entitlement"
+  },
+  "homeSyncStatusRequiresSignIn": "Sign in to enable sync.",
+  "@homeSyncStatusRequiresSignIn": {
+    "description": "Shown when sync requires sign in"
+  },
+  "homeSyncStatusBlockedByLocalDataFeature": "Action is required before sync can be enabled.",
+  "@homeSyncStatusBlockedByLocalDataFeature": {
+    "description": "Shown when feature gate is blocked by local data"
+  },
+  "homeSyncStatusUnavailable": "Sync availability is still being checked.",
+  "@homeSyncStatusUnavailable": {
+    "description": "Shown when sync availability is still being checked"
+  },
+  "homeSyncStatusTemporarilyUnavailable": "Sync is temporarily unavailable.",
+  "@homeSyncStatusTemporarilyUnavailable": {
+    "description": "Shown when sync is temporarily unavailable"
+  },
   "homeTotalBalance": "Total balance: {amount}",
   "@homeTotalBalance": {
     "description": "App bar title showing the aggregated balance",

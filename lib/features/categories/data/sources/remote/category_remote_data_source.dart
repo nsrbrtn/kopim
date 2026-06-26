@@ -60,6 +60,9 @@ class CategoryRemoteDataSource {
     return snapshot.docs.map(fromDocument).toList();
   }
 
+  Map<String, dynamic> toFirestorePayload(Category category) =>
+      mapCategory(category);
+
   Map<String, dynamic> mapCategory(Category category) {
     return <String, dynamic>{
       'id': category.id,

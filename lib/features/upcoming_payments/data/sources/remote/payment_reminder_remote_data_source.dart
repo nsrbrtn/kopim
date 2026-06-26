@@ -54,6 +54,9 @@ class PaymentReminderRemoteDataSource {
     return snapshot.docs.map(fromDocument).toList(growable: false);
   }
 
+  Map<String, dynamic> toFirestorePayload(PaymentReminder reminder) =>
+      _mapReminder(reminder);
+
   Map<String, dynamic> _mapReminder(PaymentReminder reminder) {
     return <String, dynamic>{
       'id': reminder.id,

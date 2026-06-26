@@ -2466,6 +2466,78 @@ abstract class AppLocalizations {
   /// **'Sign in to sync your data.'**
   String get homeSyncStatusAuthRequired;
 
+  /// Shown after manual sync completes with a count of pulled changes
+  ///
+  /// In en, this message translates to:
+  /// **'Sync successful: received {count} changes.'**
+  String homeSyncStatusSuccessWithCount(int count);
+
+  /// Shown when push fails during manual sync
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to send local changes. Please try again later.'**
+  String get homeSyncStatusPushFailed;
+
+  /// Shown when sync is blocked by local data
+  ///
+  /// In en, this message translates to:
+  /// **'Sync is blocked because local data needs a separate decision before cloud can be enabled.'**
+  String get homeSyncStatusBlockedByLocalData;
+
+  /// Shown when local changes contain a dependency cycle
+  ///
+  /// In en, this message translates to:
+  /// **'Local changes contain a dependency cycle and were not sent. Data repair is required.'**
+  String get homeSyncStatusDependencyCycle;
+
+  /// Shown when full sync is required
+  ///
+  /// In en, this message translates to:
+  /// **'Full sync required. Please restart the app.'**
+  String get homeSyncStatusFullSyncRequired;
+
+  /// Shown when sync fails with an error
+  ///
+  /// In en, this message translates to:
+  /// **'Sync error: {error}'**
+  String homeSyncStatusError(String error);
+
+  /// Shown when sync is disabled by build
+  ///
+  /// In en, this message translates to:
+  /// **'This build works in local-only mode.'**
+  String get homeSyncStatusDisabledByBuild;
+
+  /// Shown when sync requires entitlement
+  ///
+  /// In en, this message translates to:
+  /// **'Sync is disabled. Activate cloud access first.'**
+  String get homeSyncStatusRequiresEntitlement;
+
+  /// Shown when sync requires sign in
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to enable sync.'**
+  String get homeSyncStatusRequiresSignIn;
+
+  /// Shown when feature gate is blocked by local data
+  ///
+  /// In en, this message translates to:
+  /// **'Action is required before sync can be enabled.'**
+  String get homeSyncStatusBlockedByLocalDataFeature;
+
+  /// Shown when sync availability is still being checked
+  ///
+  /// In en, this message translates to:
+  /// **'Sync availability is still being checked.'**
+  String get homeSyncStatusUnavailable;
+
+  /// Shown when sync is temporarily unavailable
+  ///
+  /// In en, this message translates to:
+  /// **'Sync is temporarily unavailable.'**
+  String get homeSyncStatusTemporarilyUnavailable;
+
   /// App bar title showing the aggregated balance
   ///
   /// In en, this message translates to:
