@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:kopim/core/config/app_capabilities.dart';
 import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/utils/platform_support.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -45,12 +46,13 @@ class AppStartupController extends _$AppStartupController {
 
     try {
       final LoggerService logger = ref.read(loggerServiceProvider);
+      final AppCapabilities capabilities = ref.read(appCapabilitiesProvider);
       logger.logInfo(
         'AppStartupController: initialize start, flavor=${AppRuntimeConfig.flavor.name}, isWeb=$_isRunningOnWeb.',
       );
       await initializeLocalTimeZone();
 
-      if (AppRuntimeConfig.usesFirebase) {
+      if (capabilities.canInitializeFirebase) {
         await ref.read(firebaseInitializationProvider.future);
       } else {
         ref
@@ -66,7 +68,7 @@ class AppStartupController extends _$AppStartupController {
         'AppStartupController: firebaseAvailable=$firebaseAvailable, distribution=${AppRuntimeConfig.distributionMode.name}.',
       );
 
-      if (AppRuntimeConfig.isOffline) {
+      if (!capabilities.canRunCloudSync) {
         unawaited(_initializeBackgroundServices());
       } else if (_isRunningOnWeb) {
         if (!firebaseAvailable) {

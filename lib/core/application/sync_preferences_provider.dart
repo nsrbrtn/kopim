@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kopim/core/config/app_runtime.dart';
+import 'package:kopim/core/config/app_capabilities.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const String _kOnlineSyncEnabledKey = 'core.online_sync.enabled';
@@ -15,14 +15,16 @@ class OnlineSyncPreferencesController extends AsyncNotifier<bool> {
 
   @override
   Future<bool> build() async {
+    final AppCapabilities capabilities = ref.watch(appCapabilitiesProvider);
     _preferencesFuture = SharedPreferences.getInstance();
     final SharedPreferences prefs = await _preferencesFuture;
-    final bool defaultValue = AppRuntimeConfig.isOffline ? false : true;
+    final bool defaultValue = capabilities.canRunCloudSync;
     return prefs.getBool(_kOnlineSyncEnabledKey) ?? defaultValue;
   }
 
   Future<void> setEnabled(bool value) async {
-    if (AppRuntimeConfig.isOffline) {
+    final AppCapabilities capabilities = ref.read(appCapabilitiesProvider);
+    if (!capabilities.canRunCloudSync) {
       state = const AsyncValue<bool>.data(false);
       return;
     }

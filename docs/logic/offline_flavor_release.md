@@ -1,8 +1,8 @@
-# Offline flavor для первого релиза
+# Offline flavor как автономный distribution contour
 
 ## Что изменилось
 
-- Для первой публикации введен отдельный `offlineOnly` flavor с entrypoint `lib/main_offline.dart`.
+- В проекте существует отдельный `offlineOnly` flavor с entrypoint `lib/main_offline.dart`.
 - Публичный package name первого релиза в Google Play: `kopim.app`.
 - Android offline flavor теперь дополнительно определяет runtime по `appFlavor`, поэтому сборка `--flavor offlineOnly` не должна случайно поднять Firebase-контур даже если кто-то забудет `--target lib/main_offline.dart`.
 - Offline runtime работает без обязательной инициализации Firebase и без рабочего AI/cloud sync контура.
@@ -17,8 +17,14 @@
 ## Зачем
 
 - Выпустить первую публичную версию как полнофункциональное локальное приложение без облачных блокеров.
-- Подготовить отдельный release contour под `kopim.app`, не зависящий от готовности backend/sync/AI.
-- Сохранить возможность позже развить этот же продуктовый контур до облачной версии.
+- Поддерживать отдельный автономный contour под `kopim.app`, не зависящий от готовности backend/sync/AI.
+- Сохранить параллельный privacy/offline дистрибутив, пока основной Play-контур развивается как `storeProdLocalFirst`.
+
+## Текущее позиционирование
+
+- Основной публичный Android Play contour теперь рассматривается как `storeProdLocalFirst`: local-first, но cloud-capable сборка.
+- `offlineOnly` больше не считается основным Play flow и поддерживается как отдельный автономный distribution для offline/privacy сценариев.
+- До финального smoke нового Play-контура `offlineOnly` остаётся поддерживаемым параллельным артефактом и не считается deprecated.
 
 ## Как проверить
 
@@ -39,7 +45,7 @@ flutter build apk --flavor offlineOnly --target lib/main_offline.dart
    - кнопка выхода отсутствует.
 6. Перезапустить приложение и убедиться, что локальный пользователь сохраняется, а данные остаются доступными.
 
-Для загрузки в `Google Play` используй `AAB`:
+Для сборки автономного `offlineOnly` артефакта используй `AAB`:
 
 ```bash
 flutter build appbundle --flavor offlineOnly --release --target lib/main_offline.dart
@@ -50,8 +56,8 @@ flutter build appbundle --flavor offlineOnly --release --target lib/main_offline
 - Для `Google Play` даже приложение без сбора данных обязано иметь:
   - заполненную `Data safety` форму;
   - `privacy policy` URL.
-- Offline release публикуется как отдельное приложение `kopim.app`, поэтому его `Data safety` и `privacy policy` ведутся отдельно от legacy-контура `qmodo.ru.kopim`.
-- Если позже планируется облачное обновление именно этого приложения в Play, публичный release contour должен продолжать использовать `kopim.app`.
+- Offline release может публиковаться как отдельное приложение `kopim.app`, поэтому его `Data safety` и `privacy policy` ведутся отдельно от legacy-контура `qmodo.ru.kopim`.
+- Публичный cloud-capable Play contour документируется отдельно как `storeProdLocalFirst` и не должен смешиваться с автономными policy/copy assumptions этого документа.
 - В текущем состоянии offline runtime не инициализирует Firebase, sync и AI, но Android release artifact все еще содержит часть Firebase/Sentry SDK через общий `Flutter` dependency graph.
 - Из-за этого `Data Safety` для `kopim.app` сейчас следует заполнять консервативно: не как полностью `zero-data` binary, а как offline-приложение с ограниченным техническим telemetry/diagnostics contour.
 

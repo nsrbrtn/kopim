@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'core/application/app_startup_controller.dart';
 import 'core/application/sync_coordinator.dart';
+import 'core/config/app_capabilities.dart';
 import 'core/config/app_config.dart';
 import 'core/config/app_runtime.dart';
 import 'core/config/firebase_environment.dart';
@@ -203,7 +204,10 @@ class _MyAppState extends ConsumerState<MyApp> {
       supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: startupState.when(
         data: (_) {
-          if (!AppRuntimeConfig.isOffline) {
+          final AppCapabilities capabilities = ref.watch(
+            appCapabilitiesProvider,
+          );
+          if (capabilities.canRunCloudSync) {
             ref.watch(syncCoordinatorProvider);
           }
           return ref.watch(appRouterProvider);

@@ -243,7 +243,7 @@ Locale _resolveSystemFallbackLocale() {
 final FutureProvider<AppConfig> appConfigProvider = FutureProvider<AppConfig>((
   Ref ref,
 ) async {
-  if (AppRuntimeConfig.isOffline) {
+  if (!AppRuntimeConfig.isCloudCapableDistribution) {
     return AppConfig(
       generativeAi: _buildDefaultGenerativeAiConfig(),
       legal: _buildLegalConfig(),
@@ -391,7 +391,7 @@ GenerativeAiConfig _buildDefaultGenerativeAiConfig() {
     baseUrl: envBaseUrl.isNotEmpty ? envBaseUrl : _kDefaultAiBaseUrl,
     requestTimeout: _kDefaultAiRequestTimeout,
     throttleInterval: _kDefaultAiThrottleInterval,
-    isEnabled: !AppRuntimeConfig.isOffline,
+    isEnabled: AppRuntimeConfig.isCloudCapableDistribution,
     maxRetries: _kDefaultAiMaxRetries,
     retryBaseDelay: _kDefaultAiRetryBaseDelay,
     retryMultiplier: _kDefaultAiRetryMultiplier,

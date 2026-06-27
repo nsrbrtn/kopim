@@ -108,14 +108,13 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   const MethodChannel timeZoneChannel = MethodChannel('flutter_timezone');
+  const Settings firestoreSettings = Settings(
+    persistenceEnabled: true,
+    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+  );
 
   setUpAll(() {
-    registerFallbackValue(
-      const Settings(
-        persistenceEnabled: true,
-        cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
-      ),
-    );
+    registerFallbackValue(firestoreSettings);
   });
 
   late FirebasePlatform? previousFirebaseDelegate;
@@ -274,6 +273,71 @@ void main() {
 
         expect(syncCallCount, 2);
       });
+    },
+  );
+
+  test(
+    'cloud-capable mobile startup initializes Firebase and background services without web sync warmup',
+    () async {
+      AppRuntimeConfig.configure(AppRuntimeFlavor.storeProdLocalFirst);
+      AppStartupController.debugIsWebOverride = false;
+      final _MockUpcomingPaymentsWorkScheduler upcomingScheduler =
+          _MockUpcomingPaymentsWorkScheduler();
+      final _MockSyncService syncService = _MockSyncService();
+      final _MockFirebaseFirestore firestore = _MockFirebaseFirestore();
+      final _MockLocalSyncIntegrityDebugReporter integrityReporter =
+          _MockLocalSyncIntegrityDebugReporter();
+      int firebaseInitReads = 0;
+      int notificationBuilds = 0;
+
+      when(
+        () => integrityReporter.runAndLog(context: any(named: 'context')),
+      ).thenAnswer((_) async {});
+      when(
+        () => upcomingScheduler.cleanupLegacyWorkIfNeeded(),
+      ).thenAnswer((_) async {});
+      when(
+        () => firestore.settings = firestoreSettings,
+      ).thenReturn(firestoreSettings);
+
+      final ProviderContainer container = ProviderContainer(
+        overrides: [
+          firebaseInitializationProvider.overrideWith((ref) async {
+            firebaseInitReads++;
+          }),
+          syncServiceProvider.overrideWithValue(syncService),
+          firestoreProvider.overrideWithValue(firestore),
+          upcomingPaymentsWorkSchedulerProvider.overrideWithValue(
+            upcomingScheduler,
+          ),
+          localSyncIntegrityDebugReporterProvider.overrideWithValue(
+            integrityReporter,
+          ),
+          upcomingNotificationsControllerProvider.overrideWith(() {
+            return _FakeUpcomingNotificationsController(
+              onBuild: () => notificationBuilds++,
+            );
+          }),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final ProviderSubscription<AppStartupResult> subscription = container
+          .listen<AppStartupResult>(
+            appStartupControllerProvider,
+            (previous, next) {},
+          );
+      addTearDown(subscription.close);
+
+      await container.read(appStartupControllerProvider.notifier).initialize();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(firebaseInitReads, 1);
+      expect(container.read(appStartupControllerProvider).isLoading, isFalse);
+      expect(notificationBuilds, 1);
+      verify(() => firestore.settings = firestoreSettings).called(1);
+      verifyNever(() => syncService.initialize());
+      verifyNever(() => syncService.syncPending());
     },
   );
 }

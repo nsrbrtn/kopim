@@ -5,8 +5,11 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:kopim/features/profile/domain/entities/cloud_metadata.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kopim/core/config/app_capabilities.dart';
 import 'package:kopim/core/config/app_runtime.dart';
+import 'package:kopim/core/config/firebase_environment.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/sign_in_request.dart';
@@ -177,6 +180,79 @@ void main() {
       expect(find.text('Создать'), findsOneWidget);
       expect(find.text(strings.signUpConfirmPasswordLabel), findsOneWidget);
       expect(find.text(strings.signUpDisplayNameLabel), findsOneWidget);
+
+      await connectivityStream.close();
+    },
+  );
+
+  testWidgets(
+    'storeProdLocalFirst ignores startInSignUpMode and keeps sign-in only UI',
+    (WidgetTester tester) async {
+      AppRuntimeConfig.configure(AppRuntimeFlavor.storeProdLocalFirst);
+      await setWindowSize(tester, const Size(800, 1200));
+      final _MockConnectivity connectivity = _MockConnectivity();
+      final StreamController<List<ConnectivityResult>> connectivityStream =
+          StreamController<List<ConnectivityResult>>.broadcast();
+      when(() => connectivity.checkConnectivity()).thenAnswer(
+        (_) async => const <ConnectivityResult>[ConnectivityResult.wifi],
+      );
+      when(
+        () => connectivity.onConnectivityChanged,
+      ).thenAnswer((_) => connectivityStream.stream);
+      final _StubAuthController authController = _StubAuthController();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: <Override>[
+            connectivityProvider.overrideWithValue(connectivity),
+            authControllerProvider.overrideWith(() => authController),
+            appCapabilitiesProvider.overrideWithValue(
+              const AppCapabilities(
+                canInitializeFirebase: true,
+                canUseFirebaseAuth: true,
+                canUseFirestore: true,
+                canUseRemoteConfig: true,
+                canRunCloudSync: true,
+                canUseAiTransport: true,
+                canShowCloudSyncEntryPoint: true,
+                canRegisterInApp: false,
+                canShowPaymentOrPurchaseUi: false,
+                canActivatePromoOrLicenseInApp: false,
+                requiresEntitlementBeforeWebApp: false,
+                allowsLocalOnlyUsage: true,
+                expiredEntitlementMode:
+                    ExpiredEntitlementMode.localWritableSyncPaused,
+                firebaseEnvironment: FirebaseEnvironment.prod,
+              ),
+            ),
+            dataModeControllerProvider.overrideWith(
+              () => _FakeDataModeController(
+                const DataModeState(
+                  dataMode: DataMode.localOnly,
+                  entitlementState: CloudEntitlementState.active,
+                  migrationDecision: MigrationDecision.none,
+                  cloudDataState: CloudDataState.active,
+                  requiresFreshCloudUpload: false,
+                  isSyncBlockedByCloudState: false,
+                ),
+              ),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: SignInScreen(startInSignUpMode: true),
+          ),
+        ),
+      );
+
+      await pumpReady(tester);
+
+      expect(find.text('Войти'), findsOneWidget);
+      expect(find.text('Создать'), findsNothing);
+      expect(find.text('Создать аккаунт'), findsNothing);
+      expect(find.text('Войдите в аккаунт'), findsOneWidget);
+      expect(find.text('Продолжить офлайн'), findsOneWidget);
 
       await connectivityStream.close();
     },

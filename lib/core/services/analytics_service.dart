@@ -9,7 +9,7 @@ import 'package:kopim/core/services/firebase_runtime_guard.dart';
 class AnalyticsService {
   const AnalyticsService();
 
-  bool get _isTelemetryEnabled => !AppRuntimeConfig.isOffline;
+  bool get _isTelemetryEnabled => AppRuntimeConfig.isCloudCapableDistribution;
   bool get _isFirebaseReady => hasFirebaseAppsSafely();
 
   Future<void> logEvent(String name, [Map<String, dynamic>? params]) async {

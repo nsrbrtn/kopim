@@ -3,16 +3,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_decision_controller.dart';
+import 'package:kopim/core/config/app_capabilities.dart';
+import 'package:kopim/core/config/app_runtime.dart';
+import 'package:kopim/core/config/firebase_environment.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_preflight_controller.dart';
 import 'package:kopim/features/profile/presentation/screens/cloud_activation_choice_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/cloud_activation_preflight_screen.dart';
+import 'package:kopim/features/profile/presentation/screens/cloud_sync_intro_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
 import 'package:go_router/go_router.dart';
 import '../router_test_helper.dart';
 
-Widget _buildTestApp({required CloudActivationPreflightState state}) {
+Widget _buildTestApp({
+  required CloudActivationPreflightState state,
+  AppCapabilities? capabilities,
+}) {
   return ProviderScope(
     overrides: <Override>[
+      if (capabilities != null)
+        appCapabilitiesProvider.overrideWithValue(capabilities),
       cloudActivationPreflightProvider.overrideWithValue(state),
       cloudActivationDecisionProvider.overrideWithValue(
         const CloudActivationDecisionState(
@@ -34,6 +43,7 @@ Widget _buildTestApp({required CloudActivationPreflightState state}) {
       initialLocation: '/cloud-activation-preflight',
       additionalRoutes: <RouteBase>[
         mockRoute(SignInScreen.routeName, text: 'sign-in-screen'),
+        mockRoute(CloudSyncIntroScreen.routeName, text: 'intro-screen'),
         mockRoute(CloudActivationChoiceScreen.routeName, text: 'choice-screen'),
       ],
     ),
@@ -58,6 +68,40 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('sign-in-screen'), findsOneWidget);
+  });
+
+  testWidgets('production signedOut state opens intro route', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      _buildTestApp(
+        state: const CloudActivationPreflightState(
+          CloudActivationPreflightStatus.signedOut,
+        ),
+        capabilities: const AppCapabilities(
+          canInitializeFirebase: true,
+          canUseFirebaseAuth: true,
+          canUseFirestore: true,
+          canUseRemoteConfig: true,
+          canRunCloudSync: true,
+          canUseAiTransport: true,
+          canShowCloudSyncEntryPoint: true,
+          canRegisterInApp: false,
+          canShowPaymentOrPurchaseUi: false,
+          canActivatePromoOrLicenseInApp: false,
+          requiresEntitlementBeforeWebApp: false,
+          allowsLocalOnlyUsage: true,
+          expiredEntitlementMode:
+              ExpiredEntitlementMode.localWritableSyncPaused,
+          firebaseEnvironment: FirebaseEnvironment.prod,
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Войти в аккаунт'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('intro-screen'), findsOneWidget);
   });
 
   testWidgets('alreadyCloudEnabled state explains that preflight is not needed', (

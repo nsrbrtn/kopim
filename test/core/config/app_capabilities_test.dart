@@ -37,5 +37,33 @@ void main() {
     final AppCapabilities capabilities = AppCapabilities.fromRuntime();
 
     expect(capabilities.firebaseEnvironment, FirebaseEnvironment.prod);
+    expect(capabilities.canRunCloudSync, isTrue);
+    expect(capabilities.canRegisterInApp, isFalse);
+    expect(capabilities.canShowPaymentOrPurchaseUi, isFalse);
+    expect(capabilities.canActivatePromoOrLicenseInApp, isFalse);
+    expect(capabilities.allowsLocalOnlyUsage, isTrue);
+    expect(
+      capabilities.expiredEntitlementMode,
+      ExpiredEntitlementMode.localWritableSyncPaused,
+    );
+  });
+
+  test('webProdCloudOnly runtime keeps cloud capabilities and web gating', () {
+    AppRuntimeConfig.configure(AppRuntimeFlavor.webProdCloudOnly);
+    FirebaseEnvironmentConfig.configure(FirebaseEnvironment.prod);
+
+    final AppCapabilities capabilities = AppCapabilities.fromRuntime();
+
+    expect(capabilities.firebaseEnvironment, FirebaseEnvironment.prod);
+    expect(capabilities.canRunCloudSync, isTrue);
+    expect(capabilities.canRegisterInApp, isTrue);
+    expect(capabilities.canShowPaymentOrPurchaseUi, isTrue);
+    expect(capabilities.canActivatePromoOrLicenseInApp, isTrue);
+    expect(capabilities.requiresEntitlementBeforeWebApp, isTrue);
+    expect(capabilities.allowsLocalOnlyUsage, isFalse);
+    expect(
+      capabilities.expiredEntitlementMode,
+      ExpiredEntitlementMode.readOnly,
+    );
   });
 }

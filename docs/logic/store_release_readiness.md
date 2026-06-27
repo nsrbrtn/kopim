@@ -13,6 +13,12 @@
 - как провести тестовый релиз и выкладку;
 - что мониторить после публикации.
 
+Актуализация на `2026-06-27`:
+
+- основной Android Play contour рассматривается как `storeProdLocalFirst`;
+- `offlineOnly` сохраняется как отдельный автономный distribution и не считается главным Play flow;
+- mobile production copy и release-checklist для `storeProdLocalFirst` должны соблюдать consumption-only модель без purchase/promo/license CTA.
+
 Документ привязан к текущему состоянию репозитория на `2026-03-07`.
 
 ## Текущая оценка на 2026-04-09
@@ -718,6 +724,8 @@ flutter build appbundle --release --flavor storeProdLocalFirst --target lib/main
 
 ## Что уже есть в проекте
 
+- Основной Android Play contour на текущем этапе: `storeProdLocalFirst` (`local-first`, но `cloud-capable`).
+- `offlineOnly` сохраняется как отдельный автономный offline distribution до финального smoke и policy review нового Play-контура.
 - Android package для production cloud runtime: `kopim.app`.
 - iOS bundle id для prod: `qmodo.ru.kopim`.
 - На Android уже есть flavor `storeProdLocalFirst`.

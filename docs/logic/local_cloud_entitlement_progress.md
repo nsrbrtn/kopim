@@ -20,8 +20,9 @@
 | Первый execution path: `enableCloudSync` для пустого workspace | `done` | explicit activation flag per UID, final revalidation, guarded runtime transition и auth/startup sync gate зафиксированы в текущем checkout |
 | Второй execution path: `startWithEmptyCloud` | `done` | explicit backup/export перед destructive step, guarded local reset, отдельный activation scenario per UID и targeted regressions зафиксированы в текущем checkout |
 | Реальная миграция `local -> cloud` | `done` | Подключение runtime transition и controlled execution flow поверх upload/verification/conversion слоев завершено, все интеграционные сценарии и граничные тесты полностью покрыты и проходят. |
-| Server-backed entitlement / trial lifecycle | `planned` | сознательно отложено |
-| Web read-only barrier для expired entitlement | `planned` | сознательно отложено |
+| Переход Play-контура на `storeProdLocalFirst` | `in_progress` | открыт отдельный ExecPlan `2026-06-27-play-market-local-first-cloud-capable-transition.md`, Track 1 стартовал |
+| Server-backed entitlement / trial lifecycle | `in_progress` | переведено в активный трек в рамках Play local-first cloud-capable transition |
+| Web read-only barrier для expired entitlement | `in_progress` | переведено в активный трек в рамках того же перехода |
 
 ## Этапы
 
@@ -132,8 +133,9 @@
 ## Ближайший фокус
 
 Все основные сценарии переходов и миграции данных (`enableCloudSync`, `startWithEmptyCloud`, `migrateLocalToCloud`) полностью реализованы, покрыты интеграционными тестами и проверены. Ближайший фокус смещается на:
-1. Server-backed entitlement / trial lifecycle (планирование).
-2. Web read-only barrier для expired entitlement (планирование).
+1. Переход публичного Play-контура на `storeProdLocalFirst` как local-first cloud-capable build.
+2. Server-backed entitlement / trial lifecycle (активная реализация).
+3. Web read-only barrier для expired entitlement (активная реализация).
 
 ## Как обновлять этот файл
 

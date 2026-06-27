@@ -58,7 +58,7 @@ class AuthController extends _$AuthController {
       return existingUser;
     }
 
-    if (AppRuntimeConfig.isOffline) {
+    if (AppRuntimeConfig.isOfflineOnlyDistribution) {
       final AuthUser offlineUser = await repository.signInAnonymously();
       state = AsyncValue<AuthUser?>.data(offlineUser);
       return offlineUser;

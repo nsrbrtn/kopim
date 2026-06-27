@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/config/app_capabilities.dart';
 import 'package:kopim/core/di/injectors.dart';
@@ -10,6 +11,7 @@ import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/sign_in_form_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/sign_up_form_controller.dart';
+import 'package:kopim/features/profile/presentation/screens/cloud_activation_preflight_screen.dart';
 import 'package:kopim/features/profile/presentation/utils/auth_error_mapper.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 
@@ -33,11 +35,29 @@ final StreamProvider<bool> _signInOfflineProvider =
     });
 
 class SignInScreen extends ConsumerStatefulWidget {
-  const SignInScreen({super.key, this.startInSignUpMode = false});
+  const SignInScreen({
+    super.key,
+    this.startInSignUpMode = false,
+    this.resumeCloudActivation = false,
+  });
 
   static const String routeName = '/sign-in';
+  static String buildRouteLocation({
+    bool startInSignUpMode = false,
+    bool resumeCloudActivation = false,
+  }) {
+    final Uri uri = Uri(
+      path: routeName,
+      queryParameters: <String, String>{
+        if (startInSignUpMode) 'signUp': 'true',
+        if (resumeCloudActivation) 'resumeCloudActivation': 'true',
+      },
+    );
+    return uri.toString();
+  }
 
   final bool startInSignUpMode;
+  final bool resumeCloudActivation;
 
   @override
   ConsumerState<SignInScreen> createState() => _SignInScreenState();
@@ -60,11 +80,16 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   late final FocusNode _signUpDisplayNameFocusNode;
   ProviderSubscription<SignInFormState>? _signInFormSubscription;
   ProviderSubscription<SignUpFormState>? _signUpFormSubscription;
+  bool _resumeCloudActivationScheduled = false;
+
+  bool _canStartInSignUpMode() {
+    return ref.read(appCapabilitiesProvider).canRegisterInApp;
+  }
 
   @override
   void initState() {
     super.initState();
-    _isSignUpMode = widget.startInSignUpMode;
+    _isSignUpMode = widget.startInSignUpMode && _canStartInSignUpMode();
     final SignInFormController controller = ref.read(
       signInFormControllerProvider.notifier,
     );
@@ -127,6 +152,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           }
           if (next.errorMessage == null) {
             _passwordController.clear();
+            if (widget.resumeCloudActivation) {
+              _scheduleResumeCloudActivationAfterSignIn();
+            }
           }
         }
         if (!mounted) {
@@ -168,10 +196,11 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   @override
   void didUpdateWidget(covariant SignInScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
+    final bool nextMode = widget.startInSignUpMode && _canStartInSignUpMode();
     if (oldWidget.startInSignUpMode != widget.startInSignUpMode &&
-        widget.startInSignUpMode != _isSignUpMode) {
+        nextMode != _isSignUpMode) {
       setState(() {
-        _isSignUpMode = widget.startInSignUpMode;
+        _isSignUpMode = nextMode;
       });
     }
   }
@@ -213,21 +242,23 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     );
     final ThemeData theme = Theme.of(context);
     final AppCapabilities capabilities = ref.watch(appCapabilitiesProvider);
-    final bool isSubmitting = _isSignUpMode
+    final bool canRegisterInApp = capabilities.canRegisterInApp;
+    final bool isSignUpMode = canRegisterInApp && _isSignUpMode;
+    final bool isSubmitting = isSignUpMode
         ? signUpState.isSubmitting
         : formState.isSubmitting;
     final bool isBusy = formState.isSubmitting || signUpState.isSubmitting;
-    final String? errorMessage = _isSignUpMode
+    final String? errorMessage = isSignUpMode
         ? signUpState.errorMessage
         : formState.errorMessage;
 
     final bool emailHasError =
-        !_isSignUpMode &&
+        !isSignUpMode &&
         errorMessage != null &&
         (errorMessage == 'user-not-found' || errorMessage == 'invalid-email');
 
     final bool passwordHasError =
-        !_isSignUpMode &&
+        !isSignUpMode &&
         errorMessage != null &&
         (errorMessage == 'wrong-password' ||
             errorMessage == 'invalid-credential');
@@ -324,12 +355,24 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                     ? 'Проверяем облачный доступ'
                     : showEntitlementGate
                     ? 'Активируй облачный доступ'
-                    : (_isSignUpMode
+                    : (isSignUpMode
                           ? strings.signUpTitle
-                          : 'Войди для синхронизации'),
+                          : 'Войдите в аккаунт'),
                 style: subHeaderStyle,
               ),
               const SizedBox(height: 16),
+              if (!isEntitlementStateResolving &&
+                  !showEntitlementGate) ...<Widget>[
+                Text(
+                  canRegisterInApp
+                      ? 'Войдите в облачный аккаунт или создайте новый, чтобы продолжить.'
+                      : 'Войдите в аккаунт с активным доступом, чтобы включить облачную синхронизацию. Или продолжайте локально без аккаунта.',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
               if (isEntitlementStateResolving)
                 const Center(
                   child: Padding(
@@ -360,6 +403,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   errorMessage: errorMessage,
                   emailHasError: emailHasError,
                   passwordHasError: passwordHasError,
+                  isSignUpMode: isSignUpMode,
                   labelStyle: labelStyle,
                   linkStyle: linkStyle,
                   dividerTextStyle: dividerTextStyle,
@@ -461,6 +505,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     required String? errorMessage,
     required bool emailHasError,
     required bool passwordHasError,
+    required bool isSignUpMode,
     required TextStyle labelStyle,
     required TextStyle linkStyle,
     required TextStyle dividerTextStyle,
@@ -471,7 +516,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        if (_isSignUpMode) ...<Widget>[
+        if (isSignUpMode) ...<Widget>[
           _buildLabel(strings.signInEmailLabel, labelStyle),
           const SizedBox(height: 10),
           KopimTextField(
@@ -608,7 +653,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           child: Align(
             alignment: Alignment.centerRight,
             child: FilledButton(
-              onPressed: _isSignUpMode
+              onPressed: isSignUpMode
                   ? (signUpState.canSubmit
                         ? () => _onSignUpSubmit(signUpController)
                         : null)
@@ -632,57 +677,59 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                       height: 24,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : Text(_isSignUpMode ? 'Создать' : 'Войти'),
+                  : Text(isSignUpMode ? 'Создать' : 'Войти'),
             ),
           ),
         ),
-        const SizedBox(height: 24),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: Divider(
-                color: theme.colorScheme.outlineVariant,
-                thickness: 1,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: Text('или', style: dividerTextStyle),
-            ),
-            Expanded(
-              child: Divider(
-                color: theme.colorScheme.outlineVariant,
-                thickness: 1,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 32),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: <Widget>[
-            if (showOfflineAction)
-              GestureDetector(
-                onTap: isBusy ? null : () => controller.continueOffline(),
-                child: Text('Продолжить офлайн', style: bottomActionStyle),
-              )
-            else
-              const SizedBox.shrink(),
-            if (capabilities.canRegisterInApp)
-              GestureDetector(
-                onTap: isBusy
-                    ? null
-                    : () => _toggleMode(
-                        controller: controller,
-                        signUpController: signUpController,
-                      ),
-                child: Text(
-                  _isSignUpMode ? 'Войти в аккаунт' : 'Создать аккаунт',
-                  style: bottomActionStyle,
+        if (capabilities.canRegisterInApp || showOfflineAction) ...<Widget>[
+          const SizedBox(height: 24),
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Divider(
+                  color: theme.colorScheme.outlineVariant,
+                  thickness: 1,
                 ),
               ),
-          ],
-        ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Text('или', style: dividerTextStyle),
+              ),
+              Expanded(
+                child: Divider(
+                  color: theme.colorScheme.outlineVariant,
+                  thickness: 1,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 32),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              if (showOfflineAction)
+                GestureDetector(
+                  onTap: isBusy ? null : () => controller.continueOffline(),
+                  child: Text('Продолжить офлайн', style: bottomActionStyle),
+                )
+              else
+                const SizedBox.shrink(),
+              if (capabilities.canRegisterInApp)
+                GestureDetector(
+                  onTap: isBusy
+                      ? null
+                      : () => _toggleMode(
+                          controller: controller,
+                          signUpController: signUpController,
+                        ),
+                  child: Text(
+                    isSignUpMode ? 'Войти в аккаунт' : 'Создать аккаунт',
+                    style: bottomActionStyle,
+                  ),
+                ),
+            ],
+          ),
+        ],
       ],
     );
   }
@@ -704,6 +751,39 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     return ref
         .read(dataModeControllerProvider.notifier)
         .activateEntitlementKey(key);
+  }
+
+  Future<void> _resumeCloudActivationAfterSignIn() async {
+    _resumeCloudActivationScheduled = false;
+    try {
+      await ref.read(dataModeControllerProvider.notifier).refreshEntitlement();
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Не удалось сразу обновить доступ к облаку: $error'),
+          ),
+        );
+      }
+    }
+    if (!mounted) {
+      return;
+    }
+    context.go(CloudActivationPreflightScreen.routeName);
+  }
+
+  void _scheduleResumeCloudActivationAfterSignIn() {
+    if (_resumeCloudActivationScheduled) {
+      return;
+    }
+    _resumeCloudActivationScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        _resumeCloudActivationScheduled = false;
+        return;
+      }
+      unawaited(_resumeCloudActivationAfterSignIn());
+    });
   }
 
   void _toggleMode({

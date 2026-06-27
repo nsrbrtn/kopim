@@ -9,6 +9,7 @@ import 'package:kopim/features/profile/presentation/controllers/cloud_activation
 import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/feature_access_provider.dart';
 import 'package:kopim/features/profile/presentation/screens/cloud_activation_preflight_screen.dart';
+import 'package:kopim/features/profile/presentation/screens/cloud_sync_intro_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
 import 'package:kopim/features/profile/presentation/widgets/profile_sync_settings_card.dart';
 import 'package:go_router/go_router.dart';
@@ -93,6 +94,7 @@ void main() {
                     child: const CloudActivationPreflightScreen(),
                   ),
             ),
+            mockRoute(CloudSyncIntroScreen.routeName, text: 'intro-screen'),
             mockRoute(SignInScreen.routeName, text: 'sign-in-screen'),
           ],
         ),
@@ -109,5 +111,68 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('sign-in-screen'), findsOneWidget);
+  });
+
+  testWidgets('production requiresSignIn CTA opens intro screen', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: <Override>[
+          appCapabilitiesProvider.overrideWithValue(
+            const AppCapabilities(
+              canInitializeFirebase: true,
+              canUseFirebaseAuth: true,
+              canUseFirestore: true,
+              canUseRemoteConfig: true,
+              canRunCloudSync: true,
+              canUseAiTransport: true,
+              firebaseEnvironment: FirebaseEnvironment.prod,
+              allowsLocalOnlyUsage: true,
+              canActivatePromoOrLicenseInApp: false,
+              canRegisterInApp: false,
+              canShowCloudSyncEntryPoint: true,
+              canShowPaymentOrPurchaseUi: false,
+              expiredEntitlementMode:
+                  ExpiredEntitlementMode.localWritableSyncPaused,
+              requiresEntitlementBeforeWebApp: false,
+            ),
+          ),
+          dataModeControllerProvider.overrideWith(
+            () => _FakeDataModeController(
+              const DataModeState(
+                dataMode: DataMode.localOnly,
+                entitlementState: CloudEntitlementState.active,
+                migrationDecision: MigrationDecision.none,
+              ),
+            ),
+          ),
+          featureAccessProvider.overrideWithValue(
+            const FeatureAccess(
+              entitlementState: EntitlementAccessState.cloudActive,
+              cloudSync: FeatureGate(FeatureAccessStatus.requiresSignIn),
+              webApp: FeatureGate(FeatureAccessStatus.enabled),
+              aiAssistant: FeatureGate(FeatureAccessStatus.disabledByBuild),
+              advancedAnalytics: FeatureGate(
+                FeatureAccessStatus.disabledByBuild,
+              ),
+              isWebReadOnly: false,
+            ),
+          ),
+        ],
+        child: buildTestAppWithRouter(
+          child: const Scaffold(body: ProfileSyncSettingsCard()),
+          additionalRoutes: <RouteBase>[
+            mockRoute(CloudSyncIntroScreen.routeName, text: 'intro-screen'),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Включить синхронизацию'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('intro-screen'), findsOneWidget);
   });
 }

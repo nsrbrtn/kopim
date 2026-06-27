@@ -24,6 +24,7 @@ import 'package:kopim/features/profile/presentation/screens/general_settings_scr
 import 'package:kopim/features/profile/presentation/screens/about_app_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/cloud_activation_choice_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/cloud_activation_preflight_screen.dart';
+import 'package:kopim/features/profile/presentation/screens/cloud_sync_intro_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/menu_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_management_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_settings_screen.dart';
@@ -318,13 +319,25 @@ final Provider<GoRouter> appRouterProvider = Provider<GoRouter>((Ref ref) {
         },
       ),
       GoRoute(
+        path: CloudSyncIntroScreen.routeName,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (BuildContext context, GoRouterState state) {
+          return const CloudSyncIntroScreen();
+        },
+      ),
+      GoRoute(
         path: SignInScreen.routeName,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (BuildContext context, GoRouterState state) {
           final String? signUpParam = state.uri.queryParameters['signUp'];
+          final String? resumeCloudActivationParam =
+              state.uri.queryParameters['resumeCloudActivation'];
           final bool startInSignUpMode =
               signUpParam == 'true' || (state.extra as bool? ?? false);
-          return SignInScreen(startInSignUpMode: startInSignUpMode);
+          return SignInScreen(
+            startInSignUpMode: startInSignUpMode,
+            resumeCloudActivation: resumeCloudActivationParam == 'true',
+          );
         },
       ),
     ],
@@ -399,7 +412,7 @@ class AppRouterNotifier extends ChangeNotifier {
         state.matchedLocation == MainNavigationShell.routeName;
     final bool isOnSignIn = state.matchedLocation == SignInScreen.routeName;
 
-    if (AppRuntimeConfig.isOffline && isOnSignIn) {
+    if (AppRuntimeConfig.isOfflineOnlyDistribution && isOnSignIn) {
       return MainNavigationShell.routeName;
     }
 
@@ -424,7 +437,7 @@ class AppRouterNotifier extends ChangeNotifier {
 
     final AuthUser? user = _authState.asData?.value;
     if (user == null) {
-      if (AppRuntimeConfig.isOffline) {
+      if (AppRuntimeConfig.isOfflineOnlyDistribution) {
         return MainNavigationShell.routeName;
       }
       if (isOnSignIn) {

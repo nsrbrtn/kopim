@@ -288,7 +288,8 @@ class FirebaseSyncService implements SyncService {
           errorMessage: 'full_sync_required',
         );
       }
-      if (!AppRuntimeConfig.isOffline && hasFirebaseAppsSafely()) {
+      if (AppRuntimeConfig.isCloudCapableDistribution &&
+          hasFirebaseAppsSafely()) {
         FirebaseCrashlytics.instance.recordError(
           e,
           stackTrace,
@@ -433,7 +434,8 @@ class FirebaseSyncService implements SyncService {
       await _outboxDao.markAsSent(prepared.id);
     } catch (error, stackTrace) {
       await _outboxDao.markAsFailed(prepared.id, error.toString());
-      if (!AppRuntimeConfig.isOffline && hasFirebaseAppsSafely()) {
+      if (AppRuntimeConfig.isCloudCapableDistribution &&
+          hasFirebaseAppsSafely()) {
         FirebaseCrashlytics.instance.recordError(
           error,
           stackTrace,

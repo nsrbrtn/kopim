@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_decision_controller.dart';
+import 'package:kopim/core/config/app_capabilities.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_preflight_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
 import 'package:kopim/features/profile/presentation/screens/cloud_activation_choice_screen.dart';
+import 'package:kopim/features/profile/presentation/screens/cloud_sync_intro_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
 
 class CloudActivationPreflightScreen extends ConsumerWidget {
@@ -140,9 +142,17 @@ class CloudActivationPreflightScreen extends ConsumerWidget {
     WidgetRef ref,
     CloudActivationPreflightState state,
   ) {
+    final AppCapabilities capabilities = ref.read(appCapabilitiesProvider);
     switch (state.status) {
       case CloudActivationPreflightStatus.signedOut:
-        context.push(SignInScreen.routeName);
+        if (!capabilities.canRegisterInApp &&
+            capabilities.allowsLocalOnlyUsage) {
+          context.push(CloudSyncIntroScreen.routeName);
+          return;
+        }
+        context.push(
+          SignInScreen.buildRouteLocation(resumeCloudActivation: true),
+        );
         return;
       case CloudActivationPreflightStatus.blockedByLocalOnlyData:
       case CloudActivationPreflightStatus.readyForNextStep:

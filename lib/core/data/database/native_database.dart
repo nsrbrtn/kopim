@@ -9,7 +9,7 @@ import 'package:path_provider/path_provider.dart';
 LazyDatabase _openNativeConnection() {
   return LazyDatabase(() async {
     final Directory directory = await getApplicationDocumentsDirectory();
-    final String databaseName = AppRuntimeConfig.isOffline
+    final String databaseName = AppRuntimeConfig.isOfflineOnlyDistribution
         ? 'kopim_offline.db'
         : 'kopim.db';
     final File file = File(p.join(directory.path, databaseName));

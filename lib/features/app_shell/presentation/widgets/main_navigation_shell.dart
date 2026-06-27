@@ -144,7 +144,7 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
     final FirebaseAvailabilityState firebaseState = ref.watch(
       firebaseAvailabilityProvider,
     );
-    final String? firebaseWarning = AppRuntimeConfig.isOffline
+    final String? firebaseWarning = AppRuntimeConfig.isOfflineOnlyDistribution
         ? null
         : firebaseState.warningMessage;
     final bool showFirebaseWarning =
@@ -324,7 +324,8 @@ class _MainNavigationShellState extends ConsumerState<MainNavigationShell> {
           return Stack(
             children: <Widget>[
               scaffoldWithFrozenInsets,
-              if (firebaseWarning != null && !AppRuntimeConfig.isOffline)
+              if (firebaseWarning != null &&
+                  AppRuntimeConfig.isCloudCapableDistribution)
                 const Positioned(
                   top: 0,
                   right: 0,

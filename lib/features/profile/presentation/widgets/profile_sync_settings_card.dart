@@ -9,6 +9,7 @@ import 'package:kopim/features/profile/presentation/controllers/data_mode_contro
 import 'package:kopim/features/profile/presentation/controllers/feature_access_provider.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/presentation/screens/cloud_activation_preflight_screen.dart';
+import 'package:kopim/features/profile/presentation/screens/cloud_sync_intro_screen.dart';
 
 class ProfileSyncSettingsCard extends ConsumerStatefulWidget {
   const ProfileSyncSettingsCard({super.key});
@@ -64,6 +65,10 @@ class _ProfileSyncSettingsCardState
 
   void _openCloudActivationPreflight(BuildContext context) {
     context.push(CloudActivationPreflightScreen.routeName);
+  }
+
+  void _openCloudSyncIntro(BuildContext context) {
+    context.push(CloudSyncIntroScreen.routeName);
   }
 
   @override
@@ -336,6 +341,9 @@ class _ProfileSyncSettingsCardState
             }
             return const SizedBox.shrink();
           case FeatureAccessStatus.requiresSignIn:
+            final bool useProductionIntro =
+                !capabilities.canRegisterInApp &&
+                capabilities.allowsLocalOnlyUsage;
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
@@ -353,13 +361,21 @@ class _ProfileSyncSettingsCardState
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Лицензионный ключ активирован. Войдите в аккаунт, чтобы включить синхронизацию.',
+                  useProductionIntro
+                      ? 'Сейчас данные хранятся только на этом устройстве. Войдите в аккаунт с активным доступом, чтобы подключить синхронизацию.'
+                      : 'Лицензионный ключ активирован. Войдите в аккаунт, чтобы включить синхронизацию.',
                   style: theme.textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: () => _openCloudActivationPreflight(context),
-                  child: const Text('Продолжить подключение'),
+                  onPressed: () => useProductionIntro
+                      ? _openCloudSyncIntro(context)
+                      : _openCloudActivationPreflight(context),
+                  child: Text(
+                    useProductionIntro
+                        ? 'Включить синхронизацию'
+                        : 'Продолжить подключение',
+                  ),
                 ),
               ],
             );

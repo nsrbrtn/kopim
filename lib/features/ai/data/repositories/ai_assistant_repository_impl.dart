@@ -135,7 +135,7 @@ class AiAssistantRepositoryImpl implements AiAssistantRepository {
       return entity;
     } catch (error, stackTrace) {
       _loggerService.logError('Не удалось получить ответ OpenRouter', error);
-      if (!AppRuntimeConfig.isOffline &&
+      if (AppRuntimeConfig.isCloudCapableDistribution &&
           error is AiAssistantException &&
           error.cause != null) {
         unawaited(
