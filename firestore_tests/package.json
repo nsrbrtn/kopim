@@ -1,0 +1,16 @@
+{
+  "name": "kopim-firestore-security-rules-tests",
+  "version": "1.0.0",
+  "description": "Integration tests for Kopim Firestore Security Rules",
+  "main": "rules.test.js",
+  "scripts": {
+    "test": "npx firebase emulators:exec --only firestore \"npx mocha rules.test.js\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^3.0.4",
+    "mocha": "^10.4.0"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.1.0"
+  }
+}

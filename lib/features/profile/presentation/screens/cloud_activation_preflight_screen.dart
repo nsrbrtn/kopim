@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_decision_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_preflight_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
 import 'package:kopim/features/profile/presentation/screens/cloud_activation_choice_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
 
@@ -40,7 +41,8 @@ class CloudActivationPreflightScreen extends ConsumerWidget {
           title: 'Сначала активируйте облачный доступ',
           body:
               'Сейчас данные хранятся только на этом устройстве. Сначала активируйте облачный доступ, а затем вернитесь к подключению синхронизации.',
-          primaryLabel: 'Вернуться к активации',
+          primaryLabel: 'Проверить доступ',
+          secondaryLabel: 'Вернуться',
         ),
       CloudActivationPreflightStatus.blockedByLocalOnlyData =>
         const _PreflightContent(
@@ -148,13 +150,31 @@ class CloudActivationPreflightScreen extends ConsumerWidget {
           context.push(CloudActivationChoiceScreen.routeName);
           return;
         }
-        return;
       case CloudActivationPreflightStatus.entitlementRequired:
+        _refreshEntitlement(context, ref);
+        return;
       case CloudActivationPreflightStatus.alreadyCloudEnabled:
       case CloudActivationPreflightStatus.cloudUnavailableInBuild:
       case CloudActivationPreflightStatus.unknown:
         _dismiss(context);
         return;
+    }
+  }
+
+  Future<void> _refreshEntitlement(BuildContext context, WidgetRef ref) async {
+    try {
+      await ref.read(dataModeControllerProvider.notifier).refreshEntitlement();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Статус доступа успешно обновлен')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Не удалось обновить статус доступа: $e')),
+        );
+      }
     }
   }
 

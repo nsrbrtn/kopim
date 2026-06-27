@@ -115,6 +115,11 @@ class LocalAuthRepository implements AuthRepository {
     return _unsupportedVoid('updatePassword');
   }
 
+  @override
+  Future<void> forceRefreshIdToken() {
+    return _unsupportedVoid('forceRefreshIdToken');
+  }
+
   Future<AuthUser> _unsupported(String action) {
     _logger.logError(
       'Действие авторизации недоступно в локальном режиме: $action',

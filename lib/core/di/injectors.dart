@@ -1470,7 +1470,9 @@ LocalProfileRepository localProfileRepository(Ref ref) =>
 
 @riverpod
 CloudEntitlementRepository cloudEntitlementRepository(Ref ref) =>
-    CloudEntitlementRepositoryImpl();
+    CloudEntitlementRepositoryImpl(
+      firebaseAuth: ref.watch(firebaseAuthProvider),
+    );
 
 @riverpod
 LocalAuthRepository localAuthRepository(Ref ref) {

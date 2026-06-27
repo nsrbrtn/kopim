@@ -33,6 +33,11 @@ class _FakeCloudEntitlementRepository implements CloudEntitlementRepository {
   Future<CloudEntitlementState> getCachedState() async {
     return CloudEntitlementState.active;
   }
+
+  @override
+  Future<CloudEntitlementState> refreshFromCurrentToken() async {
+    return CloudEntitlementState.active;
+  }
 }
 
 class _FakeAuthRepository implements AuthRepository {
@@ -95,6 +100,9 @@ class _FakeAuthRepository implements AuthRepository {
   }) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> forceRefreshIdToken() async {}
 }
 
 class _FakeCloudActivationStateRepository

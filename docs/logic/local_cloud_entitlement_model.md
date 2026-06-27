@@ -608,8 +608,8 @@ AI-онбординг в первой версии не нужен.
 | Runtime | Build capabilities | Возможные feature gates | Preflight states | Что уже работает | Что сознательно не реализовано |
 | --- | --- | --- | --- | --- | --- |
 | `offline` | Firebase/Auth/Firestore/Remote Config/cloud sync/AI transport отключены | `cloudSync`, `webApp`, `aiAssistant`, `advancedAnalytics` всегда `disabledByBuild` | `cloudUnavailableInBuild` | локальный режим, локальные CRUD, импорт/экспорт, UI "Локально" | cloud sign-in, sync, web access, AI, preflight continuation |
-| `dev` | Firebase/Auth/Firestore/Remote Config/cloud sync/AI transport включены, dev Firebase | `requiresEntitlement`, `requiresSignIn`, `blockedByLocalData`, `enabled`, `unavailable` | `entitlementRequired`, `signedOut`, `blockedByLocalOnlyData`, `alreadyCloudEnabled`, `readyForNextStep`, `unknown` | demo/dev entitlement flow, cloud-capable auth, feature gating, preflight-only stop screen | merge local -> cloud, automatic enable after preflight, server entitlement, trial lifecycle |
-| `prod` | Firebase/Auth/Firestore/Remote Config/cloud sync/AI transport включены, prod Firebase | `requiresEntitlement`, `requiresSignIn`, `blockedByLocalData`, `enabled`, `unavailable` | `entitlementRequired`, `signedOut`, `blockedByLocalOnlyData`, `alreadyCloudEnabled`, `readyForNextStep`, `unknown` | cloud-capable auth, gate-based sync/AI availability, preflight-only stop screen | public subscription backend, automatic migration, paid lifecycle, web expired read-only |
+| `dev` | Firebase/Auth/Firestore/Remote Config/cloud sync/AI transport включены, dev Firebase | `requiresEntitlement`, `requiresSignIn`, `blockedByLocalData`, `enabled`, `unavailable` | `entitlementRequired`, `signedOut`, `blockedByLocalOnlyData`, `alreadyCloudEnabled`, `readyForNextStep`, `unknown` | demo/dev entitlement, cloud-capable auth, preflight + choice screen, execution сценарии (`enableCloudSync`, `startWithEmptyCloud`, `migrateLocalToCloud`) | merge local -> cloud (когда в облаке уже есть данные), server-backed entitlement, trial lifecycle |
+| `prod` | Firebase/Auth/Firestore/Remote Config/cloud sync/AI transport включены, prod Firebase | `requiresEntitlement`, `requiresSignIn`, `blockedByLocalData`, `enabled`, `unavailable` | `entitlementRequired`, `signedOut`, `blockedByLocalOnlyData`, `alreadyCloudEnabled`, `readyForNextStep`, `unknown` | cloud-capable auth, preflight + choice screen, execution сценарии (`enableCloudSync`, `startWithEmptyCloud`, `migrateLocalToCloud`) | public subscription backend, merge local -> cloud (когда в облаке уже есть данные), paid lifecycle, web expired read-only |
 | `web` cloud-capable build | технически те же cloud capabilities, что и у cloud-capable mobile build | `webApp` и `cloudSync` зависят от entitlement/gates; `isWebReadOnly` пока только projection | те же product states, что и у cloud-capable build, если экран preflight открыт | sign-in, cloud-capable routing, gate projection, capability model | настоящий write barrier для expired web entitlement, полноценный read-only режим, отдельная web matrix по операциям create/update/delete |
 
 ### Текущие capability-инварианты
@@ -622,7 +622,7 @@ AI-онбординг в первой версии не нужен.
 
 ### Текущие preflight-state значения
 
-Сейчас safe preflight flow умеет только остановить пользователя и объяснить следующее безопасное действие:
+Сейчас safe preflight flow умеет остановить пользователя и объяснить следующее безопасное действие, перенаправляя его на choice screen:
 
 * `cloudUnavailableInBuild`
 * `signedOut`
@@ -632,19 +632,15 @@ AI-онбординг в первой версии не нужен.
 * `alreadyCloudEnabled`
 * `unknown`
 
-Важно: `readyForNextStep` не означает, что приложение уже выполнило миграцию или доказало отсутствие всех рисков. Это только безопасная продуктовая заглушка перед следующим отдельным этапом.
-
-Дальше выбор сценария и первые execution path уже вынесены в отдельные choice/execution слои; сам preflight screen по-прежнему не запускает sync, migration или upload данных.
+Дальше выбор сценария и запуск execution paths (`enableCloudSync`, `startWithEmptyCloud`, `migrateLocalToCloud`) вынесены в отдельные choice/execution слои. Экран preflight перенаправляет на choice screen, где пользователь может безопасно подтвердить желаемое действие (включая контролируемую миграцию локальных данных с резервным копированием и пошаговой выгрузкой, если в облаке нет других пользовательских данных).
 
 ### Что пока сознательно не реализовано
 
-* merge local -> cloud;
-* upload локальных данных после preflight;
+* полноценный merge local -> cloud (когда и на устройстве, и в облаке одновременно присутствуют пользовательские финансовые данные);
+* сценарии `replaceLocalWithCloud` и `mergeLocalAndCloud` в execution flow (они пока заблокированы до реализации соответствующих алгоритмов слияния);
 * server-backed entitlement;
 * trial lifecycle;
 * настоящий web read-only barrier для expired entitlement;
-* реальная миграция `local -> cloud` с upload/merge локальных данных;
-* автоматическое включение sync одним нажатием с preflight screen;
 * изменение `SyncContract`, Drift schema, outbox ordering, ownership guard и auth-sync workflow.
 
 ---

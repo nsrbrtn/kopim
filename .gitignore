@@ -123,6 +123,8 @@ freeline_project_description.json
 
 # Web related
 web/importer.dart
+node_modules/
+**/node_modules/
 
 # Desktop related (Windows, Linux, macOS)
 windows/flutter/generated_plugins.cmake

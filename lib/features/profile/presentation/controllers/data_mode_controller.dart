@@ -6,6 +6,7 @@ import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/features/profile/data/cloud_activation_state_repository.dart';
 import 'package:kopim/features/profile/data/cloud_entitlement_repository.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
+import 'package:kopim/features/profile/domain/repositories/auth_repository.dart';
 
 part 'data_mode_controller.g.dart';
 
@@ -127,6 +128,40 @@ class DataModeController extends _$DataModeController {
     } catch (e, st) {
       state = AsyncValue<DataModeState>.error(e, st);
     }
+  }
+
+  Future<void> refreshEntitlement() async {
+    if (AppRuntimeConfig.isOfflineOnlyDistribution) return;
+
+    final LoggerService logger = ref.read(loggerServiceProvider);
+    logger.logInfo(
+      'DataModeController: force refreshing entitlement claims...',
+    );
+
+    // 1. Форсируем обновление ID-токена в Firebase Auth
+    final AuthRepository authRepo = ref.read(cloudAuthRepositoryProvider);
+    await authRepo
+        .forceRefreshIdToken(); // Сетевая ошибка пробрасывается наружу
+
+    // 2. Считываем свежее состояние из токена и обновляем SharedPreferences
+    final CloudEntitlementRepository entitlementRepo = ref.read(
+      cloudEntitlementRepositoryProvider,
+    );
+    final CloudEntitlementState entitlement = await entitlementRepo
+        .refreshFromCurrentToken();
+
+    // 3. Пересчитываем и обновляем состояние DataModeController
+    final AuthUser? currentCloudUser = authRepo.currentUser;
+    final DataModeState nextState = await _calculateState(
+      currentCloudUser,
+      entitlement,
+    );
+
+    logger.logInfo(
+      'DataModeController: refreshEntitlement done. Next mode=${nextState.dataMode.name}, entitlement=${nextState.entitlementState.name}',
+    );
+
+    _setState(nextState);
   }
 
   Future<void> setMigrationDecision(MigrationDecision decision) async {

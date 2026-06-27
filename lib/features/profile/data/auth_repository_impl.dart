@@ -247,6 +247,14 @@ class AuthRepositoryImpl implements AuthRepository {
     return user;
   }
 
+  @override
+  Future<void> forceRefreshIdToken() async {
+    final User? user = _firebaseAuth.currentUser;
+    if (user != null) {
+      await user.getIdToken(true);
+    }
+  }
+
   AuthUser? _mapCredentialNullable(UserCredential credential) {
     final User? user = credential.user;
     return _mapFirebaseUser(user);
