@@ -9,6 +9,7 @@ import 'package:kopim/features/profile/presentation/controllers/cloud_activation
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_execution_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_intent_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_readiness_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
 import 'package:kopim/features/profile/presentation/models/cloud_activation_readiness_models.dart';
 
 class CloudActivationChoiceScreen extends ConsumerStatefulWidget {
@@ -83,6 +84,9 @@ class _CloudActivationChoiceScreenState
     final AsyncValue<CloudActivationExecutionResult> executionState = ref.watch(
       cloudActivationExecutionControllerProvider,
     );
+    final DataModeState? dataModeState = ref
+        .watch(dataModeControllerProvider)
+        .value;
     final bool canConfirmEnableCloudSync =
         readinessState.status ==
             CloudActivationReadinessStatus.waitingForConfirmation &&
@@ -100,6 +104,9 @@ class _CloudActivationChoiceScreenState
             CloudActivationReadinessStatus.waitingForConfirmation &&
         intentState.pendingChoice ==
             CloudActivationChoice.replaceLocalWithCloud;
+    final bool canConfirmFreshUpload =
+        canConfirmReplaceLocalWithCloud &&
+        dataModeState?.requiresFreshCloudUpload == true;
     final bool isExecuting = executionState.isLoading;
 
     return Scaffold(
@@ -160,9 +167,10 @@ class _CloudActivationChoiceScreenState
                 ],
                 if (canConfirmReplaceLocalWithCloud) ...<Widget>[
                   const SizedBox(height: 12),
-                  const _InfoBanner(
-                    message:
-                        'При подтверждении Kopim сохранит флаг активации облака и при следующем запуске синхронизации полностью скачает существующие данные из облака на это устройство.',
+                  _InfoBanner(
+                    message: canConfirmFreshUpload
+                        ? 'При подтверждении Kopim начнёт Fresh Upload: переведёт remote metadata в freshUploadInProgress, загрузит локальный граф, проверит облако, финализирует локальное состояние и только потом включит синхронизацию.'
+                        : 'При подтверждении Kopim сохранит флаг активации облака и при следующем запуске синхронизации полностью скачает существующие данные из облака на это устройство.',
                   ),
                 ],
                 if (state.canChoose) ...<Widget>[
@@ -231,15 +239,23 @@ class _CloudActivationChoiceScreenState
                     FilledButton(
                       onPressed: isExecuting
                           ? null
-                          : () => ref
-                                .read(
-                                  cloudActivationExecutionControllerProvider
-                                      .notifier,
-                                )
-                                .confirmReplaceLocalWithCloud(),
+                          : () {
+                              final CloudActivationExecutionController
+                              controller = ref.read(
+                                cloudActivationExecutionControllerProvider
+                                    .notifier,
+                              );
+                              if (canConfirmFreshUpload) {
+                                controller.confirmFreshUploadFromLocal();
+                                return;
+                              }
+                              controller.confirmReplaceLocalWithCloud();
+                            },
                       child: Text(
                         isExecuting
                             ? 'Подключаем...'
+                            : canConfirmFreshUpload
+                            ? 'Загрузить локальные данные в облако'
                             : 'Загрузить облачные данные',
                       ),
                     ),

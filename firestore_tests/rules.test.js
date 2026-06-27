@@ -153,6 +153,52 @@ describe("Kopim Firestore Security Rules", () => {
       );
     });
 
+    it("denies deleted -> freshUploadInProgress without active entitlement", async () => {
+      await seedCloudState(userId, {
+        cloudDataState: "deleted",
+        updatedAt: new Date(),
+      });
+      const db = getDb(userId, {});
+
+      await assertFails(
+        db.collection("users").doc(userId).collection("cloud_meta").doc("state").update({
+          cloudDataState: "freshUploadInProgress",
+        }),
+      );
+    });
+
+    it("denies deleted -> freshUploadInProgress with expired entitlement", async () => {
+      await seedCloudState(userId, {
+        cloudDataState: "deleted",
+        updatedAt: new Date(),
+      });
+      const db = getDb(userId, {
+        cloudAccess: true,
+        cloudPlan: "testerCloud",
+        cloudAccessExpiresAt: pastExpiry,
+      });
+
+      await assertFails(
+        db.collection("users").doc(userId).collection("cloud_meta").doc("state").update({
+          cloudDataState: "freshUploadInProgress",
+        }),
+      );
+    });
+
+    it("denies foreign user metadata transition", async () => {
+      await seedCloudState(userId, {
+        cloudDataState: "deleted",
+        updatedAt: new Date(),
+      });
+      const db = getDb("other-user", activeClaims());
+
+      await assertFails(
+        db.collection("users").doc(userId).collection("cloud_meta").doc("state").update({
+          cloudDataState: "freshUploadInProgress",
+        }),
+      );
+    });
+
     it("denies deleted -> active direct transition", async () => {
       await seedCloudState(userId, {
         cloudDataState: "deleted",
@@ -189,6 +235,34 @@ describe("Kopim Firestore Security Rules", () => {
       const db = getDb(userId, activeClaims());
 
       await assertSucceeds(
+        db.collection("users").doc(userId).collection("cloud_meta").doc("state").update({
+          cloudDataState: "active",
+        }),
+      );
+    });
+
+    it("denies active -> freshUploadInProgress transition", async () => {
+      await seedCloudState(userId, {
+        cloudDataState: "active",
+        updatedAt: new Date(),
+      });
+      const db = getDb(userId, activeClaims());
+
+      await assertFails(
+        db.collection("users").doc(userId).collection("cloud_meta").doc("state").update({
+          cloudDataState: "freshUploadInProgress",
+        }),
+      );
+    });
+
+    it("denies repeated transition after metadata is already active", async () => {
+      await seedCloudState(userId, {
+        cloudDataState: "active",
+        updatedAt: new Date(),
+      });
+      const db = getDb(userId, activeClaims());
+
+      await assertFails(
         db.collection("users").doc(userId).collection("cloud_meta").doc("state").update({
           cloudDataState: "active",
         }),

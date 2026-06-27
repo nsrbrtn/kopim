@@ -3,7 +3,7 @@
 
 ![Kopim App](https://github.com/user-attachments/assets/18413348-1549-4a6c-a1d2-09439c298059)
 
-**Kopim** — это современное, масштабируемое и безопасное приложение для управления личными финансами. Проект разработан с использованием передовых технологий и лучших практик в экосистеме Flutter.
+**Копим** — это современное, масштабируемое и безопасное приложение для управления личными финансами. Проект разработан с использованием передовых технологий и лучших практик в экосистеме Flutter.
 
 ## ✨ Особенности
 
@@ -21,84 +21,6 @@
 - **Бэкенд и синхронизация:** Firebase (Auth, Firestore, Performance)
 - **Архитектура:** Clean Architecture + Domain-Driven Design (DDD)
 
-## 🚀 Установка и запуск
 
-Чтобы запустить проект локально, выполните следующие шаги:
 
-### 1. Предварительные требования
 
-Убедитесь, что у вас установлен **Flutter SDK** версии 3.38.0 или выше.
-
-### 2. Клонирование репозитория
-
-```bash
-git clone https://github.com/nsrbrtn/kopim.git
-cd kopim
-```
-
-### 3. Настройка Firebase
-
-Для работы с Firebase необходимо создать и настроить собственный проект:
-
-1. Создайте проект в [консоли Firebase](https://console.firebase.google.com/).
-2. Настройте приложения для **Android, iOS и Web**.
-3. Установите **Firebase CLI** и выполните команду:
-
-   ```bash
-   flutterfire configure
-   ```
-
-4. Следуйте инструкциям CLI, чтобы сгенерировать файл `lib/firebase_options.dart`.
-
-### 4. Установка зависимостей
-
-```bash
-flutter pub get
-```
-
-### 5. Генерация кода
-
-Проект активно использует кодогенерацию. Перед запуском `build_runner` обновите токены темы из Figma:
-
-```bash
-flutter pub run tool/figma_theme/generate_tokens.dart
-```
-
-Затем выполните сборку генерируемых файлов:
-
-```bash
-dart run build_runner build --delete-conflicting-outputs
-```
-
-### 6. Запуск приложения
-
-```bash
-flutter run
-```
-
-## ⚙️ Полезные команды
-
-- **Форматирование кода:**
-  ```bash
-  dart format --set-exit-if-changed .
-  ```
-
-- **Анализ кода:**
-  ```bash
-  flutter analyze
-  ```
-
-- **Экспорт токенов темы из Figma:**
-  ```bash
-  flutter pub run tool/figma_theme/generate_tokens.dart
-  ```
-
-- **Запуск тестов:**
-  ```bash
-  flutter test --reporter expanded
-  ```
-
-- **Проверка устаревших зависимостей:**
-  ```bash
-  flutter pub outdated
-  ```

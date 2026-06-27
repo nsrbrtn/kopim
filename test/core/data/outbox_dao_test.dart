@@ -193,7 +193,7 @@ void main() {
   );
 
   test(
-    'consumeOutboxEntriesForFreshUpload removes firebase/local/null owners and keeps foreign owners',
+    'consumeOutboxEntriesForFreshUpload removes local/null owners and preserves firebase owners',
     () async {
       await database
           .into(database.outboxEntries)
@@ -265,6 +265,7 @@ void main() {
           .select(database.outboxEntries)
           .get();
       expect(remaining.map((OutboxEntryRow row) => row.entityId), <String>[
+        'firebase-owned',
         'foreign-owned',
       ]);
     },

@@ -8,8 +8,10 @@ import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/features/profile/data/cloud_activation_state_repository.dart';
 import 'package:kopim/features/profile/data/cloud_entitlement_repository.dart';
 import 'package:kopim/features/profile/data/cloud_metadata_repository.dart';
+import 'package:kopim/features/profile/data/fresh_upload_finalization_repository.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/cloud_metadata.dart';
+import 'package:kopim/features/profile/domain/entities/fresh_upload_finalization_marker.dart';
 import 'package:kopim/features/profile/domain/repositories/auth_repository.dart';
 
 part 'data_mode_controller.g.dart';
@@ -21,6 +23,7 @@ class DataModeState {
     required this.migrationDecision,
     this.cloudDataState,
     this.requiresFreshCloudUpload = false,
+    this.requiresFreshUploadFinalization = false,
     this.isSyncBlockedByCloudState = false,
   });
 
@@ -29,6 +32,7 @@ class DataModeState {
   final MigrationDecision migrationDecision;
   final CloudDataState? cloudDataState;
   final bool requiresFreshCloudUpload;
+  final bool requiresFreshUploadFinalization;
   final bool isSyncBlockedByCloudState;
 
   DataModeState copyWith({
@@ -37,6 +41,7 @@ class DataModeState {
     MigrationDecision? migrationDecision,
     CloudDataState? cloudDataState,
     bool? requiresFreshCloudUpload,
+    bool? requiresFreshUploadFinalization,
     bool? isSyncBlockedByCloudState,
   }) {
     return DataModeState(
@@ -46,6 +51,9 @@ class DataModeState {
       cloudDataState: cloudDataState ?? this.cloudDataState,
       requiresFreshCloudUpload:
           requiresFreshCloudUpload ?? this.requiresFreshCloudUpload,
+      requiresFreshUploadFinalization:
+          requiresFreshUploadFinalization ??
+          this.requiresFreshUploadFinalization,
       isSyncBlockedByCloudState:
           isSyncBlockedByCloudState ?? this.isSyncBlockedByCloudState,
     );
@@ -251,19 +259,6 @@ class DataModeController extends _$DataModeController {
     } catch (_) {}
   }
 
-  Future<CloudDataState?> _getCachedCloudDataState(String uid) async {
-    try {
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      final String? name = prefs.getString('$_cacheKeyPrefix$uid');
-      if (name != null) {
-        return CloudDataState.values.firstWhere(
-          (CloudDataState e) => e.name == name,
-        );
-      }
-    } catch (_) {}
-    return null;
-  }
-
   Future<DataModeState> _calculateState(
     AuthUser? cloudUser,
     CloudEntitlementState entitlement, {
@@ -321,15 +316,6 @@ class DataModeController extends _$DataModeController {
     } catch (e) {
       metadataReadFailed = true;
       logger.logError('DataModeController: failed to fetch cloud metadata: $e');
-      final CloudDataState? cachedState = await _getCachedCloudDataState(
-        cloudUser.uid,
-      );
-      if (cachedState != null) {
-        metadata = CloudMetadata(
-          cloudDataState: cachedState,
-          updatedAt: DateTime.now().toUtc(),
-        );
-      }
     }
 
     final CloudDataState cloudState;
@@ -355,6 +341,28 @@ class DataModeController extends _$DataModeController {
     final bool requiresFreshUpload =
         cloudState == CloudDataState.deleted &&
         entitlement == CloudEntitlementState.active;
+
+    final bool requiresFreshUploadFinalization =
+        cloudState == CloudDataState.active &&
+        metadata?.freshUploadSessionId != null &&
+        !await _hasCompletedFreshUploadFinalization(
+          uid: cloudUser.uid,
+          uploadSessionId: metadata!.freshUploadSessionId!,
+        );
+
+    if (requiresFreshUploadFinalization) {
+      logger.logInfo(
+        'DataModeController: remote Fresh Upload is active, but local finalization marker is missing. Forced localOnly.',
+      );
+      return DataModeState(
+        dataMode: DataMode.localOnly,
+        entitlementState: entitlement,
+        migrationDecision: decisionOverride ?? MigrationDecision.none,
+        cloudDataState: cloudState,
+        requiresFreshUploadFinalization: true,
+        isSyncBlockedByCloudState: true,
+      );
+    }
 
     if (isSyncBlocked) {
       logger.logInfo(
@@ -423,5 +431,15 @@ class DataModeController extends _$DataModeController {
           .read(appDatabaseProvider)
           .updateCurrentSyncState(currentUid, syncActive),
     );
+  }
+
+  Future<bool> _hasCompletedFreshUploadFinalization({
+    required String uid,
+    required String uploadSessionId,
+  }) async {
+    final FreshUploadFinalizationMarker? marker = await ref
+        .read(freshUploadFinalizationRepositoryProvider)
+        .getMarkerForUid(uid);
+    return marker?.uploadSessionId == uploadSessionId;
   }
 }

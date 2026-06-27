@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:kopim/features/profile/application/cloud_activation_execution_service.dart';
+import 'package:kopim/features/profile/application/fresh_upload_execution_service.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_intent_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
@@ -51,6 +52,31 @@ class CloudActivationExecutionController
 
     if (result.status == CloudActivationExecutionStatus.succeeded ||
         result.status == CloudActivationExecutionStatus.blocked) {
+      ref.read(cloudActivationIntentProvider.notifier).clearPendingChoice();
+    }
+
+    state = AsyncData<CloudActivationExecutionResult>(result);
+    return result;
+  }
+
+  Future<CloudActivationExecutionResult> confirmFreshUploadFromLocal() async {
+    state = const AsyncLoading<CloudActivationExecutionResult>();
+
+    final CloudActivationExecutionResult result = await ref
+        .read(freshUploadExecutionServiceProvider)
+        .confirmFreshUploadFromLocal(
+          currentUser: ref.read(authControllerProvider).asData?.value,
+          currentMode: ref.read(dataModeControllerProvider).value,
+          refreshRuntimeMode: () => ref
+              .read(dataModeControllerProvider.notifier)
+              .refreshForCurrentContext(),
+        );
+
+    if (result.status == CloudActivationExecutionStatus.succeeded ||
+        (result.status == CloudActivationExecutionStatus.blocked &&
+            result.blockReason !=
+                CloudActivationExecutionBlockReason
+                    .migrationNetworkRetryable)) {
       ref.read(cloudActivationIntentProvider.notifier).clearPendingChoice();
     }
 

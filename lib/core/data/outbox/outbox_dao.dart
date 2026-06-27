@@ -659,7 +659,6 @@ class OutboxDao {
   }) async {
     await (_db.delete(_db.outboxEntries)..where(
           (db.$OutboxEntriesTable tbl) =>
-              tbl.ownerUid.equals(firebaseUid) |
               tbl.ownerUid.equals(localSessionUid) |
               tbl.ownerUid.like('local-%') |
               tbl.ownerUid.isNull(),

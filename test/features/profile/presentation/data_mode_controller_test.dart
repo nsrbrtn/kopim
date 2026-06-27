@@ -9,9 +9,11 @@ import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/profile/data/cloud_activation_state_repository.dart';
 import 'package:kopim/features/profile/data/cloud_entitlement_repository.dart';
 import 'package:kopim/features/profile/data/cloud_metadata_repository.dart';
+import 'package:kopim/features/profile/data/fresh_upload_finalization_repository.dart';
 import 'package:kopim/features/profile/domain/entities/cloud_activation_state.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/cloud_metadata.dart';
+import 'package:kopim/features/profile/domain/entities/fresh_upload_finalization_marker.dart';
 import 'package:kopim/features/profile/domain/entities/sign_in_request.dart';
 import 'package:kopim/features/profile/domain/entities/sign_up_request.dart';
 import 'package:kopim/features/profile/domain/repositories/auth_repository.dart';
@@ -166,6 +168,60 @@ class _FakeCloudMetadataRepository implements CloudMetadataRepository {
 
   @override
   Future<void> setCloudDataState(String uid, CloudDataState state) async {}
+
+  @override
+  Future<CloudMetadata> startFreshUpload({
+    required String uid,
+    required String uploadSessionId,
+  }) {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<CloudMetadata> completeFreshUpload({
+    required String uid,
+    required String uploadSessionId,
+  }) {
+    throw UnimplementedError();
+  }
+}
+
+class _FakeFreshUploadFinalizationRepository
+    implements FreshUploadFinalizationRepository {
+  _FakeFreshUploadFinalizationRepository({this.marker});
+
+  FreshUploadFinalizationMarker? marker;
+
+  @override
+  Future<void> clearMarkerForUid(String uid) async {
+    if (marker?.uid == uid) {
+      marker = null;
+    }
+  }
+
+  @override
+  Future<FreshUploadFinalizationMarker?> getMarkerForUid(String uid) async {
+    if (marker?.uid == uid) {
+      return marker;
+    }
+    return null;
+  }
+
+  @override
+  Future<void> saveCompleted({
+    required String uid,
+    required String uploadSessionId,
+    required DateTime remoteStateConfirmedAt,
+    required DateTime localFinalizationCompletedAt,
+  }) async {
+    marker = FreshUploadFinalizationMarker(
+      uid: uid,
+      uploadSessionId: uploadSessionId,
+      remoteStateConfirmedAt: remoteStateConfirmedAt,
+      localFinalizationCompletedAt: localFinalizationCompletedAt,
+      version: 1,
+    );
+  }
 }
 
 void main() {
@@ -404,58 +460,192 @@ void main() {
     },
   );
 
-  test('uses cached cloud metadata when remote read fails', () async {
-    SharedPreferences.setMockInitialValues(<String, Object>{
-      'profile.cloud_data_state.cloud-user-5': CloudDataState.grace.name,
-    });
-    AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseDev);
-    final AppDatabase database = AppDatabase.connect(
-      DatabaseConnection(NativeDatabase.memory()),
-    );
-    addTearDown(database.close);
+  test(
+    'fails closed when cached cloud metadata exists but remote read fails',
+    () async {
+      SharedPreferences.setMockInitialValues(<String, Object>{
+        'profile.cloud_data_state.cloud-user-5': CloudDataState.grace.name,
+      });
+      AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseDev);
+      final AppDatabase database = AppDatabase.connect(
+        DatabaseConnection(NativeDatabase.memory()),
+      );
+      addTearDown(database.close);
 
-    final ProviderContainer container = ProviderContainer(
-      overrides: <Override>[
-        appDatabaseProvider.overrideWithValue(database),
-        cloudEntitlementRepositoryProvider.overrideWithValue(
-          _FakeCloudEntitlementRepository(),
-        ),
-        cloudAuthRepositoryProvider.overrideWithValue(
-          _FakeAuthRepository(
-            const AuthUser(
-              uid: 'cloud-user-5',
-              email: 'user@example.com',
-              isAnonymous: false,
+      final ProviderContainer container = ProviderContainer(
+        overrides: <Override>[
+          appDatabaseProvider.overrideWithValue(database),
+          cloudEntitlementRepositoryProvider.overrideWithValue(
+            _FakeCloudEntitlementRepository(),
+          ),
+          cloudAuthRepositoryProvider.overrideWithValue(
+            _FakeAuthRepository(
+              const AuthUser(
+                uid: 'cloud-user-5',
+                email: 'user@example.com',
+                isAnonymous: false,
+              ),
             ),
           ),
-        ),
-        cloudActivationStateRepositoryProvider.overrideWithValue(
-          _FakeCloudActivationStateRepository(
-            state: CloudActivationState(
-              uid: 'cloud-user-5',
-              scenario: 'enableCloudSync',
-              activatedAt: DateTime.utc(2024, 1, 1),
-              localFingerprint: 'local:empty',
-              remoteFingerprint: 'remote:empty|uid:cloud-user-5',
-              version: 1,
+          cloudActivationStateRepositoryProvider.overrideWithValue(
+            _FakeCloudActivationStateRepository(
+              state: CloudActivationState(
+                uid: 'cloud-user-5',
+                scenario: 'enableCloudSync',
+                activatedAt: DateTime.utc(2024, 1, 1),
+                localFingerprint: 'local:empty',
+                remoteFingerprint: 'remote:empty|uid:cloud-user-5',
+                version: 1,
+              ),
             ),
           ),
-        ),
-        cloudMetadataRepositoryProvider.overrideWithValue(
-          _FakeCloudMetadataRepository(error: StateError('offline')),
-        ),
-      ],
-    );
-    addTearDown(container.dispose);
+          cloudMetadataRepositoryProvider.overrideWithValue(
+            _FakeCloudMetadataRepository(error: StateError('offline')),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
 
-    final DataModeState state = await container.read(
-      dataModeControllerProvider.future,
-    );
+      final DataModeState state = await container.read(
+        dataModeControllerProvider.future,
+      );
 
-    expect(state.cloudDataState, CloudDataState.grace);
-    expect(state.isSyncBlockedByCloudState, isFalse);
-    expect(state.dataMode, DataMode.cloudEnabled);
-  });
+      expect(state.cloudDataState, CloudDataState.cleanupPending);
+      expect(state.isSyncBlockedByCloudState, isTrue);
+      expect(state.dataMode, DataMode.localOnly);
+    },
+  );
+
+  test(
+    'active Fresh Upload metadata without local finalization marker keeps localOnly',
+    () async {
+      AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseDev);
+      final AppDatabase database = AppDatabase.connect(
+        DatabaseConnection(NativeDatabase.memory()),
+      );
+      addTearDown(database.close);
+
+      final ProviderContainer container = ProviderContainer(
+        overrides: <Override>[
+          appDatabaseProvider.overrideWithValue(database),
+          cloudEntitlementRepositoryProvider.overrideWithValue(
+            _FakeCloudEntitlementRepository(),
+          ),
+          cloudAuthRepositoryProvider.overrideWithValue(
+            _FakeAuthRepository(
+              const AuthUser(
+                uid: 'cloud-user-fresh',
+                email: 'user@example.com',
+                isAnonymous: false,
+              ),
+            ),
+          ),
+          cloudActivationStateRepositoryProvider.overrideWithValue(
+            _FakeCloudActivationStateRepository(
+              state: CloudActivationState(
+                uid: 'cloud-user-fresh',
+                scenario: 'freshUploadFromLocal',
+                activatedAt: DateTime.utc(2024, 1, 1),
+                localFingerprint: 'local',
+                remoteFingerprint: 'remote',
+                version: 1,
+              ),
+            ),
+          ),
+          cloudMetadataRepositoryProvider.overrideWithValue(
+            _FakeCloudMetadataRepository(
+              metadata: CloudMetadata(
+                cloudDataState: CloudDataState.active,
+                freshUploadSessionId: 'fresh-session-1',
+                updatedAt: DateTime.now().toUtc(),
+              ),
+            ),
+          ),
+          freshUploadFinalizationRepositoryProvider.overrideWithValue(
+            _FakeFreshUploadFinalizationRepository(),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final DataModeState state = await container.read(
+        dataModeControllerProvider.future,
+      );
+
+      expect(state.dataMode, DataMode.localOnly);
+      expect(state.requiresFreshUploadFinalization, isTrue);
+      expect(state.isSyncBlockedByCloudState, isTrue);
+    },
+  );
+
+  test(
+    'active Fresh Upload metadata with completed finalization marker enables cloud mode',
+    () async {
+      AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseDev);
+      final AppDatabase database = AppDatabase.connect(
+        DatabaseConnection(NativeDatabase.memory()),
+      );
+      addTearDown(database.close);
+
+      final ProviderContainer container = ProviderContainer(
+        overrides: <Override>[
+          appDatabaseProvider.overrideWithValue(database),
+          cloudEntitlementRepositoryProvider.overrideWithValue(
+            _FakeCloudEntitlementRepository(),
+          ),
+          cloudAuthRepositoryProvider.overrideWithValue(
+            _FakeAuthRepository(
+              const AuthUser(
+                uid: 'cloud-user-fresh-done',
+                email: 'user@example.com',
+                isAnonymous: false,
+              ),
+            ),
+          ),
+          cloudActivationStateRepositoryProvider.overrideWithValue(
+            _FakeCloudActivationStateRepository(
+              state: CloudActivationState(
+                uid: 'cloud-user-fresh-done',
+                scenario: 'freshUploadFromLocal',
+                activatedAt: DateTime.utc(2024, 1, 1),
+                localFingerprint: 'local',
+                remoteFingerprint: 'remote',
+                version: 1,
+              ),
+            ),
+          ),
+          cloudMetadataRepositoryProvider.overrideWithValue(
+            _FakeCloudMetadataRepository(
+              metadata: CloudMetadata(
+                cloudDataState: CloudDataState.active,
+                freshUploadSessionId: 'fresh-session-2',
+                updatedAt: DateTime.now().toUtc(),
+              ),
+            ),
+          ),
+          freshUploadFinalizationRepositoryProvider.overrideWithValue(
+            _FakeFreshUploadFinalizationRepository(
+              marker: FreshUploadFinalizationMarker(
+                uid: 'cloud-user-fresh-done',
+                uploadSessionId: 'fresh-session-2',
+                remoteStateConfirmedAt: DateTime.utc(2024, 1, 1),
+                localFinalizationCompletedAt: DateTime.utc(2024, 1, 1, 0, 1),
+                version: 1,
+              ),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final DataModeState state = await container.read(
+        dataModeControllerProvider.future,
+      );
+
+      expect(state.dataMode, DataMode.cloudEnabled);
+      expect(state.requiresFreshUploadFinalization, isFalse);
+    },
+  );
 
   test(
     'fails closed when cloud metadata read fails and cache is missing',

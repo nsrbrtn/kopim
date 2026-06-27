@@ -11,6 +11,7 @@ enum CloudDataState {
 class CloudMetadata {
   const CloudMetadata({
     required this.cloudDataState,
+    this.freshUploadSessionId,
     this.entitlementExpiresAt,
     this.cloudDeleteAfter,
     this.cloudDeletedAt,
@@ -18,6 +19,7 @@ class CloudMetadata {
   });
 
   final CloudDataState cloudDataState;
+  final String? freshUploadSessionId;
   final DateTime? entitlementExpiresAt;
   final DateTime? cloudDeleteAfter;
   final DateTime? cloudDeletedAt;
@@ -26,6 +28,7 @@ class CloudMetadata {
   Map<String, Object?> toJson() {
     return <String, Object?>{
       'cloudDataState': cloudDataState.name,
+      'freshUploadSessionId': freshUploadSessionId,
       'entitlementExpiresAt': entitlementExpiresAt != null
           ? Timestamp.fromDate(entitlementExpiresAt!)
           : null,
@@ -74,6 +77,7 @@ class CloudMetadata {
 
     return CloudMetadata(
       cloudDataState: state,
+      freshUploadSessionId: json['freshUploadSessionId'] as String?,
       entitlementExpiresAt: parseDate(json['entitlementExpiresAt']),
       cloudDeleteAfter: parseDate(json['cloudDeleteAfter']),
       cloudDeletedAt: parseDate(json['cloudDeletedAt']),
