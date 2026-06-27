@@ -235,6 +235,7 @@ class AuthRepositoryImpl implements AuthRepository {
       emailVerified: user.emailVerified,
       creationTime: user.metadata.creationTime?.toUtc(),
       lastSignInTime: user.metadata.lastSignInTime?.toUtc(),
+      sessionKind: AuthSessionKind.firebase,
     );
   }
 

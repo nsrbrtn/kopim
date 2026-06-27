@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:kopim/core/utils/web_platform_utils.dart';
 import 'package:kopim/features/profile/application/cloud_activation_execution_service.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_decision_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_execution_controller.dart';
@@ -40,7 +42,11 @@ class _CloudActivationChoiceScreenState
             context,
           ).showSnackBar(SnackBar(content: Text(_successMessage(result))));
           ref.read(cloudActivationExecutionControllerProvider.notifier).reset();
-          _dismiss(context);
+          if (kIsWeb) {
+            reloadWebPage();
+          } else {
+            _dismiss(context);
+          }
           return;
         case CloudActivationExecutionStatus.blocked:
         case CloudActivationExecutionStatus.failed:
@@ -89,6 +95,11 @@ class _CloudActivationChoiceScreenState
         readinessState.status ==
             CloudActivationReadinessStatus.waitingForConfirmation &&
         intentState.pendingChoice == CloudActivationChoice.migrateLocalToCloud;
+    final bool canConfirmReplaceLocalWithCloud =
+        readinessState.status ==
+            CloudActivationReadinessStatus.waitingForConfirmation &&
+        intentState.pendingChoice ==
+            CloudActivationChoice.replaceLocalWithCloud;
     final bool isExecuting = executionState.isLoading;
 
     return Scaffold(
@@ -145,6 +156,13 @@ class _CloudActivationChoiceScreenState
                   const _InfoBanner(
                     message:
                         'Следующий шаг пока не запускает upload. Kopim только выполнит migration preflight: включит write-freeze, снимет стабильный локальный snapshot и прогонит inventory/readiness validator. Если хотя бы одна строка небезопасна, перенос останется заблокированным.',
+                  ),
+                ],
+                if (canConfirmReplaceLocalWithCloud) ...<Widget>[
+                  const SizedBox(height: 12),
+                  const _InfoBanner(
+                    message:
+                        'При подтверждении Kopim сохранит флаг активации облака и при следующем запуске синхронизации полностью скачает существующие данные из облака на это устройство.',
                   ),
                 ],
                 if (state.canChoose) ...<Widget>[
@@ -205,6 +223,24 @@ class _CloudActivationChoiceScreenState
                         isExecuting
                             ? 'Проверяем migration readiness...'
                             : 'Запустить migration preflight',
+                      ),
+                    ),
+                  ],
+                  if (canConfirmReplaceLocalWithCloud) ...<Widget>[
+                    const SizedBox(height: 8),
+                    FilledButton(
+                      onPressed: isExecuting
+                          ? null
+                          : () => ref
+                                .read(
+                                  cloudActivationExecutionControllerProvider
+                                      .notifier,
+                                )
+                                .confirmReplaceLocalWithCloud(),
+                      child: Text(
+                        isExecuting
+                            ? 'Подключаем...'
+                            : 'Загрузить облачные данные',
                       ),
                     ),
                   ],
@@ -377,7 +413,7 @@ class _CloudActivationChoiceScreenState
       router.pop();
       return;
     }
-    Navigator.of(context).maybePop();
+    context.go('/');
   }
 
   String _executionMessage(CloudActivationExecutionResult result) {

@@ -9,3 +9,7 @@ bool isWebSafariImpl() {
   // Возвращаем true для любых iOS браузеров, чтобы использовать обход.
   return isIosDevice;
 }
+
+void reloadWebPageImpl() {
+  html.window.location.reload();
+}

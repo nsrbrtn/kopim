@@ -53,8 +53,8 @@ Firebase в проекте живет на двух уровнях:
 
 - Android package prod: `qmodo.ru.kopim`
 - iOS bundle id prod: `qmodo.ru.kopim`
-- Android flavor: `prod`
-- Android prod config: `android/app/src/prod/google-services.json`
+- Android flavor: `storeProdLocalFirst`
+- Android prod config: `android/app/src/storeProdLocalFirst/google-services.json`
 - iOS dev plist: `ios/Runner/GoogleService-Info-Dev.plist`
 - iOS prod plist: `ios/Runner/GoogleService-Info-Prod.plist`
 
@@ -63,7 +63,7 @@ Firebase в проекте живет на двух уровнях:
 - `firebase_options_dev.dart` и `firebase_options_prod.dart` не редактируем вручную;
 - их генерирует `flutterfire configure`;
 - platform-файлы тоже не правим вручную.
-- Внутри приложения, в `Меню -> О приложении`, строка версии теперь показывает flavor-метку для Android cloud flavors: `1.0.1 (3) [dev]`, `1.0.1 (3) [stage]`, `1.0.1 (3) [prod]`.
+- Внутри приложения, в `Меню -> О приложении`, строка версии теперь показывает flavor-метку для Android cloud flavors: `1.0.1 (3) [dev]`, `1.0.1 (3) [stage]`.
 
 ## Шаг 0. Подготовка
 
@@ -133,7 +133,7 @@ firebase login
 - положить его в:
 
 ```text
-android/app/src/prod/google-services.json
+android/app/src/storeProdLocalFirst/google-services.json
 ```
 
 ## Шаг 3. Добавить Android SHA fingerprints
@@ -279,7 +279,7 @@ flutterfire configure \
 ### Android
 
 ```text
-android/app/src/prod/google-services.json
+android/app/src/storeProdLocalFirst/google-services.json
 ```
 
 ### iOS
@@ -309,7 +309,7 @@ flutter test --reporter expanded
 
 ```bash
 flutter build appbundle \
-  --flavor prod \
+  --flavor storeProdLocalFirst \
   --release \
   --target lib/main_prod.dart \
   --dart-define-from-file=defines.json
@@ -379,7 +379,7 @@ flutter build ipa \
 1. Создать `Kopim-prod`
 2. Добавить Android app `qmodo.ru.kopim`
 3. Добавить `SHA1` и `SHA256`
-4. Положить новый `android/app/src/prod/google-services.json`
+4. Положить новый `android/app/src/storeProdLocalFirst/google-services.json`
 5. Добавить iOS app `qmodo.ru.kopim`
 6. Положить новый `ios/Runner/GoogleService-Info.plist`
 7. Добавить Web app

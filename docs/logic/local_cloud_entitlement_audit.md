@@ -47,10 +47,10 @@
 
 Примеры:
 
-* `SignInScreen` показывает dev entitlement gate только для `firebaseDev`, а offline action только для `firebaseProd`.
+* `SignInScreen` показывает dev entitlement gate только для `firebaseDev`, а offline action только для `storeProdLocalFirst`.
 * `mainNavigationTabsProvider` скрывает AI-вкладку через `!AppRuntimeConfig.isOffline`.
 * `ProfileManagementBody`, `ProfileSettingsScreen`, `MenuScreen`, `ProfileSyncSettingsCard`, router redirects используют `AppRuntimeConfig.isOffline`.
-* `AppStartupController` автоматически активирует `DEMO-CLOUD-KEY` в `firebaseProd`.
+* `AppStartupController` автоматически активирует `DEMO-CLOUD-KEY` в `storeProdLocalFirst`.
 
 Риск: будущая публичная cloud-capable сборка не сможет быть "локальная по умолчанию, облако по entitlement" без точечных правок по UI.
 
@@ -112,7 +112,7 @@ Pull-to-refresh в `HomeScreen` показывает сообщения врод
 
 ### 8. AI gated по flavor/offline и connectivity, не по entitlement
 
-AI-вкладка скрывается в offline flavor, но доступна в cloud-capable flavor без проверки `canUseAiAssistant`. `GenerativeAiConfig.isEnabled` зависит от `!AppRuntimeConfig.isOffline` и Remote Config, а не от cloud entitlement.
+AI-вкладка скрывается в `offlineOnly` flavor, но доступна в cloud-capable flavor без проверки `canUseAiAssistant`. `GenerativeAiConfig.isEnabled` зависит от `!AppRuntimeConfig.isOffline` и Remote Config, а не от cloud entitlement.
 
 Риск: при будущей подписке AI может оказаться доступен без cloud entitlement или, наоборот, недоступен в cloud-capable local-first сборке не по той причине.
 
@@ -153,9 +153,9 @@ class AppCapabilities {
 
 | Flavor | Firebase | Auth | Firestore sync | AI transport | Default data mode |
 | --- | --- | --- | --- | --- | --- |
-| `offline` | нет | нет | нет | нет | `localOnly` |
+| `offlineOnly` | нет | нет | нет | нет | `localOnly` |
 | `dev` | да, dev project | да | да | да | `localOnly` до entitlement/auth |
-| `prod` | да, prod project | да | да | да | `localOnly` до entitlement/auth |
+| `storeProdLocalFirst` | да, prod project | да | да | да | `localOnly` до entitlement/auth |
 
 ### DataMode
 
@@ -221,9 +221,9 @@ class FeatureAccess {
 
 | Runtime | Capabilities | `FeatureAccess.cloudSync` | Preflight | Комментарий |
 | --- | --- | --- | --- | --- |
-| `offline` | cloud/Firebase capabilities отсутствуют | `disabledByBuild` | `cloudUnavailableInBuild` | локальная-only сборка, без cloud continuation |
+| `offlineOnly` | cloud/Firebase capabilities отсутствуют | `disabledByBuild` | `cloudUnavailableInBuild` | локальная-only сборка, без cloud continuation |
 | `dev` | все cloud capabilities доступны через dev Firebase | `requiresEntitlement` / `requiresSignIn` / `blockedByLocalData` / `enabled` / `unavailable` | `entitlementRequired` / `signedOut` / `blockedByLocalOnlyData` / `readyForNextStep` / `alreadyCloudEnabled` / `unknown` | основной контур для безопасной проверки local/cloud UX |
-| `prod` | все cloud capabilities доступны через prod Firebase | те же gate-статусы, что и у `dev` | те же preflight-статусы, что и у `dev` | продуктовый cloud-capable runtime без backend subscription lifecycle |
+| `storeProdLocalFirst` | все cloud capabilities доступны через prod Firebase | те же gate-статусы, что и у `dev` | те же preflight-статусы, что и у `dev` | продуктовый cloud-capable runtime без backend subscription lifecycle |
 | `web` cloud-capable build | capability-модель совпадает с cloud-capable runtime | `webApp` и `cloudSync` зависят от entitlement/gates | те же preflight-статусы, если пользователь открывает preflight screen | `isWebReadOnly` пока только projection, не реальный write barrier |
 
 Что важно не перепутать:
@@ -278,9 +278,9 @@ class FeatureAccess {
 Минимальный набор перед изменением логики:
 
 1. `AppCapabilities`
-   * `offline` не разрешает Firebase/Auth/Firestore/AI transport.
+   * `offlineOnly` не разрешает Firebase/Auth/Firestore/AI transport.
    * `dev` использует dev Firebase environment.
-   * `prod` использует prod Firebase environment.
+   * `storeProdLocalFirst` использует prod Firebase environment.
 
 2. `Entitlement`
    * `freeLocal` не дает `canUseCloudSync`, `canUseAiAssistant`, `canUseAdvancedAnalytics`.

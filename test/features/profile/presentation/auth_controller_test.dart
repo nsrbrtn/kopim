@@ -188,6 +188,9 @@ class FakeAuthRepository implements AuthRepository {
   })?
   onUpdatePassword;
 
+  @override
+  Future<void> forceRefreshIdToken() async {}
+
   void dispose() {
     _controller.close();
   }

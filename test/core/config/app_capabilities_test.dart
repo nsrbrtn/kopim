@@ -9,8 +9,8 @@ void main() {
     FirebaseEnvironmentConfig.configure(FirebaseEnvironment.dev);
   });
 
-  test('offline runtime disables Firebase and AI capabilities', () {
-    AppRuntimeConfig.configure(AppRuntimeFlavor.offline);
+  test('offlineOnly runtime disables Firebase and AI capabilities', () {
+    AppRuntimeConfig.configure(AppRuntimeFlavor.offlineOnly);
 
     final AppCapabilities capabilities = AppCapabilities.fromRuntime();
 
@@ -30,8 +30,8 @@ void main() {
     expect(capabilities.firebaseEnvironment, FirebaseEnvironment.dev);
   });
 
-  test('prod runtime uses prod Firebase environment', () {
-    AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseProd);
+  test('storeProdLocalFirst runtime uses prod Firebase environment', () {
+    AppRuntimeConfig.configure(AppRuntimeFlavor.storeProdLocalFirst);
     FirebaseEnvironmentConfig.configure(FirebaseEnvironment.prod);
 
     final AppCapabilities capabilities = AppCapabilities.fromRuntime();

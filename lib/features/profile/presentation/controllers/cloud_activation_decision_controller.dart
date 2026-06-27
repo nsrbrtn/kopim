@@ -272,11 +272,12 @@ CloudActivationDecisionState _resolveMatrixScenario(
         title: 'Заменить локальные данные облачными',
         body:
             'Сценарий актуален только когда облачный финансовый снимок уже подтверждён для текущего аккаунта.',
+        // Требует execution flow: деструктивная операция, нельзя подтвердить только диалогом.
         availability: replaceLocalWithCloudRelevant
             ? CloudActivationChoiceAvailability.unavailableUntilExecutionFlow
             : CloudActivationChoiceAvailability.unavailableForCurrentScenario,
         followupNote:
-            'Execution flow для замены локальных данных облачными ещё не реализован.',
+            'Перед подключением Kopim проверит целостность облачных данных и настроит их загрузку на это устройство.',
       ),
       CloudActivationDecisionOption(
         choice: CloudActivationChoice.mergeLocalAndCloud,

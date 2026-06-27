@@ -1,4 +1,16 @@
-enum AppRuntimeFlavor { offline, firebaseDev, firebaseProd }
+enum AppRuntimeFlavor {
+  offlineOnly,
+  storeProdLocalFirst,
+  webProdCloudOnly,
+  firebaseDev,
+}
+
+enum ExpiredEntitlementMode {
+  none,
+  localWritableSyncPaused,
+  readOnly,
+  configurable,
+}
 
 enum AppDistributionMode { offlineOnly, cloudCapable }
 
@@ -28,7 +40,7 @@ final class AppRuntimeConfig {
   static AppRuntimeFlavor get flavor => _flavor;
 
   static AppDistributionMode get distributionMode =>
-      _flavor == AppRuntimeFlavor.offline
+      _flavor == AppRuntimeFlavor.offlineOnly
       ? AppDistributionMode.offlineOnly
       : AppDistributionMode.cloudCapable;
 
@@ -38,10 +50,10 @@ final class AppRuntimeConfig {
   static bool get isCloudCapableDistribution =>
       distributionMode == AppDistributionMode.cloudCapable;
 
-  @Deprecated('Use isOfflineOnlyDistribution or DataMode instead')
-  static bool get isOffline => _flavor == AppRuntimeFlavor.offline;
+  @Deprecated('Use isOfflineOnlyDistribution or AppCapabilities instead')
+  static bool get isOffline => _flavor == AppRuntimeFlavor.offlineOnly;
 
-  @Deprecated('Use usesFirebase or DataMode instead')
+  @Deprecated('Use AppCapabilities instead')
   static bool get usesFirebase => !isOffline;
 
   static void configure(AppRuntimeFlavor flavor) {

@@ -134,9 +134,71 @@ class _ProfileSyncSettingsCardState
           ],
         );
       },
-      data: (DataModeState _) {
+      data: (DataModeState dataModeState) {
         switch (featureAccess.cloudSync.status) {
           case FeatureAccessStatus.requiresEntitlement:
+            if (!capabilities.canActivatePromoOrLicenseInApp) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      Icon(Icons.sync_disabled, color: iconColor),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Синхронизация недоступна',
+                          style: theme.textTheme.titleMedium,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Доступ к облачным функциям не активирован для вашего аккаунта.',
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: _isLoading
+                        ? null
+                        : () async {
+                            setState(() {
+                              _isLoading = true;
+                            });
+                            try {
+                              await ref
+                                  .read(dataModeControllerProvider.notifier)
+                                  .refreshEntitlement();
+                            } catch (e) {
+                              if (mounted) {
+                                ScaffoldMessenger.of(this.context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Ошибка обновления доступа: $e',
+                                    ),
+                                  ),
+                                );
+                              }
+                            } finally {
+                              if (mounted) {
+                                setState(() {
+                                  _isLoading = false;
+                                });
+                              }
+                            }
+                          },
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Проверить доступ'),
+                  ),
+                ],
+              );
+            }
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
@@ -178,6 +240,53 @@ class _ProfileSyncSettingsCardState
                         )
                       : const Text('Активировать'),
                 ),
+              ],
+            );
+          case FeatureAccessStatus.blockedByCloudState:
+            final bool requiresFreshUpload =
+                dataModeState.requiresFreshCloudUpload;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    Icon(
+                      requiresFreshUpload
+                          ? Icons.cloud_upload_outlined
+                          : Icons.sync_problem,
+                      color: requiresFreshUpload
+                          ? theme.colorScheme.primary
+                          : theme.colorScheme.error,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        requiresFreshUpload
+                            ? 'Требуется начальная загрузка'
+                            : 'Синхронизация приостановлена',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: requiresFreshUpload
+                              ? theme.colorScheme.primary
+                              : theme.colorScheme.error,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  requiresFreshUpload
+                      ? 'Облачное хранилище очищено. Нажмите кнопку ниже, чтобы выполнить начальную загрузку данных с этого устройства.'
+                      : 'Работа с облаком временно заблокирована из-за текущего состояния данных в облаке.',
+                  style: theme.textTheme.bodyMedium,
+                ),
+                if (requiresFreshUpload) ...<Widget>[
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => _openCloudActivationPreflight(context),
+                    child: const Text('Начать загрузку данных'),
+                  ),
+                ],
               ],
             );
           case FeatureAccessStatus.blockedByLocalData:

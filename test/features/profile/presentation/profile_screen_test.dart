@@ -20,6 +20,7 @@ import 'package:kopim/features/profile/domain/models/profile_command_result.dart
 import 'package:kopim/features/profile/domain/usecases/update_profile_use_case.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/avatar_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/feature_access_provider.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_activity_days_provider.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/user_progress_controller.dart';
@@ -162,6 +163,19 @@ void main() {
               const <CategoryTreeNode>[],
             ),
           ),
+          // Stub featureAccessProvider to avoid reaching firebaseAuth in tests.
+          featureAccessProvider.overrideWithValue(
+            const FeatureAccess(
+              entitlementState: EntitlementAccessState.freeLocal,
+              cloudSync: FeatureGate(FeatureAccessStatus.disabledByBuild),
+              webApp: FeatureGate(FeatureAccessStatus.disabledByBuild),
+              aiAssistant: FeatureGate(FeatureAccessStatus.disabledByBuild),
+              advancedAnalytics: FeatureGate(
+                FeatureAccessStatus.disabledByBuild,
+              ),
+              isWebReadOnly: false,
+            ),
+          ),
         ],
         child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -269,6 +283,19 @@ void main() {
               const <CategoryTreeNode>[],
             ),
           ),
+          // Stub featureAccessProvider to avoid reaching firebaseAuth in tests.
+          featureAccessProvider.overrideWithValue(
+            const FeatureAccess(
+              entitlementState: EntitlementAccessState.freeLocal,
+              cloudSync: FeatureGate(FeatureAccessStatus.disabledByBuild),
+              webApp: FeatureGate(FeatureAccessStatus.disabledByBuild),
+              aiAssistant: FeatureGate(FeatureAccessStatus.disabledByBuild),
+              advancedAnalytics: FeatureGate(
+                FeatureAccessStatus.disabledByBuild,
+              ),
+              isWebReadOnly: false,
+            ),
+          ),
         ],
         child: MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -337,6 +364,19 @@ void main() {
           manageCategoryTreeProvider.overrideWith(
             (Ref ref) => Stream<List<CategoryTreeNode>>.value(
               const <CategoryTreeNode>[],
+            ),
+          ),
+          // Stub featureAccessProvider to avoid reaching firebaseAuth in tests.
+          featureAccessProvider.overrideWithValue(
+            const FeatureAccess(
+              entitlementState: EntitlementAccessState.freeLocal,
+              cloudSync: FeatureGate(FeatureAccessStatus.disabledByBuild),
+              webApp: FeatureGate(FeatureAccessStatus.disabledByBuild),
+              aiAssistant: FeatureGate(FeatureAccessStatus.disabledByBuild),
+              advancedAnalytics: FeatureGate(
+                FeatureAccessStatus.disabledByBuild,
+              ),
+              isWebReadOnly: false,
             ),
           ),
         ],

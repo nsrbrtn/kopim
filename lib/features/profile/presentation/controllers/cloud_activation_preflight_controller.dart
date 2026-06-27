@@ -48,6 +48,10 @@ CloudActivationPreflightState resolveCloudActivationPreflightState({
       const CloudActivationPreflightState(
         CloudActivationPreflightStatus.blockedByLocalOnlyData,
       ),
+    FeatureAccessStatus.blockedByCloudState =>
+      const CloudActivationPreflightState(
+        CloudActivationPreflightStatus.unknown,
+      ),
     FeatureAccessStatus.unavailable => const CloudActivationPreflightState(
       CloudActivationPreflightStatus.unknown,
     ),

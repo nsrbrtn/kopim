@@ -10,23 +10,93 @@ class AppCapabilities {
     required this.canUseRemoteConfig,
     required this.canRunCloudSync,
     required this.canUseAiTransport,
+    required this.canShowCloudSyncEntryPoint,
+    required this.canRegisterInApp,
+    required this.canShowPaymentOrPurchaseUi,
+    required this.canActivatePromoOrLicenseInApp,
+    required this.requiresEntitlementBeforeWebApp,
+    required this.allowsLocalOnlyUsage,
+    required this.expiredEntitlementMode,
     required this.firebaseEnvironment,
   });
 
   factory AppCapabilities.fromRuntime() {
-    final bool cloudCapable = AppRuntimeConfig.isCloudCapableDistribution;
+    final AppRuntimeFlavor flavor = AppRuntimeConfig.flavor;
 
-    return AppCapabilities(
-      canInitializeFirebase: cloudCapable,
-      canUseFirebaseAuth: cloudCapable,
-      canUseFirestore: cloudCapable,
-      canUseRemoteConfig: cloudCapable,
-      canRunCloudSync: cloudCapable,
-      canUseAiTransport: cloudCapable,
-      firebaseEnvironment: cloudCapable
-          ? FirebaseEnvironmentConfig.environment
-          : null,
-    );
+    switch (flavor) {
+      case AppRuntimeFlavor.offlineOnly:
+        return const AppCapabilities(
+          canInitializeFirebase: false,
+          canUseFirebaseAuth: false,
+          canUseFirestore: false,
+          canUseRemoteConfig: false,
+          canRunCloudSync: false,
+          canUseAiTransport: false,
+          canShowCloudSyncEntryPoint: false,
+          canRegisterInApp: false,
+          canShowPaymentOrPurchaseUi: false,
+          canActivatePromoOrLicenseInApp: false,
+          requiresEntitlementBeforeWebApp: false,
+          allowsLocalOnlyUsage: true,
+          expiredEntitlementMode: ExpiredEntitlementMode.none,
+          firebaseEnvironment: null,
+        );
+
+      case AppRuntimeFlavor.storeProdLocalFirst:
+        return const AppCapabilities(
+          canInitializeFirebase: true,
+          canUseFirebaseAuth: true,
+          canUseFirestore: true,
+          canUseRemoteConfig: true,
+          canRunCloudSync: true,
+          canUseAiTransport: true,
+          canShowCloudSyncEntryPoint: true,
+          canRegisterInApp: false,
+          canShowPaymentOrPurchaseUi: false,
+          canActivatePromoOrLicenseInApp: false,
+          requiresEntitlementBeforeWebApp: false,
+          allowsLocalOnlyUsage: true,
+          expiredEntitlementMode:
+              ExpiredEntitlementMode.localWritableSyncPaused,
+          firebaseEnvironment: FirebaseEnvironment.prod,
+        );
+
+      case AppRuntimeFlavor.webProdCloudOnly:
+        return const AppCapabilities(
+          canInitializeFirebase: true,
+          canUseFirebaseAuth: true,
+          canUseFirestore: true,
+          canUseRemoteConfig: true,
+          canRunCloudSync: true,
+          canUseAiTransport: true,
+          canShowCloudSyncEntryPoint: true,
+          canRegisterInApp: true,
+          canShowPaymentOrPurchaseUi: true,
+          canActivatePromoOrLicenseInApp: true,
+          requiresEntitlementBeforeWebApp: true,
+          allowsLocalOnlyUsage: false,
+          expiredEntitlementMode: ExpiredEntitlementMode.readOnly,
+          firebaseEnvironment: FirebaseEnvironment.prod,
+        );
+
+      case AppRuntimeFlavor.firebaseDev:
+        return const AppCapabilities(
+          canInitializeFirebase: true,
+          canUseFirebaseAuth: true,
+          canUseFirestore: true,
+          canUseRemoteConfig: true,
+          canRunCloudSync: true,
+          canUseAiTransport: true,
+          canShowCloudSyncEntryPoint: true,
+          canRegisterInApp: true,
+          canShowPaymentOrPurchaseUi: true,
+          canActivatePromoOrLicenseInApp: true,
+          requiresEntitlementBeforeWebApp: false,
+          allowsLocalOnlyUsage: true,
+          expiredEntitlementMode: ExpiredEntitlementMode.configurable,
+          firebaseEnvironment: FirebaseEnvironment.dev,
+        );
+    }
   }
 
   final bool canInitializeFirebase;
@@ -35,6 +105,13 @@ class AppCapabilities {
   final bool canUseRemoteConfig;
   final bool canRunCloudSync;
   final bool canUseAiTransport;
+  final bool canShowCloudSyncEntryPoint;
+  final bool canRegisterInApp;
+  final bool canShowPaymentOrPurchaseUi;
+  final bool canActivatePromoOrLicenseInApp;
+  final bool requiresEntitlementBeforeWebApp;
+  final bool allowsLocalOnlyUsage;
+  final ExpiredEntitlementMode expiredEntitlementMode;
   final FirebaseEnvironment? firebaseEnvironment;
 }
 

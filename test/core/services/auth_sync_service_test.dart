@@ -322,6 +322,7 @@ void main() {
       () async {
         final AuthSyncService service = buildService();
         const String userId = 'user-1';
+        harness.setActiveCloudUid(userId);
         const double balance = 1500;
         final int accountScale = resolveCurrencyScale('RUB');
         final MoneyAmount balanceAmount = resolveMoneyAmount(
@@ -597,6 +598,7 @@ void main() {
     test('processes all pending outbox batches before remote merge', () async {
       final AuthSyncService service = buildService();
       const String userId = 'batch-user';
+      harness.setActiveCloudUid(userId);
 
       await firestore
           .collection('users')
@@ -755,6 +757,7 @@ void main() {
       () async {
         final AuthSyncService service = buildService();
         const String userId = 'user-stale-delete';
+        harness.setActiveCloudUid(userId);
         final DateTime staleDeleteTime = DateTime.utc(2024, 2, 1);
         final DateTime remoteNewerTime = DateTime.utc(2024, 2, 5);
         final Category staleDeletedLocal = Category(
@@ -815,6 +818,7 @@ void main() {
       () async {
         final AuthSyncService service = buildService();
         const String userId = 'user-restore-after-delete';
+        harness.setActiveCloudUid(userId);
         final DateTime remoteDeleteTime = DateTime.utc(2024, 2, 1);
         final DateTime localRestoreTime = DateTime.utc(2024, 2, 7);
         final Category remoteDeleted = Category(
@@ -875,6 +879,7 @@ void main() {
       () async {
         final AuthSyncService service = buildService();
         const String userId = 'user-restore-e2e';
+        harness.setActiveCloudUid(userId);
         final DateTime staleTime = DateTime.utc(2024, 1, 5);
         final DateTime importedTime = DateTime.utc(2024, 2, 10);
         const int scale = 2;
@@ -1282,6 +1287,7 @@ void main() {
       () async {
         final AuthSyncService service = buildService();
         const String userId = 'user-restore-conflict';
+        harness.setActiveCloudUid(userId);
         const int scale = 2;
         final DateTime remoteOlder = DateTime.utc(2024, 1, 10);
         final DateTime importedOlder = DateTime.utc(2024, 2, 10);
@@ -1700,6 +1706,7 @@ void main() {
       () async {
         final AuthSyncService service = buildService();
         const String userId = 'user-account-backfill';
+        harness.setActiveCloudUid(userId);
         final AccountEntity remoteLegacy = AccountEntity(
           id: 'acc-legacy-only',
           name: 'Remote legacy card',
@@ -1763,6 +1770,7 @@ void main() {
       () async {
         final AuthSyncService service = buildService();
         const String userId = 'user-account-type-outbox';
+        harness.setActiveCloudUid(userId);
         final AccountEntity remoteAccount = AccountEntity(
           id: 'acc-type-outbox',
           name: 'Remote canonical',
@@ -1854,6 +1862,7 @@ void main() {
       () async {
         final AuthSyncService service = buildService();
         const String userId = 'user-saving-goal-restore';
+        harness.setActiveCloudUid(userId);
         final DateTime staleTime = DateTime.utc(2024, 1, 15);
         final DateTime importedTime = DateTime.utc(2024, 2, 15);
 
@@ -2000,6 +2009,7 @@ void main() {
       () async {
         final AuthSyncService service = buildService();
         const String userId = 'user-profile-lww';
+        harness.setActiveCloudUid(userId);
         final DateTime localTime = DateTime.utc(2024, 2, 1);
         final DateTime remoteTime = DateTime.utc(2024, 3, 1);
 
@@ -2078,6 +2088,7 @@ void main() {
       () async {
         final AuthSyncService service = buildService();
         const String userId = 'user-profile-fallback';
+        harness.setActiveCloudUid(userId);
         final DateTime signInTime = DateTime.utc(2024, 4, 1);
 
         final AuthUser authUser = AuthUser(
@@ -2120,6 +2131,7 @@ void main() {
       () async {
         final AuthSyncService service = buildService();
         const String userId = 'user-liability-restore';
+        harness.setActiveCloudUid(userId);
         const int scale = 2;
         final DateTime staleTime = DateTime.utc(2024, 1, 20);
         final DateTime importedTime = DateTime.utc(2024, 2, 20);
@@ -2316,6 +2328,7 @@ void main() {
       () async {
         final AuthSyncService service = buildService();
         const String userId = 'user-liability-conflict';
+        harness.setActiveCloudUid(userId);
         const int scale = 2;
         final DateTime older = DateTime.utc(2024, 2, 1);
         final DateTime remoteNewer = DateTime.utc(2024, 4, 1);
@@ -2492,6 +2505,7 @@ void main() {
       () async {
         final AuthSyncService service = buildService();
         const String userId = 'user-legacy';
+        harness.setActiveCloudUid(userId);
 
         await outboxDao.enqueue(
           entityType: 'category',
@@ -2619,6 +2633,7 @@ void main() {
         accountRemoteDataSource: throwingDataSource,
       );
       const String userId = 'user-2';
+      harness.setActiveCloudUid(userId);
 
       final AccountEntity account = AccountEntity(
         id: 'acc-2',
@@ -2710,9 +2725,9 @@ void main() {
                 .get();
         expect(remoteAccount.exists, isFalse);
 
-        final List<db.OutboxEntryRow> entries = await outboxDao.fetchPending(
-          limit: 10,
-        );
+        final List<db.OutboxEntryRow> entries = await database
+            .select(database.outboxEntries)
+            .get();
         expect(entries, hasLength(1));
         expect(entries.single.status, equals(OutboxStatus.pending.name));
       },
@@ -2805,6 +2820,7 @@ void main() {
     test('retries stale sending outbox entries during login sync', () async {
       final AuthSyncService service = buildService();
       const String userId = 'user-stale-sending';
+      harness.setActiveCloudUid(userId);
 
       final AccountEntity account = AccountEntity(
         id: 'acc-stale',
@@ -2876,6 +2892,7 @@ void main() {
     test('keeps sent outbox rows until retain window cleanup', () async {
       final AuthSyncService service = buildService();
       const String userId = 'user-retain-sent';
+      harness.setActiveCloudUid(userId);
 
       final AccountEntity account = AccountEntity(
         id: 'acc-retain',

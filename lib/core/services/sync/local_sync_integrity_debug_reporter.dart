@@ -17,7 +17,8 @@ class LocalSyncIntegrityDebugReporter {
   final LoggerService _logger;
 
   bool get _enabled =>
-      kDebugMode || AppRuntimeConfig.flavor != AppRuntimeFlavor.firebaseProd;
+      kDebugMode ||
+      AppRuntimeConfig.flavor != AppRuntimeFlavor.storeProdLocalFirst;
 
   Future<void> runAndLog({required String context}) async {
     if (!_enabled) {

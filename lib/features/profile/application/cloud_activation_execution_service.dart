@@ -249,6 +249,91 @@ class CloudActivationExecutionService {
     }
   }
 
+  Future<CloudActivationExecutionResult> confirmReplaceLocalWithCloud({
+    required AuthUser? currentUser,
+    required CloudActivationIntentState intentState,
+    required DataModeState? currentMode,
+    required Future<DataModeState> Function() refreshRuntimeMode,
+  }) async {
+    final CloudActivationExecutionResult? commonBlock =
+        await _validateCommonPreconditions(
+          currentUser: currentUser,
+          intentState: intentState,
+          currentMode: currentMode,
+          expectedChoice: CloudActivationChoice.replaceLocalWithCloud,
+        );
+    if (commonBlock != null) {
+      return commonBlock;
+    }
+
+    final LocalSnapshotSummary localSummary = await _localSnapshotSummaryService
+        .summarize();
+    final CloudSnapshotSummary remoteSummary =
+        await _cloudSnapshotSummaryService.summarize(currentUser!.uid);
+    final CloudActivationExecutionResult? precheckBlock =
+        _validateReplaceLocalWithCloudSnapshotPair(
+          localSummary: localSummary,
+          remoteSummary: remoteSummary,
+          intentState: intentState,
+        );
+    if (precheckBlock != null) {
+      return precheckBlock;
+    }
+
+    if (!_runtimeGuard.tryAcquire()) {
+      return const CloudActivationExecutionResult.blocked(
+        CloudActivationExecutionBlockReason.activationInProgress,
+      );
+    }
+
+    try {
+      final LocalSnapshotSummary guardedLocalSummary =
+          await _localSnapshotSummaryService.summarize(
+            includeActivationGuard: false,
+          );
+      final CloudSnapshotSummary guardedRemoteSummary =
+          await _cloudSnapshotSummaryService.summarize(currentUser.uid);
+
+      final CloudActivationExecutionResult? guardedBlock =
+          _validateReplaceLocalWithCloudSnapshotPair(
+            localSummary: guardedLocalSummary,
+            remoteSummary: guardedRemoteSummary,
+            intentState: intentState,
+          );
+      if (guardedBlock != null) {
+        return guardedBlock;
+      }
+
+      await _activationStateRepository.saveEnabledState(
+        uid: currentUser.uid,
+        scenario: CloudActivationChoice.replaceLocalWithCloud.name,
+        localFingerprint: guardedLocalSummary.fingerprint,
+        remoteFingerprint: guardedRemoteSummary.fingerprint,
+      );
+
+      final DataModeState nextState = await refreshRuntimeMode();
+      if (nextState.dataMode != DataMode.cloudEnabled) {
+        _logger.logWarning(
+          'Replace-local-with-cloud activation flag persisted for ${currentUser.uid}, but runtime mode stayed ${nextState.dataMode.name}.',
+        );
+        return const CloudActivationExecutionResult.failed(
+          message:
+              'Не удалось безопасно перевести приложение в облачный режим.',
+        );
+      }
+
+      return const CloudActivationExecutionResult.succeeded();
+    } catch (error) {
+      _logger.logError(
+        'Replace-local-with-cloud execution failed for ${currentUser.uid}: $error',
+        error,
+      );
+      return CloudActivationExecutionResult.failed(message: error.toString());
+    } finally {
+      _runtimeGuard.release();
+    }
+  }
+
   Future<CloudActivationExecutionResult> confirmStartWithEmptyCloud({
     required AuthUser? currentUser,
     required CloudActivationIntentState intentState,
@@ -913,6 +998,54 @@ class CloudActivationExecutionService {
     if (remoteSummary.state != RemoteSnapshotState.empty) {
       return const CloudActivationExecutionResult.blocked(
         CloudActivationExecutionBlockReason.remoteUnavailable,
+      );
+    }
+
+    if (intentState.localFingerprint != null &&
+        intentState.localFingerprint != localSummary.fingerprint) {
+      return const CloudActivationExecutionResult.blocked(
+        CloudActivationExecutionBlockReason.staleReadiness,
+      );
+    }
+    if (intentState.remoteFingerprint != null &&
+        intentState.remoteFingerprint != remoteSummary.fingerprint) {
+      return const CloudActivationExecutionResult.blocked(
+        CloudActivationExecutionBlockReason.staleReadiness,
+      );
+    }
+
+    return null;
+  }
+
+  CloudActivationExecutionResult? _validateReplaceLocalWithCloudSnapshotPair({
+    required LocalSnapshotSummary localSummary,
+    required CloudSnapshotSummary remoteSummary,
+    required CloudActivationIntentState intentState,
+  }) {
+    final bool localSafe =
+        localSummary.state == LocalSnapshotState.empty ||
+        localSummary.state == LocalSnapshotState.hasOnlySystemData;
+    if (!localSafe) {
+      return const CloudActivationExecutionResult.blocked(
+        CloudActivationExecutionBlockReason.localNotEmpty,
+      );
+    }
+
+    if (remoteSummary.state == RemoteSnapshotState.permissionDenied) {
+      return const CloudActivationExecutionResult.blocked(
+        CloudActivationExecutionBlockReason.remotePermissionDenied,
+      );
+    }
+    if (remoteSummary.state == RemoteSnapshotState.unavailable ||
+        remoteSummary.state == RemoteSnapshotState.unknown ||
+        remoteSummary.state == RemoteSnapshotState.unauthenticated) {
+      return const CloudActivationExecutionResult.blocked(
+        CloudActivationExecutionBlockReason.remoteUnavailable,
+      );
+    }
+    if (remoteSummary.state != RemoteSnapshotState.hasUserData) {
+      return const CloudActivationExecutionResult.blocked(
+        CloudActivationExecutionBlockReason.remoteNotEmpty,
       );
     }
 

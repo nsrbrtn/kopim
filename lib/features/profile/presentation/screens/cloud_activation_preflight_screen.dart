@@ -184,7 +184,7 @@ class CloudActivationPreflightScreen extends ConsumerWidget {
       router.pop();
       return;
     }
-    Navigator.of(context).maybePop();
+    context.go('/');
   }
 }
 

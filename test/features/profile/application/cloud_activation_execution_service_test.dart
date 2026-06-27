@@ -62,6 +62,9 @@ class _FakeCloudEntitlementRepository implements CloudEntitlementRepository {
 
   @override
   Future<CloudEntitlementState> getCachedState() async => state;
+
+  @override
+  Future<CloudEntitlementState> refreshFromCurrentToken() async => state;
 }
 
 class _FakeCloudActivationStateRepository

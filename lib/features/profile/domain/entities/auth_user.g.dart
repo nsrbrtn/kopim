@@ -19,6 +19,9 @@ _AuthUser _$AuthUserFromJson(Map<String, dynamic> json) => _AuthUser(
   lastSignInTime: json['lastSignInTime'] == null
       ? null
       : DateTime.parse(json['lastSignInTime'] as String),
+  sessionKind:
+      $enumDecodeNullable(_$AuthSessionKindEnumMap, json['sessionKind']) ??
+      AuthSessionKind.firebase,
 );
 
 Map<String, dynamic> _$AuthUserToJson(_AuthUser instance) => <String, dynamic>{
@@ -30,4 +33,10 @@ Map<String, dynamic> _$AuthUserToJson(_AuthUser instance) => <String, dynamic>{
   'emailVerified': instance.emailVerified,
   'creationTime': instance.creationTime?.toIso8601String(),
   'lastSignInTime': instance.lastSignInTime?.toIso8601String(),
+  'sessionKind': _$AuthSessionKindEnumMap[instance.sessionKind]!,
+};
+
+const _$AuthSessionKindEnumMap = {
+  AuthSessionKind.local: 'local',
+  AuthSessionKind.firebase: 'firebase',
 };

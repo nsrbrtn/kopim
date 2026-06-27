@@ -39,13 +39,13 @@
 Проверенная команда:
 
 ```bash
-flutter build appbundle --release --flavor prod --target lib/main_prod.dart
+flutter build appbundle --release --flavor storeProdLocalFirst --target lib/main_prod.dart
 ```
 
 Результат:
 
-- успешно собран `build/app/outputs/bundle/prodRelease/app-prod-release.aab`;
-- `prod` flavor работает;
+- успешно собран `build/app/outputs/bundle/storeProdLocalFirstRelease/app-storeProdLocalFirst-release.aab`;
+- `storeProdLocalFirst` flavor работает;
 - `main_prod.dart` используется как валидный production entrypoint;
 - Android release pipeline не упирается в немедленный blocker по flavor/setup/signing.
 
@@ -595,10 +595,10 @@ flutter build appbundle --release --flavor prod --target lib/main_prod.dart
 Что сделать:
 
 1. Проверить и зафиксировать production-команды сборки для:
-   - `flutter build appbundle --release --flavor prod --target lib/main_prod.dart`
+   - `flutter build appbundle --release --flavor storeProdLocalFirst --target lib/main_prod.dart`
    - iOS archive/build проверить отдельно на `macOS` через `Xcode` или `flutter build ios` / `flutter build ipa`
 2. Подтвердить, что production-сборка действительно использует production Firebase и production legal/support URLs.
-3. Проверить Android release signing, `versionCode`, Crashlytics mapping upload и `prod` flavor.
+3. Проверить Android release signing, `versionCode`, Crashlytics mapping upload и `storeProdLocalFirst` flavor.
 4. Проверить iOS signing, `CFBundleIdentifier`, `CFBundleShortVersionString`, `CFBundleVersion`, production `GoogleService-Info.plist`, capabilities и privacy declarations.
 5. Явно решить, нужен ли отдельный iOS production pipeline или текущая схема достаточна.
 
@@ -718,9 +718,9 @@ flutter build appbundle --release --flavor prod --target lib/main_prod.dart
 
 ## Что уже есть в проекте
 
-- Android package для prod: `qmodo.ru.kopim`.
+- Android package для production cloud runtime: `kopim.app`.
 - iOS bundle id для prod: `qmodo.ru.kopim`.
-- На Android уже есть flavor `prod`.
+- На Android уже есть flavor `storeProdLocalFirst`.
 - В проекте уже подключены `Firebase Analytics`, `Crashlytics`, `Auth`, `Firestore`, `Storage`, `Messaging`, `Remote Config`.
 - Есть app icons и splash assets для Android/iOS.
 - В `AppConfig` уже вынесены public legal/support URL для prod.
@@ -819,7 +819,7 @@ flutter build appbundle --release --flavor prod --target lib/main_prod.dart
 
 1. Зафиксировать release-команды для Android и iOS.
 2. Убедиться, что prod-сборка использует production Firebase.
-3. Развести dev/stage/prod значения для:
+3. Развести dev/stage/storeProdLocalFirst значения для:
    - API/config flags;
    - legal URLs;
    - support email;
@@ -943,7 +943,7 @@ dart run build_runner build --delete-conflicting-outputs
 dart format --set-exit-if-changed .
 flutter analyze
 flutter test --reporter expanded
-flutter build appbundle --release --flavor prod --target lib/main_prod.dart
+flutter build appbundle --release --flavor storeProdLocalFirst --target lib/main_prod.dart
 ```
 
 Дополнительно стоит добавить:
@@ -1202,8 +1202,8 @@ flutter build appbundle --release --flavor prod --target lib/main_prod.dart
 1. Проверить `upload-keystore.jks`, `key.properties`, alias и release signing.
 2. Включить `Play App Signing`.
 3. Проверить `versionCode` и стратегию инкремента.
-4. Убедиться, что `prod` flavor реально собирает production-конфигурацию.
-5. Проверить `google-services.json` для `prod`.
+4. Убедиться, что `storeProdLocalFirst` flavor реально собирает production-конфигурацию.
+5. Проверить `google-services.json` для `storeProdLocalFirst`.
 6. Проверить shrink/minify release-сборки на отсутствие runtime regressions.
 7. Проверить Crashlytics mapping upload.
 
@@ -1239,7 +1239,7 @@ flutter build appbundle --release --flavor prod --target lib/main_prod.dart
 
 ### Android RC checklist
 
-1. Установить `app-prod-release.aab` / соответствующий internal build на реальное Android-устройство.
+1. Установить `app-storeProdLocalFirst-release.aab` / соответствующий internal build на реальное Android-устройство.
 2. Проверить cold start:
    - splash отображается корректно;
    - нет debug-banner;
@@ -1393,7 +1393,7 @@ flutter build appbundle --release --flavor prod --target lib/main_prod.dart
 
 ## Definition of Done для первого релиза
 
-- prod-сборки Android и iOS собираются без ручных обходов.
+- production-сборки Android и iOS собираются без ручных обходов.
 - В приложении нет placeholder-заглушек в legal-разделе.
 - Пользователь может открыть privacy policy и terms.
 - Пользователь может удалить аккаунт и понять, что будет с данными.

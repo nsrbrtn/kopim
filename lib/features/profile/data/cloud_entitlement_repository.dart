@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kopim/core/config/app_runtime.dart';
@@ -30,7 +29,6 @@ class CloudEntitlementRepositoryImpl implements CloudEntitlementRepository {
   }) : _preferencesFuture = preferences ?? SharedPreferences.getInstance(),
        _firebaseAuth = firebaseAuth;
 
-  static const String demoCloudKey = 'DEMO-CLOUD-KEY';
   static const String _kEntitlementStateKey = 'profile.entitlement.state';
   static const String _kEntitlementKeyKey = 'profile.entitlement.key';
 
@@ -45,27 +43,6 @@ class CloudEntitlementRepositoryImpl implements CloudEntitlementRepository {
         success: false,
         errorMessage: 'Ключ не может быть пустым',
         state: CloudEntitlementState.invalid,
-      );
-    }
-
-    // Тестовый ключ доступен только для внутренних cloud-flavor сборок.
-    if (trimmedKey == demoCloudKey) {
-      final bool isInternalCloudBuild =
-          kDebugMode ||
-          AppRuntimeConfig.flavor == AppRuntimeFlavor.firebaseDev ||
-          AppRuntimeConfig.flavor == AppRuntimeFlavor.firebaseProd;
-      if (!isInternalCloudBuild) {
-        return const CloudEntitlementResult(
-          success: false,
-          errorMessage: 'Недействительный ключ доступа',
-          state: CloudEntitlementState.invalid,
-        );
-      }
-
-      await _saveState(CloudEntitlementState.active, trimmedKey);
-      return const CloudEntitlementResult(
-        success: true,
-        state: CloudEntitlementState.active,
       );
     }
 

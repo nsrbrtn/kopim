@@ -698,6 +698,7 @@ class _SecuritySection extends StatelessWidget {
       FeatureAccessStatus.blockedByLocalData => 'Нужно действие',
       FeatureAccessStatus.requiresSignIn => 'Нужен вход в аккаунт',
       FeatureAccessStatus.requiresEntitlement => 'Синхронизация выключена',
+      FeatureAccessStatus.blockedByCloudState => 'Облако заблокировано',
       FeatureAccessStatus.disabledByBuild => 'Локально',
       FeatureAccessStatus.unavailable => 'Проверяем доступ',
     };
@@ -712,6 +713,8 @@ class _SecuritySection extends StatelessWidget {
         'Лицензионный ключ уже активирован. Войдите в аккаунт, чтобы включить синхронизацию.',
       FeatureAccessStatus.requiresEntitlement =>
         'Сейчас данные хранятся только на этом устройстве. Облачные функции станут доступны после активации доступа.',
+      FeatureAccessStatus.blockedByCloudState =>
+        'Синхронизация приостановлена облачным состоянием (очистка или ожидание загрузки).',
       FeatureAccessStatus.disabledByBuild =>
         'Онлайн-синхронизация недоступна в этой сборке. Приложение работает полностью локально.',
       FeatureAccessStatus.unavailable =>

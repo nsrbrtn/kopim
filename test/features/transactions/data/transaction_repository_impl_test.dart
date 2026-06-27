@@ -39,7 +39,7 @@ void main() {
     creditDao = CreditDao(database);
     savingGoalDao = SavingGoalDao(database);
     contributionDao = GoalContributionDao(database);
-    outboxDao = OutboxDao(database);
+    outboxDao = OutboxDao(database, () => 'local-user-1');
     repository = TransactionRepositoryImpl(
       database: database,
       transactionDao: transactionDao,

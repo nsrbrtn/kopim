@@ -8,14 +8,17 @@ import 'package:kopim/core/data/database.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/profile/data/cloud_activation_state_repository.dart';
 import 'package:kopim/features/profile/data/cloud_entitlement_repository.dart';
+import 'package:kopim/features/profile/data/cloud_metadata_repository.dart';
 import 'package:kopim/features/profile/domain/entities/cloud_activation_state.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
+import 'package:kopim/features/profile/domain/entities/cloud_metadata.dart';
 import 'package:kopim/features/profile/domain/entities/sign_in_request.dart';
 import 'package:kopim/features/profile/domain/entities/sign_up_request.dart';
 import 'package:kopim/features/profile/domain/repositories/auth_repository.dart';
 import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:riverpod/misc.dart' show Override;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class _FakeCloudEntitlementRepository implements CloudEntitlementRepository {
   @override
@@ -144,6 +147,27 @@ class _FakeCloudActivationStateRepository
   }
 }
 
+class _FakeCloudMetadataRepository implements CloudMetadataRepository {
+  _FakeCloudMetadataRepository({this.metadata, this.error});
+
+  final CloudMetadata? metadata;
+  final Object? error;
+
+  @override
+  Future<CloudMetadata?> getMetadata(String uid) async {
+    if (error != null) {
+      throw error!;
+    }
+    return metadata;
+  }
+
+  @override
+  Future<void> updateMetadata(String uid, CloudMetadata metadata) async {}
+
+  @override
+  Future<void> setCloudDataState(String uid, CloudDataState state) async {}
+}
+
 void main() {
   test(
     'returns cloudBlockedByLocalData when cloud user exists and local-only data is present',
@@ -195,6 +219,14 @@ void main() {
               ),
             ),
           ),
+          cloudMetadataRepositoryProvider.overrideWithValue(
+            _FakeCloudMetadataRepository(
+              metadata: CloudMetadata(
+                cloudDataState: CloudDataState.active,
+                updatedAt: DateTime.now().toUtc(),
+              ),
+            ),
+          ),
         ],
       );
       addTearDown(container.dispose);
@@ -235,6 +267,14 @@ void main() {
           cloudActivationStateRepositoryProvider.overrideWithValue(
             _FakeCloudActivationStateRepository(),
           ),
+          cloudMetadataRepositoryProvider.overrideWithValue(
+            _FakeCloudMetadataRepository(
+              metadata: CloudMetadata(
+                cloudDataState: CloudDataState.active,
+                updatedAt: DateTime.now().toUtc(),
+              ),
+            ),
+          ),
         ],
       );
       addTearDown(container.dispose);
@@ -245,6 +285,278 @@ void main() {
 
       expect(state.dataMode, equals(DataMode.localOnly));
       expect(state.entitlementState, equals(CloudEntitlementState.active));
+    },
+  );
+
+  test(
+    'returns localOnly and requiresFreshCloudUpload when cloud data state is deleted',
+    () async {
+      AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseDev);
+      final AppDatabase database = AppDatabase.connect(
+        DatabaseConnection(NativeDatabase.memory()),
+      );
+      addTearDown(database.close);
+
+      final ProviderContainer container = ProviderContainer(
+        overrides: <Override>[
+          appDatabaseProvider.overrideWithValue(database),
+          cloudEntitlementRepositoryProvider.overrideWithValue(
+            _FakeCloudEntitlementRepository(),
+          ),
+          cloudAuthRepositoryProvider.overrideWithValue(
+            _FakeAuthRepository(
+              const AuthUser(
+                uid: 'cloud-user-3',
+                email: 'user@example.com',
+                isAnonymous: false,
+              ),
+            ),
+          ),
+          cloudActivationStateRepositoryProvider.overrideWithValue(
+            _FakeCloudActivationStateRepository(
+              state: CloudActivationState(
+                uid: 'cloud-user-3',
+                scenario: 'enableCloudSync',
+                activatedAt: DateTime.utc(2024, 1, 1),
+                localFingerprint: 'local:empty',
+                remoteFingerprint: 'remote:empty|uid:cloud-user-3',
+                version: 1,
+              ),
+            ),
+          ),
+          cloudMetadataRepositoryProvider.overrideWithValue(
+            _FakeCloudMetadataRepository(
+              metadata: CloudMetadata(
+                cloudDataState: CloudDataState.deleted,
+                updatedAt: DateTime.now().toUtc(),
+              ),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final DataModeState state = await container.read(
+        dataModeControllerProvider.future,
+      );
+
+      expect(state.dataMode, equals(DataMode.localOnly));
+      expect(state.isSyncBlockedByCloudState, isTrue);
+      expect(state.requiresFreshCloudUpload, isTrue);
+    },
+  );
+
+  test(
+    'returns localOnly and blocks sync when cloud data state is freshUploadInProgress',
+    () async {
+      AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseDev);
+      final AppDatabase database = AppDatabase.connect(
+        DatabaseConnection(NativeDatabase.memory()),
+      );
+      addTearDown(database.close);
+
+      final ProviderContainer container = ProviderContainer(
+        overrides: <Override>[
+          appDatabaseProvider.overrideWithValue(database),
+          cloudEntitlementRepositoryProvider.overrideWithValue(
+            _FakeCloudEntitlementRepository(),
+          ),
+          cloudAuthRepositoryProvider.overrideWithValue(
+            _FakeAuthRepository(
+              const AuthUser(
+                uid: 'cloud-user-4',
+                email: 'user@example.com',
+                isAnonymous: false,
+              ),
+            ),
+          ),
+          cloudActivationStateRepositoryProvider.overrideWithValue(
+            _FakeCloudActivationStateRepository(
+              state: CloudActivationState(
+                uid: 'cloud-user-4',
+                scenario: 'enableCloudSync',
+                activatedAt: DateTime.utc(2024, 1, 1),
+                localFingerprint: 'local:empty',
+                remoteFingerprint: 'remote:empty|uid:cloud-user-4',
+                version: 1,
+              ),
+            ),
+          ),
+          cloudMetadataRepositoryProvider.overrideWithValue(
+            _FakeCloudMetadataRepository(
+              metadata: CloudMetadata(
+                cloudDataState: CloudDataState.freshUploadInProgress,
+                updatedAt: DateTime.now().toUtc(),
+              ),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final DataModeState state = await container.read(
+        dataModeControllerProvider.future,
+      );
+
+      expect(state.dataMode, equals(DataMode.localOnly));
+      expect(state.isSyncBlockedByCloudState, isTrue);
+      expect(state.requiresFreshCloudUpload, isFalse);
+    },
+  );
+
+  test('uses cached cloud metadata when remote read fails', () async {
+    SharedPreferences.setMockInitialValues(<String, Object>{
+      'profile.cloud_data_state.cloud-user-5': CloudDataState.grace.name,
+    });
+    AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseDev);
+    final AppDatabase database = AppDatabase.connect(
+      DatabaseConnection(NativeDatabase.memory()),
+    );
+    addTearDown(database.close);
+
+    final ProviderContainer container = ProviderContainer(
+      overrides: <Override>[
+        appDatabaseProvider.overrideWithValue(database),
+        cloudEntitlementRepositoryProvider.overrideWithValue(
+          _FakeCloudEntitlementRepository(),
+        ),
+        cloudAuthRepositoryProvider.overrideWithValue(
+          _FakeAuthRepository(
+            const AuthUser(
+              uid: 'cloud-user-5',
+              email: 'user@example.com',
+              isAnonymous: false,
+            ),
+          ),
+        ),
+        cloudActivationStateRepositoryProvider.overrideWithValue(
+          _FakeCloudActivationStateRepository(
+            state: CloudActivationState(
+              uid: 'cloud-user-5',
+              scenario: 'enableCloudSync',
+              activatedAt: DateTime.utc(2024, 1, 1),
+              localFingerprint: 'local:empty',
+              remoteFingerprint: 'remote:empty|uid:cloud-user-5',
+              version: 1,
+            ),
+          ),
+        ),
+        cloudMetadataRepositoryProvider.overrideWithValue(
+          _FakeCloudMetadataRepository(error: StateError('offline')),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    final DataModeState state = await container.read(
+      dataModeControllerProvider.future,
+    );
+
+    expect(state.cloudDataState, CloudDataState.grace);
+    expect(state.isSyncBlockedByCloudState, isFalse);
+    expect(state.dataMode, DataMode.cloudEnabled);
+  });
+
+  test(
+    'fails closed when cloud metadata read fails and cache is missing',
+    () async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseDev);
+      final AppDatabase database = AppDatabase.connect(
+        DatabaseConnection(NativeDatabase.memory()),
+      );
+      addTearDown(database.close);
+
+      final ProviderContainer container = ProviderContainer(
+        overrides: <Override>[
+          appDatabaseProvider.overrideWithValue(database),
+          cloudEntitlementRepositoryProvider.overrideWithValue(
+            _FakeCloudEntitlementRepository(),
+          ),
+          cloudAuthRepositoryProvider.overrideWithValue(
+            _FakeAuthRepository(
+              const AuthUser(
+                uid: 'cloud-user-6',
+                email: 'user@example.com',
+                isAnonymous: false,
+              ),
+            ),
+          ),
+          cloudActivationStateRepositoryProvider.overrideWithValue(
+            _FakeCloudActivationStateRepository(
+              state: CloudActivationState(
+                uid: 'cloud-user-6',
+                scenario: 'enableCloudSync',
+                activatedAt: DateTime.utc(2024, 1, 1),
+                localFingerprint: 'local:empty',
+                remoteFingerprint: 'remote:empty|uid:cloud-user-6',
+                version: 1,
+              ),
+            ),
+          ),
+          cloudMetadataRepositoryProvider.overrideWithValue(
+            _FakeCloudMetadataRepository(error: StateError('offline')),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final DataModeState state = await container.read(
+        dataModeControllerProvider.future,
+      );
+
+      expect(state.cloudDataState, CloudDataState.cleanupPending);
+      expect(state.isSyncBlockedByCloudState, isTrue);
+      expect(state.dataMode, DataMode.localOnly);
+    },
+  );
+
+  test(
+    'forces localOnly and disables capabilities when flavor is offlineOnly',
+    () async {
+      AppRuntimeConfig.configure(AppRuntimeFlavor.offlineOnly);
+      final AppDatabase database = AppDatabase.connect(
+        DatabaseConnection(NativeDatabase.memory()),
+      );
+      addTearDown(database.close);
+
+      final ProviderContainer container = ProviderContainer(
+        overrides: <Override>[
+          appDatabaseProvider.overrideWithValue(database),
+          cloudEntitlementRepositoryProvider.overrideWithValue(
+            _FakeCloudEntitlementRepository(),
+          ),
+          cloudAuthRepositoryProvider.overrideWithValue(
+            _FakeAuthRepository(
+              const AuthUser(
+                uid: 'cloud-user-7',
+                email: 'user@example.com',
+                isAnonymous: false,
+              ),
+            ),
+          ),
+          cloudActivationStateRepositoryProvider.overrideWithValue(
+            _FakeCloudActivationStateRepository(
+              state: CloudActivationState(
+                uid: 'cloud-user-7',
+                scenario: 'enableCloudSync',
+                activatedAt: DateTime.utc(2024, 1, 1),
+                localFingerprint: 'local:empty',
+                remoteFingerprint: 'remote:empty|uid:cloud-user-7',
+                version: 1,
+              ),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final DataModeState state = await container.read(
+        dataModeControllerProvider.future,
+      );
+
+      expect(state.dataMode, equals(DataMode.localOnly));
+      expect(state.entitlementState, equals(CloudEntitlementState.unavailable));
     },
   );
 }

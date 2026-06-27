@@ -37,7 +37,7 @@ if (projectId === 'kopim-prod' && apply && !confirmProd) {
   process.exit(2);
 }
 
-const uids = [
+let uids = [
   'Y6fAgQX9ZBTYreHpD8JxqjuBnH42',
   '2uQQVczYPuQwjralgDuUctLF8XJ3',
   '7oAr5hmEqzg9McHoMzj4Ub6uETd2',
@@ -45,6 +45,10 @@ const uids = [
   'RlYJFDy2cuP4CS74jpeLHe9Sacs2',
   'X0XJCTbvCQQ8BcYERnr0rKcnDyv2'
 ];
+const uidIndex = args.indexOf('--uid');
+if (uidIndex !== -1 && uidIndex + 1 < args.length) {
+  uids = [args[uidIndex + 1]];
+}
 
 const expiresAtStr = "2026-12-27T00:00:00Z";
 const expiresAtUnix = Math.floor(new Date(expiresAtStr).getTime() / 1000);

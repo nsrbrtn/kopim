@@ -3,6 +3,8 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'auth_user.freezed.dart';
 part 'auth_user.g.dart';
 
+enum AuthSessionKind { local, firebase }
+
 @freezed
 abstract class AuthUser with _$AuthUser {
   const AuthUser._();
@@ -16,6 +18,7 @@ abstract class AuthUser with _$AuthUser {
     @Default(false) bool emailVerified,
     DateTime? creationTime,
     DateTime? lastSignInTime,
+    @Default(AuthSessionKind.firebase) AuthSessionKind sessionKind,
   }) = _AuthUser;
 
   factory AuthUser.guest({DateTime? createdAt}) {
@@ -26,6 +29,7 @@ abstract class AuthUser with _$AuthUser {
       emailVerified: false,
       creationTime: timestamp,
       lastSignInTime: timestamp,
+      sessionKind: AuthSessionKind.local,
     );
   }
 
@@ -42,6 +46,7 @@ abstract class AuthUser with _$AuthUser {
       emailVerified: false,
       creationTime: timestamp,
       lastSignInTime: timestamp,
+      sessionKind: AuthSessionKind.local,
     );
   }
 
@@ -56,4 +61,10 @@ abstract class AuthUser with _$AuthUser {
   bool get isLocalOnly => isAnonymous && uid.startsWith(localUidPrefix);
 
   bool get isOfflineLocalUser => isGuest || isLocalOnly;
+
+  bool get isLocalSession => sessionKind == AuthSessionKind.local;
+
+  bool get isFirebaseSession => sessionKind == AuthSessionKind.firebase;
+
+  String? get firebaseUid => isFirebaseSession ? uid : null;
 }

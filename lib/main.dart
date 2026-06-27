@@ -26,7 +26,12 @@ Future<void> main() async {
   await runKopimApp();
 }
 
-enum KopimAppFlavor { offline, firebaseDev, firebaseProd }
+enum KopimAppFlavor {
+  offlineOnly,
+  storeProdLocalFirst,
+  webProdCloudOnly,
+  firebaseDev,
+}
 
 Future<void> runKopimApp({KopimAppFlavor? flavor}) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,16 +40,20 @@ Future<void> runKopimApp({KopimAppFlavor? flavor}) async {
   final KopimAppFlavor resolvedFlavor =
       flavor ?? _resolveFlavorFromPlatformFlavor();
   switch (resolvedFlavor) {
-    case KopimAppFlavor.offline:
-      AppRuntimeConfig.configure(AppRuntimeFlavor.offline);
+    case KopimAppFlavor.offlineOnly:
+      AppRuntimeConfig.configure(AppRuntimeFlavor.offlineOnly);
+      break;
+    case KopimAppFlavor.storeProdLocalFirst:
+      AppRuntimeConfig.configure(AppRuntimeFlavor.storeProdLocalFirst);
+      FirebaseEnvironmentConfig.configure(FirebaseEnvironment.prod);
+      break;
+    case KopimAppFlavor.webProdCloudOnly:
+      AppRuntimeConfig.configure(AppRuntimeFlavor.webProdCloudOnly);
+      FirebaseEnvironmentConfig.configure(FirebaseEnvironment.prod);
       break;
     case KopimAppFlavor.firebaseDev:
       AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseDev);
       FirebaseEnvironmentConfig.configure(FirebaseEnvironment.dev);
-      break;
-    case KopimAppFlavor.firebaseProd:
-      AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseProd);
-      FirebaseEnvironmentConfig.configure(FirebaseEnvironment.prod);
       break;
   }
 
@@ -78,18 +87,34 @@ Future<void> runKopimApp({KopimAppFlavor? flavor}) async {
 }
 
 KopimAppFlavor _resolveFlavorFromPlatformFlavor() {
+  const String explicitFlavor = String.fromEnvironment(
+    'KOPIM_RUNTIME_FLAVOR',
+    defaultValue: '',
+  );
+  if (explicitFlavor.isNotEmpty) {
+    return KopimAppFlavor.values.byName(explicitFlavor);
+  }
+  if (kIsWeb) {
+    return kReleaseMode
+        ? KopimAppFlavor.webProdCloudOnly
+        : KopimAppFlavor.firebaseDev;
+  }
+  if (appFlavor == null && kReleaseMode) {
+    throw StateError('Mobile release build must specify a flavor.');
+  }
   switch (appFlavor) {
     case 'offline':
-      return KopimAppFlavor.offline;
+    case 'offlineOnly':
+      return KopimAppFlavor.offlineOnly;
     case 'prod':
-      return KopimAppFlavor.firebaseProd;
+    case 'storeProdLocalFirst':
+      return KopimAppFlavor.storeProdLocalFirst;
     case 'dev':
     case 'stage':
     case null:
       return KopimAppFlavor.firebaseDev;
   }
-
-  return KopimAppFlavor.firebaseDev;
+  throw StateError('Unknown app flavor: $appFlavor');
 }
 
 /// Отправляет события провайдеров в DevTools Timeline, чтобы понять,

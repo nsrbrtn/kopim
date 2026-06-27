@@ -59,7 +59,7 @@ flutter analyze
 - Версия приложения в `AboutAppScreen` захардкожена как `1.0.1`, а не берется из build metadata.
 - В `AndroidManifest.xml` уже запрошены `CAMERA`, `READ_MEDIA_IMAGES`, `POST_NOTIFICATIONS`, `SCHEDULE_EXACT_ALARM`, `RECEIVE_BOOT_COMPLETED`; для Play это нужно отдельно обосновать и часть разрешений может оказаться лишней.
 - В репозитории уже есть `lib/main_prod.dart`, который выступает production-target и делегирует в общий bootstrap из `lib/main.dart`.
-- Для Android уже есть `prod` flavor и `android/app/src/prod/google-services.json`, для iOS отдельная схема production явно не оформлена.
+- Для Android уже есть `storeProdLocalFirst` flavor и `android/app/src/storeProdLocalFirst/google-services.json`, для iOS отдельная схема production явно не оформлена.
 
 ## Decision Log
 - Основной план выпуска сохранен в `docs/logic/`, потому что это долгоживущая продуктовая и техническая документация, а не одноразовая заметка.

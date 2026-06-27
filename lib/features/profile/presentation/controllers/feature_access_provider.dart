@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:kopim/core/config/app_capabilities.dart';
 import 'package:kopim/core/config/app_runtime.dart';
+import 'package:kopim/core/di/injectors.dart';
 import 'package:riverpod/riverpod.dart';
 
 import 'data_mode_controller.dart';
@@ -19,6 +20,7 @@ enum FeatureAccessStatus {
   requiresSignIn,
   requiresEntitlement,
   blockedByLocalData,
+  blockedByCloudState,
   unavailable,
 }
 
@@ -47,6 +49,8 @@ class FeatureAccess {
     required AppCapabilities capabilities,
     required EntitlementAccessState entitlementState,
     required DataMode? dataMode,
+    required bool isSignedIn,
+    required bool isSyncBlockedByCloudState,
   }) {
     return FeatureAccess(
       entitlementState: entitlementState,
@@ -54,6 +58,8 @@ class FeatureAccess {
         capabilities: capabilities,
         entitlementState: entitlementState,
         dataMode: dataMode,
+        isSignedIn: isSignedIn,
+        isSyncBlockedByCloudState: isSyncBlockedByCloudState,
       ),
       webApp: _resolveWebAppGate(
         capabilities: capabilities,
@@ -93,6 +99,8 @@ final Provider<FeatureAccess> featureAccessProvider = Provider<FeatureAccess>((
     dataModeControllerProvider,
   );
   final DataModeState? state = dataModeAsync.asData?.value;
+  final bool isSignedIn =
+      ref.watch(cloudAuthRepositoryProvider).currentUser != null;
 
   return FeatureAccess.fromState(
     capabilities: capabilities,
@@ -103,6 +111,8 @@ final Provider<FeatureAccess> featureAccessProvider = Provider<FeatureAccess>((
               : CloudEntitlementState.unavailable),
     ),
     dataMode: state?.dataMode,
+    isSignedIn: isSignedIn,
+    isSyncBlockedByCloudState: state?.isSyncBlockedByCloudState ?? false,
   );
 });
 
@@ -123,9 +133,15 @@ FeatureGate _resolveCloudSyncGate({
   required AppCapabilities capabilities,
   required EntitlementAccessState entitlementState,
   required DataMode? dataMode,
+  required bool isSignedIn,
+  required bool isSyncBlockedByCloudState,
 }) {
   if (!capabilities.canRunCloudSync) {
     return const FeatureGate(FeatureAccessStatus.disabledByBuild);
+  }
+
+  if (isSyncBlockedByCloudState) {
+    return const FeatureGate(FeatureAccessStatus.blockedByCloudState);
   }
 
   if (dataMode == DataMode.cloudBlockedByLocalData) {
@@ -140,7 +156,9 @@ FeatureGate _resolveCloudSyncGate({
     EntitlementAccessState.freeLocal || EntitlementAccessState.cloudExpired =>
       const FeatureGate(FeatureAccessStatus.requiresEntitlement),
     EntitlementAccessState.cloudTrial || EntitlementAccessState.cloudActive =>
-      const FeatureGate(FeatureAccessStatus.requiresSignIn),
+      isSignedIn
+          ? const FeatureGate(FeatureAccessStatus.blockedByLocalData)
+          : const FeatureGate(FeatureAccessStatus.requiresSignIn),
     EntitlementAccessState.unknown => const FeatureGate(
       FeatureAccessStatus.unavailable,
     ),

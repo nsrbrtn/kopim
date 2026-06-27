@@ -13,6 +13,13 @@ void main() {
     canRunCloudSync: true,
     canUseAiTransport: true,
     firebaseEnvironment: FirebaseEnvironment.dev,
+    allowsLocalOnlyUsage: true,
+    canActivatePromoOrLicenseInApp: true,
+    canRegisterInApp: true,
+    canShowCloudSyncEntryPoint: true,
+    canShowPaymentOrPurchaseUi: true,
+    expiredEntitlementMode: ExpiredEntitlementMode.none,
+    requiresEntitlementBeforeWebApp: false,
   );
 
   test(
@@ -22,6 +29,8 @@ void main() {
         capabilities: capabilities,
         entitlementState: EntitlementAccessState.freeLocal,
         dataMode: DataMode.localOnly,
+        isSignedIn: false,
+        isSyncBlockedByCloudState: false,
       );
 
       expect(access.cloudSync.status, FeatureAccessStatus.requiresEntitlement);
@@ -36,14 +45,33 @@ void main() {
     },
   );
 
-  test('cloudTrial entitlement requires sign-in before cloud sync', () {
+  test(
+    'cloudTrial entitlement requires sign-in before cloud sync when signed out',
+    () {
+      final FeatureAccess access = FeatureAccess.fromState(
+        capabilities: capabilities,
+        entitlementState: EntitlementAccessState.cloudTrial,
+        dataMode: DataMode.localOnly,
+        isSignedIn: false,
+        isSyncBlockedByCloudState: false,
+      );
+
+      expect(access.cloudSync.status, FeatureAccessStatus.requiresSignIn);
+      expect(access.aiAssistant.status, FeatureAccessStatus.enabled);
+      expect(access.advancedAnalytics.status, FeatureAccessStatus.enabled);
+    },
+  );
+
+  test('cloudTrial entitlement prompts for data choice when signed in', () {
     final FeatureAccess access = FeatureAccess.fromState(
       capabilities: capabilities,
       entitlementState: EntitlementAccessState.cloudTrial,
       dataMode: DataMode.localOnly,
+      isSignedIn: true,
+      isSyncBlockedByCloudState: false,
     );
 
-    expect(access.cloudSync.status, FeatureAccessStatus.requiresSignIn);
+    expect(access.cloudSync.status, FeatureAccessStatus.blockedByLocalData);
     expect(access.aiAssistant.status, FeatureAccessStatus.enabled);
     expect(access.advancedAnalytics.status, FeatureAccessStatus.enabled);
   });
@@ -53,6 +81,8 @@ void main() {
       capabilities: capabilities,
       entitlementState: EntitlementAccessState.cloudActive,
       dataMode: DataMode.cloudEnabled,
+      isSignedIn: true,
+      isSyncBlockedByCloudState: false,
     );
 
     expect(access.cloudSync.status, FeatureAccessStatus.enabled);
@@ -65,6 +95,8 @@ void main() {
       capabilities: capabilities,
       entitlementState: EntitlementAccessState.cloudActive,
       dataMode: DataMode.cloudBlockedByLocalData,
+      isSignedIn: true,
+      isSyncBlockedByCloudState: false,
     );
 
     expect(access.cloudSync.status, FeatureAccessStatus.blockedByLocalData);
@@ -76,6 +108,8 @@ void main() {
       capabilities: capabilities,
       entitlementState: EntitlementAccessState.cloudExpired,
       dataMode: DataMode.localOnly,
+      isSignedIn: false,
+      isSyncBlockedByCloudState: false,
     );
 
     expect(access.cloudSync.status, FeatureAccessStatus.requiresEntitlement);
@@ -91,12 +125,21 @@ void main() {
       canRunCloudSync: false,
       canUseAiTransport: false,
       firebaseEnvironment: null,
+      allowsLocalOnlyUsage: true,
+      canActivatePromoOrLicenseInApp: false,
+      canRegisterInApp: false,
+      canShowCloudSyncEntryPoint: false,
+      canShowPaymentOrPurchaseUi: false,
+      expiredEntitlementMode: ExpiredEntitlementMode.none,
+      requiresEntitlementBeforeWebApp: false,
     );
 
     final FeatureAccess access = FeatureAccess.fromState(
       capabilities: offlineCapabilities,
       entitlementState: EntitlementAccessState.cloudActive,
       dataMode: DataMode.cloudEnabled,
+      isSignedIn: false,
+      isSyncBlockedByCloudState: false,
     );
 
     expect(access.cloudSync.status, FeatureAccessStatus.disabledByBuild);

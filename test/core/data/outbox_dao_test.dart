@@ -16,7 +16,7 @@ void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     database = AppDatabase.connect(DatabaseConnection(NativeDatabase.memory()));
-    outboxDao = OutboxDao(database);
+    outboxDao = OutboxDao(database, () => 'local-user-1');
   });
 
   tearDown(() async {
@@ -40,6 +40,20 @@ void main() {
     final Map<String, dynamic> payload =
         jsonDecode(entry.payload) as Map<String, dynamic>;
     expect(payload['id'], 'acc-1');
+  });
+
+  test('fetchPending returns empty list when current uid is null', () async {
+    final OutboxDao nullOwnerDao = OutboxDao(database, () => null);
+    await outboxDao.enqueue(
+      entityType: 'account',
+      entityId: 'acc-1',
+      operation: OutboxOperation.upsert,
+      payload: <String, dynamic>{'id': 'acc-1', 'name': 'Main'},
+    );
+
+    final List<OutboxEntryRow> entries = await nullOwnerDao.fetchPending();
+
+    expect(entries, isEmpty);
   });
 
   test(
@@ -175,6 +189,84 @@ void main() {
           'transaction',
         ],
       );
+    },
+  );
+
+  test(
+    'consumeOutboxEntriesForFreshUpload removes firebase/local/null owners and keeps foreign owners',
+    () async {
+      await database
+          .into(database.outboxEntries)
+          .insert(
+            const OutboxEntriesCompanion(
+              entityType: Value<String>('account'),
+              entityId: Value<String>('firebase-owned'),
+              operation: Value<String>('upsert'),
+              payload: Value<String>('{}'),
+              status: Value<String>('pending'),
+              ownerUid: Value<String?>('firebase-user-1'),
+            ),
+          );
+      await database
+          .into(database.outboxEntries)
+          .insert(
+            const OutboxEntriesCompanion(
+              entityType: Value<String>('account'),
+              entityId: Value<String>('local-owned'),
+              operation: Value<String>('delete'),
+              payload: Value<String>('{}'),
+              status: Value<String>('failed'),
+              ownerUid: Value<String?>('local-session-1'),
+            ),
+          );
+      await database
+          .into(database.outboxEntries)
+          .insert(
+            const OutboxEntriesCompanion(
+              entityType: Value<String>('account'),
+              entityId: Value<String>('legacy-local-owned'),
+              operation: Value<String>('upsert'),
+              payload: Value<String>('{}'),
+              status: Value<String>('pending'),
+              ownerUid: Value<String?>('local-legacy-1'),
+            ),
+          );
+      await database
+          .into(database.outboxEntries)
+          .insert(
+            const OutboxEntriesCompanion(
+              entityType: Value<String>('account'),
+              entityId: Value<String>('null-owned'),
+              operation: Value<String>('upsert'),
+              payload: Value<String>('{}'),
+              status: Value<String>('pending'),
+              ownerUid: Value<String?>(null),
+            ),
+          );
+      await database
+          .into(database.outboxEntries)
+          .insert(
+            const OutboxEntriesCompanion(
+              entityType: Value<String>('account'),
+              entityId: Value<String>('foreign-owned'),
+              operation: Value<String>('upsert'),
+              payload: Value<String>('{}'),
+              status: Value<String>('pending'),
+              ownerUid: Value<String?>('firebase-user-2'),
+            ),
+          );
+
+      await outboxDao.consumeOutboxEntriesForFreshUpload(
+        firebaseUid: 'firebase-user-1',
+        localSessionUid: 'local-session-1',
+      );
+
+      final List<OutboxEntryRow> remaining = await database
+          .select(database.outboxEntries)
+          .get();
+      expect(remaining.map((OutboxEntryRow row) => row.entityId), <String>[
+        'foreign-owned',
+      ]);
     },
   );
 

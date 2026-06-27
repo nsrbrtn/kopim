@@ -1,13 +1,12 @@
 import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kopim/core/config/app_runtime.dart';
+import 'package:kopim/core/config/app_capabilities.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/widgets/kopim_text_field.dart';
-import 'package:kopim/features/profile/data/cloud_entitlement_repository.dart';
 import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/sign_in_form_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/sign_up_form_controller.dart';
@@ -78,9 +77,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     );
     _emailController = TextEditingController(text: initialState.email);
     _passwordController = TextEditingController(text: initialState.password);
-    _licenseKeyController = TextEditingController(
-      text: CloudEntitlementRepositoryImpl.demoCloudKey,
-    );
+    _licenseKeyController = TextEditingController(text: '');
     _signUpEmailController = TextEditingController(
       text: signUpInitialState.email,
     );
@@ -215,6 +212,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       dataModeControllerProvider,
     );
     final ThemeData theme = Theme.of(context);
+    final AppCapabilities capabilities = ref.watch(appCapabilitiesProvider);
     final bool isSubmitting = _isSignUpMode
         ? signUpState.isSubmitting
         : formState.isSubmitting;
@@ -283,9 +281,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     );
 
     final bool isDevEntitlementGate =
-        !kIsWeb && AppRuntimeConfig.flavor == AppRuntimeFlavor.firebaseDev;
-    final bool showOfflineAction =
-        !kIsWeb && AppRuntimeConfig.flavor == AppRuntimeFlavor.firebaseProd;
+        capabilities.canActivatePromoOrLicenseInApp;
+    final bool showOfflineAction = capabilities.allowsLocalOnlyUsage;
     final CloudEntitlementState? entitlementState = dataModeAsync.maybeWhen(
       data: (DataModeState value) => value.entitlementState,
       orElse: () => null,
@@ -368,6 +365,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   dividerTextStyle: dividerTextStyle,
                   bottomActionStyle: bottomActionStyle,
                   showOfflineAction: showOfflineAction,
+                  capabilities: capabilities,
                 ),
               const SizedBox(height: 40),
             ],
@@ -468,6 +466,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     required TextStyle dividerTextStyle,
     required TextStyle bottomActionStyle,
     required bool showOfflineAction,
+    required AppCapabilities capabilities,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -669,18 +668,19 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
               )
             else
               const SizedBox.shrink(),
-            GestureDetector(
-              onTap: isBusy
-                  ? null
-                  : () => _toggleMode(
-                      controller: controller,
-                      signUpController: signUpController,
-                    ),
-              child: Text(
-                _isSignUpMode ? 'Войти в аккаунт' : 'Создать аккаунт',
-                style: bottomActionStyle,
+            if (capabilities.canRegisterInApp)
+              GestureDetector(
+                onTap: isBusy
+                    ? null
+                    : () => _toggleMode(
+                        controller: controller,
+                        signUpController: signUpController,
+                      ),
+                child: Text(
+                  _isSignUpMode ? 'Войти в аккаунт' : 'Создать аккаунт',
+                  style: bottomActionStyle,
+                ),
               ),
-            ),
           ],
         ),
       ],

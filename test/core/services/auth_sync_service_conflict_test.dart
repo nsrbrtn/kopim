@@ -819,6 +819,7 @@ void main() {
       () async {
         final AuthSyncService service = harness.buildService();
         const String userId = 'user-base-conflict';
+        harness.setActiveCloudUid(userId);
         final DateTime now = DateTime.utc(2026, 6, 14, 12);
         final DateTime localBaseTime = now.subtract(
           const Duration(minutes: 10),
@@ -907,6 +908,7 @@ void main() {
       () async {
         final AuthSyncService service = harness.buildService();
         const String userId = 'user-preserve-payload';
+        harness.setActiveCloudUid(userId);
         final DateTime now = DateTime.utc(2026, 6, 14, 12);
         final DateTime localBaseTime = now.subtract(
           const Duration(minutes: 10),
@@ -1025,6 +1027,7 @@ void main() {
       '7. Race between metadata pull and push (RegistryConflictException recovery) - транзакционный откат при изменении реестра во время push',
       () async {
         const String userId = 'user-race-test';
+        harness.setActiveCloudUid(userId);
         final DateTime now = DateTime.utc(2026, 6, 14, 12);
         final DateTime baseTime = now.subtract(const Duration(minutes: 5));
 
@@ -1116,6 +1119,7 @@ void main() {
       '8. Batch size dynamic resizing - при RESOURCE_EXHAUSTED батч делится пополам',
       () async {
         const String userId = 'user-resizing-test';
+        harness.setActiveCloudUid(userId);
         final DateTime now = DateTime.utc(2026, 6, 14, 12);
 
         // 1. Создаем мок CategoryRemoteDataSource для выброса исключения
@@ -1192,6 +1196,7 @@ void main() {
       () async {
         final AuthSyncService service = harness.buildService();
         const String userId = 'user-legacy-outbox-conflict';
+        harness.setActiveCloudUid(userId);
         final DateTime now = DateTime.utc(2026, 6, 14, 12);
 
         // Реестр на сервере

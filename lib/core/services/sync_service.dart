@@ -306,6 +306,11 @@ class FirebaseSyncService implements SyncService {
   }
 
   Future<void> _syncEntry(String userId, db.OutboxEntryRow entry) async {
+    if (userId.startsWith('local-') || entry.ownerUid != userId) {
+      throw StateError(
+        'Security violation: attempting to sync entry for owner ${entry.ownerUid} under session $userId',
+      );
+    }
     final db.OutboxEntryRow prepared = await _outboxDao.prepareForSend(entry);
     try {
       await _syncOwnershipGuard.ensureOutboxEntryCanBePushed(

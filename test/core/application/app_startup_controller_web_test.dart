@@ -144,7 +144,7 @@ void main() {
   });
 
   test('initialize skips Firebase and sync warmup in offline flavor', () async {
-    AppRuntimeConfig.configure(AppRuntimeFlavor.offline);
+    AppRuntimeConfig.configure(AppRuntimeFlavor.offlineOnly);
     final _MockUpcomingPaymentsWorkScheduler upcomingScheduler =
         _MockUpcomingPaymentsWorkScheduler();
     final _MockSyncService syncService = _MockSyncService();

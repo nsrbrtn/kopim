@@ -55,6 +55,7 @@ void main() {
     setUp(() async {
       harness = AuthSyncTestHarness();
       await harness.setUp();
+      harness.activeCloudUid = userId;
 
       firebaseAuth = _MockFirebaseAuth();
       firebaseUser = _MockUser();

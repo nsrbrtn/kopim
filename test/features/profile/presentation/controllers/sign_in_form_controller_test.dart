@@ -87,6 +87,9 @@ class _TestCloudAuthRepository implements AuthRepository {
   }) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> forceRefreshIdToken() async {}
 }
 
 void main() {

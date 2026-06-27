@@ -11,7 +11,6 @@ import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/sync_service.dart';
 import 'package:kopim/core/utils/timezone_utils.dart';
-import 'package:kopim/features/profile/data/cloud_entitlement_repository.dart';
 import 'package:kopim/features/upcoming_payments/application/upcoming_notifications_controller.dart';
 
 part 'app_startup_controller.g.dart';
@@ -75,7 +74,6 @@ class AppStartupController extends _$AppStartupController {
           completer.complete();
           return;
         }
-        await _bootstrapProdCloudEntitlement();
         await _initializeWebServices();
       } else {
         if (firebaseAvailable) {
@@ -85,7 +83,6 @@ class AppStartupController extends _$AppStartupController {
             cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
           );
         }
-        await _bootstrapProdCloudEntitlement();
         unawaited(_initializeBackgroundServices());
       }
       state = const AsyncValue<void>.data(null);
@@ -110,44 +107,6 @@ class AppStartupController extends _$AppStartupController {
           .runAndLog(context: 'app_startup_background'),
     );
     await _activateUpcomingNotificationsSync();
-  }
-
-  Future<void> _bootstrapProdCloudEntitlement() async {
-    final LoggerService logger = ref.read(loggerServiceProvider);
-    if (AppRuntimeConfig.flavor != AppRuntimeFlavor.firebaseProd) {
-      logger.logInfo(
-        'AppStartupController: skipping prod entitlement bootstrap for flavor=${AppRuntimeConfig.flavor.name}.',
-      );
-      return;
-    }
-
-    final CloudEntitlementRepository repository = ref.read(
-      cloudEntitlementRepositoryProvider,
-    );
-    final CloudEntitlementState currentState = await repository
-        .getCachedState();
-    logger.logInfo(
-      'AppStartupController: prod entitlement bootstrap currentState=${currentState.name}.',
-    );
-    if (currentState == CloudEntitlementState.active) {
-      logger.logInfo(
-        'AppStartupController: prod entitlement already active, no bootstrap needed.',
-      );
-      return;
-    }
-
-    final CloudEntitlementResult result = await repository.activateKey(
-      CloudEntitlementRepositoryImpl.demoCloudKey,
-    );
-    logger.logInfo(
-      'AppStartupController: prod entitlement bootstrap result success=${result.success}, state=${result.state.name}.',
-    );
-    if (!result.success) {
-      throw StateError(
-        result.errorMessage ??
-            'Не удалось автоматически активировать cloud key',
-      );
-    }
   }
 
   Future<void> _initializeWebServices() async {

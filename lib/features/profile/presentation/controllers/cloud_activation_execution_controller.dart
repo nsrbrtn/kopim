@@ -35,6 +35,29 @@ class CloudActivationExecutionController
     return result;
   }
 
+  Future<CloudActivationExecutionResult> confirmReplaceLocalWithCloud() async {
+    state = const AsyncLoading<CloudActivationExecutionResult>();
+
+    final CloudActivationExecutionResult result = await ref
+        .read(cloudActivationExecutionServiceProvider)
+        .confirmReplaceLocalWithCloud(
+          currentUser: ref.read(authControllerProvider).asData?.value,
+          intentState: ref.read(cloudActivationIntentProvider),
+          currentMode: ref.read(dataModeControllerProvider).value,
+          refreshRuntimeMode: () => ref
+              .read(dataModeControllerProvider.notifier)
+              .refreshForCurrentContext(),
+        );
+
+    if (result.status == CloudActivationExecutionStatus.succeeded ||
+        result.status == CloudActivationExecutionStatus.blocked) {
+      ref.read(cloudActivationIntentProvider.notifier).clearPendingChoice();
+    }
+
+    state = AsyncData<CloudActivationExecutionResult>(result);
+    return result;
+  }
+
   Future<CloudActivationExecutionResult> confirmStartWithEmptyCloud() async {
     state = const AsyncLoading<CloudActivationExecutionResult>();
 

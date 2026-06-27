@@ -16,6 +16,13 @@ void main() {
     canRunCloudSync: true,
     canUseAiTransport: true,
     firebaseEnvironment: FirebaseEnvironment.dev,
+    allowsLocalOnlyUsage: true,
+    canActivatePromoOrLicenseInApp: true,
+    canRegisterInApp: true,
+    canShowCloudSyncEntryPoint: true,
+    canShowPaymentOrPurchaseUi: true,
+    expiredEntitlementMode: ExpiredEntitlementMode.none,
+    requiresEntitlementBeforeWebApp: false,
   );
 
   const AppCapabilities offlineCapabilities = AppCapabilities(
@@ -26,6 +33,13 @@ void main() {
     canRunCloudSync: false,
     canUseAiTransport: false,
     firebaseEnvironment: null,
+    allowsLocalOnlyUsage: true,
+    canActivatePromoOrLicenseInApp: false,
+    canRegisterInApp: false,
+    canShowCloudSyncEntryPoint: false,
+    canShowPaymentOrPurchaseUi: false,
+    expiredEntitlementMode: ExpiredEntitlementMode.none,
+    requiresEntitlementBeforeWebApp: false,
   );
 
   const FeatureAccess signedOutAccess = FeatureAccess(

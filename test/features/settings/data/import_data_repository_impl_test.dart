@@ -102,7 +102,7 @@ void main() {
     paymentRemindersDao = PaymentRemindersDao(database);
     transactionDao = TransactionDao(database);
     profileDao = ProfileDao(database);
-    outboxDao = OutboxDao(database);
+    outboxDao = OutboxDao(database, () => 'local-user-1');
     logger = _MockLoggerService();
     analytics = _MockAnalyticsService();
     backfillService = AccountTypeBackfillService(

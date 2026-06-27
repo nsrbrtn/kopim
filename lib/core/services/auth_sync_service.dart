@@ -337,7 +337,7 @@ class AuthSyncService {
 
           // 3. readOutbox()
           final OutboxPendingPlan pendingPlan = await _outboxDao
-              .fetchPendingPlan(limit: 10000);
+              .fetchPendingPlan(limit: 10000, ownerUid: user.uid);
           await _recordDependencyCycleConflicts(
             pendingPlan.blockedByDependencyCycle,
           );
@@ -1709,13 +1709,14 @@ class AuthSyncService {
         .toList(growable: false);
   }
 
-  Future<List<db.OutboxEntryRow>> _preparePendingEntries() async {
+  Future<List<db.OutboxEntryRow>> _preparePendingEntries(String userId) async {
     return _database.transaction(() async {
       await _outboxDao.resetStaleSendingToPending(
         cutoff: DateTime.now().subtract(_staleSendingRecoveryWindow),
       );
       final OutboxPendingPlan pendingPlan = await _outboxDao.fetchPendingPlan(
         limit: _outboxBatchSize,
+        ownerUid: userId,
       );
       await _recordDependencyCycleConflicts(
         pendingPlan.blockedByDependencyCycle,
@@ -1732,7 +1733,9 @@ class AuthSyncService {
   Future<List<db.OutboxEntryRow>> _applyAllPendingOutbox(String userId) async {
     final List<db.OutboxEntryRow> preparedEntries = <db.OutboxEntryRow>[];
     while (true) {
-      final List<db.OutboxEntryRow> batch = await _preparePendingEntries();
+      final List<db.OutboxEntryRow> batch = await _preparePendingEntries(
+        userId,
+      );
       if (batch.isEmpty) {
         break;
       }
@@ -2548,6 +2551,7 @@ class AuthSyncService {
 
     final List<db.OutboxEntryRow> outboxEntries = await _outboxDao.fetchPending(
       limit: 10000,
+      ownerUid: userId,
     );
     final Map<String, db.OutboxEntryRow>
     outboxMap = <String, db.OutboxEntryRow>{

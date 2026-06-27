@@ -1,6 +1,11 @@
 import 'dart:async';
 
+import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
+import 'package:kopim/features/profile/domain/entities/cloud_metadata.dart';
 import 'package:flutter/material.dart';
+import 'package:kopim/core/config/app_runtime.dart';
+import 'package:kopim/features/profile/domain/repositories/auth_repository.dart';
+import 'package:kopim/features/profile/data/cloud_entitlement_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/application/sync_status_provider.dart';
@@ -324,6 +329,24 @@ void main() {
                   ),
                   shouldAutoActivate: false,
                   shouldDisplayOnHome: false,
+                ),
+              ),
+            ),
+            cloudAuthRepositoryProvider.overrideWithValue(
+              _FakeAuthRepository(),
+            ),
+            cloudEntitlementRepositoryProvider.overrideWithValue(
+              _FakeCloudEntitlementRepository(),
+            ),
+            dataModeControllerProvider.overrideWith(
+              () => _FakeDataModeController(
+                const DataModeState(
+                  dataMode: DataMode.cloudEnabled,
+                  entitlementState: CloudEntitlementState.active,
+                  migrationDecision: MigrationDecision.none,
+                  cloudDataState: CloudDataState.active,
+                  requiresFreshCloudUpload: false,
+                  isSyncBlockedByCloudState: false,
                 ),
               ),
             ),
@@ -1382,4 +1405,43 @@ class _DummyCreditCardRepository implements CreditCardRepository {
   @override
   Stream<List<CreditCardEntity>> watchCreditCards() =>
       const Stream<List<CreditCardEntity>>.empty();
+}
+
+class _FakeDataModeController extends DataModeController {
+  _FakeDataModeController(this._state);
+  final DataModeState _state;
+
+  @override
+  FutureOr<DataModeState> build() => _state;
+}
+
+class _FakeAuthRepository extends Fake implements AuthRepository {
+  @override
+  AuthUser? get currentUser => null;
+
+  @override
+  Stream<AuthUser?> authStateChanges() => const Stream<AuthUser?>.empty();
+
+  @override
+  Future<void> forceRefreshIdToken() async {}
+}
+
+class _FakeCloudEntitlementRepository implements CloudEntitlementRepository {
+  @override
+  Future<CloudEntitlementState> getCachedState() async =>
+      CloudEntitlementState.active;
+
+  @override
+  Future<CloudEntitlementState> refreshFromCurrentToken() async =>
+      CloudEntitlementState.active;
+
+  @override
+  Future<CloudEntitlementResult> activateKey(String key) async =>
+      const CloudEntitlementResult(
+        success: true,
+        state: CloudEntitlementState.active,
+      );
+
+  @override
+  Future<void> clearEntitlement() async {}
 }

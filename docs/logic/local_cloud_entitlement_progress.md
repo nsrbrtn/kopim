@@ -33,7 +33,7 @@
 
 - выделены независимые оси `Build Flavor`, `Runtime Data Mode`, `Entitlement`;
 - доступ к функциям строится через feature gates;
-- `offline` не должен открывать cloud/Firebase сценарии;
+- `offlineOnly` не должен открывать cloud/Firebase сценарии;
 - в документации уже есть актуальная runtime matrix текущего этапа.
 
 Основные источники:

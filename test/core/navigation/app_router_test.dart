@@ -1,5 +1,10 @@
 import 'dart:async';
 
+import 'package:kopim/features/profile/data/cloud_entitlement_repository.dart';
+import 'package:kopim/features/profile/domain/repositories/auth_repository.dart';
+import 'package:kopim/features/profile/domain/entities/sign_in_request.dart';
+import 'package:kopim/features/profile/domain/entities/sign_up_request.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
@@ -201,6 +206,91 @@ class _FakeProfileController extends ProfileController {
   Future<Profile?> build(String uid) async => _profile;
 }
 
+class _FakeCloudEntitlementRepository implements CloudEntitlementRepository {
+  _FakeCloudEntitlementRepository(this.state);
+  final CloudEntitlementState state;
+
+  @override
+  Future<CloudEntitlementResult> activateKey(String key) async {
+    return CloudEntitlementResult(success: true, state: state);
+  }
+
+  @override
+  Future<void> clearEntitlement() async {}
+
+  @override
+  Future<CloudEntitlementState> getCachedState() async {
+    return state;
+  }
+
+  @override
+  Future<CloudEntitlementState> refreshFromCurrentToken() async {
+    return state;
+  }
+}
+
+class _FakeAuthRepository implements AuthRepository {
+  _FakeAuthRepository({this.user});
+  final AuthUser? user;
+
+  @override
+  Stream<AuthUser?> authStateChanges() => const Stream<AuthUser?>.empty();
+
+  @override
+  AuthUser? get currentUser => user;
+
+  @override
+  Future<void> deleteCurrentUser() async {}
+
+  @override
+  Future<AuthUser> reauthenticate(SignInRequest request) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<AuthUser> signIn(SignInRequest request) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> signOut() async {}
+
+  @override
+  Future<AuthUser> signUp(SignUpRequest request) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<AuthUser> signInAnonymously() async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<AuthUser> signInOffline() async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> sendPasswordResetEmail(String email) async {}
+
+  @override
+  Future<AuthUser> updateEmail({
+    required String newEmail,
+    required String currentPassword,
+  }) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updatePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {}
+
+  @override
+  Future<void> forceRefreshIdToken() async {}
+}
+
 Widget _emptyTabBody(BuildContext context, WidgetRef ref) =>
     const SizedBox.shrink();
 
@@ -286,6 +376,12 @@ void main() {
           ]),
           appStartupControllerProvider.overrideWith(
             _FakeAppStartupController.new,
+          ),
+          cloudEntitlementRepositoryProvider.overrideWithValue(
+            _FakeCloudEntitlementRepository(CloudEntitlementState.active),
+          ),
+          cloudAuthRepositoryProvider.overrideWithValue(
+            _FakeAuthRepository(user: testUser),
           ),
           authOverride,
           profileControllerProvider(

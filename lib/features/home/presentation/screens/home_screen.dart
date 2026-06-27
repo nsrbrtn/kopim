@@ -345,6 +345,8 @@ class _HomeBody extends ConsumerWidget {
         strings.homeSyncStatusRequiresSignIn,
       FeatureAccessStatus.blockedByLocalData =>
         strings.homeSyncStatusBlockedByLocalDataFeature,
+      FeatureAccessStatus.blockedByCloudState =>
+        'Облачная синхронизация приостановлена.',
       FeatureAccessStatus.unavailable => strings.homeSyncStatusUnavailable,
       FeatureAccessStatus.enabled =>
         strings.homeSyncStatusTemporarilyUnavailable,

@@ -2,6 +2,8 @@
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/data/database.dart';
 import 'package:kopim/core/services/logger_service.dart';
+import 'package:kopim/core/services/sync_service.dart';
+import 'package:kopim/features/profile/data/cloud_entitlement_repository.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/repositories/auth_repository.dart';
 import 'package:riverpod/riverpod.dart';
@@ -26,20 +28,27 @@ class CloudSignOutUseCase {
     }
     final String cloudUid = cloudUser.uid;
 
+    // Считываем зависимости до первого await для исключения UnmountedRefException
+    final SyncService syncService = _ref.read(syncServiceProvider);
+    final CloudEntitlementRepository entitlementRepo = _ref.read(
+      cloudEntitlementRepositoryProvider,
+    );
+    final AppDatabase db = _ref.read(appDatabaseProvider);
+
     // 2. Останавливаем синхронизацию
-    await _ref.read(syncServiceProvider).dispose();
+    await syncService.dispose();
 
     // 3. Сбрасываем лицензионный ключ
-    await _ref.read(cloudEntitlementRepositoryProvider).clearEntitlement();
+    await entitlementRepo.clearEntitlement();
 
     // 4. Очищаем метаданные синхронизации для данного пользователя
-    await _ref.read(syncMetadataRepositoryProvider).clear(cloudUid);
+    // Сохраняем baseline для pending outbox:
+    // await metadataRepo.clear(cloudUid);
 
     // 5. Pending outbox не удаляем: локальные изменения должны пережить logout
     // и остаться привязанными к владельцу до его следующего входа.
 
     // 6. Удаляем профиль пользователя из локальной БД profiles
-    final AppDatabase db = _ref.read(appDatabaseProvider);
     await (db.delete(
       db.profiles,
     )..where(($ProfilesTable tbl) => tbl.uid.equals(cloudUid))).go();
@@ -47,7 +56,8 @@ class CloudSignOutUseCase {
     await db.updateCurrentSyncState(null, false);
 
     // 7. Очищаем конфликты синхронизации
-    await db.delete(db.syncConflicts).go();
+    // Сохраняем конфликты для восстановления синхронизации:
+    // await db.delete(db.syncConflicts).go();
 
     // 8. Сбрасываем облачную сессию Firebase Auth
     await cloudAuth.signOut();

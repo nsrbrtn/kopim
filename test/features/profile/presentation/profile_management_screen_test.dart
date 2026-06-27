@@ -21,6 +21,7 @@ import 'package:kopim/features/profile/domain/models/profile_command_result.dart
 import 'package:kopim/features/profile/domain/usecases/update_profile_use_case.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/avatar_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/feature_access_provider.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_activity_days_provider.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/user_progress_controller.dart';
@@ -102,6 +103,17 @@ void main() {
     final _MockProfileEventRecorder eventRecorder = _MockProfileEventRecorder();
     when(() => eventRecorder.record(any())).thenAnswer((_) async {});
 
+    // Stub FeatureAccess so the test never reaches dataModeControllerProvider
+    // → cloudAuthRepositoryProvider → firebaseAuth (which requires Firebase).
+    const FeatureAccess stubFeatureAccess = FeatureAccess(
+      entitlementState: EntitlementAccessState.freeLocal,
+      cloudSync: FeatureGate(FeatureAccessStatus.disabledByBuild),
+      webApp: FeatureGate(FeatureAccessStatus.disabledByBuild),
+      aiAssistant: FeatureGate(FeatureAccessStatus.disabledByBuild),
+      advancedAnalytics: FeatureGate(FeatureAccessStatus.disabledByBuild),
+      isWebReadOnly: false,
+    );
+
     return <Override>[
       authControllerProvider.overrideWith(
         () => _FakeAuthController(signedInUser),
@@ -136,6 +148,7 @@ void main() {
         (Ref ref) =>
             Stream<List<CategoryTreeNode>>.value(const <CategoryTreeNode>[]),
       ),
+      featureAccessProvider.overrideWithValue(stubFeatureAccess),
     ];
   }
 

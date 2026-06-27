@@ -148,7 +148,10 @@ class OutboxDao {
         .go();
   }
 
-  Future<List<db.OutboxEntryRow>> fetchPending({int limit = 50}) {
+  Future<List<db.OutboxEntryRow>> fetchPending({
+    int limit = 50,
+    String? ownerUid,
+  }) {
     final SimpleSelectStatement<db.$OutboxEntriesTable, db.OutboxEntryRow>
     query = _db.select(_db.outboxEntries)
       ..where(
@@ -158,13 +161,16 @@ class OutboxDao {
       );
     return query.get().then(
       (List<db.OutboxEntryRow> entries) => _buildPendingPlan(
-        _filterEntriesForCurrentOwner(entries),
+        _filterEntriesForOwner(entries, ownerUid: ownerUid),
         limit: limit,
       ).dispatchableEntries,
     );
   }
 
-  Future<OutboxPendingPlan> fetchPendingPlan({int limit = 50}) {
+  Future<OutboxPendingPlan> fetchPendingPlan({
+    int limit = 50,
+    String? ownerUid,
+  }) {
     final SimpleSelectStatement<db.$OutboxEntriesTable, db.OutboxEntryRow>
     query = _db.select(_db.outboxEntries)
       ..where(
@@ -174,7 +180,7 @@ class OutboxDao {
       );
     return query.get().then(
       (List<db.OutboxEntryRow> entries) => _buildPendingPlan(
-        _filterEntriesForCurrentOwner(entries),
+        _filterEntriesForOwner(entries, ownerUid: ownerUid),
         limit: limit,
       ),
     );
@@ -337,12 +343,19 @@ class OutboxDao {
   List<db.OutboxEntryRow> _filterEntriesForCurrentOwner(
     List<db.OutboxEntryRow> entries,
   ) {
-    final String? currentUid = _currentUidProvider();
-    if (currentUid == null) {
-      return entries;
+    return _filterEntriesForOwner(entries);
+  }
+
+  List<db.OutboxEntryRow> _filterEntriesForOwner(
+    List<db.OutboxEntryRow> entries, {
+    String? ownerUid,
+  }) {
+    final String? effectiveOwnerUid = ownerUid ?? _currentUidProvider();
+    if (effectiveOwnerUid == null) {
+      return const <db.OutboxEntryRow>[];
     }
     return entries
-        .where((db.OutboxEntryRow entry) => entry.ownerUid == currentUid)
+        .where((db.OutboxEntryRow entry) => entry.ownerUid == effectiveOwnerUid)
         .toList(growable: false);
   }
 
@@ -638,6 +651,20 @@ class OutboxDao {
             .go();
       }
     });
+  }
+
+  Future<void> consumeOutboxEntriesForFreshUpload({
+    required String firebaseUid,
+    required String localSessionUid,
+  }) async {
+    await (_db.delete(_db.outboxEntries)..where(
+          (db.$OutboxEntriesTable tbl) =>
+              tbl.ownerUid.equals(firebaseUid) |
+              tbl.ownerUid.equals(localSessionUid) |
+              tbl.ownerUid.like('local-%') |
+              tbl.ownerUid.isNull(),
+        ))
+        .go();
   }
 }
 

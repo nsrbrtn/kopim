@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$AuthUser {
 
- String get uid; String? get email; String? get displayName; String? get photoUrl; bool get isAnonymous; bool get emailVerified; DateTime? get creationTime; DateTime? get lastSignInTime;
+ String get uid; String? get email; String? get displayName; String? get photoUrl; bool get isAnonymous; bool get emailVerified; DateTime? get creationTime; DateTime? get lastSignInTime; AuthSessionKind get sessionKind;
 /// Create a copy of AuthUser
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $AuthUserCopyWith<AuthUser> get copyWith => _$AuthUserCopyWithImpl<AuthUser>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthUser&&(identical(other.uid, uid) || other.uid == uid)&&(identical(other.email, email) || other.email == email)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.photoUrl, photoUrl) || other.photoUrl == photoUrl)&&(identical(other.isAnonymous, isAnonymous) || other.isAnonymous == isAnonymous)&&(identical(other.emailVerified, emailVerified) || other.emailVerified == emailVerified)&&(identical(other.creationTime, creationTime) || other.creationTime == creationTime)&&(identical(other.lastSignInTime, lastSignInTime) || other.lastSignInTime == lastSignInTime));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AuthUser&&(identical(other.uid, uid) || other.uid == uid)&&(identical(other.email, email) || other.email == email)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.photoUrl, photoUrl) || other.photoUrl == photoUrl)&&(identical(other.isAnonymous, isAnonymous) || other.isAnonymous == isAnonymous)&&(identical(other.emailVerified, emailVerified) || other.emailVerified == emailVerified)&&(identical(other.creationTime, creationTime) || other.creationTime == creationTime)&&(identical(other.lastSignInTime, lastSignInTime) || other.lastSignInTime == lastSignInTime)&&(identical(other.sessionKind, sessionKind) || other.sessionKind == sessionKind));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,uid,email,displayName,photoUrl,isAnonymous,emailVerified,creationTime,lastSignInTime);
+int get hashCode => Object.hash(runtimeType,uid,email,displayName,photoUrl,isAnonymous,emailVerified,creationTime,lastSignInTime,sessionKind);
 
 @override
 String toString() {
-  return 'AuthUser(uid: $uid, email: $email, displayName: $displayName, photoUrl: $photoUrl, isAnonymous: $isAnonymous, emailVerified: $emailVerified, creationTime: $creationTime, lastSignInTime: $lastSignInTime)';
+  return 'AuthUser(uid: $uid, email: $email, displayName: $displayName, photoUrl: $photoUrl, isAnonymous: $isAnonymous, emailVerified: $emailVerified, creationTime: $creationTime, lastSignInTime: $lastSignInTime, sessionKind: $sessionKind)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $AuthUserCopyWith<$Res>  {
   factory $AuthUserCopyWith(AuthUser value, $Res Function(AuthUser) _then) = _$AuthUserCopyWithImpl;
 @useResult
 $Res call({
- String uid, String? email, String? displayName, String? photoUrl, bool isAnonymous, bool emailVerified, DateTime? creationTime, DateTime? lastSignInTime
+ String uid, String? email, String? displayName, String? photoUrl, bool isAnonymous, bool emailVerified, DateTime? creationTime, DateTime? lastSignInTime, AuthSessionKind sessionKind
 });
 
 
@@ -65,7 +65,7 @@ class _$AuthUserCopyWithImpl<$Res>
 
 /// Create a copy of AuthUser
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? uid = null,Object? email = freezed,Object? displayName = freezed,Object? photoUrl = freezed,Object? isAnonymous = null,Object? emailVerified = null,Object? creationTime = freezed,Object? lastSignInTime = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? uid = null,Object? email = freezed,Object? displayName = freezed,Object? photoUrl = freezed,Object? isAnonymous = null,Object? emailVerified = null,Object? creationTime = freezed,Object? lastSignInTime = freezed,Object? sessionKind = null,}) {
   return _then(_self.copyWith(
 uid: null == uid ? _self.uid : uid // ignore: cast_nullable_to_non_nullable
 as String,email: freezed == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
@@ -75,7 +75,8 @@ as String?,isAnonymous: null == isAnonymous ? _self.isAnonymous : isAnonymous //
 as bool,emailVerified: null == emailVerified ? _self.emailVerified : emailVerified // ignore: cast_nullable_to_non_nullable
 as bool,creationTime: freezed == creationTime ? _self.creationTime : creationTime // ignore: cast_nullable_to_non_nullable
 as DateTime?,lastSignInTime: freezed == lastSignInTime ? _self.lastSignInTime : lastSignInTime // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,sessionKind: null == sessionKind ? _self.sessionKind : sessionKind // ignore: cast_nullable_to_non_nullable
+as AuthSessionKind,
   ));
 }
 
@@ -160,10 +161,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String uid,  String? email,  String? displayName,  String? photoUrl,  bool isAnonymous,  bool emailVerified,  DateTime? creationTime,  DateTime? lastSignInTime)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String uid,  String? email,  String? displayName,  String? photoUrl,  bool isAnonymous,  bool emailVerified,  DateTime? creationTime,  DateTime? lastSignInTime,  AuthSessionKind sessionKind)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AuthUser() when $default != null:
-return $default(_that.uid,_that.email,_that.displayName,_that.photoUrl,_that.isAnonymous,_that.emailVerified,_that.creationTime,_that.lastSignInTime);case _:
+return $default(_that.uid,_that.email,_that.displayName,_that.photoUrl,_that.isAnonymous,_that.emailVerified,_that.creationTime,_that.lastSignInTime,_that.sessionKind);case _:
   return orElse();
 
 }
@@ -181,10 +182,10 @@ return $default(_that.uid,_that.email,_that.displayName,_that.photoUrl,_that.isA
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String uid,  String? email,  String? displayName,  String? photoUrl,  bool isAnonymous,  bool emailVerified,  DateTime? creationTime,  DateTime? lastSignInTime)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String uid,  String? email,  String? displayName,  String? photoUrl,  bool isAnonymous,  bool emailVerified,  DateTime? creationTime,  DateTime? lastSignInTime,  AuthSessionKind sessionKind)  $default,) {final _that = this;
 switch (_that) {
 case _AuthUser():
-return $default(_that.uid,_that.email,_that.displayName,_that.photoUrl,_that.isAnonymous,_that.emailVerified,_that.creationTime,_that.lastSignInTime);case _:
+return $default(_that.uid,_that.email,_that.displayName,_that.photoUrl,_that.isAnonymous,_that.emailVerified,_that.creationTime,_that.lastSignInTime,_that.sessionKind);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -201,10 +202,10 @@ return $default(_that.uid,_that.email,_that.displayName,_that.photoUrl,_that.isA
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String uid,  String? email,  String? displayName,  String? photoUrl,  bool isAnonymous,  bool emailVerified,  DateTime? creationTime,  DateTime? lastSignInTime)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String uid,  String? email,  String? displayName,  String? photoUrl,  bool isAnonymous,  bool emailVerified,  DateTime? creationTime,  DateTime? lastSignInTime,  AuthSessionKind sessionKind)?  $default,) {final _that = this;
 switch (_that) {
 case _AuthUser() when $default != null:
-return $default(_that.uid,_that.email,_that.displayName,_that.photoUrl,_that.isAnonymous,_that.emailVerified,_that.creationTime,_that.lastSignInTime);case _:
+return $default(_that.uid,_that.email,_that.displayName,_that.photoUrl,_that.isAnonymous,_that.emailVerified,_that.creationTime,_that.lastSignInTime,_that.sessionKind);case _:
   return null;
 
 }
@@ -216,7 +217,7 @@ return $default(_that.uid,_that.email,_that.displayName,_that.photoUrl,_that.isA
 @JsonSerializable()
 
 class _AuthUser extends AuthUser {
-  const _AuthUser({required this.uid, this.email, this.displayName, this.photoUrl, this.isAnonymous = false, this.emailVerified = false, this.creationTime, this.lastSignInTime}): super._();
+  const _AuthUser({required this.uid, this.email, this.displayName, this.photoUrl, this.isAnonymous = false, this.emailVerified = false, this.creationTime, this.lastSignInTime, this.sessionKind = AuthSessionKind.firebase}): super._();
   factory _AuthUser.fromJson(Map<String, dynamic> json) => _$AuthUserFromJson(json);
 
 @override final  String uid;
@@ -227,6 +228,7 @@ class _AuthUser extends AuthUser {
 @override@JsonKey() final  bool emailVerified;
 @override final  DateTime? creationTime;
 @override final  DateTime? lastSignInTime;
+@override@JsonKey() final  AuthSessionKind sessionKind;
 
 /// Create a copy of AuthUser
 /// with the given fields replaced by the non-null parameter values.
@@ -241,16 +243,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthUser&&(identical(other.uid, uid) || other.uid == uid)&&(identical(other.email, email) || other.email == email)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.photoUrl, photoUrl) || other.photoUrl == photoUrl)&&(identical(other.isAnonymous, isAnonymous) || other.isAnonymous == isAnonymous)&&(identical(other.emailVerified, emailVerified) || other.emailVerified == emailVerified)&&(identical(other.creationTime, creationTime) || other.creationTime == creationTime)&&(identical(other.lastSignInTime, lastSignInTime) || other.lastSignInTime == lastSignInTime));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AuthUser&&(identical(other.uid, uid) || other.uid == uid)&&(identical(other.email, email) || other.email == email)&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.photoUrl, photoUrl) || other.photoUrl == photoUrl)&&(identical(other.isAnonymous, isAnonymous) || other.isAnonymous == isAnonymous)&&(identical(other.emailVerified, emailVerified) || other.emailVerified == emailVerified)&&(identical(other.creationTime, creationTime) || other.creationTime == creationTime)&&(identical(other.lastSignInTime, lastSignInTime) || other.lastSignInTime == lastSignInTime)&&(identical(other.sessionKind, sessionKind) || other.sessionKind == sessionKind));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,uid,email,displayName,photoUrl,isAnonymous,emailVerified,creationTime,lastSignInTime);
+int get hashCode => Object.hash(runtimeType,uid,email,displayName,photoUrl,isAnonymous,emailVerified,creationTime,lastSignInTime,sessionKind);
 
 @override
 String toString() {
-  return 'AuthUser(uid: $uid, email: $email, displayName: $displayName, photoUrl: $photoUrl, isAnonymous: $isAnonymous, emailVerified: $emailVerified, creationTime: $creationTime, lastSignInTime: $lastSignInTime)';
+  return 'AuthUser(uid: $uid, email: $email, displayName: $displayName, photoUrl: $photoUrl, isAnonymous: $isAnonymous, emailVerified: $emailVerified, creationTime: $creationTime, lastSignInTime: $lastSignInTime, sessionKind: $sessionKind)';
 }
 
 
@@ -261,7 +263,7 @@ abstract mixin class _$AuthUserCopyWith<$Res> implements $AuthUserCopyWith<$Res>
   factory _$AuthUserCopyWith(_AuthUser value, $Res Function(_AuthUser) _then) = __$AuthUserCopyWithImpl;
 @override @useResult
 $Res call({
- String uid, String? email, String? displayName, String? photoUrl, bool isAnonymous, bool emailVerified, DateTime? creationTime, DateTime? lastSignInTime
+ String uid, String? email, String? displayName, String? photoUrl, bool isAnonymous, bool emailVerified, DateTime? creationTime, DateTime? lastSignInTime, AuthSessionKind sessionKind
 });
 
 
@@ -278,7 +280,7 @@ class __$AuthUserCopyWithImpl<$Res>
 
 /// Create a copy of AuthUser
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? uid = null,Object? email = freezed,Object? displayName = freezed,Object? photoUrl = freezed,Object? isAnonymous = null,Object? emailVerified = null,Object? creationTime = freezed,Object? lastSignInTime = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? uid = null,Object? email = freezed,Object? displayName = freezed,Object? photoUrl = freezed,Object? isAnonymous = null,Object? emailVerified = null,Object? creationTime = freezed,Object? lastSignInTime = freezed,Object? sessionKind = null,}) {
   return _then(_AuthUser(
 uid: null == uid ? _self.uid : uid // ignore: cast_nullable_to_non_nullable
 as String,email: freezed == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
@@ -288,7 +290,8 @@ as String?,isAnonymous: null == isAnonymous ? _self.isAnonymous : isAnonymous //
 as bool,emailVerified: null == emailVerified ? _self.emailVerified : emailVerified // ignore: cast_nullable_to_non_nullable
 as bool,creationTime: freezed == creationTime ? _self.creationTime : creationTime // ignore: cast_nullable_to_non_nullable
 as DateTime?,lastSignInTime: freezed == lastSignInTime ? _self.lastSignInTime : lastSignInTime // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,sessionKind: null == sessionKind ? _self.sessionKind : sessionKind // ignore: cast_nullable_to_non_nullable
+as AuthSessionKind,
   ));
 }
 

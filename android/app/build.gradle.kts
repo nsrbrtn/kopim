@@ -76,17 +76,18 @@ android {
             applicationIdSuffix = ".dev"
             versionNameSuffix = "-dev"
         }
-        create("offline") {
+        create("offlineOnly") {
             dimension = "env"
-            applicationId = "kopim.app"
+            applicationId = "kopim.app.offline"
         }
         create("stage") {
             dimension = "env"
             applicationIdSuffix = ".stage"
             versionNameSuffix = "-stage"
         }
-        create("prod") {
+        create("storeProdLocalFirst") {
             dimension = "env"
+            applicationId = "kopim.app"
         }
     }
 
@@ -102,9 +103,9 @@ android {
     }
 
     sourceSets {
-        getByName("offline") {
-            manifest.srcFile("src/offline/AndroidManifest.xml")
-            res.srcDirs("src/offline/res")
+        getByName("offlineOnly") {
+            manifest.srcFile("src/offlineOnly/AndroidManifest.xml")
+            res.srcDirs("src/offlineOnly/res")
         }
     }
 }

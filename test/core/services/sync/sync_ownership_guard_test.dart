@@ -18,7 +18,7 @@ void main() {
       test(
         'should throw SyncOwnershipException if offlineOnly distribution',
         () async {
-          AppRuntimeConfig.configure(AppRuntimeFlavor.offline);
+          AppRuntimeConfig.configure(AppRuntimeFlavor.offlineOnly);
 
           expect(
             () => guard.ensureCanStartCloudSync(
@@ -137,7 +137,7 @@ void main() {
       test(
         'should throw SyncOwnershipException if offlineOnly distribution',
         () async {
-          AppRuntimeConfig.configure(AppRuntimeFlavor.offline);
+          AppRuntimeConfig.configure(AppRuntimeFlavor.offlineOnly);
 
           expect(
             () => guard.ensureOutboxEntryCanBePushed(

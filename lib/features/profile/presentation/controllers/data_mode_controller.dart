@@ -1,11 +1,15 @@
 import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:kopim/core/config/app_runtime.dart';
+import 'package:kopim/core/config/app_capabilities.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/features/profile/data/cloud_activation_state_repository.dart';
 import 'package:kopim/features/profile/data/cloud_entitlement_repository.dart';
+import 'package:kopim/features/profile/data/cloud_metadata_repository.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
+import 'package:kopim/features/profile/domain/entities/cloud_metadata.dart';
 import 'package:kopim/features/profile/domain/repositories/auth_repository.dart';
 
 part 'data_mode_controller.g.dart';
@@ -15,33 +19,51 @@ class DataModeState {
     required this.dataMode,
     required this.entitlementState,
     required this.migrationDecision,
+    this.cloudDataState,
+    this.requiresFreshCloudUpload = false,
+    this.isSyncBlockedByCloudState = false,
   });
 
   final DataMode dataMode;
   final CloudEntitlementState entitlementState;
   final MigrationDecision migrationDecision;
+  final CloudDataState? cloudDataState;
+  final bool requiresFreshCloudUpload;
+  final bool isSyncBlockedByCloudState;
 
   DataModeState copyWith({
     DataMode? dataMode,
     CloudEntitlementState? entitlementState,
     MigrationDecision? migrationDecision,
+    CloudDataState? cloudDataState,
+    bool? requiresFreshCloudUpload,
+    bool? isSyncBlockedByCloudState,
   }) {
     return DataModeState(
       dataMode: dataMode ?? this.dataMode,
       entitlementState: entitlementState ?? this.entitlementState,
       migrationDecision: migrationDecision ?? this.migrationDecision,
+      cloudDataState: cloudDataState ?? this.cloudDataState,
+      requiresFreshCloudUpload:
+          requiresFreshCloudUpload ?? this.requiresFreshCloudUpload,
+      isSyncBlockedByCloudState:
+          isSyncBlockedByCloudState ?? this.isSyncBlockedByCloudState,
     );
   }
 }
 
 @Riverpod(keepAlive: true)
 class DataModeController extends _$DataModeController {
+  static const String _cacheKeyPrefix = 'profile.cloud_data_state.';
+
   @override
   FutureOr<DataModeState> build() async {
     final LoggerService logger = ref.read(loggerServiceProvider);
-    if (AppRuntimeConfig.isOfflineOnlyDistribution) {
+    final AppCapabilities capabilities = ref.watch(appCapabilitiesProvider);
+
+    if (!capabilities.canRunCloudSync) {
       logger.logInfo(
-        'DataModeController: offline-only distribution, forcing localOnly mode.',
+        'DataModeController: sync capabilities disabled, forcing localOnly mode.',
       );
       return const DataModeState(
         dataMode: DataMode.localOnly,
@@ -58,15 +80,10 @@ class DataModeController extends _$DataModeController {
       'DataModeController: cached entitlement=$entitlement for flavor=${AppRuntimeConfig.flavor.name}.',
     );
 
-    // Также будем слушать пользователя
-    // Но чтобы не было циклических зависимостей (ведь activeAuthRepository зависит от DataMode),
-    // мы будем слушать FirebaseAuth (из firebaseAuthProvider) или cloudAuthRepositoryProvider.
-    // Давайте лучше слушать cloudAuthRepositoryProvider.authStateChanges() напрямую!
     final Stream<AuthUser?> authStream = ref
         .watch(cloudAuthRepositoryProvider)
         .authStateChanges();
 
-    // Подписываемся на стрим аутентификации
     final StreamSubscription<AuthUser?> sub = authStream.listen((
       AuthUser? user,
     ) {
@@ -78,7 +95,6 @@ class DataModeController extends _$DataModeController {
         .watch(cloudAuthRepositoryProvider)
         .currentUser;
 
-    // Вычисляем начальное состояние
     final DataModeState initial = await _calculateState(
       currentCloudUser,
       entitlement,
@@ -98,7 +114,8 @@ class DataModeController extends _$DataModeController {
   }
 
   Future<void> activateEntitlementKey(String key) async {
-    if (AppRuntimeConfig.isOfflineOnlyDistribution) return;
+    final AppCapabilities capabilities = ref.read(appCapabilitiesProvider);
+    if (!capabilities.canRunCloudSync) return;
 
     state = const AsyncValue<DataModeState>.loading();
     try {
@@ -131,26 +148,23 @@ class DataModeController extends _$DataModeController {
   }
 
   Future<void> refreshEntitlement() async {
-    if (AppRuntimeConfig.isOfflineOnlyDistribution) return;
+    final AppCapabilities capabilities = ref.read(appCapabilitiesProvider);
+    if (!capabilities.canRunCloudSync) return;
 
     final LoggerService logger = ref.read(loggerServiceProvider);
     logger.logInfo(
       'DataModeController: force refreshing entitlement claims...',
     );
 
-    // 1. Форсируем обновление ID-токена в Firebase Auth
     final AuthRepository authRepo = ref.read(cloudAuthRepositoryProvider);
-    await authRepo
-        .forceRefreshIdToken(); // Сетевая ошибка пробрасывается наружу
+    await authRepo.forceRefreshIdToken();
 
-    // 2. Считываем свежее состояние из токена и обновляем SharedPreferences
     final CloudEntitlementRepository entitlementRepo = ref.read(
       cloudEntitlementRepositoryProvider,
     );
     final CloudEntitlementState entitlement = await entitlementRepo
         .refreshFromCurrentToken();
 
-    // 3. Пересчитываем и обновляем состояние DataModeController
     final AuthUser? currentCloudUser = authRepo.currentUser;
     final DataModeState nextState = await _calculateState(
       currentCloudUser,
@@ -227,12 +241,45 @@ class DataModeController extends _$DataModeController {
     return ref.read(cloudEntitlementRepositoryProvider).getCachedState();
   }
 
+  Future<void> _saveCachedCloudDataState(
+    String uid,
+    CloudDataState state,
+  ) async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('$_cacheKeyPrefix$uid', state.name);
+    } catch (_) {}
+  }
+
+  Future<CloudDataState?> _getCachedCloudDataState(String uid) async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? name = prefs.getString('$_cacheKeyPrefix$uid');
+      if (name != null) {
+        return CloudDataState.values.firstWhere(
+          (CloudDataState e) => e.name == name,
+        );
+      }
+    } catch (_) {}
+    return null;
+  }
+
   Future<DataModeState> _calculateState(
     AuthUser? cloudUser,
     CloudEntitlementState entitlement, {
     MigrationDecision? decisionOverride,
   }) async {
     final LoggerService logger = ref.read(loggerServiceProvider);
+    final AppCapabilities capabilities = ref.read(appCapabilitiesProvider);
+
+    if (!capabilities.canRunCloudSync) {
+      return const DataModeState(
+        dataMode: DataMode.localOnly,
+        entitlementState: CloudEntitlementState.unavailable,
+        migrationDecision: MigrationDecision.none,
+      );
+    }
+
     if (entitlement != CloudEntitlementState.active) {
       logger.logInfo(
         'DataModeController: entitlement=${entitlement.name}, keeping localOnly until key is active.',
@@ -260,6 +307,69 @@ class DataModeController extends _$DataModeController {
     );
     final bool hasActivationFlag =
         await activationStateRepository.getStateForUid(cloudUser.uid) != null;
+
+    // Fetch cloud data state from repository with offline cache fallback
+    CloudMetadata? metadata;
+    bool metadataReadFailed = false;
+    try {
+      metadata = await ref
+          .read(cloudMetadataRepositoryProvider)
+          .getMetadata(cloudUser.uid);
+      if (metadata != null) {
+        await _saveCachedCloudDataState(cloudUser.uid, metadata.cloudDataState);
+      }
+    } catch (e) {
+      metadataReadFailed = true;
+      logger.logError('DataModeController: failed to fetch cloud metadata: $e');
+      final CloudDataState? cachedState = await _getCachedCloudDataState(
+        cloudUser.uid,
+      );
+      if (cachedState != null) {
+        metadata = CloudMetadata(
+          cloudDataState: cachedState,
+          updatedAt: DateTime.now().toUtc(),
+        );
+      }
+    }
+
+    final CloudDataState cloudState;
+    if (metadata != null) {
+      cloudState = metadata.cloudDataState;
+    } else if (metadataReadFailed) {
+      cloudState = CloudDataState.cleanupPending;
+    } else {
+      if (hasActivationFlag) {
+        // Document missing but activation flag exists -> require fresh upload (fail closed)
+        cloudState = CloudDataState.deleted;
+      } else {
+        // Default to active so they can perform first-time activation
+        cloudState = CloudDataState.active;
+      }
+    }
+
+    final bool isSyncBlocked =
+        cloudState == CloudDataState.cleanupPending ||
+        cloudState == CloudDataState.deleted ||
+        cloudState == CloudDataState.freshUploadInProgress;
+
+    final bool requiresFreshUpload =
+        cloudState == CloudDataState.deleted &&
+        entitlement == CloudEntitlementState.active;
+
+    if (isSyncBlocked) {
+      logger.logInfo(
+        'DataModeController: sync blocked by cloudDataState=${cloudState.name}. Forced localOnly.',
+      );
+      return DataModeState(
+        dataMode: DataMode.localOnly,
+        entitlementState: entitlement,
+        migrationDecision: decisionOverride ?? MigrationDecision.none,
+        cloudDataState: cloudState,
+        requiresFreshCloudUpload: requiresFreshUpload,
+        isSyncBlockedByCloudState: true,
+      );
+    }
+
     if (!hasActivationFlag) {
       logger.logInfo(
         'DataModeController: cloud user=${cloudUser.uid} has no activation flag, keeping localOnly.',
@@ -268,10 +378,10 @@ class DataModeController extends _$DataModeController {
         dataMode: DataMode.localOnly,
         entitlementState: entitlement,
         migrationDecision: MigrationDecision.none,
+        cloudDataState: cloudState,
       );
     }
 
-    // Проверяем наличие локальных данных в БД
     final bool hasLocalData = await ref
         .read(appDatabaseProvider)
         .hasAnyLocalOnlyData();
@@ -286,10 +396,10 @@ class DataModeController extends _$DataModeController {
         dataMode: DataMode.cloudBlockedByLocalData,
         entitlementState: entitlement,
         migrationDecision: decision,
+        cloudDataState: cloudState,
       );
     }
 
-    // Если локальных данных нет и пользователь залогинен с активным ключом:
     logger.logInfo(
       'DataModeController: entitlement active, cloud user=${cloudUser.uid}, local data absent, enabling cloud mode.',
     );
@@ -297,6 +407,7 @@ class DataModeController extends _$DataModeController {
       dataMode: DataMode.cloudEnabled,
       entitlementState: entitlement,
       migrationDecision: MigrationDecision.none,
+      cloudDataState: cloudState,
     );
   }
 

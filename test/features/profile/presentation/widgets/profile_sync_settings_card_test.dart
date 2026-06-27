@@ -7,6 +7,7 @@ import 'package:kopim/core/config/firebase_environment.dart';
 import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_preflight_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/feature_access_provider.dart';
 import 'package:kopim/features/profile/presentation/screens/cloud_activation_preflight_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
 import 'package:kopim/features/profile/presentation/widgets/profile_sync_settings_card.dart';
@@ -42,6 +43,13 @@ void main() {
               canRunCloudSync: true,
               canUseAiTransport: true,
               firebaseEnvironment: FirebaseEnvironment.dev,
+              allowsLocalOnlyUsage: true,
+              canActivatePromoOrLicenseInApp: true,
+              canRegisterInApp: true,
+              canShowCloudSyncEntryPoint: true,
+              canShowPaymentOrPurchaseUi: true,
+              expiredEntitlementMode: ExpiredEntitlementMode.none,
+              requiresEntitlementBeforeWebApp: false,
             ),
           ),
           dataModeControllerProvider.overrideWith(
@@ -51,6 +59,20 @@ void main() {
                 entitlementState: CloudEntitlementState.active,
                 migrationDecision: MigrationDecision.none,
               ),
+            ),
+          ),
+          // Stub featureAccessProvider to avoid reaching firebaseAuth in tests.
+          // requiresSignIn shows "Продолжить подключение" CTA without reaching cloudAuthRepository.
+          featureAccessProvider.overrideWithValue(
+            const FeatureAccess(
+              entitlementState: EntitlementAccessState.cloudActive,
+              cloudSync: FeatureGate(FeatureAccessStatus.requiresSignIn),
+              webApp: FeatureGate(FeatureAccessStatus.enabled),
+              aiAssistant: FeatureGate(FeatureAccessStatus.disabledByBuild),
+              advancedAnalytics: FeatureGate(
+                FeatureAccessStatus.disabledByBuild,
+              ),
+              isWebReadOnly: false,
             ),
           ),
         ],

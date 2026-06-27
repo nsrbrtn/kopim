@@ -863,7 +863,7 @@ void main() {
   testWidgets(
     'offline runtime hides firebase warning banner and offline badge',
     (WidgetTester tester) async {
-      AppRuntimeConfig.configure(AppRuntimeFlavor.offline);
+      AppRuntimeConfig.configure(AppRuntimeFlavor.offlineOnly);
       await setWindowSize(tester, const Size(800, 1200));
       await tester.pumpWidget(
         buildShell(

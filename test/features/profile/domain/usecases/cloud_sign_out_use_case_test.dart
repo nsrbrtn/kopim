@@ -85,7 +85,7 @@ void main() {
     });
 
     test(
-      'should stop sync, clear entitlements, keep pending outbox, delete profile and conflicts, and signOut',
+      'should stop sync, clear entitlements, keep pending outbox, keep sync_metadata and conflicts, and signOut',
       () async {
         const String cloudUid = 'firebase-cloud-uid-123';
         const AuthUser authUser = AuthUser(
@@ -99,7 +99,8 @@ void main() {
         when(
           () => mockEntitlementRepo.clearEntitlement(),
         ).thenAnswer((_) async {});
-        when(() => mockSyncMetaRepo.clear(cloudUid)).thenAnswer((_) async {});
+        // sync_metadata.clear() is NOT called on sign-out: preserved per plan §9.4
+        when(() => mockSyncMetaRepo.clear(any())).thenAnswer((_) async {});
         when(() => mockCloudAuth.signOut()).thenAnswer((_) async {});
 
         // Наполняем базу данных тестовыми данными: профиль текущего пользователя и другого, а также конфликт
@@ -154,7 +155,8 @@ void main() {
         // Проверки вызова внешних сервисов
         verify(() => mockSyncService.dispose()).called(1);
         verify(() => mockEntitlementRepo.clearEntitlement()).called(1);
-        verify(() => mockSyncMetaRepo.clear(cloudUid)).called(1);
+        // sync_metadata is NOT cleared on sign-out (plan §9.4): verifyNever
+        verifyNever(() => mockSyncMetaRepo.clear(any()));
         verify(() => mockCloudAuth.signOut()).called(1);
 
         // Проверки удаления из БД
@@ -170,7 +172,8 @@ void main() {
         final List<SyncConflictRow> conflicts = await database
             .select(database.syncConflicts)
             .get();
-        expect(conflicts.isEmpty, isTrue); // конфликты очистились
+        // syncConflicts are preserved on sign-out (plan §9.4)
+        expect(conflicts, hasLength(1));
 
         final List<OutboxEntryRow> outboxEntries = await database
             .select(database.outboxEntries)

@@ -27,22 +27,23 @@ void main() {
       AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseDev);
     });
 
-    test('should allow DEMO-CLOUD-KEY in dev/debug modes', () async {
-      final CloudEntitlementRepositoryImpl repository =
-          CloudEntitlementRepositoryImpl(
-            preferences: Future<SharedPreferences>.value(sharedPreferences),
-            firebaseAuth: mockFirebaseAuth,
-          );
+    // DEMO-CLOUD-KEY was removed: all keys are now validated server-side.
+    test(
+      'should reject unknown keys (including former DEMO-CLOUD-KEY)',
+      () async {
+        final CloudEntitlementRepositoryImpl repository =
+            CloudEntitlementRepositoryImpl(
+              preferences: Future<SharedPreferences>.value(sharedPreferences),
+              firebaseAuth: mockFirebaseAuth,
+            );
 
-      final CloudEntitlementResult result = await repository.activateKey(
-        'DEMO-CLOUD-KEY',
-      );
-      expect(result.success, isTrue);
-      expect(result.state, equals(CloudEntitlementState.active));
-
-      final CloudEntitlementState cached = await repository.getCachedState();
-      expect(cached, equals(CloudEntitlementState.active));
-    });
+        final CloudEntitlementResult result = await repository.activateKey(
+          'DEMO-CLOUD-KEY',
+        );
+        expect(result.success, isFalse);
+        expect(result.state, equals(CloudEntitlementState.invalid));
+      },
+    );
 
     test('should reject invalid keys', () async {
       final CloudEntitlementRepositoryImpl repository =
@@ -61,7 +62,7 @@ void main() {
     test(
       'should reject DEMO-CLOUD-KEY if in offlineOnly distribution mode',
       () async {
-        AppRuntimeConfig.configure(AppRuntimeFlavor.offline);
+        AppRuntimeConfig.configure(AppRuntimeFlavor.offlineOnly);
         final CloudEntitlementRepositoryImpl repository =
             CloudEntitlementRepositoryImpl(
               preferences: Future<SharedPreferences>.value(sharedPreferences),

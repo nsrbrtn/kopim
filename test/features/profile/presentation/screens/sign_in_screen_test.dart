@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:kopim/features/profile/domain/entities/cloud_metadata.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -42,7 +44,7 @@ class _StubAuthController extends AuthController {
 
 void main() {
   setUp(() {
-    AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseProd);
+    AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseDev);
   });
 
   tearDown(() {
@@ -84,6 +86,18 @@ void main() {
         overrides: [
           connectivityProvider.overrideWithValue(connectivity),
           authControllerProvider.overrideWith(() => authController),
+          dataModeControllerProvider.overrideWith(
+            () => _FakeDataModeController(
+              const DataModeState(
+                dataMode: DataMode.cloudEnabled,
+                entitlementState: CloudEntitlementState.active,
+                migrationDecision: MigrationDecision.none,
+                cloudDataState: CloudDataState.active,
+                requiresFreshCloudUpload: false,
+                isSyncBlockedByCloudState: false,
+              ),
+            ),
+          ),
         ],
         child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -134,6 +148,18 @@ void main() {
           overrides: [
             connectivityProvider.overrideWithValue(connectivity),
             authControllerProvider.overrideWith(() => authController),
+            dataModeControllerProvider.overrideWith(
+              () => _FakeDataModeController(
+                const DataModeState(
+                  dataMode: DataMode.cloudEnabled,
+                  entitlementState: CloudEntitlementState.active,
+                  migrationDecision: MigrationDecision.none,
+                  cloudDataState: CloudDataState.active,
+                  requiresFreshCloudUpload: false,
+                  isSyncBlockedByCloudState: false,
+                ),
+              ),
+            ),
           ],
           child: const MaterialApp(
             localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -177,6 +203,18 @@ void main() {
         overrides: [
           connectivityProvider.overrideWithValue(connectivity),
           authControllerProvider.overrideWith(() => authController),
+          dataModeControllerProvider.overrideWith(
+            () => _FakeDataModeController(
+              const DataModeState(
+                dataMode: DataMode.cloudEnabled,
+                entitlementState: CloudEntitlementState.active,
+                migrationDecision: MigrationDecision.none,
+                cloudDataState: CloudDataState.active,
+                requiresFreshCloudUpload: false,
+                isSyncBlockedByCloudState: false,
+              ),
+            ),
+          ),
         ],
         child: const MaterialApp(
           localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -218,4 +256,12 @@ void main() {
 
     await connectivityStream.close();
   });
+}
+
+class _FakeDataModeController extends DataModeController {
+  _FakeDataModeController(this._state);
+  final DataModeState _state;
+
+  @override
+  FutureOr<DataModeState> build() => _state;
 }

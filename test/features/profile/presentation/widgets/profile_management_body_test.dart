@@ -262,7 +262,7 @@ void main() {
   testWidgets(
     'offline runtime скрывает logout и блокирует онлайн-синхронизацию',
     (WidgetTester tester) async {
-      AppRuntimeConfig.configure(AppRuntimeFlavor.offline);
+      AppRuntimeConfig.configure(AppRuntimeFlavor.offlineOnly);
       const AuthUser offlineUser = AuthUser(
         uid: 'local-user-123',
         isAnonymous: true,
