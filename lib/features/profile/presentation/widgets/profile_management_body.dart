@@ -130,7 +130,10 @@ class ProfileManagementBody extends ConsumerWidget {
                       isOnlineSyncEnabled: effectiveOnlineSyncEnabled,
                       canManageOnlineSync: canManageOnlineSync,
                       cloudSyncGate: featureAccess.cloudSync,
+                      entitlementState: featureAccess.entitlementState,
                       isCloudCapableBuild: capabilities.canRunCloudSync,
+                      usesNeutralAccessCopy:
+                          !capabilities.canActivatePromoOrLicenseInApp,
                       onToggleOnlineSync: () => _toggleOnlineSync(
                         context,
                         ref,
@@ -607,14 +610,18 @@ class _SecuritySection extends StatelessWidget {
     required this.isOnlineSyncEnabled,
     required this.canManageOnlineSync,
     required this.cloudSyncGate,
+    required this.entitlementState,
     required this.isCloudCapableBuild,
+    required this.usesNeutralAccessCopy,
     required this.onToggleOnlineSync,
   });
 
   final bool isOnlineSyncEnabled;
   final bool canManageOnlineSync;
   final FeatureGate cloudSyncGate;
+  final EntitlementAccessState entitlementState;
   final bool isCloudCapableBuild;
+  final bool usesNeutralAccessCopy;
   final VoidCallback onToggleOnlineSync;
 
   @override
@@ -710,9 +717,15 @@ class _SecuritySection extends StatelessWidget {
       FeatureAccessStatus.blockedByLocalData =>
         'Перед включением синхронизации нужно отдельно решить, что делать с локальными данными на устройстве.',
       FeatureAccessStatus.requiresSignIn =>
-        'Лицензионный ключ уже активирован. Войдите в аккаунт, чтобы включить синхронизацию.',
+        isCloudCapableBuild
+            ? 'Войдите в аккаунт с активным доступом, чтобы включить синхронизацию.'
+            : 'В этой сборке синхронизация недоступна.',
       FeatureAccessStatus.requiresEntitlement =>
-        'Сейчас данные хранятся только на этом устройстве. Облачные функции станут доступны после активации доступа.',
+        usesNeutralAccessCopy
+            ? entitlementState == EntitlementAccessState.cloudExpired
+                  ? 'Срок облачного доступа истек. Синхронизация остается на паузе, но локальные данные на устройстве доступны.'
+                  : 'Для текущего аккаунта доступ к облачным функциям пока не активен.'
+            : 'Сейчас данные хранятся только на этом устройстве. Облачные функции станут доступны после активации доступа.',
       FeatureAccessStatus.blockedByCloudState =>
         'Синхронизация приостановлена облачным состоянием (очистка или ожидание загрузки).',
       FeatureAccessStatus.disabledByBuild =>

@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:drift/drift.dart' show DatabaseConnection;
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -1226,15 +1226,18 @@ void main() {
       ),
     );
 
-    expect(() => repository.importData(bundle: invalidBundle), throwsException);
+    await expectLater(
+      repository.importData(bundle: invalidBundle),
+      throwsException,
+    );
 
     // Verify state after failure
     syncState = await database.select(database.currentSyncStates).getSingle();
     expect(syncState.importInProgress, isFalse);
   });
 
-  test('import restores user rows as localOnly, not cloudOwned', () async {
-    await database.updateCurrentSyncState('cloud-user-1', true);
+  test('import restores user rows as localOnly in offline mode', () async {
+    await database.updateCurrentSyncState(null, false);
 
     final DateTime now = DateTime.utc(2024, 6, 1);
     final AccountEntity account = AccountEntity(
@@ -1260,5 +1263,359 @@ void main() {
     expect(ownership!.ownershipState, 'localOnly');
     expect(ownership.ownerUid, isNull);
     expect(ownership.source, 'import_restore');
+  });
+
+  test('import restores user rows as cloudOwned in online mode', () async {
+    await database.updateCurrentSyncState('cloud-user-1', true);
+
+    final DateTime now = DateTime.utc(2024, 6, 1);
+    final AccountEntity account = AccountEntity(
+      id: 'acc-import-1',
+      name: 'Imported',
+      balanceMinor: BigInt.from(1000),
+      currency: 'USD',
+      currencyScale: 2,
+      type: 'regular',
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    await repository.importData(
+      bundle: bundleFactory(accounts: <AccountEntity>[account]),
+    );
+
+    final db.LocalRowOwnershipRow? ownership = await database.getOwnership(
+      'account',
+      'acc-import-1',
+    );
+    expect(ownership, isNotNull);
+    expect(ownership!.ownershipState, 'cloudOwned');
+    expect(ownership.ownerUid, 'cloud-user-1');
+  });
+
+  test(
+    'beforeOpen recovery clears importInProgress and resets sending to pending',
+    () async {
+      // 1. Manually set importInProgress = true and insert a sending outbox entry
+      await database
+          .into(database.currentSyncStates)
+          .insertOnConflictUpdate(
+            const db.CurrentSyncStatesCompanion(
+              id: Value<int>(1),
+              importInProgress: Value<bool>(true),
+            ),
+          );
+      await database
+          .into(database.outboxEntries)
+          .insert(
+            db.OutboxEntriesCompanion(
+              entityType: const Value<String>('account'),
+              entityId: const Value<String>('acc-1'),
+              operation: const Value<String>('create'),
+              payload: const Value<String>('{}'),
+              status: Value<String>(OutboxStatus.sending.name),
+              attemptCount: const Value<int>(1),
+              updatedAt: Value<DateTime>(DateTime.now()),
+            ),
+          );
+
+      // 2. Re-open the database to trigger beforeOpen
+      await database.close();
+      final db.AppDatabase newDatabase = db.AppDatabase.connect(
+        DatabaseConnection(NativeDatabase.memory()),
+      );
+      addTearDown(() => newDatabase.close());
+
+      // Wait for database to open
+      final db.CurrentSyncStateRow syncState = await newDatabase
+          .select(newDatabase.currentSyncStates)
+          .getSingle();
+      expect(syncState.importInProgress, isFalse);
+
+      // Verify sending entry is reset to pending
+      final List<db.OutboxEntryRow> entries = await newDatabase
+          .select(newDatabase.outboxEntries)
+          .get();
+      expect(
+        entries.every(
+          (db.OutboxEntryRow e) => e.status == OutboxStatus.pending.name,
+        ),
+        isTrue,
+      );
+    },
+  );
+
+  test(
+    'rollback inside transaction rolls back business rows, outbox, and ownership',
+    () async {
+      await database.updateCurrentSyncState('cloud-user-1', true);
+
+      final DateTime now = DateTime.utc(2024, 6, 1);
+      final AccountEntity account = AccountEntity(
+        id: 'acc-rollback-1',
+        name: 'Rollback Acc',
+        balanceMinor: BigInt.from(1000),
+        currency: 'USD',
+        currencyScale: 2,
+        type: 'regular',
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      // We create a transaction tag link that points to a non-existent transaction to trigger foreign key violation inside the transaction.
+      final TransactionTagEntity invalidLink = TransactionTagEntity(
+        transactionId: 'non-existent-tx-id',
+        tagId: 'tag-1',
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      final ExportBundle invalidBundle = bundleFactory(
+        accounts: <AccountEntity>[account],
+        transactionTags: <TransactionTagEntity>[invalidLink],
+      );
+
+      await expectLater(
+        repository.importData(bundle: invalidBundle),
+        throwsA(isA<Exception>()),
+      );
+
+      // Verify rollback of account
+      final List<db.AccountRow> accountsInDb = await database
+          .select(database.accounts)
+          .get();
+      expect(
+        accountsInDb.any((db.AccountRow a) => a.id == 'acc-rollback-1'),
+        isFalse,
+      );
+
+      // Verify rollback of ownership
+      final db.LocalRowOwnershipRow? ownership = await database.getOwnership(
+        'account',
+        'acc-rollback-1',
+      );
+      expect(ownership, isNull);
+
+      // Verify importInProgress is reset to false by finally block
+      final db.CurrentSyncStateRow syncState = await database
+          .select(database.currentSyncStates)
+          .getSingle();
+      expect(syncState.importInProgress, isFalse);
+    },
+  );
+
+  test(
+    'prepareForSend throws StateError if importInProgress is true',
+    () async {
+      await database
+          .into(database.currentSyncStates)
+          .insertOnConflictUpdate(
+            const db.CurrentSyncStatesCompanion(
+              id: Value<int>(1),
+              importInProgress: Value<bool>(true),
+            ),
+          );
+
+      final db.OutboxEntryRow entry = db.OutboxEntryRow(
+        id: 1,
+        entityType: 'account',
+        entityId: 'acc-1',
+        operation: 'create',
+        payload: '{}',
+        status: OutboxStatus.pending.name,
+        attemptCount: 0,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      expect(() => outboxDao.prepareForSend(entry), throwsA(isA<StateError>()));
+    },
+  );
+
+  test('import blocked when any sending outbox entry exists', () async {
+    await database.updateCurrentSyncState('cloud-user-1', true);
+    await database
+        .into(database.outboxEntries)
+        .insert(
+          db.OutboxEntriesCompanion(
+            entityType: const Value<String>('account'),
+            entityId: const Value<String>('acc-sending-1'),
+            operation: const Value<String>('create'),
+            payload: const Value<String>('{}'),
+            status: Value<String>(OutboxStatus.sending.name),
+            attemptCount: const Value<int>(1),
+            updatedAt: Value<DateTime>(DateTime.now()),
+          ),
+        );
+
+    final DateTime now = DateTime.utc(2024, 6, 1);
+    final AccountEntity account = AccountEntity(
+      id: 'acc-import-sending-1',
+      name: 'Imported Account',
+      balanceMinor: BigInt.from(1000),
+      currency: 'USD',
+      currencyScale: 2,
+      type: 'regular',
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    expect(
+      () => repository.importData(
+        bundle: bundleFactory(accounts: <AccountEntity>[account]),
+      ),
+      throwsA(isA<StateError>()),
+    );
+
+    // Verify DB unchanged
+    final List<db.AccountRow> accountsInDb = await database
+        .select(database.accounts)
+        .get();
+    expect(
+      accountsInDb.any((db.AccountRow a) => a.id == 'acc-import-sending-1'),
+      isFalse,
+    );
+  });
+
+  test('invalid currentUid blocks cloud-active import', () async {
+    final DateTime now = DateTime.utc(2024, 6, 1);
+    final AccountEntity account = AccountEntity(
+      id: 'acc-uid-1',
+      name: 'Imported',
+      balanceMinor: BigInt.from(1000),
+      currency: 'USD',
+      currencyScale: 2,
+      type: 'regular',
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    // Test case 1: null uid
+    await database.updateCurrentSyncState(null, true);
+    expect(
+      () => repository.importData(
+        bundle: bundleFactory(accounts: <AccountEntity>[account]),
+      ),
+      throwsA(isA<StateError>()),
+    );
+
+    // Test case 2: empty uid
+    await database.updateCurrentSyncState('', true);
+    expect(
+      () => repository.importData(
+        bundle: bundleFactory(accounts: <AccountEntity>[account]),
+      ),
+      throwsA(isA<StateError>()),
+    );
+
+    // Test case 3: local uid
+    await database.updateCurrentSyncState('local-1234', true);
+    expect(
+      () => repository.importData(
+        bundle: bundleFactory(accounts: <AccountEntity>[account]),
+      ),
+      throwsA(isA<StateError>()),
+    );
+  });
+
+  test(
+    'LWW LWW timestamp patching keeps createdAt but updates updatedAt in DB and outbox payload',
+    () async {
+      await database.updateCurrentSyncState('cloud-user-1', true);
+
+      final DateTime createdDate = DateTime.utc(2023, 1, 1);
+      final DateTime updatedDate = DateTime.utc(2023, 6, 1);
+      final AccountEntity account = AccountEntity(
+        id: 'acc-lww-1',
+        name: 'LWW Account',
+        balanceMinor: BigInt.from(1000),
+        currency: 'USD',
+        currencyScale: 2,
+        type: 'regular',
+        createdAt: createdDate,
+        updatedAt: updatedDate,
+      );
+
+      await repository.importData(
+        bundle: bundleFactory(accounts: <AccountEntity>[account]),
+      );
+
+      // Verify DB
+      final db.AccountRow dbAccount =
+          await (database.select(database.accounts)
+                ..where((db.$AccountsTable tbl) => tbl.id.equals('acc-lww-1')))
+              .getSingle();
+      expect(dbAccount.createdAt.toUtc(), createdDate);
+      expect(dbAccount.updatedAt, isNot(updatedDate));
+      expect(dbAccount.updatedAt.isAfter(updatedDate), isTrue);
+
+      // Verify Outbox payload
+      final db.OutboxEntryRow outboxEntry =
+          await (database.select(database.outboxEntries)..where(
+                (db.$OutboxEntriesTable tbl) =>
+                    tbl.entityType.equals('account') &
+                    tbl.entityId.equals('acc-lww-1'),
+              ))
+              .getSingle();
+      final Map<String, dynamic> payload =
+          jsonDecode(outboxEntry.payload) as Map<String, dynamic>;
+      expect(
+        DateTime.parse(payload['createdAt'] as String).toUtc(),
+        createdDate,
+      );
+      expect(payload['updatedAt'], isNot(updatedDate.toIso8601String()));
+      expect(
+        DateTime.parse(payload['updatedAt'] as String).toUtc(),
+        dbAccount.updatedAt.toUtc(),
+      );
+    },
+  );
+
+  test('pending delete is replaced by import upsert in outbox', () async {
+    await database.updateCurrentSyncState('cloud-user-1', true);
+
+    // 1. Put pending delete in outbox for 'acc-del-1'
+    await database
+        .into(database.outboxEntries)
+        .insert(
+          db.OutboxEntriesCompanion(
+            entityType: const Value<String>('account'),
+            entityId: const Value<String>('acc-del-1'),
+            operation: const Value<String>('delete'),
+            payload: const Value<String>('{}'),
+            status: Value<String>(OutboxStatus.pending.name),
+            attemptCount: const Value<int>(0),
+            updatedAt: Value<DateTime>(DateTime.now()),
+          ),
+        );
+
+    final DateTime now = DateTime.utc(2024, 6, 1);
+    final AccountEntity account = AccountEntity(
+      id: 'acc-del-1',
+      name: 'Imported Upsert',
+      balanceMinor: BigInt.from(1000),
+      currency: 'USD',
+      currencyScale: 2,
+      type: 'regular',
+      createdAt: now,
+      updatedAt: now,
+    );
+
+    // 2. Run import
+    await repository.importData(
+      bundle: bundleFactory(accounts: <AccountEntity>[account]),
+    );
+
+    // 3. Verify that old pending delete is gone and new upsert is created
+    final List<db.OutboxEntryRow> entries =
+        await (database.select(database.outboxEntries)..where(
+              (db.$OutboxEntriesTable tbl) =>
+                  tbl.entityType.equals('account') &
+                  tbl.entityId.equals('acc-del-1'),
+            ))
+            .get();
+
+    expect(entries.length, 1);
+    expect(entries.first.operation, 'upsert');
   });
 }

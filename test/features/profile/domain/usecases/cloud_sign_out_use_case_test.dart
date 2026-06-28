@@ -182,5 +182,95 @@ void main() {
         expect(outboxEntries.single.ownerUid, equals(cloudUid));
       },
     );
+
+    test(
+      'sign-out keeps old cloud-owned rows foreign and new writes become local-only',
+      () async {
+        const String cloudUid = 'firebase-cloud-uid-123';
+        const AuthUser authUser = AuthUser(
+          uid: cloudUid,
+          email: 'test@kopim.app',
+          emailVerified: true,
+        );
+
+        when(() => mockCloudAuth.currentUser).thenReturn(authUser);
+        when(() => mockSyncService.dispose()).thenAnswer((_) async {});
+        when(
+          () => mockEntitlementRepo.clearEntitlement(),
+        ).thenAnswer((_) async {});
+        when(() => mockCloudAuth.signOut()).thenAnswer((_) async {});
+
+        await database.updateCurrentSyncState(cloudUid, true);
+        await database
+            .into(database.accounts)
+            .insert(
+              AccountsCompanion.insert(
+                id: 'cloud-owned-before-sign-out',
+                name: 'Cloud account',
+                balance: 0,
+                currency: 'RUB',
+                type: 'cash',
+                createdAt: Value<DateTime>(DateTime.utc(2024, 1, 1)),
+                updatedAt: Value<DateTime>(DateTime.utc(2024, 1, 1)),
+              ),
+            );
+
+        final LocalRowOwnershipRow? beforeSignOutOwnership = await database
+            .getOwnership('account', 'cloud-owned-before-sign-out');
+        expect(beforeSignOutOwnership != null, isTrue);
+        expect(beforeSignOutOwnership!.ownershipState, equals('cloudOwned'));
+        expect(beforeSignOutOwnership.ownerUid, equals(cloudUid));
+
+        await useCase.execute();
+
+        await database
+            .into(database.accounts)
+            .insert(
+              AccountsCompanion.insert(
+                id: 'local-after-sign-out',
+                name: 'Local account',
+                balance: 0,
+                currency: 'RUB',
+                type: 'cash',
+                createdAt: Value<DateTime>(DateTime.utc(2024, 1, 2)),
+                updatedAt: Value<DateTime>(DateTime.utc(2024, 1, 2)),
+              ),
+            );
+
+        await (database.update(database.accounts)..where(
+              ($AccountsTable tbl) =>
+                  tbl.id.equals('cloud-owned-before-sign-out'),
+            ))
+            .write(
+              AccountsCompanion(
+                name: const Value<String>('Edited offline'),
+                updatedAt: Value<DateTime>(DateTime.utc(2024, 1, 3)),
+              ),
+            );
+
+        final LocalRowOwnershipRow? oldOwnership = await database.getOwnership(
+          'account',
+          'cloud-owned-before-sign-out',
+        );
+        final LocalRowOwnershipRow? newOwnership = await database.getOwnership(
+          'account',
+          'local-after-sign-out',
+        );
+
+        expect(oldOwnership != null, isTrue);
+        expect(oldOwnership!.ownershipState, equals('cloudOwned'));
+        expect(oldOwnership.ownerUid, equals(cloudUid));
+
+        expect(newOwnership != null, isTrue);
+        expect(newOwnership!.ownershipState, equals('localOnly'));
+        expect(newOwnership.ownerUid, equals(null));
+
+        final CurrentSyncStateRow syncState = await database
+            .select(database.currentSyncStates)
+            .getSingle();
+        expect(syncState.currentUid, equals(null));
+        expect(syncState.syncActive, isFalse);
+      },
+    );
   });
 }

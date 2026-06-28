@@ -32,14 +32,14 @@ const SYNC_COLLECTIONS = [
 
 describe("Kopim Firestore Security Rules", () => {
   let testEnv;
-  const futureExpiry = Math.floor(Date.now() / 1000) + 3600;
-  const pastExpiry = Math.floor(Date.now() / 1000) - 3600;
+  const futureExpiry = Date.now() + 3600 * 1000;
+  const pastExpiry = Date.now() - 3600 * 1000;
 
-  function activeClaims(plan = "testerCloud") {
+  function activeClaims(plan = "trial") {
     return {
       cloudAccess: true,
       cloudPlan: plan,
-      cloudAccessExpiresAt: futureExpiry,
+      cloudAccessUntilMillis: futureExpiry,
     };
   }
 
@@ -174,8 +174,8 @@ describe("Kopim Firestore Security Rules", () => {
       });
       const db = getDb(userId, {
         cloudAccess: true,
-        cloudPlan: "testerCloud",
-        cloudAccessExpiresAt: pastExpiry,
+        cloudPlan: "trial",
+        cloudAccessUntilMillis: pastExpiry,
       });
 
       await assertFails(
@@ -413,8 +413,8 @@ describe("Kopim Firestore Security Rules", () => {
       });
       const db = getDb(userId, {
         cloudAccess: false,
-        cloudPlan: "testerCloud",
-        cloudAccessExpiresAt: futureExpiry,
+        cloudPlan: "trial",
+        cloudAccessUntilMillis: futureExpiry,
       });
       const docRef = db.collection("users").doc(userId).collection("accounts").doc("doc1");
 

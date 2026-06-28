@@ -10,6 +10,7 @@ import 'package:kopim/core/services/logger_service.dart';
 import 'package:kopim/core/services/sync/local_sync_integrity_debug_reporter.dart';
 import 'package:kopim/core/services/sync/local_sync_integrity_diagnostics_service.dart';
 import 'package:kopim/core/services/sync/sync_contract.dart';
+import 'package:kopim/core/services/sync/ownership_projection_resolver.dart';
 import 'package:kopim/features/profile/application/migration_write_guard.dart';
 import 'package:kopim/features/accounts/data/services/account_type_backfill_service.dart';
 import 'package:kopim/features/accounts/data/sources/local/account_dao.dart';
@@ -178,82 +179,8 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
   Future<void> importData({required ExportBundle bundle}) async {
     return _migrationWriteGuard.runImportMutation(
       action: () async {
-        final List<AccountEntity> accounts = bundle.accounts;
-        final List<Category> categories = bundle.categories;
-        final List<TagEntity> tags = bundle.tags;
-        final List<TransactionTagEntity> transactionTags =
-            bundle.transactionTags;
-        final List<SavingGoal> savingGoals = bundle.savingGoals;
-        final List<CreditEntity> credits = bundle.credits;
-        final List<CreditCardEntity> creditCards = bundle.creditCards;
-        final List<DebtEntity> debts = bundle.debts;
-        final List<CreditPaymentGroupEntity> creditPaymentGroups =
-            bundle.creditPaymentGroups;
-        final List<CreditPaymentScheduleEntity> creditPaymentSchedules =
-            bundle.creditPaymentSchedules;
-        final List<Budget> budgets = bundle.budgets;
-        final List<BudgetInstance> budgetInstances = bundle.budgetInstances;
-        final List<UpcomingPayment> upcomingPayments = bundle.upcomingPayments;
-        final List<PaymentReminder> paymentReminders = bundle.paymentReminders;
-        final ExportBundleSchemaVersion schemaVersion =
-            ExportBundleSchema.parseAndValidate(bundle.schemaVersion);
-        final List<TransactionEntity> transactions = bundle.transactions
-            .map(
-              (TransactionEntity transaction) =>
-                  _normalizeImportedTransaction(transaction, schemaVersion),
-            )
-            .toList(growable: false);
-        final Set<String> importedCreditPaymentGroupIds = creditPaymentGroups
-            .map((CreditPaymentGroupEntity group) => group.id)
-            .toSet();
-        final List<Category> localCategories = await _categoryDao
-            .getAllCategories();
-        final Set<String> existingCategoryIds = <String>{
-          ...categories.map((Category c) => c.id),
-          ...localCategories.map((Category c) => c.id),
-        };
-        final Set<String> usedCategoryIds = transactions
-            .map((TransactionEntity tx) => tx.categoryId)
-            .whereType<String>()
-            .toSet();
-
-        final List<Category> placeholdersToInsert = <Category>[];
-        final List<String> missingCategoryIds = <String>[];
-
-        for (final String catId in usedCategoryIds) {
-          if (!existingCategoryIds.contains(catId)) {
-            missingCategoryIds.add(catId);
-            placeholdersToInsert.add(
-              Category(
-                id: catId,
-                name: 'Категория недоступна ($catId)',
-                type: 'expense',
-                isSystem: true,
-                isDeleted: true,
-                isHidden: true,
-                isFavorite: false,
-                createdAt: DateTime.fromMillisecondsSinceEpoch(0),
-                updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
-              ),
-            );
-          }
-        }
-
-        final List<Category> finalCategories = <Category>[
-          ...categories,
-          ...placeholdersToInsert,
-        ];
-
-        _logger?.logInfo(
-          'ImportDataRepository: start restore '
-          'accounts=${accounts.length}, '
-          'goals=${savingGoals.length}, '
-          'transactions=${transactions.length}',
-        );
         try {
-          if (bundle.integrity != null) {
-            _integrityService.verify(bundle);
-          }
+          // 1. Установить importInProgress = true до начала проверок
           await _database
               .into(_database.currentSyncStates)
               .insertOnConflictUpdate(
@@ -262,7 +189,136 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
                   importInProgress: Value<bool>(true),
                 ),
               );
+
           try {
+            // 2. Блокировка импорта при наличии любых активных отправлений (sending)
+            if (await _outboxDao.hasAnySendingEntries()) {
+              throw StateError(
+                'Импорт заблокирован: обнаружены активные сетевые операции отправки.',
+              );
+            }
+
+            final db.CurrentSyncStateRow syncState = await _database
+                .select(_database.currentSyncStates)
+                .getSingle();
+
+            // 3. Fail-fast валидация UID при активном синк-режиме
+            if (syncState.syncActive) {
+              final String? uid = syncState.currentUid;
+              if (uid == null || uid.isEmpty || uid.startsWith('local-')) {
+                throw StateError(
+                  'Импорт заблокирован: активна синхронизация, но текущий cloud UID невалиден ($uid).',
+                );
+              }
+            }
+
+            // 4. Сбор списка всех touched entities из bundle
+            final List<(String entityType, String entityId)> touchedEntities =
+                _collectTouchedEntities(bundle);
+
+            // 5. Подготовка бандла и LWW Timestamp
+            final ExportBundle preparedBundle;
+            final DateTime importTimestamp = DateTime.now().toUtc();
+            if (syncState.syncActive) {
+              preparedBundle = _patchBundleWithLwwTimestamp(
+                bundle,
+                importTimestamp,
+              );
+            } else {
+              preparedBundle = bundle;
+            }
+
+            final List<AccountEntity> accounts = preparedBundle.accounts;
+            final List<Category> categories = preparedBundle.categories;
+            final List<TagEntity> tags = preparedBundle.tags;
+            final List<TransactionTagEntity> transactionTags =
+                preparedBundle.transactionTags;
+            final List<SavingGoal> savingGoals = preparedBundle.savingGoals;
+            final List<CreditEntity> credits = preparedBundle.credits;
+            final List<CreditCardEntity> creditCards =
+                preparedBundle.creditCards;
+            final List<DebtEntity> debts = preparedBundle.debts;
+            final List<CreditPaymentGroupEntity> creditPaymentGroups =
+                preparedBundle.creditPaymentGroups;
+            final List<CreditPaymentScheduleEntity> creditPaymentSchedules =
+                preparedBundle.creditPaymentSchedules;
+            final List<Budget> budgets = preparedBundle.budgets;
+            final List<BudgetInstance> budgetInstances =
+                preparedBundle.budgetInstances;
+            final List<UpcomingPayment> upcomingPayments =
+                preparedBundle.upcomingPayments;
+            final List<PaymentReminder> paymentReminders =
+                preparedBundle.paymentReminders;
+
+            final ExportBundleSchemaVersion schemaVersion =
+                ExportBundleSchema.parseAndValidate(
+                  preparedBundle.schemaVersion,
+                );
+
+            final List<TransactionEntity> transactions = preparedBundle
+                .transactions
+                .map(
+                  (TransactionEntity transaction) =>
+                      _normalizeImportedTransaction(transaction, schemaVersion),
+                )
+                .toList(growable: false);
+
+            final Set<String> importedCreditPaymentGroupIds =
+                creditPaymentGroups
+                    .map((CreditPaymentGroupEntity group) => group.id)
+                    .toSet();
+
+            final List<Category> localCategories = await _categoryDao
+                .getAllCategories();
+            final Set<String> existingCategoryIds = <String>{
+              ...categories.map((Category c) => c.id),
+              ...localCategories.map((Category c) => c.id),
+            };
+
+            final Set<String> usedCategoryIds = transactions
+                .map((TransactionEntity tx) => tx.categoryId)
+                .whereType<String>()
+                .toSet();
+
+            final List<Category> placeholdersToInsert = <Category>[];
+            final List<String> missingCategoryIds = <String>[];
+
+            for (final String catId in usedCategoryIds) {
+              if (!existingCategoryIds.contains(catId)) {
+                missingCategoryIds.add(catId);
+                placeholdersToInsert.add(
+                  Category(
+                    id: catId,
+                    name: 'Категория недоступна ($catId)',
+                    type: 'expense',
+                    isSystem: true,
+                    isDeleted: true,
+                    isHidden: true,
+                    isFavorite: false,
+                    createdAt: DateTime.fromMillisecondsSinceEpoch(0),
+                    updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
+                  ),
+                );
+              }
+            }
+
+            final List<Category> finalCategories = <Category>[
+              ...categories,
+              ...placeholdersToInsert,
+            ];
+
+            _logger?.logInfo(
+              'ImportDataRepository: start restore '
+              'accounts=${accounts.length}, '
+              'goals=${savingGoals.length}, '
+              'transactions=${transactions.length}',
+            );
+
+            if (preparedBundle.integrity != null) {
+              _integrityService.verify(preparedBundle);
+            }
+
+            // 6. Drift-транзакция импорта
             await _database.transaction(() async {
               final SyncConflictDao conflictDao = SyncConflictDao(_database);
               for (final String catId in missingCategoryIds) {
@@ -288,6 +344,12 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
                 importedCategoryIds,
               );
 
+              // а) Точечная очистка pending/failed outbox для touched entities
+              await _outboxDao.deletePendingOrFailedForEntities(
+                touchedEntities,
+              );
+
+              // б) Вставка сущностей в локальную БД
               await _accountDao.upsertAll(accounts);
               await _categoryDao.upsertAll(finalCategories);
               await _tagDao.upsertAll(tags);
@@ -316,11 +378,21 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
               await _transactionDao.upsertAll(validatedTransactions);
               await _goalContributionRebuildService.rebuild();
               await _transactionTagsDao.upsertAll(transactionTags);
-              if (bundle.profile != null) {
-                await _profileDao.upsertInTransaction(bundle.profile!);
+              if (preparedBundle.profile != null) {
+                await _profileDao.upsertInTransaction(preparedBundle.profile!);
               }
               await _recalculateAccountBalances();
 
+              // в) Точечный перевод владения в cloudOwned (в онлайн-режиме)
+              if (syncState.syncActive) {
+                await _database.convertImportedOwnershipToCloud(
+                  currentUid: syncState.currentUid!,
+                  touchedEntities: touchedEntities,
+                  nowMs: importTimestamp.millisecondsSinceEpoch,
+                );
+              }
+
+              // г) Постановка в Outbox новых upsert-записей (payload строится из пропатченных сущностей)
               final List<AccountEntity> persistedAccounts =
                   await _loadImportedAccounts(accounts);
               await _enqueueAccounts(persistedAccounts);
@@ -338,13 +410,14 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
               await _enqueuePaymentReminders(paymentReminders);
               await _enqueueTransactions(validatedTransactions);
               await _enqueueTransactionTags(transactionTags);
-              if (bundle.profile != null) {
-                await _enqueueProfile(bundle.profile!);
+              if (preparedBundle.profile != null) {
+                await _enqueueProfile(preparedBundle.profile!);
               }
-              if (bundle.integrity != null) {
+
+              if (preparedBundle.integrity != null) {
                 final ExportBundle
                 importedSnapshot = await _buildImportedBundleForIds(
-                  expected: bundle.copyWith(transactions: transactions),
+                  expected: preparedBundle.copyWith(transactions: transactions),
                   accountIds: accounts.map(
                     (AccountEntity account) => account.id,
                   ),
@@ -381,61 +454,77 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
                 );
                 _integrityService.verify(
                   importedSnapshot.copyWith(
-                    integrity: bundle.integrity,
+                    integrity: preparedBundle.integrity,
                     transactions: validatedTransactions,
                   ),
                 );
               }
+
+              // е) Assertion владения и outbox-статусов
+              await _assertImportPostconditions(
+                syncState.currentUid,
+                syncState.syncActive,
+                touchedEntities,
+              );
             });
-          } finally {
-            await _database
-                .into(_database.currentSyncStates)
-                .insertOnConflictUpdate(
-                  const db.CurrentSyncStatesCompanion(
-                    id: Value<int>(1),
-                    importInProgress: Value<bool>(false),
-                  ),
-                );
-          }
-          _logger?.logInfo(
-            'ImportDataRepository: restore completed '
-            'accounts=${accounts.length}, '
-            'goals=${savingGoals.length}, '
-            'transactions=${transactions.length}',
-          );
-          if (_accountTypeBackfillService != null) {
-            final AccountTypeBackfillResult result =
-                await _accountTypeBackfillService.run();
+
             _logger?.logInfo(
-              'ImportDataRepository: deferred account type backfill after restore '
-              'updated=${result.updatedCount}, scanned=${result.scannedCount}',
+              'ImportDataRepository: restore completed '
+              'accounts=${accounts.length}, '
+              'goals=${savingGoals.length}, '
+              'transactions=${transactions.length}',
             );
-          }
-          await _runIntegrityDiagnostics();
-          if (_analytics != null) {
-            await _analytics
-                .logEvent('import_restore_completed', <String, dynamic>{
-                  'accounts': accounts.length,
-                  'goals': savingGoals.length,
-                  'transactions': transactions.length,
-                  'categories': categories.length,
-                  'creditPaymentGroups': creditPaymentGroups.length,
-                  'creditPaymentSchedules': creditPaymentSchedules.length,
-                });
+
+            if (_accountTypeBackfillService != null) {
+              final AccountTypeBackfillResult result =
+                  await _accountTypeBackfillService.run();
+              _logger?.logInfo(
+                'ImportDataRepository: deferred account type backfill after restore '
+                'updated=${result.updatedCount}, scanned=${result.scannedCount}',
+              );
+            }
+            await _runIntegrityDiagnostics();
+            if (_analytics != null) {
+              await _analytics
+                  .logEvent('import_restore_completed', <String, dynamic>{
+                    'accounts': accounts.length,
+                    'goals': savingGoals.length,
+                    'transactions': transactions.length,
+                    'categories': categories.length,
+                    'creditPaymentGroups': creditPaymentGroups.length,
+                    'creditPaymentSchedules': creditPaymentSchedules.length,
+                  });
+            }
+          } finally {
+            // 7. Сброс флага importInProgress в false в любом случае
+            try {
+              await _database
+                  .into(_database.currentSyncStates)
+                  .insertOnConflictUpdate(
+                    const db.CurrentSyncStatesCompanion(
+                      id: Value<int>(1),
+                      importInProgress: Value<bool>(false),
+                    ),
+                  );
+            } catch (e) {
+              _logger?.logError('Stale import flag reset failed', e);
+            }
           }
         } catch (error, stackTrace) {
           _logger?.logError('ImportDataRepository: restore failed', error);
           _analytics?.reportError(error, stackTrace);
           if (_analytics != null) {
-            await _analytics
-                .logEvent('import_restore_failed', <String, dynamic>{
-                  'accounts': accounts.length,
-                  'goals': savingGoals.length,
-                  'transactions': transactions.length,
-                  'categories': categories.length,
-                  'creditPaymentGroups': creditPaymentGroups.length,
-                  'creditPaymentSchedules': creditPaymentSchedules.length,
-                });
+            await _analytics.logEvent(
+              'import_restore_failed',
+              <String, dynamic>{
+                'accounts': bundle.accounts.length,
+                'goals': bundle.savingGoals.length,
+                'transactions': bundle.transactions.length,
+                'categories': bundle.categories.length,
+                'creditPaymentGroups': bundle.creditPaymentGroups.length,
+                'creditPaymentSchedules': bundle.creditPaymentSchedules.length,
+              },
+            );
           }
           rethrow;
         }
@@ -1209,5 +1298,150 @@ class ImportDataRepositoryImpl implements ImportDataRepository {
 
   String _transactionTagKey(TransactionTagEntity link) {
     return '${link.transactionId}::${link.tagId}';
+  }
+
+  List<(String, String)> _collectTouchedEntities(ExportBundle bundle) {
+    final List<(String, String)> result = <(String, String)>[];
+    for (final AccountEntity e in bundle.accounts) {
+      result.add((_accountEntityType, e.id));
+    }
+    for (final Category e in bundle.categories) {
+      result.add((_categoryEntityType, e.id));
+    }
+    for (final TagEntity e in bundle.tags) {
+      result.add((_tagEntityType, e.id));
+    }
+    for (final SavingGoal e in bundle.savingGoals) {
+      result.add((_savingGoalEntityType, e.id));
+    }
+    for (final CreditEntity e in bundle.credits) {
+      result.add((_creditEntityType, e.id));
+    }
+    for (final CreditCardEntity e in bundle.creditCards) {
+      result.add((_creditCardEntityType, e.id));
+    }
+    for (final DebtEntity e in bundle.debts) {
+      result.add((_debtEntityType, e.id));
+    }
+    for (final CreditPaymentGroupEntity e in bundle.creditPaymentGroups) {
+      result.add((_creditPaymentGroupEntityType, e.id));
+    }
+    for (final CreditPaymentScheduleEntity e in bundle.creditPaymentSchedules) {
+      result.add((_creditPaymentScheduleEntityType, e.id));
+    }
+    for (final Budget e in bundle.budgets) {
+      result.add((_budgetEntityType, e.id));
+    }
+    for (final BudgetInstance e in bundle.budgetInstances) {
+      result.add((_budgetInstanceEntityType, e.id));
+    }
+    for (final UpcomingPayment e in bundle.upcomingPayments) {
+      result.add((_upcomingPaymentEntityType, e.id));
+    }
+    for (final PaymentReminder e in bundle.paymentReminders) {
+      result.add((_paymentReminderEntityType, e.id));
+    }
+    for (final TransactionEntity e in bundle.transactions) {
+      result.add((_transactionEntityType, e.id));
+    }
+    for (final TransactionTagEntity e in bundle.transactionTags) {
+      result.add((_transactionTagEntityType, _transactionTagKey(e)));
+    }
+    if (bundle.profile != null) {
+      result.add((_profileEntityType, bundle.profile!.uid));
+    }
+    return result;
+  }
+
+  ExportBundle _patchBundleWithLwwTimestamp(
+    ExportBundle bundle,
+    DateTime timestamp,
+  ) {
+    final int timestampMs = timestamp.millisecondsSinceEpoch;
+    return bundle.copyWith(
+      accounts: bundle.accounts
+          .map((AccountEntity e) => e.copyWith(updatedAt: timestamp))
+          .toList(),
+      categories: bundle.categories
+          .map((Category e) => e.copyWith(updatedAt: timestamp))
+          .toList(),
+      tags: bundle.tags
+          .map((TagEntity e) => e.copyWith(updatedAt: timestamp))
+          .toList(),
+      savingGoals: bundle.savingGoals
+          .map((SavingGoal e) => e.copyWith(updatedAt: timestamp))
+          .toList(),
+      credits: bundle.credits
+          .map((CreditEntity e) => e.copyWith(updatedAt: timestamp))
+          .toList(),
+      creditCards: bundle.creditCards
+          .map((CreditCardEntity e) => e.copyWith(updatedAt: timestamp))
+          .toList(),
+      debts: bundle.debts
+          .map((DebtEntity e) => e.copyWith(updatedAt: timestamp))
+          .toList(),
+      creditPaymentGroups: bundle.creditPaymentGroups
+          .map((CreditPaymentGroupEntity e) => e.copyWith(updatedAt: timestamp))
+          .toList(),
+      creditPaymentSchedules: bundle.creditPaymentSchedules
+          .map(
+            (CreditPaymentScheduleEntity e) => e.copyWith(updatedAt: timestamp),
+          )
+          .toList(),
+      budgets: bundle.budgets
+          .map((Budget e) => e.copyWith(updatedAt: timestamp))
+          .toList(),
+      budgetInstances: bundle.budgetInstances
+          .map((BudgetInstance e) => e.copyWith(updatedAt: timestamp))
+          .toList(),
+      upcomingPayments: bundle.upcomingPayments
+          .map((UpcomingPayment e) => e.copyWith(updatedAtMs: timestampMs))
+          .toList(),
+      paymentReminders: bundle.paymentReminders
+          .map((PaymentReminder e) => e.copyWith(updatedAtMs: timestampMs))
+          .toList(),
+      transactions: bundle.transactions
+          .map((TransactionEntity e) => e.copyWith(updatedAt: timestamp))
+          .toList(),
+      transactionTags: bundle.transactionTags
+          .map((TransactionTagEntity e) => e.copyWith(updatedAt: timestamp))
+          .toList(),
+      profile: bundle.profile?.copyWith(updatedAt: timestamp),
+    );
+  }
+
+  Future<void> _assertImportPostconditions(
+    String? currentUid,
+    bool syncActive,
+    List<(String entityType, String entityId)> touchedEntities,
+  ) async {
+    if (!syncActive) {
+      return;
+    }
+    for (final (String entityType, String entityId) in touchedEntities) {
+      if (kExcludedOwnershipEntityTypes.contains(entityType)) {
+        continue;
+      }
+
+      final db.LocalRowOwnershipRow? ownership = await _database.getOwnership(
+        entityType,
+        entityId,
+      );
+      if (ownership == null) {
+        throw StateError(
+          'Assertion провалена: отсутствует запись владения для $entityType:$entityId после импорта.',
+        );
+      }
+      if (ownership.ownershipState != 'cloudOwned') {
+        throw StateError(
+          'Assertion провалена: сущность $entityType:$entityId имеет статус ${ownership.ownershipState}, а не cloudOwned.',
+        );
+      }
+      if (ownership.ownerUid != currentUid) {
+        throw StateError(
+          'Assertion провалена: сущность $entityType:$entityId имеет владельца ${ownership.ownerUid}, ожидалось $currentUid.',
+        );
+      }
+    }
   }
 }

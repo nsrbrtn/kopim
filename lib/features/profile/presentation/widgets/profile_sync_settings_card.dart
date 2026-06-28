@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kopim/core/config/app_capabilities.dart';
+import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/feature_access_provider.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
+import 'package:kopim/features/profile/presentation/screens/cloud_access_status_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/cloud_activation_preflight_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/cloud_sync_intro_screen.dart';
 
@@ -69,6 +71,10 @@ class _ProfileSyncSettingsCardState
 
   void _openCloudSyncIntro(BuildContext context) {
     context.push(CloudSyncIntroScreen.routeName);
+  }
+
+  void _openCloudAccessStatus(BuildContext context) {
+    context.push(CloudAccessStatusScreen.routeName);
   }
 
   @override
@@ -142,17 +148,26 @@ class _ProfileSyncSettingsCardState
       data: (DataModeState dataModeState) {
         switch (featureAccess.cloudSync.status) {
           case FeatureAccessStatus.requiresEntitlement:
+            final bool hasExpiredAccess =
+                dataModeState.entitlementState == CloudEntitlementState.expired;
             if (!capabilities.canActivatePromoOrLicenseInApp) {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
                   Row(
                     children: <Widget>[
-                      Icon(Icons.sync_disabled, color: iconColor),
+                      Icon(
+                        hasExpiredAccess
+                            ? Icons.history_toggle_off_outlined
+                            : Icons.sync_disabled,
+                        color: iconColor,
+                      ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          'Синхронизация недоступна',
+                          hasExpiredAccess
+                              ? 'Срок доступа истек'
+                              : 'Доступ не активен',
                           style: theme.textTheme.titleMedium,
                         ),
                       ),
@@ -160,46 +175,15 @@ class _ProfileSyncSettingsCardState
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Доступ к облачным функциям не активирован для вашего аккаунта.',
+                    hasExpiredAccess
+                        ? 'Срок облачного доступа для текущего аккаунта истек. Синхронизация остается на паузе, пока статус доступа не будет обновлен.'
+                        : 'Для текущего аккаунта пока не найден активный доступ к облачным функциям.',
                     style: theme.textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 12),
                   ElevatedButton(
-                    onPressed: _isLoading
-                        ? null
-                        : () async {
-                            setState(() {
-                              _isLoading = true;
-                            });
-                            try {
-                              await ref
-                                  .read(dataModeControllerProvider.notifier)
-                                  .refreshEntitlement();
-                            } catch (e) {
-                              if (mounted) {
-                                ScaffoldMessenger.of(this.context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'Ошибка обновления доступа: $e',
-                                    ),
-                                  ),
-                                );
-                              }
-                            } finally {
-                              if (mounted) {
-                                setState(() {
-                                  _isLoading = false;
-                                });
-                              }
-                            }
-                          },
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text('Проверить доступ'),
+                    onPressed: () => _openCloudAccessStatus(context),
+                    child: const Text('Проверить доступ снова'),
                   ),
                 ],
               );
@@ -353,7 +337,9 @@ class _ProfileSyncSettingsCardState
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Синхронизация выключена',
+                        useProductionIntro
+                            ? 'Нужен вход в аккаунт'
+                            : 'Синхронизация выключена',
                         style: theme.textTheme.titleMedium,
                       ),
                     ),

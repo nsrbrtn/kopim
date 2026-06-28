@@ -91,21 +91,24 @@ void main() {
           await repository.getCachedState(),
           equals(CloudEntitlementState.notActivated),
         );
+        final CloudEntitlementSnapshot snapshot = await repository
+            .getCachedSnapshot();
+        expect(snapshot.source, equals('signed-out'));
       });
 
       test(
         'should return active if claims are valid and not expired',
         () async {
           final int futureExpiry =
-              (DateTime.now().millisecondsSinceEpoch ~/ 1000) + 3600;
+              DateTime.now().millisecondsSinceEpoch + 3600 * 1000;
           when(() => mockFirebaseAuth.currentUser).thenReturn(mockUser);
           when(
             () => mockUser.getIdTokenResult(),
           ).thenAnswer((_) async => mockIdTokenResult);
           when(() => mockIdTokenResult.claims).thenReturn(<String, dynamic>{
             'cloudAccess': true,
-            'cloudPlan': 'testerCloud',
-            'cloudAccessExpiresAt': futureExpiry,
+            'cloudPlan': 'trial',
+            'cloudAccessUntilMillis': futureExpiry,
           });
 
           final CloudEntitlementRepositoryImpl repository =
@@ -121,20 +124,26 @@ void main() {
             await repository.getCachedState(),
             equals(CloudEntitlementState.active),
           );
+          final CloudEntitlementSnapshot snapshot = await repository
+              .getCachedSnapshot();
+          expect(snapshot.plan, equals('trial'));
+          expect(snapshot.accessUntilMillis, equals(futureExpiry));
+          expect(snapshot.source, equals('claims:trial'));
+          expect(snapshot.updatedAtMillis, isNotNull);
         },
       );
 
       test('should return expired if claims are valid but expired', () async {
         final int pastExpiry =
-            (DateTime.now().millisecondsSinceEpoch ~/ 1000) - 3600;
+            DateTime.now().millisecondsSinceEpoch - 3600 * 1000;
         when(() => mockFirebaseAuth.currentUser).thenReturn(mockUser);
         when(
           () => mockUser.getIdTokenResult(),
         ).thenAnswer((_) async => mockIdTokenResult);
         when(() => mockIdTokenResult.claims).thenReturn(<String, dynamic>{
           'cloudAccess': true,
-          'cloudPlan': 'paidCloud',
-          'cloudAccessExpiresAt': pastExpiry,
+          'cloudPlan': 'paid',
+          'cloudAccessUntilMillis': pastExpiry,
         });
 
         final CloudEntitlementRepositoryImpl repository =
@@ -150,6 +159,11 @@ void main() {
           await repository.getCachedState(),
           equals(CloudEntitlementState.expired),
         );
+        final CloudEntitlementSnapshot snapshot = await repository
+            .getCachedSnapshot();
+        expect(snapshot.plan, equals('paid'));
+        expect(snapshot.accessUntilMillis, equals(pastExpiry));
+        expect(snapshot.source, equals('claims:paid'));
       });
 
       test('should return notActivated if cloudAccess is false', () async {
@@ -159,9 +173,9 @@ void main() {
         ).thenAnswer((_) async => mockIdTokenResult);
         when(() => mockIdTokenResult.claims).thenReturn(<String, dynamic>{
           'cloudAccess': false,
-          'cloudPlan': 'testerCloud',
-          'cloudAccessExpiresAt':
-              (DateTime.now().millisecondsSinceEpoch ~/ 1000) + 3600,
+          'cloudPlan': 'trial',
+          'cloudAccessUntilMillis':
+              DateTime.now().millisecondsSinceEpoch + 3600 * 1000,
         });
 
         final CloudEntitlementRepositoryImpl repository =
@@ -173,6 +187,125 @@ void main() {
         final CloudEntitlementState state = await repository
             .refreshFromCurrentToken();
         expect(state, equals(CloudEntitlementState.notActivated));
+        final CloudEntitlementSnapshot snapshot = await repository
+            .getCachedSnapshot();
+        expect(snapshot.source, equals('claims-invalid'));
+      });
+
+      test(
+        'should return active for manual plan with integer millis claim',
+        () async {
+          final int futureExpiry =
+              DateTime.now().millisecondsSinceEpoch + 3600 * 1000;
+          when(() => mockFirebaseAuth.currentUser).thenReturn(mockUser);
+          when(
+            () => mockUser.getIdTokenResult(),
+          ).thenAnswer((_) async => mockIdTokenResult);
+          when(() => mockIdTokenResult.claims).thenReturn(<String, dynamic>{
+            'cloudAccess': true,
+            'cloudPlan': 'manual',
+            'cloudAccessUntilMillis': futureExpiry,
+          });
+
+          final CloudEntitlementState state =
+              await CloudEntitlementRepositoryImpl(
+                preferences: Future<SharedPreferences>.value(sharedPreferences),
+                firebaseAuth: mockFirebaseAuth,
+              ).refreshFromCurrentToken();
+
+          expect(state, equals(CloudEntitlementState.active));
+        },
+      );
+
+      test('should return notActivated for unsupported cloud plan', () async {
+        when(() => mockFirebaseAuth.currentUser).thenReturn(mockUser);
+        when(
+          () => mockUser.getIdTokenResult(),
+        ).thenAnswer((_) async => mockIdTokenResult);
+        when(() => mockIdTokenResult.claims).thenReturn(<String, dynamic>{
+          'cloudAccess': true,
+          'cloudPlan': 'testerCloud',
+          'cloudAccessUntilMillis':
+              DateTime.now().millisecondsSinceEpoch + 3600 * 1000,
+        });
+
+        final CloudEntitlementState state =
+            await CloudEntitlementRepositoryImpl(
+              preferences: Future<SharedPreferences>.value(sharedPreferences),
+              firebaseAuth: mockFirebaseAuth,
+            ).refreshFromCurrentToken();
+
+        expect(state, equals(CloudEntitlementState.notActivated));
+      });
+
+      test('should return notActivated when expiry claim is missing', () async {
+        when(() => mockFirebaseAuth.currentUser).thenReturn(mockUser);
+        when(
+          () => mockUser.getIdTokenResult(),
+        ).thenAnswer((_) async => mockIdTokenResult);
+        when(() => mockIdTokenResult.claims).thenReturn(<String, dynamic>{
+          'cloudAccess': true,
+          'cloudPlan': 'paid',
+        });
+
+        final CloudEntitlementState state =
+            await CloudEntitlementRepositoryImpl(
+              preferences: Future<SharedPreferences>.value(sharedPreferences),
+              firebaseAuth: mockFirebaseAuth,
+            ).refreshFromCurrentToken();
+
+        expect(state, equals(CloudEntitlementState.notActivated));
+      });
+
+      test(
+        'getCachedSnapshot returns notActivated snapshot when storage is empty',
+        () async {
+          final CloudEntitlementRepositoryImpl repository =
+              CloudEntitlementRepositoryImpl(
+                preferences: Future<SharedPreferences>.value(sharedPreferences),
+                firebaseAuth: mockFirebaseAuth,
+              );
+
+          final CloudEntitlementSnapshot snapshot = await repository
+              .getCachedSnapshot();
+
+          expect(snapshot.state, equals(CloudEntitlementState.notActivated));
+          expect(snapshot.plan, isNull);
+          expect(snapshot.accessUntilMillis, isNull);
+          expect(snapshot.source, isNull);
+          expect(snapshot.updatedAtMillis, isNull);
+        },
+      );
+
+      test('clearEntitlement clears cached snapshot metadata', () async {
+        final int futureExpiry =
+            DateTime.now().millisecondsSinceEpoch + 3600 * 1000;
+        when(() => mockFirebaseAuth.currentUser).thenReturn(mockUser);
+        when(
+          () => mockUser.getIdTokenResult(),
+        ).thenAnswer((_) async => mockIdTokenResult);
+        when(() => mockIdTokenResult.claims).thenReturn(<String, dynamic>{
+          'cloudAccess': true,
+          'cloudPlan': 'manual',
+          'cloudAccessUntilMillis': futureExpiry,
+        });
+
+        final CloudEntitlementRepositoryImpl repository =
+            CloudEntitlementRepositoryImpl(
+              preferences: Future<SharedPreferences>.value(sharedPreferences),
+              firebaseAuth: mockFirebaseAuth,
+            );
+
+        await repository.refreshFromCurrentToken();
+        await repository.clearEntitlement();
+
+        final CloudEntitlementSnapshot snapshot = await repository
+            .getCachedSnapshot();
+        expect(snapshot.state, equals(CloudEntitlementState.notActivated));
+        expect(snapshot.plan, isNull);
+        expect(snapshot.accessUntilMillis, isNull);
+        expect(snapshot.source, isNull);
+        expect(snapshot.updatedAtMillis, isNull);
       });
     });
   });

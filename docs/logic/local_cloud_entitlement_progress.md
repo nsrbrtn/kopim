@@ -20,9 +20,9 @@
 | Первый execution path: `enableCloudSync` для пустого workspace | `done` | explicit activation flag per UID, final revalidation, guarded runtime transition и auth/startup sync gate зафиксированы в текущем checkout |
 | Второй execution path: `startWithEmptyCloud` | `done` | explicit backup/export перед destructive step, guarded local reset, отдельный activation scenario per UID и targeted regressions зафиксированы в текущем checkout |
 | Реальная миграция `local -> cloud` | `done` | Подключение runtime transition и controlled execution flow поверх upload/verification/conversion слоев завершено, все интеграционные сценарии и граничные тесты полностью покрыты и проходят. |
-| Переход Play-контура на `storeProdLocalFirst` | `in_progress` | открыт отдельный ExecPlan `2026-06-27-play-market-local-first-cloud-capable-transition.md`, Track 1 стартовал |
-| Server-backed entitlement / trial lifecycle | `in_progress` | переведено в активный трек в рамках Play local-first cloud-capable transition |
-| Web read-only barrier для expired entitlement | `in_progress` | переведено в активный трек в рамках того же перехода |
+| Переход Play-контура на `storeProdLocalFirst` | `done` | открыт отдельный ExecPlan `2026-06-27-play-market-local-first-cloud-capable-transition.md`; все треки 1-8 и регрессионные исправления тестов полностью завершены и верифицированы. |
+| Server-backed entitlement / trial lifecycle | `done` | в рамках перехода реализован канонический парсинг клеймов, Firestore rules и интеграционные сценарии на клиенте и бэкенде. |
+| Web read-only barrier для expired entitlement | `done` | signed-in веб-шелл полностью закрыт экраном-заглушкой WebEntitlementGateScreen при отсутствии или истечении доступа. |
 
 ## Этапы
 
@@ -136,6 +136,7 @@
 1. Переход публичного Play-контура на `storeProdLocalFirst` как local-first cloud-capable build.
 2. Server-backed entitlement / trial lifecycle (активная реализация).
 3. Web read-only barrier для expired entitlement (активная реализация).
+4. Track 4/6 server-backed entitlement lifecycle и release-readiness follow-up.
 
 ## Как обновлять этот файл
 

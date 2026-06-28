@@ -4,8 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_decision_controller.dart';
 import 'package:kopim/core/config/app_capabilities.dart';
+import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_preflight_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
+import 'package:kopim/features/profile/presentation/screens/cloud_access_status_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/cloud_activation_choice_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/cloud_sync_intro_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
@@ -18,9 +20,16 @@ class CloudActivationPreflightScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeData theme = Theme.of(context);
+    final AppCapabilities capabilities = ref.watch(appCapabilitiesProvider);
     final CloudActivationPreflightState state = ref.watch(
       cloudActivationPreflightProvider,
     );
+    final DataModeState? dataModeState = ref
+        .watch(dataModeControllerProvider)
+        .asData
+        ?.value;
+    final bool hasExpiredAccess =
+        dataModeState?.entitlementState == CloudEntitlementState.expired;
 
     final _PreflightContent content = switch (state.status) {
       CloudActivationPreflightStatus.cloudUnavailableInBuild =>
@@ -30,22 +39,43 @@ class CloudActivationPreflightScreen extends ConsumerWidget {
           body:
               'Эта сборка работает только локально. Подключение облачной синхронизации здесь недоступно.',
         ),
-      CloudActivationPreflightStatus.signedOut => const _PreflightContent(
-        icon: Icons.login_outlined,
-        title: 'Нужен вход в аккаунт',
-        body:
-            'Лицензионный ключ уже активирован. Войдите в аккаунт, чтобы продолжить подключение облачных функций.',
-        primaryLabel: 'Войти в аккаунт',
-      ),
+      CloudActivationPreflightStatus.signedOut =>
+        capabilities.canRegisterInApp
+            ? const _PreflightContent(
+                icon: Icons.login_outlined,
+                title: 'Нужен вход в аккаунт',
+                body:
+                    'Лицензионный ключ уже активирован. Войдите в аккаунт, чтобы продолжить подключение облачных функций.',
+                primaryLabel: 'Войти в аккаунт',
+              )
+            : const _PreflightContent(
+                icon: Icons.login_outlined,
+                title: 'Нужен вход в аккаунт',
+                body:
+                    'Войдите в аккаунт с активным доступом, чтобы продолжить подключение облачной синхронизации.',
+                primaryLabel: 'Войти в аккаунт',
+              ),
       CloudActivationPreflightStatus.entitlementRequired =>
-        const _PreflightContent(
-          icon: Icons.vpn_key_outlined,
-          title: 'Сначала активируйте облачный доступ',
-          body:
-              'Сейчас данные хранятся только на этом устройстве. Сначала активируйте облачный доступ, а затем вернитесь к подключению синхронизации.',
-          primaryLabel: 'Проверить доступ',
-          secondaryLabel: 'Вернуться',
-        ),
+        capabilities.canActivatePromoOrLicenseInApp
+            ? const _PreflightContent(
+                icon: Icons.vpn_key_outlined,
+                title: 'Сначала активируйте облачный доступ',
+                body:
+                    'Сейчас данные хранятся только на этом устройстве. Сначала активируйте облачный доступ, а затем вернитесь к подключению синхронизации.',
+                primaryLabel: 'Проверить доступ',
+                secondaryLabel: 'Вернуться',
+              )
+            : _PreflightContent(
+                icon: Icons.sync_disabled_outlined,
+                title: hasExpiredAccess
+                    ? 'Срок доступа истек'
+                    : 'Доступ не активен',
+                body: hasExpiredAccess
+                    ? 'Срок облачного доступа для текущего аккаунта истек. Синхронизация остается на паузе, пока статус доступа не будет обновлен. До этого можно продолжать работать локально.'
+                    : 'Синхронизация останется выключенной, пока для текущего аккаунта не появится активный доступ. Проверьте статус доступа снова или продолжайте работать локально.',
+                primaryLabel: 'Проверить доступ снова',
+                secondaryLabel: 'Продолжить локально',
+              ),
       CloudActivationPreflightStatus.blockedByLocalOnlyData =>
         const _PreflightContent(
           icon: Icons.warning_amber_outlined,
@@ -161,6 +191,10 @@ class CloudActivationPreflightScreen extends ConsumerWidget {
           return;
         }
       case CloudActivationPreflightStatus.entitlementRequired:
+        if (!capabilities.canActivatePromoOrLicenseInApp) {
+          context.push(CloudAccessStatusScreen.routeName);
+          return;
+        }
         _refreshEntitlement(context, ref);
         return;
       case CloudActivationPreflightStatus.alreadyCloudEnabled:

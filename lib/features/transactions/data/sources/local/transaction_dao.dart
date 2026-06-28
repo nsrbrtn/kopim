@@ -166,21 +166,21 @@ GROUP BY account_id, amount_scale
       )
       ..writeln('  t.amount_scale AS amount_scale,')
       ..writeln(
-        '  COALESCE(SUM(CASE WHEN t.type = ? THEN '
+        '  COALESCE(SUM(CASE WHEN t.type = ?1 THEN '
         'ABS(CAST(t.amount_minor AS INTEGER)) ELSE 0 END), 0) '
         'AS income_minor,',
       )
       ..writeln(
-        '  COALESCE(SUM(CASE WHEN t.type = ? THEN '
+        '  COALESCE(SUM(CASE WHEN t.type = ?2 THEN '
         'ABS(CAST(t.amount_minor AS INTEGER)) ELSE 0 END), 0) '
         'AS expense_minor',
       )
       ..writeln('FROM transactions t')
       ..writeln('LEFT JOIN categories c ON c.id = t.category_id')
       ..writeln('WHERE t.is_deleted = 0')
-      ..writeln('  AND t.date >= ?')
-      ..writeln('  AND t.date < ?')
-      ..writeln('  AND t.type IN (?, ?)')
+      ..writeln('  AND t.date >= ?3')
+      ..writeln('  AND t.date < ?4')
+      ..writeln('  AND t.type IN (?1, ?2)')
       ..writeln('  AND (t.category_id IS NULL OR c.is_deleted = 0)');
 
     final List<Variable<Object>> variables = <Variable<Object>>[
@@ -188,8 +188,6 @@ GROUP BY account_id, amount_scale
       Variable<String>(expenseType),
       Variable<DateTime>(start),
       Variable<DateTime>(end),
-      Variable<String>(incomeType),
-      Variable<String>(expenseType),
     ];
 
     if (accountIds.isNotEmpty) {

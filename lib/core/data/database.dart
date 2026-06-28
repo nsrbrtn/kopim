@@ -1616,6 +1616,16 @@ LEFT JOIN accounts acc ON up.account_id = acc.id
         'INSERT OR IGNORE INTO current_sync_state (id, current_uid, sync_active, import_in_progress) '
         'VALUES (1, NULL, 0, 0)',
       );
+      // Clear stale import flag after crash. Import DB changes are atomic: either committed or rolled back.
+      await customStatement(
+        'UPDATE current_sync_state SET import_in_progress = 0 WHERE id = 1',
+      );
+      // Reset stale sending entries to pending after crash.
+      final int nowMs = DateTime.now().millisecondsSinceEpoch;
+      await customStatement(
+        "UPDATE outbox_entries SET status = 'pending', updated_at = ? WHERE status = 'sending'",
+        <int>[nowMs],
+      );
     },
   );
 
@@ -1925,15 +1935,58 @@ WHERE goal_id = ? AND (storage_account_id IS NULL OR storage_account_id = '')
     return false;
   }
 
+  Future<bool> hasAnyBlockingCloudDataForUid(String currentUid) async {
+    final bool hasLocalOnlyData = await hasAnyLocalOnlyData();
+    if (hasLocalOnlyData) {
+      return true;
+    }
+
+    if (!await _tableExists('local_row_ownership')) {
+      return false;
+    }
+
+    final List<QueryRow> foreignCloudOwnedRows = await customSelect(
+      'SELECT 1 FROM local_row_ownership '
+      'WHERE ownership_state = \'cloudOwned\' '
+      'AND owner_uid IS NOT NULL '
+      'AND owner_uid != ? '
+      'LIMIT 1',
+      variables: <Variable<Object>>[Variable.withString(currentUid)],
+    ).get();
+
+    return foreignCloudOwnedRows.isNotEmpty;
+  }
+
   Future<void> updateCurrentSyncState(String? uid, bool syncActive) async {
     await into(currentSyncStates).insertOnConflictUpdate(
-      CurrentSyncStateRow(
-        id: 1,
-        currentUid: uid,
-        syncActive: syncActive,
-        importInProgress: false,
+      CurrentSyncStatesCompanion(
+        id: const Value<int>(1),
+        currentUid: Value<String?>(uid),
+        syncActive: Value<bool>(syncActive),
+        importInProgress: const Value<bool>(false),
       ),
     );
+  }
+
+  // Must be called inside the importData transaction.
+  Future<void> convertImportedOwnershipToCloud({
+    required String currentUid,
+    required List<(String entityType, String entityId)> touchedEntities,
+    required int nowMs,
+  }) async {
+    for (final (String entityType, String entityId) in touchedEntities) {
+      await customUpdate(
+        'UPDATE local_row_ownership '
+        'SET ownership_state = \'cloudOwned\', owner_uid = ?, updated_at = ? '
+        'WHERE entity_type = ? AND entity_id = ? AND ownership_state = \'localOnly\'',
+        variables: <Variable<Object>>[
+          Variable.withString(currentUid),
+          Variable.withInt(nowMs),
+          Variable.withString(entityType),
+          Variable.withString(entityId),
+        ],
+      );
+    }
   }
 
   Future<LocalRowOwnershipRow?> getOwnership(

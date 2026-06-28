@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:kopim/core/application/app_startup_controller.dart';
+import 'package:kopim/core/config/app_capabilities.dart';
 import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/widgets/app_splash_placeholder.dart';
 import 'package:kopim/features/accounts/presentation/account_details_screen.dart';
@@ -24,10 +25,12 @@ import 'package:kopim/features/profile/presentation/screens/general_settings_scr
 import 'package:kopim/features/profile/presentation/screens/about_app_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/cloud_activation_choice_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/cloud_activation_preflight_screen.dart';
+import 'package:kopim/features/profile/presentation/screens/cloud_access_status_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/cloud_sync_intro_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/menu_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_management_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/profile_settings_screen.dart';
+import 'package:kopim/features/profile/presentation/screens/web_entitlement_gate_screen.dart';
 import 'package:kopim/features/credits/domain/entities/credit_entity.dart';
 import 'package:kopim/features/credits/domain/entities/debt_entity.dart';
 import 'package:kopim/features/credits/presentation/screens/credits_screen.dart';
@@ -44,6 +47,7 @@ import 'package:kopim/features/transactions/presentation/screens/all_transaction
 import 'package:kopim/features/upcoming_payments/presentation/screens/edit_payment_reminder_screen.dart';
 import 'package:kopim/features/upcoming_payments/presentation/screens/edit_upcoming_payment_screen.dart';
 import 'package:kopim/features/upcoming_payments/presentation/screens/upcoming_payments_screen.dart';
+import 'package:kopim/features/profile/presentation/controllers/feature_access_provider.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>(
   debugLabel: 'rootNavigator',
@@ -204,6 +208,13 @@ final Provider<GoRouter> appRouterProvider = Provider<GoRouter>((Ref ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (BuildContext context, GoRouterState state) {
           return const CloudActivationPreflightScreen();
+        },
+      ),
+      GoRoute(
+        path: CloudAccessStatusScreen.routeName,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (BuildContext context, GoRouterState state) {
+          return const CloudAccessStatusScreen();
         },
       ),
       GoRoute(
@@ -476,6 +487,7 @@ class _AppShell extends ConsumerWidget {
     final AppStartupResult startupState = ref.watch(
       appStartupControllerProvider,
     );
+    final AppCapabilities capabilities = ref.watch(appCapabilitiesProvider);
 
     return startupState.when(
       data: (_) {
@@ -485,6 +497,14 @@ class _AppShell extends ConsumerWidget {
         return authState.when(
           data: (AuthUser? user) {
             if (user == null) return const _StartupPlaceholder();
+            if (capabilities.requiresEntitlementBeforeWebApp) {
+              final FeatureAccess featureAccess = ref.watch(
+                featureAccessProvider,
+              );
+              if (featureAccess.webApp.status != FeatureAccessStatus.enabled) {
+                return const WebEntitlementGateScreen();
+              }
+            }
             return const MainNavigationShell();
           },
           loading: () => const _StartupPlaceholder(),

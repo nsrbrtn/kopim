@@ -1379,24 +1379,33 @@ Future<void> _openAccountsPicker({
                       ),
                     ],
                   ),
-                  ...accounts.map((AccountEntity account) {
-                    final bool checked = tempSelection.contains(account.id);
-                    return CheckboxListTile(
-                      value: checked,
-                      dense: true,
-                      onChanged: (_) {
-                        setState(() {
-                          if (checked) {
-                            tempSelection.remove(account.id);
-                          } else {
-                            tempSelection.add(account.id);
-                          }
-                        });
-                      },
-                      title: Text(account.name),
-                      controlAffinity: ListTileControlAffinity.leading,
-                    );
-                  }),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: accounts.map((AccountEntity account) {
+                          final bool checked = tempSelection.contains(
+                            account.id,
+                          );
+                          return CheckboxListTile(
+                            value: checked,
+                            dense: true,
+                            onChanged: (_) {
+                              setState(() {
+                                if (checked) {
+                                  tempSelection.remove(account.id);
+                                } else {
+                                  tempSelection.add(account.id);
+                                }
+                              });
+                            },
+                            title: Text(account.name),
+                            controlAffinity: ListTileControlAffinity.leading,
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 12),
                   SizedBox(
                     width: double.infinity,

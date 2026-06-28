@@ -40,6 +40,11 @@ class _FakeCloudEntitlementRepository implements CloudEntitlementRepository {
   }
 
   @override
+  Future<CloudEntitlementSnapshot> getCachedSnapshot() async {
+    return const CloudEntitlementSnapshot(state: CloudEntitlementState.active);
+  }
+
+  @override
   Future<CloudEntitlementState> refreshFromCurrentToken() async {
     return CloudEntitlementState.active;
   }
@@ -292,6 +297,215 @@ void main() {
       );
 
       expect(state.dataMode, equals(DataMode.cloudBlockedByLocalData));
+      expect(state.entitlementState, equals(CloudEntitlementState.active));
+    },
+  );
+
+  test(
+    'returns cloudBlockedByLocalData when cloud user exists but ownership belongs to another uid',
+    () async {
+      AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseDev);
+      final AppDatabase database = AppDatabase.connect(
+        DatabaseConnection(NativeDatabase.memory()),
+      );
+      addTearDown(database.close);
+
+      await database
+          .into(database.localRowOwnership)
+          .insert(
+            LocalRowOwnershipCompanion.insert(
+              entityType: 'account',
+              entityId: 'cloud-account-1',
+              ownershipState: 'cloudOwned',
+              source: 'syncPull',
+              ownerUid: const Value<String?>('cloud-user-old'),
+              updatedAt: Value<DateTime>(DateTime.utc(2024, 1, 2)),
+            ),
+          );
+
+      final ProviderContainer container = ProviderContainer(
+        overrides: <Override>[
+          appDatabaseProvider.overrideWithValue(database),
+          cloudEntitlementRepositoryProvider.overrideWithValue(
+            _FakeCloudEntitlementRepository(),
+          ),
+          cloudAuthRepositoryProvider.overrideWithValue(
+            _FakeAuthRepository(
+              const AuthUser(
+                uid: 'cloud-user-new',
+                email: 'user@example.com',
+                isAnonymous: false,
+              ),
+            ),
+          ),
+          cloudActivationStateRepositoryProvider.overrideWithValue(
+            _FakeCloudActivationStateRepository(
+              state: CloudActivationState(
+                uid: 'cloud-user-new',
+                scenario: 'enableCloudSync',
+                activatedAt: DateTime.utc(2024, 1, 1),
+                localFingerprint: 'local:cloudOwned-old-user',
+                remoteFingerprint: 'remote:empty|uid:cloud-user-new',
+                version: 1,
+              ),
+            ),
+          ),
+          cloudMetadataRepositoryProvider.overrideWithValue(
+            _FakeCloudMetadataRepository(
+              metadata: CloudMetadata(
+                cloudDataState: CloudDataState.active,
+                updatedAt: DateTime.now().toUtc(),
+              ),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final DataModeState state = await container.read(
+        dataModeControllerProvider.future,
+      );
+
+      expect(state.dataMode, equals(DataMode.cloudBlockedByLocalData));
+      expect(state.entitlementState, equals(CloudEntitlementState.active));
+    },
+  );
+
+  test(
+    'expired to renewed with local writes keeps cloudBlockedByLocalData until controlled resume',
+    () async {
+      AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseDev);
+      final AppDatabase database = AppDatabase.connect(
+        DatabaseConnection(NativeDatabase.memory()),
+      );
+      addTearDown(database.close);
+
+      await database.updateCurrentSyncState('cloud-user-renewed', false);
+      await database
+          .into(database.accounts)
+          .insert(
+            AccountsCompanion.insert(
+              id: 'local-during-expired',
+              name: 'Local while expired',
+              balance: 0,
+              currency: 'RUB',
+              type: 'cash',
+              createdAt: Value<DateTime>(DateTime.utc(2024, 1, 1)),
+              updatedAt: Value<DateTime>(DateTime.utc(2024, 1, 2)),
+            ),
+          );
+
+      final LocalRowOwnershipRow? ownership = await database.getOwnership(
+        'account',
+        'local-during-expired',
+      );
+      expect(ownership != null, isTrue);
+      expect(ownership!.ownershipState, equals('localOnly'));
+      expect(ownership.ownerUid, equals(null));
+
+      final ProviderContainer container = ProviderContainer(
+        overrides: <Override>[
+          appDatabaseProvider.overrideWithValue(database),
+          cloudEntitlementRepositoryProvider.overrideWithValue(
+            _FakeCloudEntitlementRepository(),
+          ),
+          cloudAuthRepositoryProvider.overrideWithValue(
+            _FakeAuthRepository(
+              const AuthUser(
+                uid: 'cloud-user-renewed',
+                email: 'user@example.com',
+                isAnonymous: false,
+              ),
+            ),
+          ),
+          cloudActivationStateRepositoryProvider.overrideWithValue(
+            _FakeCloudActivationStateRepository(
+              state: CloudActivationState(
+                uid: 'cloud-user-renewed',
+                scenario: 'enableCloudSync',
+                activatedAt: DateTime.utc(2024, 1, 1),
+                localFingerprint: 'local:changed-during-expired',
+                remoteFingerprint: 'remote:active|uid:cloud-user-renewed',
+                version: 1,
+              ),
+            ),
+          ),
+          cloudMetadataRepositoryProvider.overrideWithValue(
+            _FakeCloudMetadataRepository(
+              metadata: CloudMetadata(
+                cloudDataState: CloudDataState.active,
+                updatedAt: DateTime.now().toUtc(),
+              ),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final DataModeState state = await container.read(
+        dataModeControllerProvider.future,
+      );
+
+      expect(state.dataMode, equals(DataMode.cloudBlockedByLocalData));
+      expect(state.entitlementState, equals(CloudEntitlementState.active));
+    },
+  );
+
+  test(
+    'expired to renewed without local writes can return to cloudEnabled',
+    () async {
+      AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseDev);
+      final AppDatabase database = AppDatabase.connect(
+        DatabaseConnection(NativeDatabase.memory()),
+      );
+      addTearDown(database.close);
+
+      await database.updateCurrentSyncState('cloud-user-renewed-clean', false);
+
+      final ProviderContainer container = ProviderContainer(
+        overrides: <Override>[
+          appDatabaseProvider.overrideWithValue(database),
+          cloudEntitlementRepositoryProvider.overrideWithValue(
+            _FakeCloudEntitlementRepository(),
+          ),
+          cloudAuthRepositoryProvider.overrideWithValue(
+            _FakeAuthRepository(
+              const AuthUser(
+                uid: 'cloud-user-renewed-clean',
+                email: 'user@example.com',
+                isAnonymous: false,
+              ),
+            ),
+          ),
+          cloudActivationStateRepositoryProvider.overrideWithValue(
+            _FakeCloudActivationStateRepository(
+              state: CloudActivationState(
+                uid: 'cloud-user-renewed-clean',
+                scenario: 'enableCloudSync',
+                activatedAt: DateTime.utc(2024, 1, 1),
+                localFingerprint: 'local:unchanged-while-expired',
+                remoteFingerprint: 'remote:active|uid:cloud-user-renewed-clean',
+                version: 1,
+              ),
+            ),
+          ),
+          cloudMetadataRepositoryProvider.overrideWithValue(
+            _FakeCloudMetadataRepository(
+              metadata: CloudMetadata(
+                cloudDataState: CloudDataState.active,
+                updatedAt: DateTime.now().toUtc(),
+              ),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final DataModeState state = await container.read(
+        dataModeControllerProvider.future,
+      );
+
+      expect(state.dataMode, equals(DataMode.cloudEnabled));
       expect(state.entitlementState, equals(CloudEntitlementState.active));
     },
   );

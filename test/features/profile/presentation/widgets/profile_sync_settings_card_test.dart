@@ -8,6 +8,7 @@ import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_preflight_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/feature_access_provider.dart';
+import 'package:kopim/features/profile/presentation/screens/cloud_access_status_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/cloud_activation_preflight_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/cloud_sync_intro_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
@@ -174,5 +175,200 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('intro-screen'), findsOneWidget);
+  });
+
+  testWidgets('production requiresEntitlement CTA opens access status screen', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: <Override>[
+          appCapabilitiesProvider.overrideWithValue(
+            const AppCapabilities(
+              canInitializeFirebase: true,
+              canUseFirebaseAuth: true,
+              canUseFirestore: true,
+              canUseRemoteConfig: true,
+              canRunCloudSync: true,
+              canUseAiTransport: true,
+              firebaseEnvironment: FirebaseEnvironment.prod,
+              allowsLocalOnlyUsage: true,
+              canActivatePromoOrLicenseInApp: false,
+              canRegisterInApp: false,
+              canShowCloudSyncEntryPoint: true,
+              canShowPaymentOrPurchaseUi: false,
+              expiredEntitlementMode:
+                  ExpiredEntitlementMode.localWritableSyncPaused,
+              requiresEntitlementBeforeWebApp: false,
+            ),
+          ),
+          dataModeControllerProvider.overrideWith(
+            () => _FakeDataModeController(
+              const DataModeState(
+                dataMode: DataMode.localOnly,
+                entitlementState: CloudEntitlementState.notActivated,
+                migrationDecision: MigrationDecision.none,
+              ),
+            ),
+          ),
+          featureAccessProvider.overrideWithValue(
+            const FeatureAccess(
+              entitlementState: EntitlementAccessState.freeLocal,
+              cloudSync: FeatureGate(FeatureAccessStatus.requiresEntitlement),
+              webApp: FeatureGate(FeatureAccessStatus.requiresEntitlement),
+              aiAssistant: FeatureGate(FeatureAccessStatus.disabledByBuild),
+              advancedAnalytics: FeatureGate(
+                FeatureAccessStatus.disabledByBuild,
+              ),
+              isWebReadOnly: false,
+            ),
+          ),
+        ],
+        child: buildTestAppWithRouter(
+          child: const Scaffold(body: ProfileSyncSettingsCard()),
+          additionalRoutes: <RouteBase>[
+            mockRoute(
+              CloudAccessStatusScreen.routeName,
+              text: 'cloud-access-status-screen',
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Доступ не активен'), findsOneWidget);
+    expect(
+      find.text(
+        'Для текущего аккаунта пока не найден активный доступ к облачным функциям.',
+      ),
+      findsOneWidget,
+    );
+
+    await tester.tap(find.text('Проверить доступ снова'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('cloud-access-status-screen'), findsOneWidget);
+  });
+
+  testWidgets('production expired entitlement shows paused copy', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: <Override>[
+          appCapabilitiesProvider.overrideWithValue(
+            const AppCapabilities(
+              canInitializeFirebase: true,
+              canUseFirebaseAuth: true,
+              canUseFirestore: true,
+              canUseRemoteConfig: true,
+              canRunCloudSync: true,
+              canUseAiTransport: true,
+              firebaseEnvironment: FirebaseEnvironment.prod,
+              allowsLocalOnlyUsage: true,
+              canActivatePromoOrLicenseInApp: false,
+              canRegisterInApp: false,
+              canShowCloudSyncEntryPoint: true,
+              canShowPaymentOrPurchaseUi: false,
+              expiredEntitlementMode:
+                  ExpiredEntitlementMode.localWritableSyncPaused,
+              requiresEntitlementBeforeWebApp: false,
+            ),
+          ),
+          dataModeControllerProvider.overrideWith(
+            () => _FakeDataModeController(
+              const DataModeState(
+                dataMode: DataMode.localOnly,
+                entitlementState: CloudEntitlementState.expired,
+                migrationDecision: MigrationDecision.none,
+              ),
+            ),
+          ),
+          featureAccessProvider.overrideWithValue(
+            const FeatureAccess(
+              entitlementState: EntitlementAccessState.cloudExpired,
+              cloudSync: FeatureGate(FeatureAccessStatus.requiresEntitlement),
+              webApp: FeatureGate(FeatureAccessStatus.requiresEntitlement),
+              aiAssistant: FeatureGate(FeatureAccessStatus.disabledByBuild),
+              advancedAnalytics: FeatureGate(
+                FeatureAccessStatus.disabledByBuild,
+              ),
+              isWebReadOnly: false,
+            ),
+          ),
+        ],
+        child: buildTestAppWithRouter(
+          child: const Scaffold(body: ProfileSyncSettingsCard()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Срок доступа истек'), findsOneWidget);
+    expect(
+      find.text(
+        'Срок облачного доступа для текущего аккаунта истек. Синхронизация остается на паузе, пока статус доступа не будет обновлен.',
+      ),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('production requiresSignIn copy stays neutral', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: <Override>[
+          appCapabilitiesProvider.overrideWithValue(
+            const AppCapabilities(
+              canInitializeFirebase: true,
+              canUseFirebaseAuth: true,
+              canUseFirestore: true,
+              canUseRemoteConfig: true,
+              canRunCloudSync: true,
+              canUseAiTransport: true,
+              firebaseEnvironment: FirebaseEnvironment.prod,
+              allowsLocalOnlyUsage: true,
+              canActivatePromoOrLicenseInApp: false,
+              canRegisterInApp: false,
+              canShowCloudSyncEntryPoint: true,
+              canShowPaymentOrPurchaseUi: false,
+              expiredEntitlementMode:
+                  ExpiredEntitlementMode.localWritableSyncPaused,
+              requiresEntitlementBeforeWebApp: false,
+            ),
+          ),
+          dataModeControllerProvider.overrideWith(
+            () => _FakeDataModeController(
+              const DataModeState(
+                dataMode: DataMode.localOnly,
+                entitlementState: CloudEntitlementState.active,
+                migrationDecision: MigrationDecision.none,
+              ),
+            ),
+          ),
+          featureAccessProvider.overrideWithValue(
+            const FeatureAccess(
+              entitlementState: EntitlementAccessState.cloudActive,
+              cloudSync: FeatureGate(FeatureAccessStatus.requiresSignIn),
+              webApp: FeatureGate(FeatureAccessStatus.enabled),
+              aiAssistant: FeatureGate(FeatureAccessStatus.disabledByBuild),
+              advancedAnalytics: FeatureGate(
+                FeatureAccessStatus.disabledByBuild,
+              ),
+              isWebReadOnly: false,
+            ),
+          ),
+        ],
+        child: buildTestAppWithRouter(
+          child: const Scaffold(body: ProfileSyncSettingsCard()),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Нужен вход в аккаунт'), findsOneWidget);
+    expect(find.textContaining('Лицензионный ключ'), findsNothing);
   });
 }

@@ -1432,6 +1432,11 @@ class _FakeCloudEntitlementRepository implements CloudEntitlementRepository {
       CloudEntitlementState.active;
 
   @override
+  Future<CloudEntitlementSnapshot> getCachedSnapshot() async {
+    return const CloudEntitlementSnapshot(state: CloudEntitlementState.active);
+  }
+
+  @override
   Future<CloudEntitlementState> refreshFromCurrentToken() async =>
       CloudEntitlementState.active;
 

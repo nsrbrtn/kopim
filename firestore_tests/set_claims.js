@@ -1,6 +1,11 @@
 const admin = require('firebase-admin');
 const { getFirestore, FieldValue, Timestamp } = require('firebase-admin/firestore');
 const { getAuth } = require('firebase-admin/auth');
+const {
+  buildClaimsAudit,
+  mergeGrantClaims,
+  stripCloudClaims,
+} = require('./set_claims_contract');
 
 // Парсинг аргументов командной строки
 const args = process.argv.slice(2);
@@ -44,9 +49,13 @@ const uids = [
   'RlYJFDy2cuP4CS74jpeLHe9Sacs2',
   'X0XJCTbvCQQ8BcYERnr0rKcnDyv2'
 ];
+const uidIndex = args.indexOf('--uid');
+if (uidIndex !== -1 && uidIndex + 1 < args.length) {
+  uids.splice(0, uids.length, args[uidIndex + 1]);
+}
 
 const expiresAtStr = "2026-12-27T00:00:00Z";
-const expiresAtUnix = Math.floor(new Date(expiresAtStr).getTime() / 1000);
+const accessUntilMillis = new Date(expiresAtStr).getTime();
 
 // Инициализация Firebase Admin SDK (если не dry-run)
 let db, auth;
@@ -89,7 +98,7 @@ console.log(`Target Project: ${projectId || 'N/A'}`);
 console.log(`Operation Type: ${revoke ? 'REVOKE Access' : 'GRANT Access'}`);
 console.log(`Users Count:    ${uids.length}`);
 if (!revoke) {
-  console.log(`Expiry Date:    ${expiresAtStr} (Unix: ${expiresAtUnix})`);
+  console.log(`Expiry Date:    ${expiresAtStr} (Millis: ${accessUntilMillis})`);
 }
 console.log("========================================\n");
 
@@ -121,16 +130,17 @@ async function processUser(uid) {
         // 2. Считываем и мержим custom claims (удаляем только cloud claims)
         const user = await auth.getUser(uid);
         const existingClaims = user.customClaims || {};
-        const { cloudAccess, cloudPlan, cloudAccessExpiresAt, ...otherClaims } = existingClaims;
+        const mergedClaims = stripCloudClaims(existingClaims);
+        const audit = buildClaimsAudit(existingClaims, mergedClaims);
         
-        await auth.setCustomUserClaims(uid, otherClaims);
-        result.claimsState = `Auth claims updated (cloud claims removed). Merged claims: ${JSON.stringify(otherClaims)}`;
+        await auth.setCustomUserClaims(uid, mergedClaims);
+        result.claimsState = `Auth claims updated (cloud claims removed). Audit: ${JSON.stringify(audit)}`;
       }
     } else {
       // GRANT ACCESS FLOW
       if (dryRun) {
         result.entitlementState = "Simulated set/merge entitlements/{uid} with status='trialActive'";
-        result.claimsState = `Simulated setting cloud claims: cloudAccess=true, cloudPlan='testerCloud', cloudAccessExpiresAt=${expiresAtUnix}`;
+        result.claimsState = `Simulated setting cloud claims: cloudAccess=true, cloudPlan='manual', cloudAccessUntilMillis=${accessUntilMillis}`;
       } else {
         // 1. Записываем в Firestore (идемпотентно, не перезаписывая createdAt)
         const entitlementRef = db.collection('entitlements').doc(uid);
@@ -141,7 +151,7 @@ async function processUser(uid) {
           // Если документ существует, делаем update только изменившихся полей
           await entitlementRef.update({
             status: 'trialActive',
-            plan: 'testerCloud',
+            plan: 'manual',
             expiresAt: Timestamp.fromDate(new Date(expiresAtStr)),
             source: 'manual',
             note: '6 month free tester access',
@@ -152,7 +162,7 @@ async function processUser(uid) {
           // Если документа нет, создаем его полностью
           await entitlementRef.set({
             status: 'trialActive',
-            plan: 'testerCloud',
+            plan: 'manual',
             expiresAt: Timestamp.fromDate(new Date(expiresAtStr)),
             source: 'manual',
             note: '6 month free tester access',
@@ -165,16 +175,14 @@ async function processUser(uid) {
         // 2. Считываем и мержим custom claims
         const user = await auth.getUser(uid);
         const existingClaims = user.customClaims || {};
-        
-        const mergedClaims = {
-          ...existingClaims,
-          cloudAccess: true,
-          cloudPlan: 'testerCloud',
-          cloudAccessExpiresAt: expiresAtUnix
-        };
+        const mergedClaims = mergeGrantClaims(existingClaims, {
+          cloudPlan: 'manual',
+          cloudAccessUntilMillis: accessUntilMillis,
+        });
+        const audit = buildClaimsAudit(existingClaims, mergedClaims);
         
         await auth.setCustomUserClaims(uid, mergedClaims);
-        result.claimsState = `Auth claims updated. Merged claims: ${JSON.stringify(mergedClaims)}`;
+        result.claimsState = `Auth claims updated. Audit: ${JSON.stringify(audit)}`;
       }
     }
   } catch (err) {

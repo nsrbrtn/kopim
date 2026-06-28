@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/application/sync_preferences_provider.dart';
+import 'package:kopim/core/config/app_capabilities.dart';
+import 'package:kopim/core/config/firebase_environment.dart';
 import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
@@ -328,6 +330,182 @@ void main() {
       );
       expect(tester.widget<Switch>(find.byType(Switch)).onChanged, isNull);
       expect(tester.widget<Switch>(find.byType(Switch)).value, isFalse);
+    },
+  );
+
+  testWidgets(
+    'production helper text for requiresEntitlement uses neutral access copy',
+    (WidgetTester tester) async {
+      const AuthUser registeredUser = AuthUser(
+        uid: 'user-123',
+        isAnonymous: false,
+      );
+
+      await tester.pumpWidget(
+        buildTestApp(
+          overrides: <Override>[
+            appCapabilitiesProvider.overrideWithValue(
+              const AppCapabilities(
+                canInitializeFirebase: true,
+                canUseFirebaseAuth: true,
+                canUseFirestore: true,
+                canUseRemoteConfig: true,
+                canRunCloudSync: true,
+                canUseAiTransport: true,
+                canShowCloudSyncEntryPoint: true,
+                canRegisterInApp: false,
+                canShowPaymentOrPurchaseUi: false,
+                canActivatePromoOrLicenseInApp: false,
+                requiresEntitlementBeforeWebApp: false,
+                allowsLocalOnlyUsage: true,
+                expiredEntitlementMode:
+                    ExpiredEntitlementMode.localWritableSyncPaused,
+                firebaseEnvironment: FirebaseEnvironment.prod,
+              ),
+            ),
+            authControllerProvider.overrideWith(
+              () => _AuthControllerStub(registeredUser),
+            ),
+            profileControllerProvider(
+              registeredUser.uid,
+            ).overrideWith(() => _ProfileControllerStub(registeredProfile)),
+            profileFormControllerProvider(registeredParams).overrideWith(
+              () => _ProfileFormControllerStub(registeredFormState),
+            ),
+            avatarControllerProvider.overrideWith(
+              () => _AvatarControllerStub(),
+            ),
+            userProgressProvider(registeredUser.uid).overrideWith(
+              (Ref ref) => Stream<UserProgress>.value(sampleProgress),
+            ),
+            profileActivityDaysProvider.overrideWith(
+              (Ref ref) => Stream<Set<DateTime>>.value(const <DateTime>{}),
+            ),
+            onlineSyncPreferencesControllerProvider.overrideWith(
+              () => _OnlineSyncPreferencesControllerStub(false),
+            ),
+            featureAccessProvider.overrideWithValue(
+              const FeatureAccess(
+                entitlementState: EntitlementAccessState.freeLocal,
+                cloudSync: FeatureGate(FeatureAccessStatus.requiresEntitlement),
+                webApp: FeatureGate(FeatureAccessStatus.requiresEntitlement),
+                aiAssistant: FeatureGate(
+                  FeatureAccessStatus.requiresEntitlement,
+                ),
+                advancedAnalytics: FeatureGate(
+                  FeatureAccessStatus.requiresEntitlement,
+                ),
+                isWebReadOnly: false,
+              ),
+            ),
+            exportUserDataControllerProvider.overrideWith(
+              () => _ExportUserDataControllerStub(),
+            ),
+            importUserDataControllerProvider.overrideWith(
+              () => _ImportUserDataControllerStub(),
+            ),
+            levelPolicyProvider.overrideWithValue(const SimpleLevelPolicy()),
+          ],
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Синхронизация выключена'), findsOneWidget);
+      expect(
+        find.text(
+          'Для текущего аккаунта доступ к облачным функциям пока не активен.',
+        ),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets(
+    'production helper text for expired entitlement mentions paused sync',
+    (WidgetTester tester) async {
+      const AuthUser registeredUser = AuthUser(
+        uid: 'user-123',
+        isAnonymous: false,
+      );
+
+      await tester.pumpWidget(
+        buildTestApp(
+          overrides: <Override>[
+            appCapabilitiesProvider.overrideWithValue(
+              const AppCapabilities(
+                canInitializeFirebase: true,
+                canUseFirebaseAuth: true,
+                canUseFirestore: true,
+                canUseRemoteConfig: true,
+                canRunCloudSync: true,
+                canUseAiTransport: true,
+                canShowCloudSyncEntryPoint: true,
+                canRegisterInApp: false,
+                canShowPaymentOrPurchaseUi: false,
+                canActivatePromoOrLicenseInApp: false,
+                requiresEntitlementBeforeWebApp: false,
+                allowsLocalOnlyUsage: true,
+                expiredEntitlementMode:
+                    ExpiredEntitlementMode.localWritableSyncPaused,
+                firebaseEnvironment: FirebaseEnvironment.prod,
+              ),
+            ),
+            authControllerProvider.overrideWith(
+              () => _AuthControllerStub(registeredUser),
+            ),
+            profileControllerProvider(
+              registeredUser.uid,
+            ).overrideWith(() => _ProfileControllerStub(registeredProfile)),
+            profileFormControllerProvider(registeredParams).overrideWith(
+              () => _ProfileFormControllerStub(registeredFormState),
+            ),
+            avatarControllerProvider.overrideWith(
+              () => _AvatarControllerStub(),
+            ),
+            userProgressProvider(registeredUser.uid).overrideWith(
+              (Ref ref) => Stream<UserProgress>.value(sampleProgress),
+            ),
+            profileActivityDaysProvider.overrideWith(
+              (Ref ref) => Stream<Set<DateTime>>.value(const <DateTime>{}),
+            ),
+            onlineSyncPreferencesControllerProvider.overrideWith(
+              () => _OnlineSyncPreferencesControllerStub(false),
+            ),
+            featureAccessProvider.overrideWithValue(
+              const FeatureAccess(
+                entitlementState: EntitlementAccessState.cloudExpired,
+                cloudSync: FeatureGate(FeatureAccessStatus.requiresEntitlement),
+                webApp: FeatureGate(FeatureAccessStatus.requiresEntitlement),
+                aiAssistant: FeatureGate(
+                  FeatureAccessStatus.requiresEntitlement,
+                ),
+                advancedAnalytics: FeatureGate(
+                  FeatureAccessStatus.requiresEntitlement,
+                ),
+                isWebReadOnly: false,
+              ),
+            ),
+            exportUserDataControllerProvider.overrideWith(
+              () => _ExportUserDataControllerStub(),
+            ),
+            importUserDataControllerProvider.overrideWith(
+              () => _ImportUserDataControllerStub(),
+            ),
+            levelPolicyProvider.overrideWithValue(const SimpleLevelPolicy()),
+          ],
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      expect(find.text('Синхронизация выключена'), findsOneWidget);
+      expect(
+        find.text(
+          'Срок облачного доступа истек. Синхронизация остается на паузе, но локальные данные на устройстве доступны.',
+        ),
+        findsOneWidget,
+      );
     },
   );
 }

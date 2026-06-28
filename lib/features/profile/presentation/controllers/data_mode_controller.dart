@@ -277,7 +277,7 @@ class DataModeController extends _$DataModeController {
 
     if (entitlement != CloudEntitlementState.active) {
       logger.logInfo(
-        'DataModeController: entitlement=${entitlement.name}, keeping localOnly until key is active.',
+        'DataModeController: entitlement=${entitlement.name}, keeping localOnly until access is active.',
       );
       return DataModeState(
         dataMode: DataMode.localOnly,
@@ -390,15 +390,15 @@ class DataModeController extends _$DataModeController {
       );
     }
 
-    final bool hasLocalData = await ref
+    final bool hasBlockingLocalData = await ref
         .read(appDatabaseProvider)
-        .hasAnyLocalOnlyData();
+        .hasAnyBlockingCloudDataForUid(cloudUser.uid);
     final MigrationDecision decision =
         decisionOverride ?? MigrationDecision.none;
 
-    if (hasLocalData) {
+    if (hasBlockingLocalData) {
       logger.logInfo(
-        'DataModeController: local data detected for cloud user ${cloudUser.uid}, keeping cloudBlockedByLocalData until migration exists.',
+        'DataModeController: blocking local or foreign cloud-owned data detected for cloud user ${cloudUser.uid}, keeping cloudBlockedByLocalData until protected flow exists.',
       );
       return DataModeState(
         dataMode: DataMode.cloudBlockedByLocalData,

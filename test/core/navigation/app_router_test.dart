@@ -30,8 +30,11 @@ import 'package:kopim/features/profile/domain/entities/profile.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_preflight_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/profile_controller.dart';
+import 'package:kopim/features/profile/presentation/screens/cloud_access_status_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/cloud_activation_choice_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/cloud_activation_preflight_screen.dart';
+import 'package:kopim/features/profile/presentation/controllers/feature_access_provider.dart';
+import 'package:kopim/features/profile/presentation/screens/web_entitlement_gate_screen.dart';
 import 'package:kopim/features/transactions/presentation/screens/all_transactions_screen.dart';
 import 'package:kopim/features/transactions/presentation/controllers/all_transactions_providers.dart';
 import 'package:kopim/features/transactions/domain/entities/transaction.dart';
@@ -55,6 +58,8 @@ import 'package:kopim/features/budgets/presentation/budgets_screen.dart';
 import 'package:kopim/features/budgets/presentation/controllers/budgets_providers.dart';
 import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
 import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
+import 'package:kopim/core/config/app_capabilities.dart';
+import 'package:kopim/core/config/firebase_environment.dart';
 import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/features/upcoming_payments/domain/services/time_service.dart';
 import 'package:kopim/features/profile/presentation/controllers/active_currency_code_provider.dart';
@@ -221,6 +226,11 @@ class _FakeCloudEntitlementRepository implements CloudEntitlementRepository {
   @override
   Future<CloudEntitlementState> getCachedState() async {
     return state;
+  }
+
+  @override
+  Future<CloudEntitlementSnapshot> getCachedSnapshot() async {
+    return CloudEntitlementSnapshot(state: state);
   }
 
   @override
@@ -893,6 +903,150 @@ void main() {
     expect(find.byType(SignInScreen), findsOneWidget);
     expect(find.text('Создать'), findsOneWidget);
     expect(find.text('Войти в аккаунт'), findsOneWidget);
+    await disposeApp(tester);
+  });
+
+  testWidgets('navigates to cloud access status screen', (
+    WidgetTester tester,
+  ) async {
+    await setWindowSize(tester, const Size(800, 1200));
+    final _FakeConnectivity connectivity = _FakeConnectivity();
+    await pumpApp(
+      tester,
+      authOverride: authControllerProvider.overrideWith(
+        () => _MutableAuthController(
+          const AuthUser(uid: 'user-123', email: 'user@example.com'),
+        ),
+      ),
+      extraOverrides: <Override>[
+        connectivityProvider.overrideWithValue(connectivity),
+        dataModeControllerProvider.overrideWith(
+          () => _FakeDataModeController(
+            const DataModeState(
+              dataMode: DataMode.localOnly,
+              entitlementState: CloudEntitlementState.notActivated,
+              migrationDecision: MigrationDecision.none,
+            ),
+          ),
+        ),
+      ],
+    );
+
+    final BuildContext context = tester.element(find.byType(MaterialApp));
+    final ProviderContainer container = ProviderScope.containerOf(context);
+    final GoRouter router = container.read(appRouterProvider);
+
+    router.go(CloudAccessStatusScreen.routeName);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(CloudAccessStatusScreen), findsOneWidget);
+    expect(find.text('Доступ не активен'), findsOneWidget);
+    await disposeApp(tester);
+  });
+
+  testWidgets('web prod signed-in user without entitlement sees gate screen', (
+    WidgetTester tester,
+  ) async {
+    AppRuntimeConfig.configure(AppRuntimeFlavor.webProdCloudOnly);
+    await setWindowSize(tester, const Size(1280, 900));
+
+    await pumpApp(
+      tester,
+      authOverride: authControllerProvider.overrideWith(
+        () => _FakeAuthController(
+          const AuthUser(uid: 'user-123', email: 'user@example.com'),
+        ),
+      ),
+      extraOverrides: <Override>[
+        appCapabilitiesProvider.overrideWithValue(
+          const AppCapabilities(
+            canInitializeFirebase: true,
+            canUseFirebaseAuth: true,
+            canUseFirestore: true,
+            canUseRemoteConfig: true,
+            canRunCloudSync: true,
+            canUseAiTransport: true,
+            canShowCloudSyncEntryPoint: true,
+            canRegisterInApp: true,
+            canShowPaymentOrPurchaseUi: true,
+            canActivatePromoOrLicenseInApp: true,
+            requiresEntitlementBeforeWebApp: true,
+            allowsLocalOnlyUsage: false,
+            expiredEntitlementMode: ExpiredEntitlementMode.readOnly,
+            firebaseEnvironment: FirebaseEnvironment.prod,
+          ),
+        ),
+        featureAccessProvider.overrideWithValue(
+          const FeatureAccess(
+            entitlementState: EntitlementAccessState.freeLocal,
+            cloudSync: FeatureGate(FeatureAccessStatus.requiresEntitlement),
+            webApp: FeatureGate(FeatureAccessStatus.requiresEntitlement),
+            aiAssistant: FeatureGate(FeatureAccessStatus.requiresEntitlement),
+            advancedAnalytics: FeatureGate(
+              FeatureAccessStatus.requiresEntitlement,
+            ),
+            isWebReadOnly: false,
+          ),
+        ),
+      ],
+    );
+
+    expect(find.byType(WebEntitlementGateScreen), findsOneWidget);
+    expect(find.text('Доступ к веб-версии не активен'), findsOneWidget);
+    expect(find.byType(MainNavigationShell), findsNothing);
+    await disposeApp(tester);
+  });
+
+  testWidgets('web prod expired entitlement shows read-only barrier screen', (
+    WidgetTester tester,
+  ) async {
+    AppRuntimeConfig.configure(AppRuntimeFlavor.webProdCloudOnly);
+    await setWindowSize(tester, const Size(1280, 900));
+
+    await pumpApp(
+      tester,
+      authOverride: authControllerProvider.overrideWith(
+        () => _FakeAuthController(
+          const AuthUser(uid: 'user-123', email: 'user@example.com'),
+        ),
+      ),
+      extraOverrides: <Override>[
+        appCapabilitiesProvider.overrideWithValue(
+          const AppCapabilities(
+            canInitializeFirebase: true,
+            canUseFirebaseAuth: true,
+            canUseFirestore: true,
+            canUseRemoteConfig: true,
+            canRunCloudSync: true,
+            canUseAiTransport: true,
+            canShowCloudSyncEntryPoint: true,
+            canRegisterInApp: true,
+            canShowPaymentOrPurchaseUi: true,
+            canActivatePromoOrLicenseInApp: true,
+            requiresEntitlementBeforeWebApp: true,
+            allowsLocalOnlyUsage: false,
+            expiredEntitlementMode: ExpiredEntitlementMode.readOnly,
+            firebaseEnvironment: FirebaseEnvironment.prod,
+          ),
+        ),
+        featureAccessProvider.overrideWithValue(
+          const FeatureAccess(
+            entitlementState: EntitlementAccessState.cloudExpired,
+            cloudSync: FeatureGate(FeatureAccessStatus.requiresEntitlement),
+            webApp: FeatureGate(FeatureAccessStatus.requiresEntitlement),
+            aiAssistant: FeatureGate(FeatureAccessStatus.requiresEntitlement),
+            advancedAnalytics: FeatureGate(
+              FeatureAccessStatus.requiresEntitlement,
+            ),
+            isWebReadOnly: true,
+          ),
+        ),
+      ],
+    );
+
+    expect(find.byType(WebEntitlementGateScreen), findsOneWidget);
+    expect(find.text('Срок доступа истек'), findsOneWidget);
+    expect(find.byType(MainNavigationShell), findsNothing);
     await disposeApp(tester);
   });
 

@@ -186,7 +186,49 @@ class OutboxDao {
     );
   }
 
+  Future<bool> isImportInProgress() async {
+    final db.CurrentSyncStateRow state = await _db
+        .select(_db.currentSyncStates)
+        .getSingle();
+    return state.importInProgress;
+  }
+
+  Future<bool> hasAnySendingEntries() async {
+    final List<db.OutboxEntryRow> rows =
+        await (_db.select(_db.outboxEntries)..where(
+              (db.$OutboxEntriesTable tbl) =>
+                  tbl.status.equals(OutboxStatus.sending.name),
+            ))
+            .get();
+    return rows.isNotEmpty;
+  }
+
+  Future<void> deletePendingOrFailedForEntities(
+    List<(String entityType, String entityId)> entities,
+  ) async {
+    if (entities.isEmpty) {
+      return;
+    }
+    for (final (String entityType, String entityId) in entities) {
+      await (_db.delete(_db.outboxEntries)..where(
+            (db.$OutboxEntriesTable tbl) =>
+                tbl.entityType.equals(entityType) &
+                tbl.entityId.equals(entityId) &
+                tbl.status.isIn(<String>[
+                  OutboxStatus.pending.name,
+                  OutboxStatus.failed.name,
+                ]),
+          ))
+          .go();
+    }
+  }
+
   Future<db.OutboxEntryRow> prepareForSend(db.OutboxEntryRow entry) async {
+    if (await isImportInProgress()) {
+      throw StateError(
+        'OutboxDao: cannot prepare for send because import is in progress.',
+      );
+    }
     final db.OutboxEntryRow updatedEntry = entry.copyWith(
       status: OutboxStatus.sending.name,
       attemptCount: entry.attemptCount + 1,

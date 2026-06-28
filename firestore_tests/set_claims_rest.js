@@ -2,6 +2,11 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const https = require('https');
+const {
+  buildClaimsAudit,
+  mergeGrantClaims,
+  stripCloudClaims,
+} = require('./set_claims_contract');
 
 // Парсинг аргументов командной строки
 const args = process.argv.slice(2);
@@ -51,7 +56,7 @@ if (uidIndex !== -1 && uidIndex + 1 < args.length) {
 }
 
 const expiresAtStr = "2026-12-27T00:00:00Z";
-const expiresAtUnix = Math.floor(new Date(expiresAtStr).getTime() / 1000);
+const accessUntilMillis = new Date(expiresAtStr).getTime();
 
 // Загрузка токена из Firebase CLI config
 let token = null;
@@ -78,7 +83,7 @@ console.log(`Target Project: ${projectId || 'N/A'}`);
 console.log(`Operation Type: ${revoke ? 'REVOKE Access' : 'GRANT Access'}`);
 console.log(`Users Count:    ${uids.length}`);
 if (!revoke) {
-  console.log(`Expiry Date:    ${expiresAtStr} (Unix: ${expiresAtUnix})`);
+  console.log(`Expiry Date:    ${expiresAtStr} (Millis: ${accessUntilMillis})`);
 }
 console.log("========================================\n");
 
@@ -164,7 +169,8 @@ async function processUser(uid) {
         const user = lookup.users && lookup.users[0];
         if (user) {
           const existingClaims = user.customAttributes ? JSON.parse(user.customAttributes) : {};
-          const { cloudAccess, cloudPlan, cloudAccessExpiresAt, ...otherClaims } = existingClaims;
+          const mergedClaims = stripCloudClaims(existingClaims);
+          const audit = buildClaimsAudit(existingClaims, mergedClaims);
 
           await makeRequest({
             hostname: 'identitytoolkit.googleapis.com',
@@ -176,9 +182,9 @@ async function processUser(uid) {
             }
           }, {
             localId: uid,
-            customAttributes: JSON.stringify(otherClaims)
+            customAttributes: JSON.stringify(mergedClaims)
           });
-          result.claimsState = `Auth claims updated (cloud claims removed). Merged claims: ${JSON.stringify(otherClaims)}`;
+          result.claimsState = `Auth claims updated (cloud claims removed). Audit: ${JSON.stringify(audit)}`;
         } else {
           throw new Error("User not found in Firebase Auth");
         }
@@ -187,7 +193,7 @@ async function processUser(uid) {
       // GRANT ACCESS FLOW
       if (dryRun) {
         result.entitlementState = "Simulated set/merge entitlements/{uid} with status='trialActive'";
-        result.claimsState = `Simulated setting cloud claims: cloudAccess=true, cloudPlan='testerCloud', cloudAccessExpiresAt=${expiresAtUnix}`;
+        result.claimsState = `Simulated setting cloud claims: cloudAccess=true, cloudPlan='manual', cloudAccessUntilMillis=${accessUntilMillis}`;
       } else {
         // 1. Получаем существующий entitlement (для идемпотентности)
         let existingDoc = null;
@@ -206,7 +212,7 @@ async function processUser(uid) {
         const payload = {
           fields: {
             status: { stringValue: 'trialActive' },
-            plan: { stringValue: 'testerCloud' },
+            plan: { stringValue: 'manual' },
             expiresAt: { timestampValue: expiresAtStr },
             source: { stringValue: 'manual' },
             note: { stringValue: '6 month free tester access' },
@@ -258,12 +264,11 @@ async function processUser(uid) {
         const user = lookup.users && lookup.users[0];
         if (user) {
           const existingClaims = user.customAttributes ? JSON.parse(user.customAttributes) : {};
-          const mergedClaims = {
-            ...existingClaims,
-            cloudAccess: true,
-            cloudPlan: 'testerCloud',
-            cloudAccessExpiresAt: expiresAtUnix
-          };
+          const mergedClaims = mergeGrantClaims(existingClaims, {
+            cloudPlan: 'manual',
+            cloudAccessUntilMillis: accessUntilMillis,
+          });
+          const audit = buildClaimsAudit(existingClaims, mergedClaims);
 
           await makeRequest({
             hostname: 'identitytoolkit.googleapis.com',
@@ -277,7 +282,7 @@ async function processUser(uid) {
             localId: uid,
             customAttributes: JSON.stringify(mergedClaims)
           });
-          result.claimsState = `Auth claims updated. Merged claims: ${JSON.stringify(mergedClaims)}`;
+          result.claimsState = `Auth claims updated. Audit: ${JSON.stringify(audit)}`;
         } else {
           throw new Error("User not found in Firebase Auth");
         }

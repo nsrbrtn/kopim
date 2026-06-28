@@ -48,6 +48,7 @@ Widget _buildTestApp({required ProviderContainer container}) {
 ProviderContainer _createContainer(
   CloudActivationDecisionState state, {
   AsyncValue<CloudActivationReadinessState>? readinessOverride,
+  bool overrideDataMode = true,
   List<Override> extraOverrides = const <Override>[],
 }) {
   return ProviderContainer(
@@ -81,6 +82,16 @@ ProviderContainer _createContainer(
               ),
             ),
       ),
+      if (overrideDataMode)
+        dataModeControllerProvider.overrideWith(
+          () => _FakeDataModeController(
+            const DataModeState(
+              dataMode: DataMode.localOnly,
+              entitlementState: CloudEntitlementState.active,
+              migrationDecision: MigrationDecision.none,
+            ),
+          ),
+        ),
       ...extraOverrides,
     ],
   );
@@ -416,6 +427,7 @@ void main() {
           ),
         ],
       ),
+      overrideDataMode: false,
       extraOverrides: <Override>[
         dataModeControllerProvider.overrideWith(
           () => _FakeDataModeController(

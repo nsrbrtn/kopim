@@ -179,6 +179,64 @@ void main() {
     expect(byCategory[null]!.expense.minor, BigInt.from(20000));
   });
 
+  test('watchAnalyticsCategoryTotals фильтрует по accountIds', () async {
+    final DateTime start = DateTime(2025, 1, 1);
+    final DateTime end = DateTime(2025, 3, 1);
+
+    await insertTx(
+      id: 't1',
+      accountId: 'a1',
+      date: DateTime(2025, 1, 5),
+      amount: MoneyAmount(minor: BigInt.from(200000), scale: 2),
+      type: TransactionType.income,
+      categoryId: 'c1',
+    );
+    await insertTx(
+      id: 't2',
+      accountId: 'a2',
+      date: DateTime(2025, 1, 10),
+      amount: MoneyAmount(minor: BigInt.from(50000), scale: 2),
+      type: TransactionType.expense,
+      categoryId: 'c2',
+    );
+
+    // Запрос с фильтром по a1
+    final List<AnalyticsCategoryTotalsRow> rowsA1 = await dao
+        .watchAnalyticsCategoryTotals(
+          start: start,
+          end: end,
+          accountIds: <String>['a1'],
+        )
+        .first;
+
+    final Map<String?, AnalyticsCategoryTotalsRow> byCategoryA1 =
+        <String?, AnalyticsCategoryTotalsRow>{
+          for (final AnalyticsCategoryTotalsRow row in rowsA1)
+            row.categoryId: row,
+        };
+
+    expect(byCategoryA1['c1']?.income.minor, BigInt.from(200000));
+    expect(byCategoryA1['c2'], isNull);
+
+    // Запрос с фильтром по a2
+    final List<AnalyticsCategoryTotalsRow> rowsA2 = await dao
+        .watchAnalyticsCategoryTotals(
+          start: start,
+          end: end,
+          accountIds: <String>['a2'],
+        )
+        .first;
+
+    final Map<String?, AnalyticsCategoryTotalsRow> byCategoryA2 =
+        <String?, AnalyticsCategoryTotalsRow>{
+          for (final AnalyticsCategoryTotalsRow row in rowsA2)
+            row.categoryId: row,
+        };
+
+    expect(byCategoryA2['c1'], isNull);
+    expect(byCategoryA2['c2']?.expense.minor, BigInt.from(50000));
+  });
+
   test(
     'watchMonthlyCashflowTotals учитывает переводы и фильтр счетов',
     () async {

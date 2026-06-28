@@ -191,6 +191,9 @@ class FirebaseSyncService implements SyncService {
     _isSyncing = true;
     _updateStatus();
     try {
+      if (await _outboxDao.isImportInProgress()) {
+        return;
+      }
       await _outboxDao.resetStaleSendingToPending(
         cutoff: DateTime.now().subtract(_staleSendingRecoveryWindow),
       );
