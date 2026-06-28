@@ -87,6 +87,24 @@ void main() {
       ProviderScope(
         // ignore: always_specify_types
         overrides: [
+          appCapabilitiesProvider.overrideWithValue(
+            const AppCapabilities(
+              canInitializeFirebase: true,
+              canUseFirebaseAuth: true,
+              canUseFirestore: true,
+              canUseRemoteConfig: true,
+              canRunCloudSync: true,
+              canUseAiTransport: true,
+              canShowCloudSyncEntryPoint: true,
+              canRegisterInApp: true,
+              canShowPaymentOrPurchaseUi: true,
+              canActivatePromoOrLicenseInApp: true,
+              requiresEntitlementBeforeWebApp: false,
+              allowsLocalOnlyUsage: true,
+              expiredEntitlementMode: ExpiredEntitlementMode.configurable,
+              firebaseEnvironment: FirebaseEnvironment.dev,
+            ),
+          ),
           connectivityProvider.overrideWithValue(connectivity),
           authControllerProvider.overrideWith(() => authController),
           dataModeControllerProvider.overrideWith(
@@ -149,6 +167,24 @@ void main() {
         ProviderScope(
           // ignore: always_specify_types
           overrides: [
+            appCapabilitiesProvider.overrideWithValue(
+              const AppCapabilities(
+                canInitializeFirebase: true,
+                canUseFirebaseAuth: true,
+                canUseFirestore: true,
+                canUseRemoteConfig: true,
+                canRunCloudSync: true,
+                canUseAiTransport: true,
+                canShowCloudSyncEntryPoint: true,
+                canRegisterInApp: true,
+                canShowPaymentOrPurchaseUi: true,
+                canActivatePromoOrLicenseInApp: true,
+                requiresEntitlementBeforeWebApp: false,
+                allowsLocalOnlyUsage: true,
+                expiredEntitlementMode: ExpiredEntitlementMode.configurable,
+                firebaseEnvironment: FirebaseEnvironment.dev,
+              ),
+            ),
             connectivityProvider.overrideWithValue(connectivity),
             authControllerProvider.overrideWith(() => authController),
             dataModeControllerProvider.overrideWith(
@@ -277,6 +313,24 @@ void main() {
       ProviderScope(
         // ignore: always_specify_types
         overrides: [
+          appCapabilitiesProvider.overrideWithValue(
+            const AppCapabilities(
+              canInitializeFirebase: true,
+              canUseFirebaseAuth: true,
+              canUseFirestore: true,
+              canUseRemoteConfig: true,
+              canRunCloudSync: true,
+              canUseAiTransport: true,
+              canShowCloudSyncEntryPoint: true,
+              canRegisterInApp: true,
+              canShowPaymentOrPurchaseUi: true,
+              canActivatePromoOrLicenseInApp: true,
+              requiresEntitlementBeforeWebApp: false,
+              allowsLocalOnlyUsage: true,
+              expiredEntitlementMode: ExpiredEntitlementMode.configurable,
+              firebaseEnvironment: FirebaseEnvironment.dev,
+            ),
+          ),
           connectivityProvider.overrideWithValue(connectivity),
           authControllerProvider.overrideWith(() => authController),
           dataModeControllerProvider.overrideWith(

@@ -58,7 +58,7 @@ void main() {
     expect(capabilities.canRunCloudSync, isTrue);
     expect(capabilities.canRegisterInApp, isTrue);
     expect(capabilities.canShowPaymentOrPurchaseUi, isTrue);
-    expect(capabilities.canActivatePromoOrLicenseInApp, isTrue);
+    expect(capabilities.canActivatePromoOrLicenseInApp, isFalse);
     expect(capabilities.requiresEntitlementBeforeWebApp, isTrue);
     expect(capabilities.allowsLocalOnlyUsage, isFalse);
     expect(

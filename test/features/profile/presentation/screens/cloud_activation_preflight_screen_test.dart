@@ -84,6 +84,22 @@ void main() {
         state: const CloudActivationPreflightState(
           CloudActivationPreflightStatus.signedOut,
         ),
+        capabilities: const AppCapabilities(
+          canInitializeFirebase: true,
+          canUseFirebaseAuth: true,
+          canUseFirestore: true,
+          canUseRemoteConfig: true,
+          canRunCloudSync: true,
+          canUseAiTransport: true,
+          canShowCloudSyncEntryPoint: true,
+          canRegisterInApp: true,
+          canShowPaymentOrPurchaseUi: true,
+          canActivatePromoOrLicenseInApp: true,
+          requiresEntitlementBeforeWebApp: true,
+          allowsLocalOnlyUsage: false,
+          expiredEntitlementMode: ExpiredEntitlementMode.readOnly,
+          firebaseEnvironment: FirebaseEnvironment.dev,
+        ),
       ),
     );
 

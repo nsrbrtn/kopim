@@ -12,6 +12,7 @@ import 'package:kopim/features/profile/domain/failures/auth_failure.dart';
 import 'package:kopim/features/profile/domain/repositories/auth_repository.dart';
 import 'package:kopim/features/profile/domain/usecases/delete_user_account_use_case.dart';
 import 'package:kopim/core/services/sync/sync_ownership_guard.dart';
+import 'package:kopim/core/config/app_capabilities.dart';
 import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -58,7 +59,10 @@ class AuthController extends _$AuthController {
       return existingUser;
     }
 
-    if (AppRuntimeConfig.isOfflineOnlyDistribution) {
+    final AppCapabilities capabilities = ref.watch(appCapabilitiesProvider);
+
+    if (AppRuntimeConfig.isOfflineOnlyDistribution ||
+        capabilities.allowsLocalOnlyUsage) {
       final AuthUser offlineUser = await repository.signInAnonymously();
       state = AsyncValue<AuthUser?>.data(offlineUser);
       return offlineUser;

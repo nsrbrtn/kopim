@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:kopim/core/application/firebase_availability.dart';
+import 'package:kopim/core/config/app_capabilities.dart';
+import 'package:kopim/core/config/firebase_environment.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/services/auth_sync_service.dart';
 import 'package:kopim/core/config/app_runtime.dart';
@@ -321,6 +323,24 @@ void main() {
           ),
           connectivityProvider.overrideWithValue(onlineConnectivity),
           authSyncServiceProvider.overrideWithValue(authSyncService),
+          appCapabilitiesProvider.overrideWithValue(
+            const AppCapabilities(
+              canInitializeFirebase: true,
+              canUseFirebaseAuth: true,
+              canUseFirestore: true,
+              canUseRemoteConfig: true,
+              canRunCloudSync: true,
+              canUseAiTransport: true,
+              canShowCloudSyncEntryPoint: true,
+              canRegisterInApp: true,
+              canShowPaymentOrPurchaseUi: true,
+              canActivatePromoOrLicenseInApp: false,
+              requiresEntitlementBeforeWebApp: true,
+              allowsLocalOnlyUsage: false,
+              expiredEntitlementMode: ExpiredEntitlementMode.readOnly,
+              firebaseEnvironment: FirebaseEnvironment.prod,
+            ),
+          ),
         ],
       );
       localContainer
@@ -384,6 +404,24 @@ void main() {
           ),
           connectivityProvider.overrideWithValue(onlineConnectivity),
           authSyncServiceProvider.overrideWithValue(authSyncService),
+          appCapabilitiesProvider.overrideWithValue(
+            const AppCapabilities(
+              canInitializeFirebase: true,
+              canUseFirebaseAuth: true,
+              canUseFirestore: true,
+              canUseRemoteConfig: true,
+              canRunCloudSync: true,
+              canUseAiTransport: true,
+              canShowCloudSyncEntryPoint: true,
+              canRegisterInApp: true,
+              canShowPaymentOrPurchaseUi: true,
+              canActivatePromoOrLicenseInApp: false,
+              requiresEntitlementBeforeWebApp: true,
+              allowsLocalOnlyUsage: false,
+              expiredEntitlementMode: ExpiredEntitlementMode.readOnly,
+              firebaseEnvironment: FirebaseEnvironment.prod,
+            ),
+          ),
         ],
       );
       localContainer

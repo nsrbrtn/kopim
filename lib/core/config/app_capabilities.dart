@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/config/firebase_environment.dart';
 import 'package:riverpod/riverpod.dart';
@@ -72,7 +73,7 @@ class AppCapabilities {
           canShowCloudSyncEntryPoint: true,
           canRegisterInApp: true,
           canShowPaymentOrPurchaseUi: true,
-          canActivatePromoOrLicenseInApp: true,
+          canActivatePromoOrLicenseInApp: false,
           requiresEntitlementBeforeWebApp: true,
           allowsLocalOnlyUsage: false,
           expiredEntitlementMode: ExpiredEntitlementMode.readOnly,
@@ -88,12 +89,14 @@ class AppCapabilities {
           canRunCloudSync: true,
           canUseAiTransport: true,
           canShowCloudSyncEntryPoint: true,
-          canRegisterInApp: true,
-          canShowPaymentOrPurchaseUi: true,
-          canActivatePromoOrLicenseInApp: true,
-          requiresEntitlementBeforeWebApp: false,
-          allowsLocalOnlyUsage: true,
-          expiredEntitlementMode: ExpiredEntitlementMode.configurable,
+          canRegisterInApp: kIsWeb,
+          canShowPaymentOrPurchaseUi: kIsWeb,
+          canActivatePromoOrLicenseInApp: false,
+          requiresEntitlementBeforeWebApp: kIsWeb,
+          allowsLocalOnlyUsage: !kIsWeb,
+          expiredEntitlementMode: kIsWeb
+              ? ExpiredEntitlementMode.readOnly
+              : ExpiredEntitlementMode.localWritableSyncPaused,
           firebaseEnvironment: FirebaseEnvironment.dev,
         );
     }
