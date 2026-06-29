@@ -33,6 +33,7 @@ void main() {
 
     expect(state.status, CloudActivationDecisionStatus.choiceRequired);
     expect(state.scenario, CloudActivationScenario.localEmptyRemoteEmpty);
+    expect(state.recommendedChoice, CloudActivationChoice.enableCloudSync);
     expect(
       state.options
           .firstWhere(
@@ -90,6 +91,10 @@ void main() {
           );
 
       expect(state.status, CloudActivationDecisionStatus.blocked);
+      expect(
+        state.recommendedChoice,
+        CloudActivationChoice.migrateLocalToCloud,
+      );
       expect(
         state.options
             .firstWhere(
@@ -167,13 +172,17 @@ void main() {
 
     expect(state.scenario, CloudActivationScenario.localEmptyRemoteHasData);
     expect(
+      state.recommendedChoice,
+      CloudActivationChoice.replaceLocalWithCloud,
+    );
+    expect(
       state.options
           .firstWhere(
             (CloudActivationDecisionOption option) =>
                 option.choice == CloudActivationChoice.replaceLocalWithCloud,
           )
           .availability,
-      CloudActivationChoiceAvailability.unavailableUntilExecutionFlow,
+      CloudActivationChoiceAvailability.requiresConfirmation,
     );
   });
 
@@ -189,6 +198,7 @@ void main() {
         );
 
     expect(state.scenario, CloudActivationScenario.localHasDataRemoteHasData);
+    expect(state.recommendedChoice, isNull);
     expect(
       state.options
           .firstWhere(

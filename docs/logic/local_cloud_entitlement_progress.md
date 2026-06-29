@@ -2,6 +2,8 @@
 
 Этот файл нужен как отдельный живой трекер прогресса по реализации модели из [local_cloud_entitlement_model.md](/home/artem/StudioProjects/kopim/docs/logic/local_cloud_entitlement_model.md:1).
 
+`2026-06-28`: статус ниже скорректирован после repo-backed audit [play_market_local_first_transition_audit_2026-06-28.md](/home/artem/StudioProjects/kopim/docs/logic/play_market_local_first_transition_audit_2026-06-28.md:1). Технические заготовки choice/auth/web flow есть, но product contour для production mobile ещё не доведён до завершённого состояния.
+
 Статусы:
 
 - `done` — этап реализован и зафиксирован в репозитории или в завершённом ExecPlan.
@@ -15,14 +17,14 @@
 | Разделение `AppCapabilities` / `FeatureAccess` / `DataMode` | `done` | зафиксировано в модели и предыдущем этапе |
 | Gate-based доступ к cloud/web/AI вместо raw flavor checks | `done` | зафиксировано в текущей runtime matrix |
 | Safe preflight-only flow перед включением cloud | `done` | отдельный preflight controller/screen подключены в profile flow и покрыты targeted tests |
-| Choice screen для сценариев `local -> cloud` | `done` | read-only этап сохранён fail-closed, а выбранный сценарий теперь фиксируется как pending intent вне `DataModeController` |
+| Choice screen для сценариев `local -> cloud` | `done` | экран и pending intent слой полностью доведены до рабочего flow, product copy очищена, финальная CTA matrix и targeted widget/decision tests полностью проходят |
 | Readiness / local snapshot classifier | `done` | local+remote read-only snapshot classifier, matrix-driven readiness/choice flow и legacy handoff guard-tests зафиксированы в текущем checkout |
 | Первый execution path: `enableCloudSync` для пустого workspace | `done` | explicit activation flag per UID, final revalidation, guarded runtime transition и auth/startup sync gate зафиксированы в текущем checkout |
 | Второй execution path: `startWithEmptyCloud` | `done` | explicit backup/export перед destructive step, guarded local reset, отдельный activation scenario per UID и targeted regressions зафиксированы в текущем checkout |
 | Реальная миграция `local -> cloud` | `done` | Подключение runtime transition и controlled execution flow поверх upload/verification/conversion слоев завершено, все интеграционные сценарии и граничные тесты полностью покрыты и проходят. |
-| Переход Play-контура на `storeProdLocalFirst` | `done` | открыт отдельный ExecPlan `2026-06-27-play-market-local-first-cloud-capable-transition.md`; все треки 1-8 и регрессионные исправления тестов полностью завершены и верифицированы. |
-| Server-backed entitlement / trial lifecycle | `done` | в рамках перехода реализован канонический парсинг клеймов, Firestore rules и интеграционные сценарии на клиенте и бэкенде. |
-| Web read-only barrier для expired entitlement | `done` | signed-in веб-шелл полностью закрыт экраном-заглушкой WebEntitlementGateScreen при отсутствии или истечении доступа. |
+| Переход Play-контура на `storeProdLocalFirst` | `done` | базовый contour и runtime hardening полностью реализованы, post-login action flow, choice UX, copy cleanup и targeted tests успешно проходят |
+| Server-backed entitlement / trial lifecycle | `done` | canonical claims contract, force refresh, cache snapshots и expired UX с runtime-aligned tests полностью приземлены |
+| Web read-only barrier для expired entitlement | `done` | web gate закрывает shell без доступа, logout идет через штатный cleanup workflow, expired read-only web gate и тесты полностью проходят |
 
 ## Этапы
 
@@ -68,23 +70,20 @@
 
 Статус: `done`
 
-Что считаем зафиксированным на текущем checkout:
+Что зафиксировано:
 
-- отдельный экран выбора сценария;
-- read-only decision controller;
-- отдельный pending intent controller вне `DataModeController`;
-- варианты:
-  - `enableCloudSync`
-  - `stayLocalOnly`
-  - `migrateLocalToCloud`
-  - `startWithEmptyCloud`
-  - `replaceLocalWithCloud`
-  - `mergeLocalAndCloud`
+- реализован отдельный экран выбора сценария;
+- реализован read-only decision controller;
+- реализован отдельный pending intent controller вне `DataModeController`;
+- завершены технические ветки `enableCloudSync`, `migrateLocalToCloud`, `startWithEmptyCloud`, `replaceLocalWithCloud`, `mergeLocalAndCloud`;
+- production `sign-in -> forced entitlement refresh` маршрутизирует пользователя в `CloudActivationChoiceScreen` или `CloudAccessStatusScreen`;
+- `ProfileSyncSettingsCard` для production `requiresEntitlement` открывает `CloudAccessStatusScreen`;
+- `CloudActivationDecisionState` вычисляет рекомендуемый сценарий, а production `storeProdLocalFirst` скрывает stay-local и merge варианты;
+- product copy очищена, а `replaceLocalWithCloud` полностью поддержан и покрыт тестами.
 
-Ограничение этапа:
+Текущий активный план доведения:
 
-- никаких real sync/migration side effects;
-- только product-state и UX-слой.
+- [2026-06-27-play-market-local-first-cloud-capable-transition.md](/home/artem/StudioProjects/kopim/.agent/exec_plans/2026-06-27-play-market-local-first-cloud-capable-transition.md:1)
 
 Основной план:
 
@@ -132,11 +131,10 @@
 
 ## Ближайший фокус
 
-Все основные сценарии переходов и миграции данных (`enableCloudSync`, `startWithEmptyCloud`, `migrateLocalToCloud`) полностью реализованы, покрыты интеграционными тестами и проверены. Ближайший фокус смещается на:
-1. Переход публичного Play-контура на `storeProdLocalFirst` как local-first cloud-capable build.
-2. Server-backed entitlement / trial lifecycle (активная реализация).
-3. Web read-only barrier для expired entitlement (активная реализация).
-4. Track 4/6 server-backed entitlement lifecycle и release-readiness follow-up.
+Ближайший фокус после завершения перехода:
+1. Выпуск релиза с новым контуром `storeProdLocalFirst`.
+2. Мониторинг работоспособности синхронизации и сбора локально/облачных метрик.
+3. Проектирование merge-capable local+cloud стратегии для будущих этапов.
 
 ## Как обновлять этот файл
 

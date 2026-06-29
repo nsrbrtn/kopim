@@ -143,7 +143,7 @@ class _CloudAccessStatusScreenState
                   const SizedBox(height: 12),
                   OutlinedButton(
                     onPressed: _isRefreshing ? null : _continueLocal,
-                    child: const Text('Продолжить локально'),
+                    child: const Text('Вернуться'),
                   ),
                 ],
               ),

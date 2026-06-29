@@ -36,9 +36,7 @@ void main() {
     expect(find.text('resume=true'), findsOneWidget);
   });
 
-  testWidgets('continue local closes intro screen', (
-    WidgetTester tester,
-  ) async {
+  testWidgets('back action closes intro screen', (WidgetTester tester) async {
     await tester.pumpWidget(
       buildTestAppWithRouter(
         child: const Scaffold(body: Text('home-screen')),
@@ -60,7 +58,7 @@ void main() {
     GoRouter.of(context).push(CloudSyncIntroScreen.routeName);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Продолжить локально'));
+    await tester.tap(find.text('Вернуться'));
     await tester.pumpAndSettle();
 
     expect(find.text('home-screen'), findsOneWidget);

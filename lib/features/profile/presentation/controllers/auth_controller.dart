@@ -63,7 +63,9 @@ class AuthController extends _$AuthController {
 
     if (AppRuntimeConfig.isOfflineOnlyDistribution ||
         capabilities.allowsLocalOnlyUsage) {
-      final AuthUser offlineUser = await repository.signInAnonymously();
+      final AuthUser offlineUser = await ref
+          .read(localAuthRepositoryProvider)
+          .signInAnonymously();
       state = AsyncValue<AuthUser?>.data(offlineUser);
       return offlineUser;
     }
@@ -75,7 +77,9 @@ class AuthController extends _$AuthController {
     );
 
     if (isOffline) {
-      final AuthUser fallbackUser = await repository.signInAnonymously();
+      final AuthUser fallbackUser = await ref
+          .read(localAuthRepositoryProvider)
+          .signInAnonymously();
       state = AsyncValue<AuthUser?>.data(fallbackUser);
       return fallbackUser;
     }
@@ -258,6 +262,15 @@ class AuthController extends _$AuthController {
     );
     if (availability.isAvailable == false) {
       return;
+    }
+    try {
+      await ref.read(dataModeControllerProvider.notifier).refreshEntitlement();
+    } catch (e) {
+      ref
+          .read(loggerServiceProvider)
+          .logWarning(
+            'AuthController: failed to auto-refresh entitlement claims: $e',
+          );
     }
     final DataModeState effectiveMode = await ref
         .read(dataModeControllerProvider.notifier)

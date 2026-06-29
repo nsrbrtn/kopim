@@ -38,7 +38,7 @@ class CloudSyncIntroScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Войдите в аккаунт с активным доступом, чтобы подключить облачную синхронизацию. Если аккаунт не нужен прямо сейчас, продолжайте работать локально на этом устройстве.',
+                    'Войдите в аккаунт с активным доступом, чтобы подключить облачную синхронизацию.',
                     style: theme.textTheme.bodyLarge,
                     textAlign: TextAlign.center,
                   ),
@@ -54,7 +54,7 @@ class CloudSyncIntroScreen extends StatelessWidget {
                   const SizedBox(height: 12),
                   OutlinedButton(
                     onPressed: () => context.pop(),
-                    child: const Text('Продолжить локально'),
+                    child: const Text('Вернуться'),
                   ),
                 ],
               ),

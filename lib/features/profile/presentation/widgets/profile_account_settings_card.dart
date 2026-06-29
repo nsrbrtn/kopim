@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:kopim/core/config/app_runtime.dart';
+import 'package:kopim/core/config/app_capabilities.dart';
 import 'package:kopim/core/widgets/kopim_dropdown_field.dart';
 import 'package:kopim/core/widgets/kopim_text_field.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
@@ -107,6 +108,7 @@ class _ProfileAccountFormState extends ConsumerState<_ProfileAccountForm> {
   Widget build(BuildContext context) {
     final AppLocalizations strings = AppLocalizations.of(context)!;
     final ThemeData theme = Theme.of(context);
+    final AppCapabilities capabilities = ref.watch(appCapabilitiesProvider);
     final ProfileFormControllerProvider provider = _profileFormProvider;
 
     ref.listen<ProfileFormState>(provider, (
@@ -165,7 +167,9 @@ class _ProfileAccountFormState extends ConsumerState<_ProfileAccountForm> {
             ),
           ],
         ),
-        if (widget.isAnonymous && !AppRuntimeConfig.isOffline) ...<Widget>[
+        if (widget.isAnonymous &&
+            !AppRuntimeConfig.isOffline &&
+            capabilities.canRegisterInApp) ...<Widget>[
           const SizedBox(height: 16),
           _AnonymousUpgradeBanner(strings: strings),
         ],

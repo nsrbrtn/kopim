@@ -229,7 +229,7 @@ void main() {
           additionalRoutes: <RouteBase>[
             mockRoute(
               CloudAccessStatusScreen.routeName,
-              text: 'cloud-access-status-screen',
+              text: 'cloud-access-status',
             ),
           ],
         ),
@@ -244,11 +244,10 @@ void main() {
       ),
       findsOneWidget,
     );
-
     await tester.tap(find.text('Проверить доступ снова'));
     await tester.pumpAndSettle();
 
-    expect(find.text('cloud-access-status-screen'), findsOneWidget);
+    expect(find.text('cloud-access-status'), findsOneWidget);
   });
 
   testWidgets('production expired entitlement shows paused copy', (

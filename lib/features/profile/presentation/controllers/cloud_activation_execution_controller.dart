@@ -1,7 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:kopim/core/config/app_runtime.dart';
+import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/features/profile/application/cloud_activation_execution_service.dart';
 import 'package:kopim/features/profile/application/fresh_upload_execution_service.dart';
+import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_intent_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
@@ -27,6 +32,10 @@ class CloudActivationExecutionController
               .refreshForCurrentContext(),
         );
 
+    if (result.status == CloudActivationExecutionStatus.succeeded) {
+      await _runInitialSyncAfterSuccess();
+    }
+
     if (result.status == CloudActivationExecutionStatus.succeeded ||
         result.status == CloudActivationExecutionStatus.blocked) {
       ref.read(cloudActivationIntentProvider.notifier).clearPendingChoice();
@@ -50,6 +59,38 @@ class CloudActivationExecutionController
               .refreshForCurrentContext(),
         );
 
+    if (result.status == CloudActivationExecutionStatus.succeeded) {
+      try {
+        await _runInitialSyncAfterSuccess(rethrowError: true);
+      } catch (error) {
+        final AuthUser? user = ref.read(authControllerProvider).asData?.value;
+        if (user != null) {
+          try {
+            await ref
+                .read(cloudActivationExecutionServiceProvider)
+                .clearActivationState(user.uid);
+            await ref
+                .read(dataModeControllerProvider.notifier)
+                .refreshForCurrentContext();
+          } catch (rollbackError) {
+            ref
+                .read(loggerServiceProvider)
+                .logError(
+                  'Critical: Failed to rollback activation state on sync failure: $rollbackError',
+                  rollbackError,
+                );
+          }
+        }
+        final CloudActivationExecutionResult
+        failedResult = CloudActivationExecutionResult.failed(
+          message:
+              'Не удалось загрузить данные из облака: $error. Активация отменена.',
+        );
+        state = AsyncData<CloudActivationExecutionResult>(failedResult);
+        return failedResult;
+      }
+    }
+
     if (result.status == CloudActivationExecutionStatus.succeeded ||
         result.status == CloudActivationExecutionStatus.blocked) {
       ref.read(cloudActivationIntentProvider.notifier).clearPendingChoice();
@@ -71,6 +112,10 @@ class CloudActivationExecutionController
               .read(dataModeControllerProvider.notifier)
               .refreshForCurrentContext(),
         );
+
+    if (result.status == CloudActivationExecutionStatus.succeeded) {
+      await _runInitialSyncAfterSuccess();
+    }
 
     if (result.status == CloudActivationExecutionStatus.succeeded ||
         (result.status == CloudActivationExecutionStatus.blocked &&
@@ -97,6 +142,10 @@ class CloudActivationExecutionController
               .read(dataModeControllerProvider.notifier)
               .refreshForCurrentContext(),
         );
+
+    if (result.status == CloudActivationExecutionStatus.succeeded) {
+      await _runInitialSyncAfterSuccess();
+    }
 
     if (result.status == CloudActivationExecutionStatus.succeeded ||
         result.status == CloudActivationExecutionStatus.blocked) {
@@ -137,6 +186,10 @@ class CloudActivationExecutionController
               .refreshForCurrentContext(),
         );
 
+    if (execResult.status == CloudActivationExecutionStatus.succeeded) {
+      await _runInitialSyncAfterSuccess();
+    }
+
     if (execResult.status == CloudActivationExecutionStatus.succeeded ||
         (execResult.status == CloudActivationExecutionStatus.blocked &&
             execResult.blockReason !=
@@ -147,6 +200,39 @@ class CloudActivationExecutionController
 
     state = AsyncData<CloudActivationExecutionResult>(execResult);
     return execResult;
+  }
+
+  Future<void> _runInitialSyncAfterSuccess({bool rethrowError = false}) async {
+    try {
+      final AuthUser? user = ref.read(authControllerProvider).asData?.value;
+      if (user == null || user.isGuest) {
+        return;
+      }
+      final DataModeState? effectiveMode = ref
+          .read(dataModeControllerProvider)
+          .value;
+      if (effectiveMode == null ||
+          effectiveMode.dataMode != DataMode.cloudEnabled) {
+        return;
+      }
+      await ref
+          .read(authSyncServiceProvider)
+          .synchronizeOnLogin(
+            user: user,
+            migrationDecision: effectiveMode.migrationDecision,
+          );
+      await ref.read(recomputeUserProgressUseCaseProvider)();
+    } catch (error) {
+      ref
+          .read(loggerServiceProvider)
+          .logError(
+            'Failed to run initial sync after cloud activation: $error',
+            error,
+          );
+      if (rethrowError) {
+        rethrow;
+      }
+    }
   }
 
   void reset() {

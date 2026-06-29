@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:kopim/features/app_shell/presentation/widgets/main_navigation_shell.dart';
-import 'package:kopim/core/di/injectors.dart';
+import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/feature_access_provider.dart';
-import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
 
 class WebEntitlementGateScreen extends ConsumerStatefulWidget {
   const WebEntitlementGateScreen({super.key});
@@ -60,11 +59,10 @@ class _WebEntitlementGateScreenState
     });
 
     try {
-      await ref.read(cloudAuthRepositoryProvider).signOut();
+      await ref.read(authControllerProvider.notifier).signOut();
       if (!mounted) {
         return;
       }
-      context.go(SignInScreen.routeName);
     } catch (error) {
       if (!mounted) {
         return;

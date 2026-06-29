@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:kopim/core/config/app_capabilities.dart';
+import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/utils/web_platform_utils.dart';
 import 'package:kopim/features/profile/application/cloud_activation_execution_service.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_decision_controller.dart';
@@ -65,6 +67,7 @@ class _CloudActivationChoiceScreenState
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    ref.watch(appCapabilitiesProvider);
     final CloudActivationDecisionState state = ref.watch(
       cloudActivationDecisionProvider,
     );
@@ -108,6 +111,16 @@ class _CloudActivationChoiceScreenState
         canConfirmReplaceLocalWithCloud &&
         dataModeState?.requiresFreshCloudUpload == true;
     final bool isExecuting = executionState.isLoading;
+    final bool useProductionLocalFirstUx =
+        AppRuntimeConfig.flavor == AppRuntimeFlavor.storeProdLocalFirst;
+    final List<CloudActivationDecisionOption> visibleOptions = state.options
+        .where(
+          (CloudActivationDecisionOption option) =>
+              !useProductionLocalFirstUx ||
+              (option.choice != CloudActivationChoice.stayLocalOnly &&
+                  option.choice != CloudActivationChoice.mergeLocalAndCloud),
+        )
+        .toList();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Подключение облака')),
@@ -141,44 +154,45 @@ class _CloudActivationChoiceScreenState
                   const SizedBox(height: 12),
                   _InfoBanner(
                     message:
-                        'Для следующего этапа сохранён выбор: ${cloudActivationChoiceLabel(intentState.pendingChoice!)}. Данные и синхронизация пока не менялись.',
+                        'Выбор сохранён: ${cloudActivationChoiceLabel(intentState.pendingChoice!)}. Данные пока не менялись.',
                   ),
                 ],
                 if (canConfirmEnableCloudSync) ...<Widget>[
                   const SizedBox(height: 12),
                   const _InfoBanner(
                     message:
-                        'Перед включением Kopim ещё раз проверит локальное и облачное состояние. Если что-то изменилось, сценарий будет безопасно остановлен без отправки данных.',
+                        'Перед включением Kopim ещё раз проверит локальное и облачное состояние. Если что-то изменилось, приложение безопасно остановит этот шаг.',
                   ),
                 ],
                 if (canConfirmStartWithEmptyCloud) ...<Widget>[
                   const SizedBox(height: 12),
                   const _InfoBanner(
                     message:
-                        'Перед запуском Kopim создаст backup локальных данных, затем ещё раз проверит локальное и облачное состояние и только после этого очистит активное локальное рабочее пространство. Локальная база не будет загружена в облако.',
+                        'Перед запуском Kopim создаст backup локальных данных, ещё раз проверит состояние и только после этого подготовит пустой облачный профиль.',
                   ),
                 ],
                 if (canConfirmMigrateLocalToCloud) ...<Widget>[
                   const SizedBox(height: 12),
                   const _InfoBanner(
                     message:
-                        'Следующий шаг пока не запускает upload. Kopim только выполнит migration preflight: включит write-freeze, снимет стабильный локальный snapshot и прогонит inventory/readiness validator. Если хотя бы одна строка небезопасна, перенос останется заблокированным.',
+                        'Следующий шаг пока не переносит данные в облако. Kopim сначала проверит, что этот переход безопасен.',
                   ),
                 ],
                 if (canConfirmReplaceLocalWithCloud) ...<Widget>[
                   const SizedBox(height: 12),
                   _InfoBanner(
                     message: canConfirmFreshUpload
-                        ? 'При подтверждении Kopim начнёт Fresh Upload: переведёт remote metadata в freshUploadInProgress, загрузит локальный граф, проверит облако, финализирует локальное состояние и только потом включит синхронизацию.'
-                        : 'При подтверждении Kopim сохранит флаг активации облака и при следующем запуске синхронизации полностью скачает существующие данные из облака на это устройство.',
+                        ? 'При подтверждении Kopim начнёт подготовленную загрузку локальных данных в облако.'
+                        : 'Когда этот сценарий будет полностью готов, Kopim сможет загрузить существующие облачные данные на это устройство.',
                   ),
                 ],
-                if (state.canChoose) ...<Widget>[
+                if (state.canChoose && visibleOptions.isNotEmpty) ...<Widget>[
                   const SizedBox(height: 24),
                   for (final CloudActivationDecisionOption option
-                      in state.options) ...<Widget>[
+                      in visibleOptions) ...<Widget>[
                     _ChoiceCard(
                       option: option,
+                      isRecommended: state.recommendedChoice == option.choice,
                       isSelected: intentState.pendingChoice == option.choice,
                       onPressed: () =>
                           _handleChoice(context, ref, state, option),
@@ -355,7 +369,12 @@ class _CloudActivationChoiceScreenState
                     ),
                     FilledButton(
                       onPressed: () => Navigator.of(context).pop(true),
-                      child: const Text('Понятно'),
+                      child: Text(
+                        option.choice ==
+                                CloudActivationChoice.replaceLocalWithCloud
+                            ? 'Продолжить'
+                            : 'Понятно',
+                      ),
                     ),
                   ],
                 );
@@ -520,11 +539,13 @@ class _InfoBanner extends StatelessWidget {
 class _ChoiceCard extends StatelessWidget {
   const _ChoiceCard({
     required this.option,
+    required this.isRecommended,
     required this.isSelected,
     required this.onPressed,
   });
 
   final CloudActivationDecisionOption option;
+  final bool isRecommended;
   final bool isSelected;
   final VoidCallback onPressed;
 
@@ -553,6 +574,7 @@ class _ChoiceCard extends StatelessWidget {
               crossAxisAlignment: WrapCrossAlignment.center,
               children: <Widget>[
                 Text(option.title, style: theme.textTheme.titleMedium),
+                if (isRecommended) const Chip(label: Text('Рекомендуем')),
                 Chip(label: Text(availabilityLabel)),
                 if (isSelected) const Chip(label: Text('Выбрано')),
               ],
@@ -562,10 +584,15 @@ class _ChoiceCard extends StatelessWidget {
             const SizedBox(height: 16),
             Align(
               alignment: Alignment.centerLeft,
-              child: OutlinedButton(
-                onPressed: onPressed,
-                child: const Text('Выбрать'),
-              ),
+              child: isRecommended
+                  ? FilledButton(
+                      onPressed: onPressed,
+                      child: const Text('Выбрать'),
+                    )
+                  : OutlinedButton(
+                      onPressed: onPressed,
+                      child: const Text('Выбрать'),
+                    ),
             ),
           ],
         ),

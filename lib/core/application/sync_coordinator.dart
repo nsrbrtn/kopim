@@ -8,8 +8,10 @@ import 'package:kopim/core/application/sync_preferences_provider.dart';
 import 'package:kopim/core/config/app_capabilities.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/services/sync_service.dart';
+import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
 
 /// Координатор, который управляет жизненным циклом синхронизации:
 /// - не запускает SyncService для гостя/в офлайне;
@@ -34,6 +36,10 @@ final Provider<void> syncCoordinatorProvider = Provider<void>((Ref ref) {
   bool? isOnlineSyncEnabled = ref
       .watch(onlineSyncPreferencesControllerProvider)
       .maybeWhen(data: (bool value) => value, orElse: () => null);
+  final DataModeState? dataModeState = ref
+      .watch(dataModeControllerProvider)
+      .value;
+  final bool isCloudEnabled = dataModeState?.dataMode == DataMode.cloudEnabled;
 
   void stopSync() {
     syncSubscription?.close();
@@ -67,7 +73,10 @@ final Provider<void> syncCoordinatorProvider = Provider<void>((Ref ref) {
   void reevaluateSyncState() {
     final AuthUser? user = currentUser;
     final bool canSync =
-        isOnlineSyncEnabled == true && user != null && !user.isGuest;
+        isOnlineSyncEnabled == true &&
+        isCloudEnabled &&
+        user != null &&
+        !user.isGuest;
     if (!canSync) {
       stopSync();
       return;

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:kopim/core/config/app_capabilities.dart';
+import 'package:kopim/core/config/firebase_environment.dart';
 import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_decision_controller.dart';
 import 'package:kopim/features/profile/application/cloud_activation_execution_service.dart';
@@ -114,6 +116,7 @@ void main() {
         'На этом устройстве уже есть локальные данные. Пока приложение не выполняет перенос автоматически.',
     followupNote:
         'Это подготовительный шаг: локальные данные пока никуда не отправлены.',
+    recommendedChoice: CloudActivationChoice.migrateLocalToCloud,
     localSnapshotState: CloudActivationSnapshotState.hasData,
     remoteSnapshotState: CloudActivationSnapshotState.empty,
     localFingerprint: 'local:hasData',
@@ -161,6 +164,7 @@ void main() {
 
     expect(find.text('Как включить облачные функции'), findsOneWidget);
     expect(find.text('Остаться локально'), findsOneWidget);
+    expect(find.text('Рекомендуем'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('Начать с пустого облака'),
       200,
@@ -255,7 +259,7 @@ void main() {
 
     expect(find.text('Запустить migration preflight'), findsOneWidget);
     expect(
-      find.textContaining('write-freeze, снимет стабильный локальный snapshot'),
+      find.textContaining('сначала проверит, что этот переход безопасен'),
       findsOneWidget,
     );
   });
@@ -328,7 +332,7 @@ void main() {
     );
     final Finder chooseButton = find.descendant(
       of: optionCard,
-      matching: find.widgetWithText(OutlinedButton, 'Выбрать'),
+      matching: find.text('Выбрать'),
     );
     await tester.scrollUntilVisible(
       chooseButton,
@@ -352,6 +356,7 @@ void main() {
       subtitle: 'Сначала выберите, как Kopim должен работать дальше.',
       body: 'Локального блока для миграции сейчас нет.',
       followupNote: 'Это только подготовительный этап.',
+      recommendedChoice: CloudActivationChoice.enableCloudSync,
       localSnapshotState: CloudActivationSnapshotState.empty,
       remoteSnapshotState: CloudActivationSnapshotState.empty,
       localFingerprint: 'local:empty',
@@ -379,10 +384,7 @@ void main() {
       matching: find.byType(Card),
     );
     await tester.tap(
-      find.descendant(
-        of: optionCard,
-        matching: find.widgetWithText(OutlinedButton, 'Выбрать'),
-      ),
+      find.descendant(of: optionCard, matching: find.text('Выбрать')),
     );
     await tester.pumpAndSettle();
 
@@ -414,6 +416,7 @@ void main() {
         subtitle: 'Сначала выберите, как Kopim должен работать дальше.',
         body: 'Локального блока для миграции сейчас нет.',
         followupNote: 'Это только подготовительный этап.',
+        recommendedChoice: CloudActivationChoice.enableCloudSync,
         localSnapshotState: CloudActivationSnapshotState.empty,
         remoteSnapshotState: CloudActivationSnapshotState.empty,
         localFingerprint: 'local:empty',
@@ -444,7 +447,7 @@ void main() {
     await tester.pumpWidget(_buildTestApp(container: container));
     await container.read(dataModeControllerProvider.future);
 
-    await tester.tap(find.widgetWithText(OutlinedButton, 'Выбрать'));
+    await tester.tap(find.text('Выбрать'));
     await tester.pumpAndSettle();
 
     final DataModeState dataModeState = container
@@ -519,4 +522,204 @@ void main() {
       );
     },
   );
+
+  testWidgets('production local-first hides stay-local and merge choices', (
+    WidgetTester tester,
+  ) async {
+    AppRuntimeConfig.configure(AppRuntimeFlavor.storeProdLocalFirst);
+    _useLargeSurface(tester);
+    addTearDown(() {
+      tester.view.reset();
+      AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseDev);
+    });
+    final ProviderContainer container = _createContainer(
+      blockedState,
+      extraOverrides: <Override>[
+        appCapabilitiesProvider.overrideWithValue(
+          const AppCapabilities(
+            canInitializeFirebase: true,
+            canUseFirebaseAuth: true,
+            canUseFirestore: true,
+            canUseRemoteConfig: true,
+            canRunCloudSync: true,
+            canUseAiTransport: true,
+            canShowCloudSyncEntryPoint: true,
+            canRegisterInApp: false,
+            canShowPaymentOrPurchaseUi: false,
+            canActivatePromoOrLicenseInApp: false,
+            requiresEntitlementBeforeWebApp: false,
+            allowsLocalOnlyUsage: true,
+            expiredEntitlementMode:
+                ExpiredEntitlementMode.localWritableSyncPaused,
+            firebaseEnvironment: FirebaseEnvironment.prod,
+          ),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(_buildTestApp(container: container));
+
+    expect(find.text('Остаться локально'), findsNothing);
+    expect(find.text('Объединить локальные и облачные данные'), findsNothing);
+    expect(find.text('Перенести данные в облако'), findsOneWidget);
+    expect(find.text('Рекомендуем'), findsOneWidget);
+  });
+
+  testWidgets('replace-local-with-cloud shows confirmation dialog', (
+    WidgetTester tester,
+  ) async {
+    AppRuntimeConfig.configure(AppRuntimeFlavor.storeProdLocalFirst);
+    _useLargeSurface(tester);
+    addTearDown(() {
+      tester.view.reset();
+      AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseDev);
+    });
+    const CloudActivationDecisionState
+    replaceState = CloudActivationDecisionState(
+      status: CloudActivationDecisionStatus.choiceRequired,
+      scenario: CloudActivationScenario.localEmptyRemoteHasData,
+      title: 'Как включить облачные функции',
+      subtitle: 'Сначала выберите, как Kopim должен работать дальше.',
+      body:
+          'На этом устройстве ещё нет ваших данных, но в облаке они уже есть.',
+      followupNote: 'Этот экран помогает выбрать следующий безопасный шаг.',
+      recommendedChoice: CloudActivationChoice.replaceLocalWithCloud,
+      localSnapshotState: CloudActivationSnapshotState.empty,
+      remoteSnapshotState: CloudActivationSnapshotState.hasData,
+      localFingerprint: 'local:empty',
+      remoteFingerprint: 'remote:hasUserData|uid:user-1',
+      options: <CloudActivationDecisionOption>[
+        CloudActivationDecisionOption(
+          choice: CloudActivationChoice.replaceLocalWithCloud,
+          title: 'Загрузить облачные данные',
+          body:
+              'Подходит, когда на устройстве ещё нет ваших данных, а в облаке они уже есть.',
+          availability: CloudActivationChoiceAvailability.requiresConfirmation,
+          followupNote:
+              'Kopim ещё раз проверит, что устройство пустое, а облачные данные доступны для текущего аккаунта, и только после этого начнёт подключение.',
+        ),
+      ],
+    );
+    final ProviderContainer container = _createContainer(
+      replaceState,
+      extraOverrides: <Override>[
+        appCapabilitiesProvider.overrideWithValue(
+          const AppCapabilities(
+            canInitializeFirebase: true,
+            canUseFirebaseAuth: true,
+            canUseFirestore: true,
+            canUseRemoteConfig: true,
+            canRunCloudSync: true,
+            canUseAiTransport: true,
+            canShowCloudSyncEntryPoint: true,
+            canRegisterInApp: false,
+            canShowPaymentOrPurchaseUi: false,
+            canActivatePromoOrLicenseInApp: false,
+            requiresEntitlementBeforeWebApp: false,
+            allowsLocalOnlyUsage: true,
+            expiredEntitlementMode:
+                ExpiredEntitlementMode.localWritableSyncPaused,
+            firebaseEnvironment: FirebaseEnvironment.prod,
+          ),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(_buildTestApp(container: container));
+
+    expect(find.text('Загрузить облачные данные'), findsOneWidget);
+    await tester.tap(find.text('Выбрать'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AlertDialog), findsOneWidget);
+    expect(find.text('Продолжить'), findsOneWidget);
+  });
+
+  testWidgets('replace-local-with-cloud waiting state shows final CTA', (
+    WidgetTester tester,
+  ) async {
+    AppRuntimeConfig.configure(AppRuntimeFlavor.storeProdLocalFirst);
+    _useLargeSurface(tester);
+    addTearDown(() {
+      tester.view.reset();
+      AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseDev);
+    });
+    const CloudActivationDecisionState
+    replaceState = CloudActivationDecisionState(
+      status: CloudActivationDecisionStatus.choiceRequired,
+      scenario: CloudActivationScenario.localEmptyRemoteHasData,
+      title: 'Как включить облачные функции',
+      subtitle: 'Сначала выберите, как Kopim должен работать дальше.',
+      body:
+          'На этом устройстве ещё нет ваших данных, но в облаке они уже есть.',
+      followupNote: 'Этот экран помогает выбрать следующий безопасный шаг.',
+      recommendedChoice: CloudActivationChoice.replaceLocalWithCloud,
+      localSnapshotState: CloudActivationSnapshotState.empty,
+      remoteSnapshotState: CloudActivationSnapshotState.hasData,
+      localFingerprint: 'local:empty',
+      remoteFingerprint: 'remote:hasUserData|uid:user-1',
+      options: <CloudActivationDecisionOption>[
+        CloudActivationDecisionOption(
+          choice: CloudActivationChoice.replaceLocalWithCloud,
+          title: 'Загрузить облачные данные',
+          body:
+              'Подходит, когда на устройстве ещё нет ваших данных, а в облаке они уже есть.',
+          availability: CloudActivationChoiceAvailability.requiresConfirmation,
+          followupNote:
+              'Kopim ещё раз проверит, что устройство пустое, а облачные данные доступны для текущего аккаунта, и только после этого начнёт подключение.',
+        ),
+      ],
+    );
+    final ProviderContainer container = _createContainer(
+      replaceState,
+      readinessOverride: const AsyncData<CloudActivationReadinessState>(
+        CloudActivationReadinessState(
+          status: CloudActivationReadinessStatus.waitingForConfirmation,
+          localSnapshotState: LocalSnapshotState.empty,
+          remoteSnapshotState: RemoteSnapshotState.hasUserData,
+          pendingChoice: CloudActivationChoice.replaceLocalWithCloud,
+          localFingerprint: 'local:empty',
+          remoteFingerprint: 'remote:hasUserData|uid:user-1',
+        ),
+      ),
+      extraOverrides: <Override>[
+        appCapabilitiesProvider.overrideWithValue(
+          const AppCapabilities(
+            canInitializeFirebase: true,
+            canUseFirebaseAuth: true,
+            canUseFirestore: true,
+            canUseRemoteConfig: true,
+            canRunCloudSync: true,
+            canUseAiTransport: true,
+            canShowCloudSyncEntryPoint: true,
+            canRegisterInApp: false,
+            canShowPaymentOrPurchaseUi: false,
+            canActivatePromoOrLicenseInApp: false,
+            requiresEntitlementBeforeWebApp: false,
+            allowsLocalOnlyUsage: true,
+            expiredEntitlementMode:
+                ExpiredEntitlementMode.localWritableSyncPaused,
+            firebaseEnvironment: FirebaseEnvironment.prod,
+          ),
+        ),
+        cloudActivationIntentProvider.overrideWith(
+          CloudActivationIntentController.new,
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    container
+        .read(cloudActivationIntentProvider.notifier)
+        .savePendingChoice(
+          choice: CloudActivationChoice.replaceLocalWithCloud,
+          decisionState: replaceState,
+        );
+
+    await tester.pumpWidget(_buildTestApp(container: container));
+
+    expect(find.text('Загрузить облачные данные'), findsWidgets);
+    expect(find.text('Подключаем...'), findsOneWidget);
+  });
 }

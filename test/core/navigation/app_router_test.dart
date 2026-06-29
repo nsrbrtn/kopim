@@ -193,6 +193,19 @@ class _MutableAuthController extends AuthController {
   }
 }
 
+class _SignOutAwareAuthController extends _MutableAuthController {
+  // ignore: use_super_parameters
+  _SignOutAwareAuthController(AuthUser? initialUser) : super(initialUser);
+
+  int signOutCalls = 0;
+
+  @override
+  Future<void> signOut() async {
+    signOutCalls += 1;
+    setUser(null);
+  }
+}
+
 class _FakeAnalyticsFilterController extends AnalyticsFilterController {
   _FakeAnalyticsFilterController(this._state);
 
@@ -874,6 +887,24 @@ void main() {
         () => _MutableAuthController(null),
       ),
       extraOverrides: <Override>[
+        appCapabilitiesProvider.overrideWithValue(
+          const AppCapabilities(
+            canInitializeFirebase: true,
+            canUseFirebaseAuth: true,
+            canUseFirestore: true,
+            canUseRemoteConfig: true,
+            canRunCloudSync: true,
+            canUseAiTransport: true,
+            canShowCloudSyncEntryPoint: true,
+            canRegisterInApp: true,
+            canShowPaymentOrPurchaseUi: true,
+            canActivatePromoOrLicenseInApp: true,
+            requiresEntitlementBeforeWebApp: false,
+            allowsLocalOnlyUsage: true,
+            expiredEntitlementMode: ExpiredEntitlementMode.configurable,
+            firebaseEnvironment: FirebaseEnvironment.dev,
+          ),
+        ),
         connectivityProvider.overrideWithValue(connectivity),
         dataModeControllerProvider.overrideWith(
           () => _FakeDataModeController(
@@ -1049,6 +1080,65 @@ void main() {
     expect(find.byType(MainNavigationShell), findsNothing);
     await disposeApp(tester);
   });
+
+  testWidgets(
+    'web entitlement gate sign-out uses auth controller cleanup path',
+    (WidgetTester tester) async {
+      AppRuntimeConfig.configure(AppRuntimeFlavor.webProdCloudOnly);
+      await setWindowSize(tester, const Size(1280, 900));
+      final _SignOutAwareAuthController authController =
+          _SignOutAwareAuthController(
+            const AuthUser(uid: 'user-123', email: 'user@example.com'),
+          );
+
+      await pumpApp(
+        tester,
+        authOverride: authControllerProvider.overrideWith(() => authController),
+        extraOverrides: <Override>[
+          appCapabilitiesProvider.overrideWithValue(
+            const AppCapabilities(
+              canInitializeFirebase: true,
+              canUseFirebaseAuth: true,
+              canUseFirestore: true,
+              canUseRemoteConfig: true,
+              canRunCloudSync: true,
+              canUseAiTransport: true,
+              canShowCloudSyncEntryPoint: true,
+              canRegisterInApp: true,
+              canShowPaymentOrPurchaseUi: true,
+              canActivatePromoOrLicenseInApp: true,
+              requiresEntitlementBeforeWebApp: true,
+              allowsLocalOnlyUsage: false,
+              expiredEntitlementMode: ExpiredEntitlementMode.readOnly,
+              firebaseEnvironment: FirebaseEnvironment.prod,
+            ),
+          ),
+          featureAccessProvider.overrideWithValue(
+            const FeatureAccess(
+              entitlementState: EntitlementAccessState.freeLocal,
+              cloudSync: FeatureGate(FeatureAccessStatus.requiresEntitlement),
+              webApp: FeatureGate(FeatureAccessStatus.requiresEntitlement),
+              aiAssistant: FeatureGate(FeatureAccessStatus.requiresEntitlement),
+              advancedAnalytics: FeatureGate(
+                FeatureAccessStatus.requiresEntitlement,
+              ),
+              isWebReadOnly: false,
+            ),
+          ),
+        ],
+      );
+
+      expect(find.byType(WebEntitlementGateScreen), findsOneWidget);
+
+      await tester.tap(find.text('Выйти из аккаунта'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(authController.signOutCalls, 1);
+      expect(find.byType(SignInScreen), findsOneWidget);
+      await disposeApp(tester);
+    },
+  );
 
   testWidgets('BudgetOverviewScreen deleted fallback routing', (
     WidgetTester tester,

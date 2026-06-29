@@ -180,10 +180,14 @@ class _ProfileSyncSettingsCardState
                         : 'Для текущего аккаунта пока не найден активный доступ к облачным функциям.',
                     style: theme.textTheme.bodyMedium,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () => _openCloudAccessStatus(context),
-                    child: const Text('Проверить доступ снова'),
+                    child: Text(
+                      hasExpiredAccess
+                          ? 'Проверить статус доступа'
+                          : 'Проверить доступ снова',
+                    ),
                   ),
                 ],
               );

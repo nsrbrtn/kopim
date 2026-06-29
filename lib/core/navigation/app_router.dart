@@ -466,6 +466,9 @@ class AppRouterNotifier extends ChangeNotifier {
         _pendingLocation = null;
         return target;
       }
+      if (user.isAnonymous) {
+        return null;
+      }
       return MainNavigationShell.routeName;
     }
 

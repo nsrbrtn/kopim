@@ -39,7 +39,7 @@ void main() {
     );
   }
 
-  testWidgets('continue local closes access status screen', (
+  testWidgets('back action closes access status screen', (
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(
@@ -58,7 +58,7 @@ void main() {
 
     expect(find.text('Доступ не активен'), findsOneWidget);
 
-    await tester.tap(find.text('Продолжить локально'));
+    await tester.tap(find.text('Вернуться'));
     await tester.pumpAndSettle();
 
     expect(find.text('home-screen'), findsOneWidget);

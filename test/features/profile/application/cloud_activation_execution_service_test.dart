@@ -757,6 +757,144 @@ void main() {
   });
 
   test(
+    'replaceLocalWithCloud succeeds for empty local and remote user data',
+    () async {
+      final _FakeCloudActivationStateRepository activationRepository =
+          _FakeCloudActivationStateRepository();
+      final CloudActivationExecutionService service = _buildService(
+        activationStateRepository: activationRepository,
+        entitlementRepository: _FakeCloudEntitlementRepository(
+          CloudEntitlementState.active,
+        ),
+        localSnapshotSummaryService: _FakeLocalSnapshotSummaryService(
+          const LocalSnapshotSummary(
+            state: LocalSnapshotState.empty,
+            hasUserData: false,
+            hasSystemData: false,
+            pendingOutboxCount: 0,
+            fingerprint: 'local:empty',
+          ),
+        ),
+        cloudSnapshotSummaryService: _FakeCloudSnapshotSummaryService(
+          const CloudSnapshotSummary(
+            state: RemoteSnapshotState.hasUserData,
+            hasUserData: true,
+            hasMetadata: true,
+            hasTombstonesOnly: false,
+            fingerprint: 'remote:hasUserData|uid:cloud-user-1',
+          ),
+        ),
+      );
+
+      final CloudActivationExecutionResult result = await service
+          .confirmReplaceLocalWithCloud(
+            currentUser: const AuthUser(
+              uid: 'cloud-user-1',
+              email: 'user@example.com',
+              isAnonymous: false,
+            ),
+            intentState: const CloudActivationIntentState(
+              pendingChoice: CloudActivationChoice.replaceLocalWithCloud,
+              stage: CloudActivationIntentStage.pendingChoice,
+              scenario: CloudActivationScenario.localEmptyRemoteHasData,
+              localSnapshotState: CloudActivationSnapshotState.empty,
+              remoteSnapshotState: CloudActivationSnapshotState.hasData,
+              localFingerprint: 'local:empty',
+              remoteFingerprint: 'remote:hasUserData|uid:cloud-user-1',
+            ),
+            currentMode: const DataModeState(
+              dataMode: DataMode.localOnly,
+              entitlementState: CloudEntitlementState.active,
+              migrationDecision: MigrationDecision.none,
+            ),
+            refreshRuntimeMode: () async => const DataModeState(
+              dataMode: DataMode.cloudEnabled,
+              entitlementState: CloudEntitlementState.active,
+              migrationDecision: MigrationDecision.none,
+            ),
+          );
+
+      expect(result.status, CloudActivationExecutionStatus.succeeded);
+      expect(
+        result.message,
+        contains('Данные текущего аккаунта будут загружены'),
+      );
+      expect(activationRepository.savedState, isNotNull);
+      expect(
+        activationRepository.savedState!.scenario,
+        CloudActivationChoice.replaceLocalWithCloud.name,
+      );
+    },
+  );
+
+  test(
+    'replaceLocalWithCloud stays blocked when local workspace is not empty',
+    () async {
+      final _FakeCloudActivationStateRepository activationRepository =
+          _FakeCloudActivationStateRepository();
+      final CloudActivationExecutionService service = _buildService(
+        activationStateRepository: activationRepository,
+        entitlementRepository: _FakeCloudEntitlementRepository(
+          CloudEntitlementState.active,
+        ),
+        localSnapshotSummaryService: _FakeLocalSnapshotSummaryService(
+          const LocalSnapshotSummary(
+            state: LocalSnapshotState.hasUserData,
+            hasUserData: true,
+            hasSystemData: true,
+            pendingOutboxCount: 0,
+            fingerprint: 'local:hasUserData',
+          ),
+        ),
+        cloudSnapshotSummaryService: _FakeCloudSnapshotSummaryService(
+          const CloudSnapshotSummary(
+            state: RemoteSnapshotState.hasUserData,
+            hasUserData: true,
+            hasMetadata: true,
+            hasTombstonesOnly: false,
+            fingerprint: 'remote:hasUserData|uid:cloud-user-1',
+          ),
+        ),
+      );
+
+      final CloudActivationExecutionResult result = await service
+          .confirmReplaceLocalWithCloud(
+            currentUser: const AuthUser(
+              uid: 'cloud-user-1',
+              email: 'user@example.com',
+              isAnonymous: false,
+            ),
+            intentState: const CloudActivationIntentState(
+              pendingChoice: CloudActivationChoice.replaceLocalWithCloud,
+              stage: CloudActivationIntentStage.pendingChoice,
+              scenario: CloudActivationScenario.localEmptyRemoteHasData,
+              localSnapshotState: CloudActivationSnapshotState.empty,
+              remoteSnapshotState: CloudActivationSnapshotState.hasData,
+              localFingerprint: 'local:hasUserData',
+              remoteFingerprint: 'remote:hasUserData|uid:cloud-user-1',
+            ),
+            currentMode: const DataModeState(
+              dataMode: DataMode.localOnly,
+              entitlementState: CloudEntitlementState.active,
+              migrationDecision: MigrationDecision.none,
+            ),
+            refreshRuntimeMode: () async => const DataModeState(
+              dataMode: DataMode.cloudEnabled,
+              entitlementState: CloudEntitlementState.active,
+              migrationDecision: MigrationDecision.none,
+            ),
+          );
+
+      expect(result.status, CloudActivationExecutionStatus.blocked);
+      expect(
+        result.blockReason,
+        CloudActivationExecutionBlockReason.localNotEmpty,
+      );
+      expect(activationRepository.savedState, isNull);
+    },
+  );
+
+  test(
     'startWithEmptyCloud fails when remote revalidation detects user data',
     () async {
       final _FakeCloudActivationStateRepository activationRepository =
@@ -1331,4 +1469,240 @@ void main() {
       expect(migrationStateRepository.state, isNull);
     },
   );
+
+  group('Metadata document initialization', () {
+    test(
+      'confirmReplaceLocalWithCloud initializes missing metadata document to active',
+      () async {
+        final FakeFirebaseFirestore firestore = FakeFirebaseFirestore();
+        final _FakeCloudActivationStateRepository activationRepository =
+            _FakeCloudActivationStateRepository();
+        final CloudActivationExecutionService service = _buildService(
+          firestore: firestore,
+          activationStateRepository: activationRepository,
+          entitlementRepository: _FakeCloudEntitlementRepository(
+            CloudEntitlementState.active,
+          ),
+          localSnapshotSummaryService: _FakeLocalSnapshotSummaryService(
+            const LocalSnapshotSummary(
+              state: LocalSnapshotState.empty,
+              hasUserData: false,
+              hasSystemData: false,
+              pendingOutboxCount: 0,
+              fingerprint: 'local:empty',
+            ),
+          ),
+          cloudSnapshotSummaryService: _FakeCloudSnapshotSummaryService(
+            const CloudSnapshotSummary(
+              state: RemoteSnapshotState.hasUserData,
+              hasUserData: true,
+              hasMetadata: false,
+              hasTombstonesOnly: false,
+              fingerprint: 'remote:hasUserData|uid:cloud-user-1',
+            ),
+          ),
+        );
+
+        final CloudActivationExecutionResult result = await service
+            .confirmReplaceLocalWithCloud(
+              currentUser: const AuthUser(
+                uid: 'cloud-user-1',
+                email: 'user@example.com',
+                isAnonymous: false,
+              ),
+              intentState: const CloudActivationIntentState(
+                pendingChoice: CloudActivationChoice.replaceLocalWithCloud,
+                stage: CloudActivationIntentStage.pendingChoice,
+                scenario: CloudActivationScenario.localEmptyRemoteHasData,
+                localSnapshotState: CloudActivationSnapshotState.empty,
+                remoteSnapshotState: CloudActivationSnapshotState.hasData,
+                localFingerprint: 'local:empty',
+                remoteFingerprint: 'remote:hasUserData|uid:cloud-user-1',
+              ),
+              currentMode: const DataModeState(
+                dataMode: DataMode.localOnly,
+                entitlementState: CloudEntitlementState.active,
+                migrationDecision: MigrationDecision.none,
+              ),
+              refreshRuntimeMode: () async => const DataModeState(
+                dataMode: DataMode.cloudEnabled,
+                entitlementState: CloudEntitlementState.active,
+                migrationDecision: MigrationDecision.none,
+              ),
+            );
+
+        expect(result.status, CloudActivationExecutionStatus.succeeded);
+        final DocumentSnapshot<Map<String, dynamic>> metaDoc = await firestore
+            .collection('users')
+            .doc('cloud-user-1')
+            .collection('cloud_meta')
+            .doc('state')
+            .get();
+        expect(metaDoc.exists, isTrue);
+        expect(metaDoc.data()?['cloudDataState'], equals('active'));
+      },
+    );
+
+    test(
+      'confirmEnableCloudSync initializes missing metadata document to active',
+      () async {
+        final FakeFirebaseFirestore firestore = FakeFirebaseFirestore();
+        final _FakeCloudActivationStateRepository activationRepository =
+            _FakeCloudActivationStateRepository();
+        final CloudActivationExecutionService service = _buildService(
+          firestore: firestore,
+          activationStateRepository: activationRepository,
+          entitlementRepository: _FakeCloudEntitlementRepository(
+            CloudEntitlementState.active,
+          ),
+          localSnapshotSummaryService: _FakeLocalSnapshotSummaryService(
+            const LocalSnapshotSummary(
+              state: LocalSnapshotState.empty,
+              hasUserData: false,
+              hasSystemData: false,
+              pendingOutboxCount: 0,
+              fingerprint: 'local:empty',
+            ),
+          ),
+          cloudSnapshotSummaryService: _FakeCloudSnapshotSummaryService(
+            const CloudSnapshotSummary(
+              state: RemoteSnapshotState.empty,
+              hasUserData: false,
+              hasMetadata: false,
+              hasTombstonesOnly: false,
+              fingerprint: 'remote:empty|uid:cloud-user-1',
+            ),
+          ),
+        );
+
+        final CloudActivationExecutionResult result = await service
+            .confirmEnableCloudSync(
+              currentUser: const AuthUser(
+                uid: 'cloud-user-1',
+                email: 'user@example.com',
+                isAnonymous: false,
+              ),
+              intentState: const CloudActivationIntentState(
+                pendingChoice: CloudActivationChoice.enableCloudSync,
+                stage: CloudActivationIntentStage.pendingChoice,
+                scenario: CloudActivationScenario.localEmptyRemoteEmpty,
+                localSnapshotState: CloudActivationSnapshotState.empty,
+                remoteSnapshotState: CloudActivationSnapshotState.empty,
+                localFingerprint: 'local:empty',
+                remoteFingerprint: 'remote:empty|uid:cloud-user-1',
+              ),
+              currentMode: const DataModeState(
+                dataMode: DataMode.localOnly,
+                entitlementState: CloudEntitlementState.active,
+                migrationDecision: MigrationDecision.none,
+              ),
+              refreshRuntimeMode: () async => const DataModeState(
+                dataMode: DataMode.cloudEnabled,
+                entitlementState: CloudEntitlementState.active,
+                migrationDecision: MigrationDecision.none,
+              ),
+            );
+
+        expect(result.status, CloudActivationExecutionStatus.succeeded);
+        final DocumentSnapshot<Map<String, dynamic>> metaDoc = await firestore
+            .collection('users')
+            .doc('cloud-user-1')
+            .collection('cloud_meta')
+            .doc('state')
+            .get();
+        expect(metaDoc.exists, isTrue);
+        expect(metaDoc.data()?['cloudDataState'], equals('active'));
+      },
+    );
+
+    test(
+      'confirmStartWithEmptyCloud initializes missing metadata document to active',
+      () async {
+        final FakeFirebaseFirestore firestore = FakeFirebaseFirestore();
+        final _FakeCloudActivationStateRepository activationRepository =
+            _FakeCloudActivationStateRepository();
+        final _FakeLocalSnapshotSummaryService localSummaryService =
+            _FakeLocalSnapshotSummaryService(
+                const LocalSnapshotSummary(
+                  state: LocalSnapshotState.hasUserData,
+                  hasUserData: true,
+                  hasSystemData: true,
+                  pendingOutboxCount: 0,
+                  fingerprint: 'local:hasUserData',
+                ),
+              )
+              ..postResetSummary = const LocalSnapshotSummary(
+                state: LocalSnapshotState.empty,
+                hasUserData: false,
+                hasSystemData: false,
+                pendingOutboxCount: 0,
+                fingerprint: 'local:empty',
+              );
+        final _FakeUserAccountCleanupRepository cleanupRepository =
+            _FakeUserAccountCleanupRepository()
+              ..onReset = () {
+                localSummaryService.isResetDone = true;
+              };
+        final CloudActivationExecutionService service = _buildService(
+          firestore: firestore,
+          activationStateRepository: activationRepository,
+          entitlementRepository: _FakeCloudEntitlementRepository(
+            CloudEntitlementState.active,
+          ),
+          localSnapshotSummaryService: localSummaryService,
+          cloudSnapshotSummaryService: _FakeCloudSnapshotSummaryService(
+            const CloudSnapshotSummary(
+              state: RemoteSnapshotState.empty,
+              hasUserData: false,
+              hasMetadata: false,
+              hasTombstonesOnly: false,
+              fingerprint: 'remote:empty|uid:cloud-user-1',
+            ),
+          ),
+          exportUserDataUseCase: _FakeExportUserDataUseCase(
+            ExportFileSaveResult.success(filePath: '/tmp/migrate-backup.json'),
+          ),
+          userAccountCleanupRepository: cleanupRepository,
+        );
+
+        final CloudActivationExecutionResult result = await service
+            .confirmStartWithEmptyCloud(
+              currentUser: const AuthUser(
+                uid: 'cloud-user-1',
+                email: 'user@example.com',
+                isAnonymous: false,
+              ),
+              intentState: const CloudActivationIntentState(
+                pendingChoice: CloudActivationChoice.startWithEmptyCloud,
+                stage: CloudActivationIntentStage.pendingChoice,
+                scenario: CloudActivationScenario.localHasDataRemoteEmpty,
+                localSnapshotState: CloudActivationSnapshotState.hasData,
+                remoteSnapshotState: CloudActivationSnapshotState.empty,
+                localFingerprint: 'local:hasUserData',
+                remoteFingerprint: 'remote:empty|uid:cloud-user-1',
+              ),
+              currentMode: const DataModeState(
+                dataMode: DataMode.localOnly,
+                entitlementState: CloudEntitlementState.active,
+                migrationDecision: MigrationDecision.none,
+              ),
+              refreshRuntimeMode: () async => const DataModeState(
+                dataMode: DataMode.cloudEnabled,
+                entitlementState: CloudEntitlementState.active,
+                migrationDecision: MigrationDecision.none,
+              ),
+            );
+
+        expect(result.status, CloudActivationExecutionStatus.succeeded);
+        final DocumentSnapshot<Map<String, dynamic>> metaDoc = await firestore
+            .collection('users')
+            .doc('cloud-user-1')
+            .collection('cloud_meta')
+            .doc('state')
+            .get();
+        expect(metaDoc.exists, isTrue);
+        expect(metaDoc.data()?['cloudDataState'], equals('active'));
+      },
+    );
+  });
 }

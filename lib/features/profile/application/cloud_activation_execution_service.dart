@@ -219,6 +219,8 @@ class CloudActivationExecutionService {
         return guardedBlock;
       }
 
+      await _ensureMetadataInitialized(currentUser.uid);
+
       await _activationStateRepository.saveEnabledState(
         uid: currentUser.uid,
         scenario: CloudActivationChoice.enableCloudSync.name,
@@ -304,6 +306,8 @@ class CloudActivationExecutionService {
         return guardedBlock;
       }
 
+      await _ensureMetadataInitialized(currentUser.uid);
+
       await _activationStateRepository.saveEnabledState(
         uid: currentUser.uid,
         scenario: CloudActivationChoice.replaceLocalWithCloud.name,
@@ -322,7 +326,9 @@ class CloudActivationExecutionService {
         );
       }
 
-      return const CloudActivationExecutionResult.succeeded();
+      return const CloudActivationExecutionResult.succeededWithMessage(
+        'Приложение переключено в облачный режим. Данные текущего аккаунта будут загружены на это устройство при следующем шаге синхронизации.',
+      );
     } catch (error) {
       _logger.logError(
         'Replace-local-with-cloud execution failed for ${currentUser.uid}: $error',
@@ -434,6 +440,8 @@ class CloudActivationExecutionService {
               'Критическая ошибка: локальная база данных не была полностью очищена.',
         );
       }
+
+      await _ensureMetadataInitialized(currentUser.uid);
 
       await _activationStateRepository.saveEnabledState(
         uid: currentUser.uid,
@@ -866,6 +874,28 @@ class CloudActivationExecutionService {
       return CloudActivationExecutionResult.failed(message: error.toString());
     } finally {
       _runtimeGuard.release();
+    }
+  }
+
+  Future<void> clearActivationState(String uid) async {
+    await _activationStateRepository.clearStateForUid(uid);
+  }
+
+  Future<void> _ensureMetadataInitialized(String uid) async {
+    final DocumentReference<Map<String, dynamic>> metaRef = _firestore
+        .collection('users')
+        .doc(uid)
+        .collection('cloud_meta')
+        .doc('state');
+    final DocumentSnapshot<Map<String, dynamic>> metaDoc = await metaRef.get();
+    if (!metaDoc.exists || metaDoc.data() == null) {
+      await metaRef.set(<String, dynamic>{
+        'cloudDataState': 'active',
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      _logger.logInfo(
+        'Initialized missing cloud metadata document to active state for $uid',
+      );
     }
   }
 

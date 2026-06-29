@@ -51,6 +51,7 @@ Widget _buildTestApp({
           subtitle: 'subtitle',
           body: 'body',
           followupNote: 'note',
+          recommendedChoice: null,
           localSnapshotState: CloudActivationSnapshotState.hasData,
           remoteSnapshotState: CloudActivationSnapshotState.unknown,
           localFingerprint: 'local:hasData',

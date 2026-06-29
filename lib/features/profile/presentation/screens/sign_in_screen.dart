@@ -8,9 +8,14 @@ import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/config/app_capabilities.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/widgets/kopim_text_field.dart';
+import 'package:kopim/features/profile/presentation/controllers/cloud_activation_decision_controller.dart';
+import 'package:kopim/features/profile/presentation/controllers/cloud_activation_preflight_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
+import 'package:kopim/features/profile/presentation/screens/cloud_access_status_screen.dart';
+import 'package:kopim/features/profile/presentation/screens/cloud_activation_choice_screen.dart';
 import 'package:kopim/features/profile/presentation/controllers/sign_in_form_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/sign_up_form_controller.dart';
+import 'package:kopim/features/app_shell/presentation/widgets/main_navigation_shell.dart';
 import 'package:kopim/features/profile/presentation/screens/cloud_activation_preflight_screen.dart';
 import 'package:kopim/features/profile/presentation/utils/auth_error_mapper.dart';
 import 'package:kopim/l10n/app_localizations.dart';
@@ -154,6 +159,17 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             _passwordController.clear();
             if (widget.resumeCloudActivation) {
               _scheduleResumeCloudActivationAfterSignIn();
+            } else {
+              final GoRouter? router = GoRouter.maybeOf(context);
+              if (router != null) {
+                if (router.canPop()) {
+                  router.pop();
+                } else {
+                  router.go(MainNavigationShell.routeName);
+                }
+              } else if (Navigator.canPop(context)) {
+                Navigator.pop(context);
+              }
             }
           }
         }
@@ -178,6 +194,20 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           if (next.errorMessage == null) {
             _signUpPasswordController.clear();
             _signUpConfirmPasswordController.clear();
+            if (widget.resumeCloudActivation) {
+              _scheduleResumeCloudActivationAfterSignIn();
+            } else {
+              final GoRouter? router = GoRouter.maybeOf(context);
+              if (router != null) {
+                if (router.canPop()) {
+                  router.pop();
+                } else {
+                  router.go(MainNavigationShell.routeName);
+                }
+              } else if (Navigator.canPop(context)) {
+                Navigator.pop(context);
+              }
+            }
           }
         }
         if (!mounted) {
@@ -767,6 +797,18 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       }
     }
     if (!mounted) {
+      return;
+    }
+    final CloudActivationPreflightState preflightState = ref.read(
+      cloudActivationPreflightProvider,
+    );
+    if (canOpenCloudActivationChoiceScreen(preflightState.status)) {
+      context.go(CloudActivationChoiceScreen.routeName);
+      return;
+    }
+    if (preflightState.status ==
+        CloudActivationPreflightStatus.entitlementRequired) {
+      context.go(CloudAccessStatusScreen.routeName);
       return;
     }
     context.go(CloudActivationPreflightScreen.routeName);

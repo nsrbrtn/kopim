@@ -291,7 +291,7 @@ void main() {
 
       expect(user, isNotNull);
       expect(user!.isAnonymous, isTrue);
-      expect(authRepository.signInAnonymouslyCalled, isTrue);
+      verify(() => localAuthRepository.signInAnonymously()).called(1);
     },
   );
 
@@ -567,6 +567,7 @@ void main() {
               subtitle: 'subtitle',
               body: 'body',
               followupNote: 'note',
+              recommendedChoice: CloudActivationChoice.enableCloudSync,
               localSnapshotState: CloudActivationSnapshotState.empty,
               remoteSnapshotState: CloudActivationSnapshotState.empty,
               localFingerprint: 'local:empty',

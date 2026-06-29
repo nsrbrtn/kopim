@@ -152,7 +152,12 @@ class ProfileManagementBody extends ConsumerWidget {
                     ],
                     if (capabilities.canUseFirebaseAuth) ...<Widget>[
                       const SizedBox(height: 16),
-                      _SignOutButton(onSignOut: () => _signOut(context, ref)),
+                      if (user.isAnonymous)
+                        _SignInButton(
+                          onSignIn: () => context.push(SignInScreen.routeName),
+                        )
+                      else
+                        _SignOutButton(onSignOut: () => _signOut(context, ref)),
                     ],
                   ],
                 ),
@@ -662,15 +667,15 @@ class _SecuritySection extends StatelessWidget {
                       : null,
                 ),
               ),
-              Divider(
-                height: 1,
-                color: theme.colorScheme.outlineVariant,
-                indent: 16,
-                endIndent: 16,
-              ),
-              if (!isCloudCapableBuild || !cloudSyncGate.isEnabled)
+              if (!isCloudCapableBuild || !cloudSyncGate.isEnabled) ...<Widget>[
+                Divider(
+                  height: 1,
+                  color: theme.colorScheme.outlineVariant,
+                  indent: 16,
+                  endIndent: 16,
+                ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
                   child: Text(
                     _backupHelperText(),
                     style: theme.textTheme.bodySmall?.copyWith(
@@ -678,18 +683,21 @@ class _SecuritySection extends StatelessWidget {
                     ),
                   ),
                 ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                child: ProfileDataTransferSection(
-                  title: strings.profileExportDataFullCta,
-                  subtitle: strings.profileImportDataCta,
-                  icon: Icons.file_download_outlined,
-                ),
-              ),
+              ],
             ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainer,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: ProfileDataTransferSection(
+            title: strings.profileExportDataFullCta,
+            subtitle: strings.profileImportDataCta,
+            icon: Icons.file_download_outlined,
           ),
         ),
       ],
@@ -821,6 +829,21 @@ class _SignOutButton extends StatelessWidget {
         minimumSize: const Size.fromHeight(52),
       ),
       child: Text(strings.profileSignOutFullCta),
+    );
+  }
+}
+
+class _SignInButton extends StatelessWidget {
+  const _SignInButton({required this.onSignIn});
+
+  final VoidCallback onSignIn;
+
+  @override
+  Widget build(BuildContext context) {
+    return FilledButton(
+      onPressed: onSignIn,
+      style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(52)),
+      child: const Text('Войти в аккаунт'),
     );
   }
 }
