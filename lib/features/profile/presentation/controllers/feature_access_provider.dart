@@ -116,6 +116,27 @@ final Provider<FeatureAccess> featureAccessProvider = Provider<FeatureAccess>((
   );
 });
 
+final Provider<FeatureGate> cloudSyncFeatureGateProvider =
+    Provider<FeatureGate>((Ref ref) {
+      return ref.watch(featureAccessProvider).cloudSync;
+    });
+
+final Provider<FeatureGate> webAppFeatureGateProvider = Provider<FeatureGate>((
+  Ref ref,
+) {
+  return ref.watch(featureAccessProvider).webApp;
+});
+
+final Provider<FeatureGate> aiAssistantFeatureGateProvider =
+    Provider<FeatureGate>((Ref ref) {
+      return ref.watch(featureAccessProvider).aiAssistant;
+    });
+
+final Provider<EntitlementAccessState> entitlementAccessStateProvider =
+    Provider<EntitlementAccessState>((Ref ref) {
+      return ref.watch(featureAccessProvider).entitlementState;
+    });
+
 EntitlementAccessState _mapEntitlementState(
   CloudEntitlementState entitlementState,
 ) {

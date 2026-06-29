@@ -11,7 +11,7 @@ import 'package:kopim/features/profile/domain/entities/local_to_cloud_migration_
 
 class _FakeLoggerService extends LoggerService {
   @override
-  void logError(String message, [dynamic error]) {}
+  void logError(String message, [dynamic error, StackTrace? stackTrace]) {}
 
   @override
   void logInfo(String message) {}

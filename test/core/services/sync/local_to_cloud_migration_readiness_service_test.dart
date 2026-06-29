@@ -66,7 +66,7 @@ class _FakeMigrationWriteGuard extends MigrationWriteGuard {
   Future<void> refreshState() async {}
 
   @override
-  Future<void> releaseFreeze() async {
+  Future<void> releaseFreeze({String? expectedPhase}) async {
     calls.add('releaseFreeze');
     state = null;
   }

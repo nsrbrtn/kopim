@@ -1303,6 +1303,112 @@ void main() {
   );
 
   test(
+    'analyticsTransferTransactionsProvider не возвращает переводы при фильтре по категории',
+    () async {
+      final DateTime now = DateTime.now();
+      final DateTime rangeStart = DateUtils.dateOnly(now);
+      final DateTime rangeEnd = rangeStart;
+
+      final TransactionEntity regularTransfer = TransactionEntity(
+        id: 'transfer-1',
+        accountId: 'cash-1',
+        transferAccountId: 'cash-2',
+        amountMinor: BigInt.from(1200),
+        amountScale: 2,
+        date: now,
+        type: TransactionType.transfer.storageValue,
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      final _FakeTransactionRepository transactionRepository =
+          _FakeTransactionRepository(
+            Stream<List<TransactionEntity>>.value(<TransactionEntity>[
+              regularTransfer,
+            ]),
+            openingBalances: <String, MoneyAmount>{
+              'cash-1': MoneyAmount(minor: BigInt.zero, scale: 2),
+              'cash-2': MoneyAmount(minor: BigInt.zero, scale: 2),
+            },
+          );
+
+      final _StaticAccountRepository accountRepository =
+          _StaticAccountRepository(<AccountEntity>[
+            AccountEntity(
+              id: 'cash-1',
+              name: 'Cash 1',
+              balanceMinor: BigInt.zero,
+              openingBalanceMinor: BigInt.zero,
+              currency: 'USD',
+              currencyScale: 2,
+              type: 'checking',
+              createdAt: now,
+              updatedAt: now,
+            ),
+            AccountEntity(
+              id: 'cash-2',
+              name: 'Cash 2',
+              balanceMinor: BigInt.zero,
+              openingBalanceMinor: BigInt.zero,
+              currency: 'USD',
+              currencyScale: 2,
+              type: 'cash',
+              createdAt: now,
+              updatedAt: now,
+            ),
+          ]);
+
+      final ProviderContainer container = ProviderContainer(
+        overrides: <Override>[
+          transactionRepositoryProvider.overrideWithValue(
+            transactionRepository,
+          ),
+          watchAccountsUseCaseProvider.overrideWithValue(
+            WatchAccountsUseCase(accountRepository),
+          ),
+          watchCreditsUseCaseProvider.overrideWithValue(
+            WatchCreditsUseCase(
+              _StaticCreditRepository(const <CreditEntity>[]),
+            ),
+          ),
+          watchCreditCardsUseCaseProvider.overrideWithValue(
+            WatchCreditCardsUseCase(
+              _StaticCreditCardRepository(const <CreditCardEntity>[]),
+            ),
+          ),
+          watchDebtsUseCaseProvider.overrideWithValue(
+            WatchDebtsUseCase(_StaticDebtRepository(const <DebtEntity>[])),
+          ),
+          analyticsFilterControllerProvider.overrideWith(
+            () => _FakeAnalyticsFilterController(
+              AnalyticsFilterState(
+                dateRange: DateTimeRange(start: rangeStart, end: rangeEnd),
+                categoryId: 'food',
+              ),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final ProviderSubscription<AsyncValue<List<TransactionEntity>>> sub =
+          container.listen<AsyncValue<List<TransactionEntity>>>(
+            analyticsTransferTransactionsProvider,
+            (
+              AsyncValue<List<TransactionEntity>>? previous,
+              AsyncValue<List<TransactionEntity>> next,
+            ) {},
+            fireImmediately: true,
+          );
+      addTearDown(sub.close);
+
+      await container.pump();
+
+      expect(sub.read().value, isEmpty);
+    },
+  );
+
+  test(
     'analyticsDebtOverviewProvider учитывает legacy-кредитный счет из CreditEntity',
     () async {
       final DateTime now = DateTime.now();
@@ -1688,6 +1794,126 @@ void main() {
         overview.items.single.kind,
         CreditDebtOperationKind.principalRepayment,
       );
+    },
+  );
+
+  test(
+    'analyticsCreditDebtOperationsProvider не добавляет кредитные платежи при фильтре по категории',
+    () async {
+      final DateTime now = DateTime.now();
+      final DateTime rangeStart = DateUtils.dateOnly(now);
+      final DateTime rangeEnd = rangeStart;
+
+      final TransactionEntity payment = TransactionEntity(
+        id: 'payment-1',
+        accountId: 'cash-1',
+        transferAccountId: 'credit-1',
+        amountMinor: BigInt.from(5000),
+        amountScale: 2,
+        date: now,
+        type: TransactionType.transfer.storageValue,
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      final _FakeTransactionRepository transactionRepository =
+          _FakeTransactionRepository(
+            Stream<List<TransactionEntity>>.value(<TransactionEntity>[payment]),
+            openingBalances: <String, MoneyAmount>{
+              'cash-1': MoneyAmount(minor: BigInt.zero, scale: 2),
+              'credit-1': MoneyAmount(minor: BigInt.zero, scale: 2),
+            },
+          );
+
+      final _StaticAccountRepository accountRepository =
+          _StaticAccountRepository(<AccountEntity>[
+            AccountEntity(
+              id: 'cash-1',
+              name: 'Cash',
+              balanceMinor: BigInt.zero,
+              openingBalanceMinor: BigInt.zero,
+              currency: 'USD',
+              currencyScale: 2,
+              type: 'checking',
+              createdAt: now,
+              updatedAt: now,
+            ),
+            AccountEntity(
+              id: 'credit-1',
+              name: 'Loan',
+              balanceMinor: BigInt.zero,
+              openingBalanceMinor: BigInt.zero,
+              currency: 'USD',
+              currencyScale: 2,
+              type: 'credit',
+              createdAt: now,
+              updatedAt: now,
+            ),
+          ]);
+
+      final _StaticCreditRepository creditRepository =
+          _StaticCreditRepository(<CreditEntity>[
+            CreditEntity(
+              id: 'credit-outflow-entity',
+              accountId: 'credit-1',
+              totalAmountMinor: BigInt.from(100000),
+              totalAmountScale: 2,
+              interestRate: 10,
+              termMonths: 12,
+              startDate: now.subtract(const Duration(days: 30)),
+              createdAt: now,
+              updatedAt: now,
+            ),
+          ]);
+
+      final ProviderContainer container = ProviderContainer(
+        overrides: <Override>[
+          transactionRepositoryProvider.overrideWithValue(
+            transactionRepository,
+          ),
+          watchAccountsUseCaseProvider.overrideWithValue(
+            WatchAccountsUseCase(accountRepository),
+          ),
+          watchCreditsUseCaseProvider.overrideWithValue(
+            WatchCreditsUseCase(creditRepository),
+          ),
+          watchCreditCardsUseCaseProvider.overrideWithValue(
+            WatchCreditCardsUseCase(
+              _StaticCreditCardRepository(const <CreditCardEntity>[]),
+            ),
+          ),
+          watchDebtsUseCaseProvider.overrideWithValue(
+            WatchDebtsUseCase(_StaticDebtRepository(const <DebtEntity>[])),
+          ),
+          analyticsFilterControllerProvider.overrideWith(
+            () => _FakeAnalyticsFilterController(
+              AnalyticsFilterState(
+                dateRange: DateTimeRange(start: rangeStart, end: rangeEnd),
+                categoryId: 'food',
+              ),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final ProviderSubscription<AsyncValue<CreditDebtOperationsOverview>> sub =
+          container.listen<AsyncValue<CreditDebtOperationsOverview>>(
+            analyticsCreditDebtOperationsProvider,
+            (
+              AsyncValue<CreditDebtOperationsOverview>? previous,
+              AsyncValue<CreditDebtOperationsOverview> next,
+            ) {},
+            fireImmediately: true,
+          );
+      addTearDown(sub.close);
+
+      await container.pump();
+
+      final CreditDebtOperationsOverview? overview = sub.read().value;
+      expect(overview, isNotNull);
+      expect(overview!.totalOutflow.toDouble(), 0);
+      expect(overview.items, isEmpty);
     },
   );
 }

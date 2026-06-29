@@ -37,6 +37,7 @@ import 'package:kopim/core/services/sync/local_sync_integrity_debug_reporter.dar
 import 'package:kopim/core/services/sync/local_sync_integrity_diagnostics_service.dart';
 import 'package:kopim/core/services/sync/sync_data_sanitizer.dart';
 import 'package:kopim/core/services/sync/sync_metadata_repository.dart';
+import 'package:kopim/core/services/sync/sync_dispatch_guard.dart';
 import 'package:kopim/core/services/sync_service.dart';
 import 'package:kopim/features/ai/data/local/ai_assistant_tool_dao.dart';
 import 'package:kopim/features/ai/data/repositories/ai_assistant_repository_impl.dart';
@@ -1458,6 +1459,7 @@ SyncService syncService(Ref ref) {
     authSyncService: ref.watch(authSyncServiceProvider),
     syncOwnershipGuard: ref.watch(syncOwnershipGuardProvider),
     syncConflictDao: ref.watch(syncConflictDaoProvider),
+    syncDispatchGuard: ref.watch(syncDispatchGuardProvider),
     connectivity: ref.watch(connectivityProvider),
   );
   ref.onDispose(service.dispose);

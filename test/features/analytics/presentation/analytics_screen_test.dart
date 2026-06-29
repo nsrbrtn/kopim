@@ -224,7 +224,8 @@ void main() {
           ),
         );
 
-        await tester.pumpAndSettle();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
 
         final BuildContext context = tester.element(
           find.byType(AnalyticsScreen),
@@ -257,6 +258,97 @@ void main() {
         expect(find.text(strings.analyticsTitle), findsOneWidget);
       },
     );
+
+    testWidgets('hides show transfers chip when category filter is active', (
+      WidgetTester tester,
+    ) async {
+      final AnalyticsFilterState filterState = AnalyticsFilterState(
+        dateRange: DateTimeRange(
+          start: DateTime(2024, 1, 1),
+          end: DateTime(2024, 1, 31),
+        ),
+        categoryId: 'food',
+      );
+
+      final AnalyticsOverview overview = AnalyticsOverview(
+        totalIncome: _amount(0),
+        totalExpense: _amount(100),
+        netBalance: _amount(-100),
+        topExpenseCategories: <AnalyticsCategoryBreakdown>[
+          AnalyticsCategoryBreakdown(categoryId: 'food', amount: _amount(60)),
+        ],
+        topIncomeCategories: const <AnalyticsCategoryBreakdown>[],
+      );
+
+      final Category foodCategory = Category(
+        id: 'food',
+        name: 'Groceries',
+        type: 'expense',
+        color: '#FF5722',
+        icon: null,
+        parentId: null,
+        createdAt: DateTime(2023, 1, 1),
+        updatedAt: DateTime(2023, 1, 1),
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: <Override>[
+            transactionRepositoryProvider.overrideWithValue(
+              _EmptyTransactionRepository(),
+            ),
+            analyticsFilterControllerProvider.overrideWith(
+              () => _FakeAnalyticsFilterController(filterState),
+            ),
+            analyticsFilteredStatsProvider(topCategoriesLimit: 5).overrideWith(
+              (Ref ref) => Stream<AnalyticsOverview>.value(overview),
+            ),
+            analyticsCreditDebtOperationsProvider.overrideWith(
+              (Ref ref) => Stream<CreditDebtOperationsOverview>.value(
+                CreditDebtOperationsOverview.empty(),
+              ),
+            ),
+            analyticsTransferTransactionsProvider.overrideWith(
+              (Ref ref) => Stream<List<TransactionEntity>>.value(
+                const <TransactionEntity>[],
+              ),
+            ),
+            analyticsCategoriesProvider.overrideWith(
+              (Ref ref) =>
+                  Stream<List<Category>>.value(<Category>[foodCategory]),
+            ),
+            activeCurrencyCodeProvider.overrideWithValue('RUB'),
+            analyticsAccountsProvider.overrideWith(
+              (Ref ref) => Stream<List<AccountEntity>>.value(<AccountEntity>[
+                AccountEntity(
+                  id: 'acc',
+                  name: 'Main',
+                  balanceMinor: BigInt.zero,
+                  currency: 'USD',
+                  currencyScale: 2,
+                  type: 'checking',
+                  createdAt: DateTime(2023, 1, 1),
+                  updatedAt: DateTime(2023, 1, 1),
+                  isDeleted: false,
+                ),
+              ]),
+            ),
+          ],
+          child: const MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: AnalyticsScreen(),
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      final BuildContext context = tester.element(find.byType(AnalyticsScreen));
+      final AppLocalizations strings = AppLocalizations.of(context)!;
+      expect(find.text(strings.analyticsShowTransfersChip), findsNothing);
+    });
 
     testWidgets('date filter button handles narrow layouts without overflow', (
       WidgetTester tester,

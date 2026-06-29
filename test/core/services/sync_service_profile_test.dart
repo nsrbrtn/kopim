@@ -1,3 +1,4 @@
+import 'package:kopim/core/services/sync/sync_dispatch_guard.dart';
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -120,6 +121,7 @@ void main() {
       firebaseAuth: firebaseAuth,
       authSyncService: _MockAuthSyncService(),
       syncOwnershipGuard: const SyncOwnershipGuard(),
+      syncDispatchGuard: SyncDispatchGuard(),
       syncConflictDao: SyncConflictDao(database),
       connectivity: connectivity,
     );

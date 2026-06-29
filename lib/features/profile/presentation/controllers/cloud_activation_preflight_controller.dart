@@ -22,7 +22,7 @@ class CloudActivationPreflightState {
 
 CloudActivationPreflightState resolveCloudActivationPreflightState({
   required AppCapabilities capabilities,
-  required FeatureAccess featureAccess,
+  required FeatureGate cloudSyncGate,
   required AsyncValue<DataModeState> dataModeAsync,
 }) {
   if (!capabilities.canRunCloudSync ||
@@ -33,7 +33,7 @@ CloudActivationPreflightState resolveCloudActivationPreflightState({
     );
   }
 
-  return switch (featureAccess.cloudSync.status) {
+  return switch (cloudSyncGate.status) {
     FeatureAccessStatus.disabledByBuild => const CloudActivationPreflightState(
       CloudActivationPreflightStatus.cloudUnavailableInBuild,
     ),
@@ -71,6 +71,9 @@ CloudActivationPreflightState _resolveEnabledState(
     DataMode.cloudBlockedByLocalData => const CloudActivationPreflightState(
       CloudActivationPreflightStatus.blockedByLocalOnlyData,
     ),
+    DataMode.initialCloudPullInProgress => const CloudActivationPreflightState(
+      CloudActivationPreflightStatus.unknown,
+    ),
     DataMode.localOnly => const CloudActivationPreflightState(
       CloudActivationPreflightStatus.readyForNextStep,
     ),
@@ -84,7 +87,7 @@ final Provider<CloudActivationPreflightState> cloudActivationPreflightProvider =
     Provider<CloudActivationPreflightState>((Ref ref) {
       return resolveCloudActivationPreflightState(
         capabilities: ref.watch(appCapabilitiesProvider),
-        featureAccess: ref.watch(featureAccessProvider),
+        cloudSyncGate: ref.watch(cloudSyncFeatureGateProvider),
         dataModeAsync: ref.watch(dataModeControllerProvider),
       );
     });

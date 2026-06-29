@@ -14,7 +14,12 @@ enum ExpiredEntitlementMode {
 
 enum AppDistributionMode { offlineOnly, cloudCapable }
 
-enum DataMode { localOnly, cloudBlockedByLocalData, cloudEnabled }
+enum DataMode {
+  localOnly,
+  cloudBlockedByLocalData,
+  initialCloudPullInProgress,
+  cloudEnabled,
+}
 
 enum CloudEntitlementState {
   unavailable,

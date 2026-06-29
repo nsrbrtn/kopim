@@ -1,0 +1,25 @@
+Analyzing kopim...
+
+  error - lib/core/services/sync/sync_dispatch_guard.dart:26:37 - Undefined class 'SyncDispatchGuardRef'. Try changing the name to the name of an existing class, or creating a class with the name 'SyncDispatchGuardRef'. - undefined_class
+  error - test/core/services/sync/local_to_cloud_migration_readiness_service_test.dart:69:16 - '_FakeMigrationWriteGuard.releaseFreeze' ('Future<void> Function()') isn't a valid override of 'MigrationWriteGuard.releaseFreeze' ('Future<void> Function({String? expectedPhase})'). - invalid_override
+           - The member being overridden at lib/features/profile/application/migration_write_guard.dart:98:16.
+  error - test/features/profile/application/cloud_activation_execution_service_test.dart:102:18 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/features/profile/application/fresh_upload_execution_service_test.dart:154:13 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/features/profile/application/local_to_cloud_migration_integration_test.dart:93:13 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/features/profile/presentation/data_mode_controller_test.dart:147:13 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/features/profile/presentation/data_mode_controller_test.dart:274:22 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/features/profile/presentation/data_mode_controller_test.dart:344:22 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/features/profile/presentation/data_mode_controller_test.dart:424:22 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/features/profile/presentation/data_mode_controller_test.dart:483:22 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/features/profile/presentation/data_mode_controller_test.dart:588:22 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/features/profile/presentation/data_mode_controller_test.dart:646:22 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/features/profile/presentation/data_mode_controller_test.dart:707:22 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/features/profile/presentation/data_mode_controller_test.dart:760:22 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/features/profile/presentation/data_mode_controller_test.dart:822:22 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/features/profile/presentation/data_mode_controller_test.dart:892:22 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/features/profile/presentation/data_mode_controller_test.dart:945:22 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+warning - lib/core/di/injectors.dart:40:8 - Unused import: 'package:kopim/core/services/sync_status.dart'. Try removing the import directive. - unused_import
+   info - lib/core/services/sync/sync_dispatch_guard.dart:12:47 - Missing type annotation. Try adding a type annotation. - always_specify_types
+   info - lib/features/profile/presentation/controllers/data_mode_controller.dart:303:5 - Missing type annotation. Try specifying the type 'CloudActivationState?'. - always_specify_types
+
+20 issues found.

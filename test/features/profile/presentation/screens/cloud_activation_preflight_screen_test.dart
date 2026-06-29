@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
@@ -6,6 +8,8 @@ import 'package:kopim/features/profile/presentation/controllers/cloud_activation
 import 'package:kopim/core/config/app_capabilities.dart';
 import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/config/firebase_environment.dart';
+import 'package:kopim/features/profile/domain/entities/auth_user.dart';
+import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_preflight_controller.dart';
 import 'package:kopim/features/profile/presentation/screens/cloud_activation_choice_screen.dart';
 import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
@@ -14,7 +18,7 @@ import 'package:kopim/features/profile/presentation/screens/cloud_activation_pre
 import 'package:kopim/features/profile/presentation/screens/cloud_sync_intro_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
 import 'package:go_router/go_router.dart';
-import '../router_test_helper.dart';
+import 'package:kopim/l10n/app_localizations.dart';
 
 class _FakeDataModeController extends DataModeController {
   _FakeDataModeController(this._state);
@@ -25,10 +29,25 @@ class _FakeDataModeController extends DataModeController {
   Future<DataModeState> build() async => _state;
 }
 
+class _SignedOutAuthController extends AuthController {
+  @override
+  Future<AuthUser?> build() async => null;
+}
+
+class _LoadingAuthController extends AuthController {
+  @override
+  Future<AuthUser?> build() => Completer<AuthUser?>().future;
+}
+
 Widget _buildTestApp({
-  required CloudActivationPreflightState state,
+  CloudActivationPreflightState? state,
   AppCapabilities? capabilities,
   DataModeState? dataModeState,
+  bool autoAdvance = false,
+  bool fallbackToHome = false,
+  AuthController? authController,
+  Override? preflightOverride,
+  List<Override> extraOverrides = const <Override>[],
 }) {
   const DataModeState fallbackDataModeState = DataModeState(
     dataMode: DataMode.localOnly,
@@ -36,14 +55,69 @@ Widget _buildTestApp({
     migrationDecision: MigrationDecision.none,
   );
 
+  final GoRouter router = GoRouter(
+    initialLocation: autoAdvance || fallbackToHome
+        ? CloudActivationPreflightScreen.buildRouteLocation(
+            autoAdvance: autoAdvance,
+            fallbackToHome: fallbackToHome,
+          )
+        : CloudActivationPreflightScreen.routeName,
+    routes: <RouteBase>[
+      GoRoute(
+        path: CloudActivationPreflightScreen.routeName,
+        builder: (BuildContext context, GoRouterState state) {
+          final bool autoAdvance =
+              state.uri.queryParameters['autoAdvance'] == 'true';
+          final bool fallbackToHome =
+              state.uri.queryParameters['fallbackToHome'] == 'true';
+          return CloudActivationPreflightScreen(
+            autoAdvance: autoAdvance,
+            fallbackToHome: fallbackToHome,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/home',
+        builder: (BuildContext context, GoRouterState state) =>
+            const Scaffold(body: Text('home-screen')),
+      ),
+      GoRoute(
+        path: SignInScreen.routeName,
+        builder: (BuildContext context, GoRouterState state) =>
+            const Scaffold(body: Text('sign-in-screen')),
+      ),
+      GoRoute(
+        path: CloudSyncIntroScreen.routeName,
+        builder: (BuildContext context, GoRouterState state) =>
+            const Scaffold(body: Text('intro-screen')),
+      ),
+      GoRoute(
+        path: CloudAccessStatusScreen.routeName,
+        builder: (BuildContext context, GoRouterState state) =>
+            const Scaffold(body: Text('cloud-access-status-screen')),
+      ),
+      GoRoute(
+        path: CloudActivationChoiceScreen.routeName,
+        builder: (BuildContext context, GoRouterState state) =>
+            const Scaffold(body: Text('choice-screen')),
+      ),
+    ],
+  );
+
   return ProviderScope(
     overrides: <Override>[
       if (capabilities != null)
         appCapabilitiesProvider.overrideWithValue(capabilities),
+      authControllerProvider.overrideWith(
+        () => authController ?? _SignedOutAuthController(),
+      ),
       dataModeControllerProvider.overrideWith(
         () => _FakeDataModeController(dataModeState ?? fallbackDataModeState),
       ),
-      cloudActivationPreflightProvider.overrideWithValue(state),
+      if (preflightOverride != null)
+        preflightOverride
+      else
+        cloudActivationPreflightProvider.overrideWithValue(state!),
       cloudActivationDecisionProvider.overrideWithValue(
         const CloudActivationDecisionState(
           status: CloudActivationDecisionStatus.blocked,
@@ -59,19 +133,12 @@ Widget _buildTestApp({
           options: <CloudActivationDecisionOption>[],
         ),
       ),
+      ...extraOverrides,
     ],
-    child: buildTestAppWithRouter(
-      child: const CloudActivationPreflightScreen(),
-      initialLocation: '/cloud-activation-preflight',
-      additionalRoutes: <RouteBase>[
-        mockRoute(SignInScreen.routeName, text: 'sign-in-screen'),
-        mockRoute(CloudSyncIntroScreen.routeName, text: 'intro-screen'),
-        mockRoute(
-          CloudAccessStatusScreen.routeName,
-          text: 'cloud-access-status-screen',
-        ),
-        mockRoute(CloudActivationChoiceScreen.routeName, text: 'choice-screen'),
-      ],
+    child: MaterialApp.router(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      routerConfig: router,
     ),
   );
 }
@@ -201,6 +268,24 @@ void main() {
     expect(find.text('choice-screen'), findsOneWidget);
   });
 
+  testWidgets('autoAdvance ready state opens choice screen automatically', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      _buildTestApp(
+        state: const CloudActivationPreflightState(
+          CloudActivationPreflightStatus.readyForNextStep,
+        ),
+        autoAdvance: true,
+      ),
+    );
+
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    expect(find.text('choice-screen'), findsOneWidget);
+  });
+
   testWidgets(
     'production entitlementRequired state opens access status route',
     (WidgetTester tester) async {
@@ -235,6 +320,111 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('cloud-access-status-screen'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'autoAdvance entitlementRequired state opens access status automatically in production',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(
+        _buildTestApp(
+          state: const CloudActivationPreflightState(
+            CloudActivationPreflightStatus.entitlementRequired,
+          ),
+          autoAdvance: true,
+          capabilities: const AppCapabilities(
+            canInitializeFirebase: true,
+            canUseFirebaseAuth: true,
+            canUseFirestore: true,
+            canUseRemoteConfig: true,
+            canRunCloudSync: true,
+            canUseAiTransport: true,
+            canShowCloudSyncEntryPoint: true,
+            canRegisterInApp: false,
+            canShowPaymentOrPurchaseUi: false,
+            canActivatePromoOrLicenseInApp: false,
+            requiresEntitlementBeforeWebApp: false,
+            allowsLocalOnlyUsage: true,
+            expiredEntitlementMode:
+                ExpiredEntitlementMode.localWritableSyncPaused,
+            firebaseEnvironment: FirebaseEnvironment.prod,
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(find.text('cloud-access-status-screen'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'autoAdvance waits through signedOut loading state and opens choice after preflight refresh',
+    (WidgetTester tester) async {
+      final StreamController<CloudActivationPreflightState>
+      preflightController =
+          StreamController<CloudActivationPreflightState>.broadcast();
+      final StreamProvider<CloudActivationPreflightState>
+      preflightStateProvider = StreamProvider<CloudActivationPreflightState>((
+        Ref _,
+      ) {
+        return preflightController.stream;
+      });
+      addTearDown(preflightController.close);
+
+      await tester.pumpWidget(
+        _buildTestApp(
+          autoAdvance: true,
+          authController: _LoadingAuthController(),
+          preflightOverride: cloudActivationPreflightProvider.overrideWith((
+            Ref ref,
+          ) {
+            return ref
+                .watch(preflightStateProvider)
+                .maybeWhen(
+                  data: (CloudActivationPreflightState value) => value,
+                  orElse: () => const CloudActivationPreflightState(
+                    CloudActivationPreflightStatus.signedOut,
+                  ),
+                );
+          }),
+        ),
+      );
+
+      await tester.pump();
+      expect(find.text('Проверяем состояние подключения'), findsOneWidget);
+
+      preflightController.add(
+        const CloudActivationPreflightState(
+          CloudActivationPreflightStatus.readyForNextStep,
+        ),
+      );
+
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(find.text('choice-screen'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'autoAdvance with fallbackToHome returns to home when no cloud action is required',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(
+        _buildTestApp(
+          state: const CloudActivationPreflightState(
+            CloudActivationPreflightStatus.alreadyCloudEnabled,
+          ),
+          autoAdvance: true,
+          fallbackToHome: true,
+        ),
+      );
+
+      await tester.pump();
+      await tester.pumpAndSettle();
+
+      expect(find.text('home-screen'), findsOneWidget);
     },
   );
 

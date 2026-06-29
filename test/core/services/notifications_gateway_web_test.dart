@@ -32,7 +32,7 @@ class _DummyLogger extends LoggerService {
   void logInfo(String message) {}
 
   @override
-  void logError(String message, [Object? error]) {}
+  void logError(String message, [dynamic error, StackTrace? stackTrace]) {}
 }
 
 void main() {

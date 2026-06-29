@@ -1,168 +1,35 @@
-Analyzing kopim...                                              
+Analyzing kopim...
 
-   info • Missing type annotation. Try adding a type annotation • lib/core/services/auth_sync_service.dart:630:37 • always_specify_types
-   info • Missing type annotation. Try adding a type annotation • lib/core/services/auth_sync_service.dart:649:50 • always_specify_types
-   info • Missing type annotation. Try adding a type annotation • lib/core/services/auth_sync_service.dart:650:43 • always_specify_types
-   info • Missing type annotation. Try adding a type annotation • lib/core/services/auth_sync_service.dart:668:48 • always_specify_types
-   info • Missing type annotation. Try adding a type annotation • lib/core/services/auth_sync_service.dart:669:45 • always_specify_types
-   info • Missing type annotation. Try adding a type annotation • lib/core/services/auth_sync_service.dart:670:40 • always_specify_types
-   info • Missing type annotation. Try adding a type annotation • lib/core/services/auth_sync_service.dart:671:62 • always_specify_types
-   info • Missing type annotation. Try adding a type annotation • lib/core/services/auth_sync_service.dart:672:56 • always_specify_types
-   info • Missing type annotation. Try adding a type annotation • lib/core/services/auth_sync_service.dart:673:46 • always_specify_types
-   info • Missing type annotation. Try adding a type annotation • lib/core/services/auth_sync_service.dart:674:54 • always_specify_types
-   info • Missing type annotation. Try adding a type annotation • lib/core/services/auth_sync_service.dart:675:42 • always_specify_types
-   info • Missing type annotation. Try adding a type annotation • lib/core/services/auth_sync_service.dart:676:70 • always_specify_types
-   info • Missing type annotation. Try adding a type annotation • lib/core/services/auth_sync_service.dart:677:76 • always_specify_types
-   info • Missing type annotation. Try adding a type annotation • lib/core/services/auth_sync_service.dart:678:40 • always_specify_types
-   info • Missing type annotation. Try adding a type annotation • lib/core/services/auth_sync_service.dart:679:56 • always_specify_types
-   info • Missing type annotation. Try adding a type annotation • lib/core/services/auth_sync_service.dart:680:48 • always_specify_types
-   info • Missing type annotation. Try adding a type annotation • lib/core/services/auth_sync_service.dart:681:58 • always_specify_types
-   info • Missing type annotation. Try adding a type annotation • lib/core/services/auth_sync_service.dart:682:58 • always_specify_types
-   info • Missing type annotation. Try adding a type annotation • lib/core/services/auth_sync_service.dart:685:43 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'QueryDocumentSnapshot<Map<String, dynamic>>' • lib/core/services/auth_sync_service.dart:713:11 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'dynamic' • lib/core/services/auth_sync_service.dart:714:11 • always_specify_types
-   info • Missing type annotation. Try adding a type annotation • lib/core/services/auth_sync_service.dart:723:27 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'AccountEntity' • lib/core/services/auth_sync_service.dart:757:28 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'Category' • lib/core/services/auth_sync_service.dart:767:28 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'TagEntity' • lib/core/services/auth_sync_service.dart:777:28 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'TransactionTagEntity' • lib/core/services/auth_sync_service.dart:787:28 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'TransactionEntity' • lib/core/services/auth_sync_service.dart:797:28 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditEntity' • lib/core/services/auth_sync_service.dart:807:28 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditCardEntity' • lib/core/services/auth_sync_service.dart:817:28 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'DebtEntity' • lib/core/services/auth_sync_service.dart:827:28 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditPaymentGroupEntity' • lib/core/services/auth_sync_service.dart:837:28 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditPaymentScheduleEntity' • lib/core/services/auth_sync_service.dart:847:28 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'Budget' • lib/core/services/auth_sync_service.dart:857:28 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'BudgetInstance' • lib/core/services/auth_sync_service.dart:867:28 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'SavingGoal' • lib/core/services/auth_sync_service.dart:877:28 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'UpcomingPayment' • lib/core/services/auth_sync_service.dart:887:28 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'PaymentReminder' • lib/core/services/auth_sync_service.dart:897:28 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'AccountEntity' • lib/core/services/auth_sync_service.dart:973:15 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'AccountEntity' • lib/core/services/auth_sync_service.dart:974:22 • always_specify_types
-warning • The value of the local variable 'changedCategories' isn't used. Try removing the variable or using it • lib/core/services/auth_sync_service.dart:976:26 • unused_local_variable
-   info • Missing type annotation. Try specifying the type 'Category' • lib/core/services/auth_sync_service.dart:979:15 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'Category' • lib/core/services/auth_sync_service.dart:980:22 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'TagEntity' • lib/core/services/auth_sync_service.dart:985:15 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'TagEntity' • lib/core/services/auth_sync_service.dart:986:22 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'TransactionTagEntity' • lib/core/services/auth_sync_service.dart:992:22 • always_specify_types
-warning • The value of the local variable 'changedTransactions' isn't used. Try removing the variable or using it • lib/core/services/auth_sync_service.dart:994:35 • unused_local_variable
-   info • Missing type annotation. Try specifying the type 'TransactionEntity' • lib/core/services/auth_sync_service.dart:997:15 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'TransactionEntity' • lib/core/services/auth_sync_service.dart:998:22 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditEntity' • lib/core/services/auth_sync_service.dart:1003:15 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditEntity' • lib/core/services/auth_sync_service.dart:1004:22 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditCardEntity' • lib/core/services/auth_sync_service.dart:1009:15 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditCardEntity' • lib/core/services/auth_sync_service.dart:1010:22 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'DebtEntity' • lib/core/services/auth_sync_service.dart:1015:15 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'DebtEntity' • lib/core/services/auth_sync_service.dart:1016:22 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditPaymentGroupEntity' • lib/core/services/auth_sync_service.dart:1021:15 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditPaymentGroupEntity' • lib/core/services/auth_sync_service.dart:1022:22 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditPaymentScheduleEntity' • lib/core/services/auth_sync_service.dart:1027:15 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditPaymentScheduleEntity' • lib/core/services/auth_sync_service.dart:1028:22 • always_specify_types
-warning • The value of the local variable 'changedBudgets' isn't used. Try removing the variable or using it • lib/core/services/auth_sync_service.dart:1030:24 • unused_local_variable
-   info • Missing type annotation. Try specifying the type 'Budget' • lib/core/services/auth_sync_service.dart:1033:15 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'Budget' • lib/core/services/auth_sync_service.dart:1034:22 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'BudgetInstance' • lib/core/services/auth_sync_service.dart:1039:15 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'BudgetInstance' • lib/core/services/auth_sync_service.dart:1040:22 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'SavingGoal' • lib/core/services/auth_sync_service.dart:1045:15 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'SavingGoal' • lib/core/services/auth_sync_service.dart:1046:22 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'UpcomingPayment' • lib/core/services/auth_sync_service.dart:1051:15 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'UpcomingPayment' • lib/core/services/auth_sync_service.dart:1052:22 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'PaymentReminder' • lib/core/services/auth_sync_service.dart:1057:15 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'PaymentReminder' • lib/core/services/auth_sync_service.dart:1058:22 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'Category' • lib/core/services/auth_sync_service.dart:1064:15 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'Category' • lib/core/services/auth_sync_service.dart:1065:22 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'Category' • lib/core/services/auth_sync_service.dart:1075:15 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'Category' • lib/core/services/auth_sync_service.dart:1076:22 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'TransactionEntity' • lib/core/services/auth_sync_service.dart:1084:21 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'TransactionEntity' • lib/core/services/auth_sync_service.dart:1085:28 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'TransactionEntity' • lib/core/services/auth_sync_service.dart:1092:15 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'TransactionEntity' • lib/core/services/auth_sync_service.dart:1093:22 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'Budget' • lib/core/services/auth_sync_service.dart:1101:21 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'Budget' • lib/core/services/auth_sync_service.dart:1102:28 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'Budget' • lib/core/services/auth_sync_service.dart:1109:15 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'Budget' • lib/core/services/auth_sync_service.dart:1110:22 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'AccountEntity' • lib/core/services/auth_sync_service.dart:1128:17 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'AccountEntity' • lib/core/services/auth_sync_service.dart:1129:24 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'AccountEntity' • lib/core/services/auth_sync_service.dart:1131:68 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'Category' • lib/core/services/auth_sync_service.dart:1132:70 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'TagEntity' • lib/core/services/auth_sync_service.dart:1136:17 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'TagEntity' • lib/core/services/auth_sync_service.dart:1137:24 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'TagEntity' • lib/core/services/auth_sync_service.dart:1138:14 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditEntity' • lib/core/services/auth_sync_service.dart:1146:21 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditEntity' • lib/core/services/auth_sync_service.dart:1147:28 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditEntity' • lib/core/services/auth_sync_service.dart:1155:19 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditEntity' • lib/core/services/auth_sync_service.dart:1156:26 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditCardEntity' • lib/core/services/auth_sync_service.dart:1168:21 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditCardEntity' • lib/core/services/auth_sync_service.dart:1169:28 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditCardEntity' • lib/core/services/auth_sync_service.dart:1176:19 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditCardEntity' • lib/core/services/auth_sync_service.dart:1177:26 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'DebtEntity' • lib/core/services/auth_sync_service.dart:1189:21 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'DebtEntity' • lib/core/services/auth_sync_service.dart:1190:28 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'DebtEntity' • lib/core/services/auth_sync_service.dart:1197:19 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'DebtEntity' • lib/core/services/auth_sync_service.dart:1198:26 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'SavingGoal' • lib/core/services/auth_sync_service.dart:1218:17 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'SavingGoal' • lib/core/services/auth_sync_service.dart:1219:24 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'SavingGoal' • lib/core/services/auth_sync_service.dart:1221:68 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditEntity' • lib/core/services/auth_sync_service.dart:1226:17 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditEntity' • lib/core/services/auth_sync_service.dart:1227:24 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditEntity' • lib/core/services/auth_sync_service.dart:1229:66 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditPaymentScheduleEntity' • lib/core/services/auth_sync_service.dart:1238:25 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditPaymentScheduleEntity' • lib/core/services/auth_sync_service.dart:1239:32 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditPaymentScheduleEntity' • lib/core/services/auth_sync_service.dart:1246:19 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditPaymentScheduleEntity' • lib/core/services/auth_sync_service.dart:1247:26 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditPaymentScheduleEntity' • lib/core/services/auth_sync_service.dart:1258:21 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditPaymentScheduleEntity' • lib/core/services/auth_sync_service.dart:1259:28 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditPaymentScheduleEntity' • lib/core/services/auth_sync_service.dart:1262:19 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditPaymentScheduleEntity' • lib/core/services/auth_sync_service.dart:1263:17 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditPaymentGroupEntity' • lib/core/services/auth_sync_service.dart:1272:25 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditPaymentGroupEntity' • lib/core/services/auth_sync_service.dart:1273:32 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditPaymentGroupEntity' • lib/core/services/auth_sync_service.dart:1282:19 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditPaymentGroupEntity' • lib/core/services/auth_sync_service.dart:1283:26 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditPaymentGroupEntity' • lib/core/services/auth_sync_service.dart:1294:21 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditPaymentGroupEntity' • lib/core/services/auth_sync_service.dart:1295:28 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditPaymentGroupEntity' • lib/core/services/auth_sync_service.dart:1298:19 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditPaymentGroupEntity' • lib/core/services/auth_sync_service.dart:1299:17 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'CreditPaymentGroupEntity' • lib/core/services/auth_sync_service.dart:1302:17 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'TransactionEntity' • lib/core/services/auth_sync_service.dart:1323:19 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'TransactionEntity' • lib/core/services/auth_sync_service.dart:1324:26 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'TransactionTagEntity' • lib/core/services/auth_sync_service.dart:1337:30 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'TransactionEntity' • lib/core/services/auth_sync_service.dart:1343:23 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'TransactionEntity' • lib/core/services/auth_sync_service.dart:1344:30 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'TransactionEntity' • lib/core/services/auth_sync_service.dart:1347:19 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'TransactionTagEntity' • lib/core/services/auth_sync_service.dart:1359:26 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'UpcomingPayment' • lib/core/services/auth_sync_service.dart:1371:21 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'UpcomingPayment' • lib/core/services/auth_sync_service.dart:1372:28 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'UpcomingPayment' • lib/core/services/auth_sync_service.dart:1380:19 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'UpcomingPayment' • lib/core/services/auth_sync_service.dart:1381:26 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'Budget' • lib/core/services/auth_sync_service.dart:1401:17 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'Budget' • lib/core/services/auth_sync_service.dart:1402:24 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'Budget' • lib/core/services/auth_sync_service.dart:1404:66 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'BudgetInstance' • lib/core/services/auth_sync_service.dart:1412:21 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'BudgetInstance' • lib/core/services/auth_sync_service.dart:1413:28 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'BudgetInstance' • lib/core/services/auth_sync_service.dart:1420:19 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'BudgetInstance' • lib/core/services/auth_sync_service.dart:1421:26 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'TransactionEntity' • lib/core/services/auth_sync_service.dart:1444:23 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'TransactionEntity' • lib/core/services/auth_sync_service.dart:1445:30 • always_specify_types
-   info • Missing type annotation. Try adding a type annotation • lib/core/services/auth_sync_service.dart:1451:61 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'AccountEntity' • lib/core/services/auth_sync_service.dart:1452:16 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'AccountEntity' • lib/core/services/auth_sync_service.dart:1454:82 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'AccountEntity?' • lib/core/services/auth_sync_service.dart:1455:11 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'MapEntry<String, DateTime>' • lib/core/services/auth_sync_service.dart:1470:10 • always_specify_types
-warning • Unused import: 'package:drift/drift.dart'. Try removing the import directive • test/core/services/incremental_sync_test.dart:5:8 • unused_import
-warning • Unused import: 'package:drift/native.dart'. Try removing the import directive • test/core/services/incremental_sync_test.dart:6:8 • unused_import
-warning • Unused import: 'package:fake_cloud_firestore/fake_cloud_firestore.dart'. Try removing the import directive • test/core/services/incremental_sync_test.dart:7:8 • unused_import
-warning • Unused import: 'package:kopim/core/services/sync/sync_metadata_repository.dart'. Try removing the import directive • test/core/services/incremental_sync_test.dart:14:8 • unused_import
-   info • Missing type annotation. Try specifying the type 'SyncEntityManifestEntry' • test/core/services/incremental_sync_test.dart:114:12 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'SyncEntityManifestEntry' • test/core/services/incremental_sync_test.dart:126:12 • always_specify_types
-   info • Missing type annotation. Try adding a type annotation • test/core/services/incremental_sync_test.dart:145:18 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'SyncEntityManifestEntry' • test/core/services/incremental_sync_test.dart:186:12 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'SyncEntityManifestEntry' • test/core/services/incremental_sync_test.dart:208:12 • always_specify_types
-   info • Missing type annotation. Try adding a type annotation • test/core/services/incremental_sync_test.dart:225:42 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'SyncEntityManifestEntry' • test/core/services/incremental_sync_test.dart:260:12 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'DocumentReference<Map<String, dynamic>>' • test/core/services/incremental_sync_test.dart:279:9 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'SyncEntityManifestEntry' • test/core/services/incremental_sync_test.dart:303:12 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'SyncEntityManifestEntry' • test/core/services/incremental_sync_test.dart:378:12 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'SyncEntityManifestEntry' • test/core/services/incremental_sync_test.dart:426:12 • always_specify_types
-   info • Missing type annotation. Try specifying the type 'SyncEntityManifestEntry' • test/core/services/incremental_sync_test.dart:446:12 • always_specify_types
-warning • The value of the local variable 'strings' isn't used. Try removing the variable or using it • test/features/savings/presentation/screens/saving_goal_details_screen_test.dart:141:30 • unused_local_variable
+  error - lib/core/services/sync/sync_dispatch_guard.dart:26:37 - Undefined class 'SyncDispatchGuardRef'. Try changing the name to the name of an existing class, or creating a class with the name 'SyncDispatchGuardRef'. - undefined_class
+  error - lib/features/profile/presentation/controllers/cloud_activation_preflight_controller.dart:67:10 - The type 'DataMode?' isn't exhaustively matched by the switch cases since it doesn't match the pattern 'DataMode.initialCloudPullInProgress'. Try adding a wildcard pattern or cases that match 'DataMode.initialCloudPullInProgress'. - non_exhaustive_switch_expression
+  error - test/core/services/incremental_sync_test.dart:84:21 - The named parameter 'syncDispatchGuard' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/core/services/sync/local_to_cloud_migration_readiness_service_test.dart:69:16 - '_FakeMigrationWriteGuard.releaseFreeze' ('Future<void> Function()') isn't a valid override of 'MigrationWriteGuard.releaseFreeze' ('Future<void> Function({String? expectedPhase})'). - invalid_override
+           - The member being overridden at lib/features/profile/application/migration_write_guard.dart:98:16.
+  error - test/core/services/sync_service_profile_test.dart:95:41 - The named parameter 'syncDispatchGuard' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/features/profile/application/cloud_activation_execution_service_test.dart:95:16 - '_FakeCloudActivationStateRepository.saveEnabledState' ('Future<void> Function({required String? localFingerprint, required String? remoteFingerprint, required String scenario, required String uid})') isn't a valid override of 'CloudActivationStateRepository.saveEnabledState' ('Future<void> Function({bool activationCompleted, required String? localFingerprint, required String? remoteFingerprint, required String scenario, required String uid})'). - invalid_override
+           - The member being overridden at lib/features/profile/data/cloud_activation_state_repository.dart:10:16.
+  error - test/features/profile/application/cloud_activation_execution_service_test.dart:101:18 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/features/profile/application/fresh_upload_execution_service_test.dart:147:16 - '_FakeActivationStateRepository.saveEnabledState' ('Future<void> Function({required String? localFingerprint, required String? remoteFingerprint, required String scenario, required String uid})') isn't a valid override of 'CloudActivationStateRepository.saveEnabledState' ('Future<void> Function({bool activationCompleted, required String? localFingerprint, required String? remoteFingerprint, required String scenario, required String uid})'). - invalid_override
+           - The member being overridden at lib/features/profile/data/cloud_activation_state_repository.dart:10:16.
+  error - test/features/profile/application/fresh_upload_execution_service_test.dart:153:13 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/features/profile/application/local_to_cloud_migration_integration_test.dart:86:16 - '_FakeCloudActivationStateRepository.saveEnabledState' ('Future<void> Function({required String? localFingerprint, required String? remoteFingerprint, required String scenario, required String uid})') isn't a valid override of 'CloudActivationStateRepository.saveEnabledState' ('Future<void> Function({bool activationCompleted, required String? localFingerprint, required String? remoteFingerprint, required String scenario, required String uid})'). - invalid_override
+           - The member being overridden at lib/features/profile/data/cloud_activation_state_repository.dart:10:16.
+  error - test/features/profile/application/local_to_cloud_migration_integration_test.dart:92:13 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/features/profile/presentation/data_mode_controller_test.dart:140:16 - '_FakeCloudActivationStateRepository.saveEnabledState' ('Future<void> Function({required String? localFingerprint, required String? remoteFingerprint, required String scenario, required String uid})') isn't a valid override of 'CloudActivationStateRepository.saveEnabledState' ('Future<void> Function({bool activationCompleted, required String? localFingerprint, required String? remoteFingerprint, required String scenario, required String uid})'). - invalid_override
+           - The member being overridden at lib/features/profile/data/cloud_activation_state_repository.dart:10:16.
+  error - test/features/profile/presentation/data_mode_controller_test.dart:146:13 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/features/profile/presentation/data_mode_controller_test.dart:273:22 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/features/profile/presentation/data_mode_controller_test.dart:343:22 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/features/profile/presentation/data_mode_controller_test.dart:423:22 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/features/profile/presentation/data_mode_controller_test.dart:482:22 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/features/profile/presentation/data_mode_controller_test.dart:587:22 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/features/profile/presentation/data_mode_controller_test.dart:645:22 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/features/profile/presentation/data_mode_controller_test.dart:706:22 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/features/profile/presentation/data_mode_controller_test.dart:759:22 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/features/profile/presentation/data_mode_controller_test.dart:821:22 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/features/profile/presentation/data_mode_controller_test.dart:891:22 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+  error - test/features/profile/presentation/data_mode_controller_test.dart:944:22 - The named parameter 'activationCompleted' is required, but there's no corresponding argument. Try adding the required argument. - missing_required_argument
+warning - lib/core/di/injectors.dart:40:8 - Unused import: 'package:kopim/core/services/sync_status.dart'. Try removing the import directive. - unused_import
+   info - lib/core/services/sync/sync_dispatch_guard.dart:12:47 - Missing type annotation. Try adding a type annotation. - always_specify_types
 
+26 issues found.

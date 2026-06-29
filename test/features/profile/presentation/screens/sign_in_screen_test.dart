@@ -16,10 +16,7 @@ import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/sign_in_request.dart';
 import 'package:kopim/features/profile/domain/entities/sign_up_request.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
-import 'package:kopim/features/profile/presentation/controllers/cloud_activation_preflight_controller.dart';
 import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
-import 'package:kopim/features/profile/presentation/screens/cloud_access_status_screen.dart';
-import 'package:kopim/features/profile/presentation/screens/cloud_activation_choice_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/cloud_activation_preflight_screen.dart';
 import 'package:kopim/l10n/app_localizations.dart';
 import 'package:mocktail/mocktail.dart';
@@ -393,9 +390,9 @@ void main() {
   });
 
   testWidgets(
-    'resumeCloudActivation opens choice screen after successful sign-in',
+    'regular cloud-capable sign-in routes through preflight auto-check',
     (WidgetTester tester) async {
-      AppRuntimeConfig.configure(AppRuntimeFlavor.storeProdLocalFirst);
+      AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseDev);
       await setWindowSize(tester, const Size(800, 1200));
       final _MockConnectivity connectivity = _MockConnectivity();
       final StreamController<List<ConnectivityResult>> connectivityStream =
@@ -407,243 +404,121 @@ void main() {
         () => connectivity.onConnectivityChanged,
       ).thenAnswer((_) => connectivityStream.stream);
       final _StubAuthController authController = _StubAuthController();
-      final _RefreshableDataModeController dataModeController =
-          _RefreshableDataModeController(
-            const DataModeState(
-              dataMode: DataMode.localOnly,
-              entitlementState: CloudEntitlementState.active,
-              migrationDecision: MigrationDecision.none,
-              cloudDataState: CloudDataState.active,
-              requiresFreshCloudUpload: false,
-              isSyncBlockedByCloudState: false,
-            ),
-          );
       final GoRouter router = GoRouter(
         initialLocation: SignInScreen.routeName,
         routes: <RouteBase>[
           GoRoute(
             path: SignInScreen.routeName,
             builder: (BuildContext context, GoRouterState state) =>
-                const SignInScreen(resumeCloudActivation: true),
-          ),
-          GoRoute(
-            path: CloudActivationChoiceScreen.routeName,
-            builder: (BuildContext context, GoRouterState state) =>
-                const Scaffold(body: Text('choice-screen')),
-          ),
-          GoRoute(
-            path: CloudAccessStatusScreen.routeName,
-            builder: (BuildContext context, GoRouterState state) =>
-                const Scaffold(body: Text('access-screen')),
-          ),
-        ],
-      );
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: <Override>[
-            connectivityProvider.overrideWithValue(connectivity),
-            authControllerProvider.overrideWith(() => authController),
-            appCapabilitiesProvider.overrideWithValue(
-              const AppCapabilities(
-                canInitializeFirebase: true,
-                canUseFirebaseAuth: true,
-                canUseFirestore: true,
-                canUseRemoteConfig: true,
-                canRunCloudSync: true,
-                canUseAiTransport: true,
-                canShowCloudSyncEntryPoint: true,
-                canRegisterInApp: false,
-                canShowPaymentOrPurchaseUi: false,
-                canActivatePromoOrLicenseInApp: false,
-                requiresEntitlementBeforeWebApp: false,
-                allowsLocalOnlyUsage: true,
-                expiredEntitlementMode:
-                    ExpiredEntitlementMode.localWritableSyncPaused,
-                firebaseEnvironment: FirebaseEnvironment.prod,
-              ),
-            ),
-            dataModeControllerProvider.overrideWith(() => dataModeController),
-            cloudActivationPreflightProvider.overrideWithValue(
-              const CloudActivationPreflightState(
-                CloudActivationPreflightStatus.readyForNextStep,
-              ),
-            ),
-          ],
-          child: MaterialApp.router(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            routerConfig: router,
-          ),
-        ),
-      );
-
-      await pumpReady(tester);
-
-      final Finder fields = find.byType(TextField);
-      await tester.enterText(fields.at(0), 'user@example.com');
-      await tester.enterText(fields.at(1), 'secret123');
-      await tester.pump();
-      await tester.tap(find.text('Войти'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('choice-screen'), findsOneWidget);
-      expect(dataModeController.refreshCalls, 1);
-
-      await connectivityStream.close();
-    },
-  );
-
-  testWidgets(
-    'resumeCloudActivation opens access status when entitlement is still required',
-    (WidgetTester tester) async {
-      AppRuntimeConfig.configure(AppRuntimeFlavor.storeProdLocalFirst);
-      await setWindowSize(tester, const Size(800, 1200));
-      final _MockConnectivity connectivity = _MockConnectivity();
-      final StreamController<List<ConnectivityResult>> connectivityStream =
-          StreamController<List<ConnectivityResult>>.broadcast();
-      when(() => connectivity.checkConnectivity()).thenAnswer(
-        (_) async => const <ConnectivityResult>[ConnectivityResult.wifi],
-      );
-      when(
-        () => connectivity.onConnectivityChanged,
-      ).thenAnswer((_) => connectivityStream.stream);
-      final _StubAuthController authController = _StubAuthController();
-      final _RefreshableDataModeController dataModeController =
-          _RefreshableDataModeController(
-            const DataModeState(
-              dataMode: DataMode.localOnly,
-              entitlementState: CloudEntitlementState.notActivated,
-              migrationDecision: MigrationDecision.none,
-              cloudDataState: CloudDataState.active,
-              requiresFreshCloudUpload: false,
-              isSyncBlockedByCloudState: false,
-            ),
-          );
-      final GoRouter router = GoRouter(
-        initialLocation: SignInScreen.routeName,
-        routes: <RouteBase>[
-          GoRoute(
-            path: SignInScreen.routeName,
-            builder: (BuildContext context, GoRouterState state) =>
-                const SignInScreen(resumeCloudActivation: true),
-          ),
-          GoRoute(
-            path: CloudActivationChoiceScreen.routeName,
-            builder: (BuildContext context, GoRouterState state) =>
-                const Scaffold(body: Text('choice-screen')),
-          ),
-          GoRoute(
-            path: CloudAccessStatusScreen.routeName,
-            builder: (BuildContext context, GoRouterState state) =>
-                const Scaffold(body: Text('access-screen')),
-          ),
-        ],
-      );
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: <Override>[
-            connectivityProvider.overrideWithValue(connectivity),
-            authControllerProvider.overrideWith(() => authController),
-            appCapabilitiesProvider.overrideWithValue(
-              const AppCapabilities(
-                canInitializeFirebase: true,
-                canUseFirebaseAuth: true,
-                canUseFirestore: true,
-                canUseRemoteConfig: true,
-                canRunCloudSync: true,
-                canUseAiTransport: true,
-                canShowCloudSyncEntryPoint: true,
-                canRegisterInApp: false,
-                canShowPaymentOrPurchaseUi: false,
-                canActivatePromoOrLicenseInApp: false,
-                requiresEntitlementBeforeWebApp: false,
-                allowsLocalOnlyUsage: true,
-                expiredEntitlementMode:
-                    ExpiredEntitlementMode.localWritableSyncPaused,
-                firebaseEnvironment: FirebaseEnvironment.prod,
-              ),
-            ),
-            dataModeControllerProvider.overrideWith(() => dataModeController),
-            cloudActivationPreflightProvider.overrideWithValue(
-              const CloudActivationPreflightState(
-                CloudActivationPreflightStatus.entitlementRequired,
-              ),
-            ),
-          ],
-          child: MaterialApp.router(
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            routerConfig: router,
-          ),
-        ),
-      );
-
-      await pumpReady(tester);
-
-      final Finder fields = find.byType(TextField);
-      await tester.enterText(fields.at(0), 'user@example.com');
-      await tester.enterText(fields.at(1), 'secret123');
-      await tester.pump();
-      await tester.tap(find.text('Войти'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('access-screen'), findsOneWidget);
-      expect(dataModeController.refreshCalls, 1);
-
-      await connectivityStream.close();
-    },
-  );
-
-  testWidgets(
-    'resumeCloudActivation handles refresh entitlement failure gracefully and stays on preflight/access screen',
-    (WidgetTester tester) async {
-      AppRuntimeConfig.configure(AppRuntimeFlavor.storeProdLocalFirst);
-      await setWindowSize(tester, const Size(800, 1200));
-      final _MockConnectivity connectivity = _MockConnectivity();
-      final StreamController<List<ConnectivityResult>> connectivityStream =
-          StreamController<List<ConnectivityResult>>.broadcast();
-      when(() => connectivity.checkConnectivity()).thenAnswer(
-        (_) async => const <ConnectivityResult>[ConnectivityResult.wifi],
-      );
-      when(
-        () => connectivity.onConnectivityChanged,
-      ).thenAnswer((_) => connectivityStream.stream);
-      final _StubAuthController authController = _StubAuthController();
-      final _FailingDataModeController dataModeController =
-          _FailingDataModeController(
-            const DataModeState(
-              dataMode: DataMode.localOnly,
-              entitlementState: CloudEntitlementState.notActivated,
-              migrationDecision: MigrationDecision.none,
-              cloudDataState: CloudDataState.active,
-              requiresFreshCloudUpload: false,
-              isSyncBlockedByCloudState: false,
-            ),
-          );
-      final GoRouter router = GoRouter(
-        initialLocation: SignInScreen.routeName,
-        routes: <RouteBase>[
-          GoRoute(
-            path: SignInScreen.routeName,
-            builder: (BuildContext context, GoRouterState state) =>
-                const SignInScreen(resumeCloudActivation: true),
-          ),
-          GoRoute(
-            path: CloudActivationChoiceScreen.routeName,
-            builder: (BuildContext context, GoRouterState state) =>
-                const Scaffold(body: Text('choice-screen')),
-          ),
-          GoRoute(
-            path: CloudAccessStatusScreen.routeName,
-            builder: (BuildContext context, GoRouterState state) =>
-                const Scaffold(body: Text('access-screen')),
+                const SignInScreen(),
           ),
           GoRoute(
             path: CloudActivationPreflightScreen.routeName,
+            builder: (BuildContext context, GoRouterState state) => Scaffold(
+              body: Text(
+                'preflight:autoAdvance='
+                '${state.uri.queryParameters['autoAdvance']};'
+                'fallbackToHome='
+                '${state.uri.queryParameters['fallbackToHome']}',
+              ),
+            ),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: <Override>[
+            connectivityProvider.overrideWithValue(connectivity),
+            authControllerProvider.overrideWith(() => authController),
+            appCapabilitiesProvider.overrideWithValue(
+              const AppCapabilities(
+                canInitializeFirebase: true,
+                canUseFirebaseAuth: true,
+                canUseFirestore: true,
+                canUseRemoteConfig: true,
+                canRunCloudSync: true,
+                canUseAiTransport: true,
+                canShowCloudSyncEntryPoint: true,
+                canRegisterInApp: true,
+                canShowPaymentOrPurchaseUi: true,
+                canActivatePromoOrLicenseInApp: true,
+                requiresEntitlementBeforeWebApp: false,
+                allowsLocalOnlyUsage: true,
+                expiredEntitlementMode: ExpiredEntitlementMode.configurable,
+                firebaseEnvironment: FirebaseEnvironment.dev,
+              ),
+            ),
+            dataModeControllerProvider.overrideWith(
+              () => _FakeDataModeController(
+                const DataModeState(
+                  dataMode: DataMode.localOnly,
+                  entitlementState: CloudEntitlementState.active,
+                  migrationDecision: MigrationDecision.none,
+                  cloudDataState: CloudDataState.active,
+                  requiresFreshCloudUpload: false,
+                  isSyncBlockedByCloudState: false,
+                ),
+              ),
+            ),
+          ],
+          child: MaterialApp.router(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+
+      await pumpReady(tester);
+
+      final Finder fields = find.byType(TextField);
+      await tester.enterText(fields.at(0), 'user@example.com');
+      await tester.enterText(fields.at(1), 'secret123');
+      await tester.pump();
+      await tester.tap(find.text('Войти'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('preflight:autoAdvance=true;fallbackToHome=true'),
+        findsOneWidget,
+      );
+
+      await connectivityStream.close();
+    },
+  );
+
+  testWidgets(
+    'resumeCloudActivation routes through preflight entry after successful sign-in',
+    (WidgetTester tester) async {
+      AppRuntimeConfig.configure(AppRuntimeFlavor.storeProdLocalFirst);
+      await setWindowSize(tester, const Size(800, 1200));
+      final _MockConnectivity connectivity = _MockConnectivity();
+      final StreamController<List<ConnectivityResult>> connectivityStream =
+          StreamController<List<ConnectivityResult>>.broadcast();
+      when(() => connectivity.checkConnectivity()).thenAnswer(
+        (_) async => const <ConnectivityResult>[ConnectivityResult.wifi],
+      );
+      when(
+        () => connectivity.onConnectivityChanged,
+      ).thenAnswer((_) => connectivityStream.stream);
+      final _StubAuthController authController = _StubAuthController();
+      final GoRouter router = GoRouter(
+        initialLocation: SignInScreen.routeName,
+        routes: <RouteBase>[
+          GoRoute(
+            path: SignInScreen.routeName,
             builder: (BuildContext context, GoRouterState state) =>
-                const Scaffold(body: Text('preflight-screen')),
+                const SignInScreen(resumeCloudActivation: true),
+          ),
+          GoRoute(
+            path: CloudActivationPreflightScreen.routeName,
+            builder: (BuildContext context, GoRouterState state) => Scaffold(
+              body: Text(
+                'preflight:autoAdvance='
+                '${state.uri.queryParameters['autoAdvance']}',
+              ),
+            ),
           ),
         ],
       );
@@ -672,10 +547,16 @@ void main() {
                 firebaseEnvironment: FirebaseEnvironment.prod,
               ),
             ),
-            dataModeControllerProvider.overrideWith(() => dataModeController),
-            cloudActivationPreflightProvider.overrideWithValue(
-              const CloudActivationPreflightState(
-                CloudActivationPreflightStatus.entitlementRequired,
+            dataModeControllerProvider.overrideWith(
+              () => _FakeDataModeController(
+                const DataModeState(
+                  dataMode: DataMode.localOnly,
+                  entitlementState: CloudEntitlementState.active,
+                  migrationDecision: MigrationDecision.none,
+                  cloudDataState: CloudDataState.active,
+                  requiresFreshCloudUpload: false,
+                  isSyncBlockedByCloudState: false,
+                ),
               ),
             ),
           ],
@@ -696,12 +577,106 @@ void main() {
       await tester.tap(find.text('Войти'));
       await tester.pumpAndSettle();
 
-      expect(find.text('access-screen'), findsOneWidget);
-      expect(dataModeController.refreshCalls, 1);
-      expect(
-        find.textContaining('Не удалось сразу обновить доступ к облаку'),
-        findsOneWidget,
+      expect(find.text('preflight:autoAdvance=true'), findsOneWidget);
+
+      await connectivityStream.close();
+    },
+  );
+
+  testWidgets(
+    'resumeCloudActivation routes through preflight entry after successful sign-up',
+    (WidgetTester tester) async {
+      AppRuntimeConfig.configure(AppRuntimeFlavor.firebaseDev);
+      await setWindowSize(tester, const Size(800, 1200));
+      final _MockConnectivity connectivity = _MockConnectivity();
+      final StreamController<List<ConnectivityResult>> connectivityStream =
+          StreamController<List<ConnectivityResult>>.broadcast();
+      when(() => connectivity.checkConnectivity()).thenAnswer(
+        (_) async => const <ConnectivityResult>[ConnectivityResult.wifi],
       );
+      when(
+        () => connectivity.onConnectivityChanged,
+      ).thenAnswer((_) => connectivityStream.stream);
+      final _StubAuthController authController = _StubAuthController();
+      final GoRouter router = GoRouter(
+        initialLocation: SignInScreen.routeName,
+        routes: <RouteBase>[
+          GoRoute(
+            path: SignInScreen.routeName,
+            builder: (BuildContext context, GoRouterState state) =>
+                const SignInScreen(
+                  startInSignUpMode: true,
+                  resumeCloudActivation: true,
+                ),
+          ),
+          GoRoute(
+            path: CloudActivationPreflightScreen.routeName,
+            builder: (BuildContext context, GoRouterState state) => Scaffold(
+              body: Text(
+                'preflight:autoAdvance='
+                '${state.uri.queryParameters['autoAdvance']}',
+              ),
+            ),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: <Override>[
+            connectivityProvider.overrideWithValue(connectivity),
+            authControllerProvider.overrideWith(() => authController),
+            appCapabilitiesProvider.overrideWithValue(
+              const AppCapabilities(
+                canInitializeFirebase: true,
+                canUseFirebaseAuth: true,
+                canUseFirestore: true,
+                canUseRemoteConfig: true,
+                canRunCloudSync: true,
+                canUseAiTransport: true,
+                canShowCloudSyncEntryPoint: true,
+                canRegisterInApp: true,
+                canShowPaymentOrPurchaseUi: true,
+                canActivatePromoOrLicenseInApp: true,
+                requiresEntitlementBeforeWebApp: false,
+                allowsLocalOnlyUsage: true,
+                expiredEntitlementMode: ExpiredEntitlementMode.configurable,
+                firebaseEnvironment: FirebaseEnvironment.dev,
+              ),
+            ),
+            dataModeControllerProvider.overrideWith(
+              () => _FakeDataModeController(
+                const DataModeState(
+                  dataMode: DataMode.localOnly,
+                  entitlementState: CloudEntitlementState.active,
+                  migrationDecision: MigrationDecision.none,
+                  cloudDataState: CloudDataState.active,
+                  requiresFreshCloudUpload: false,
+                  isSyncBlockedByCloudState: false,
+                ),
+              ),
+            ),
+          ],
+          child: MaterialApp.router(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+
+      await pumpReady(tester);
+
+      final Finder fields = find.byType(TextField);
+      await tester.enterText(fields.at(0), 'new@example.com');
+      await tester.enterText(fields.at(1), 'secret123');
+      await tester.enterText(fields.at(2), 'secret123');
+      await tester.enterText(fields.at(3), 'Test User');
+      await tester.pump();
+      await tester.tap(find.text('Создать'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('preflight:autoAdvance=true'), findsOneWidget);
 
       await connectivityStream.close();
     },
@@ -717,35 +692,4 @@ class _FakeDataModeController extends DataModeController {
 
   @override
   Future<void> refreshEntitlement() async {}
-}
-
-class _RefreshableDataModeController extends DataModeController {
-  _RefreshableDataModeController(this._state);
-
-  final DataModeState _state;
-  int refreshCalls = 0;
-
-  @override
-  FutureOr<DataModeState> build() => _state;
-
-  @override
-  Future<void> refreshEntitlement() async {
-    refreshCalls += 1;
-  }
-}
-
-class _FailingDataModeController extends DataModeController {
-  _FailingDataModeController(this._state);
-
-  final DataModeState _state;
-  int refreshCalls = 0;
-
-  @override
-  FutureOr<DataModeState> build() => _state;
-
-  @override
-  Future<void> refreshEntitlement() async {
-    refreshCalls += 1;
-    throw Exception('Token refresh failed');
-  }
 }

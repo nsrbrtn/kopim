@@ -81,7 +81,18 @@ final Provider<void> syncCoordinatorProvider = Provider<void>((Ref ref) {
       stopSync();
       return;
     }
-    unawaited(startSyncForUser(user));
+    unawaited(
+      startSyncForUser(user).catchError((Object error, StackTrace stackTrace) {
+        FlutterError.reportError(
+          FlutterErrorDetails(
+            exception: error,
+            stack: stackTrace,
+            library: 'sync_coordinator',
+            context: ErrorDescription('while starting sync'),
+          ),
+        );
+      }),
+    );
   }
 
   ref.onDispose(stopSync);

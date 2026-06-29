@@ -376,6 +376,10 @@ analyticsCategoryTransactionsProvider =
 final StreamProvider<List<TransactionEntity>>
 analyticsTransferTransactionsProvider = StreamProvider<List<TransactionEntity>>(
   (Ref ref) {
+    final AnalyticsFilter filters = ref.watch(analyticsFiltersProvider);
+    if (filters.categoryId != null) {
+      return Stream<List<TransactionEntity>>.value(const <TransactionEntity>[]);
+    }
     final AnalyticsDateWindow window = ref.watch(analyticsDateWindowProvider);
     final SortedIds selectedAccountIds = ref.watch(
       analyticsSelectedAccountIdsProvider,
@@ -654,6 +658,12 @@ class CreditDebtOperationsOverview {
 final StreamProvider<CreditDebtOperationsOverview>
 analyticsCreditDebtOperationsProvider =
     StreamProvider<CreditDebtOperationsOverview>((Ref ref) {
+      final AnalyticsFilter filters = ref.watch(analyticsFiltersProvider);
+      if (filters.categoryId != null) {
+        return Stream<CreditDebtOperationsOverview>.value(
+          CreditDebtOperationsOverview.empty(),
+        );
+      }
       final AnalyticsDateWindow window = ref.watch(analyticsDateWindowProvider);
       final SortedIds selectedAccountIds = ref.watch(
         analyticsSelectedAccountIdsProvider,

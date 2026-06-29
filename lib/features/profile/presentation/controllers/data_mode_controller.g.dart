@@ -34,7 +34,7 @@ final class DataModeControllerProvider
 }
 
 String _$dataModeControllerHash() =>
-    r'6d1b6b1d296c461ccc41987a3b4e3b173fe9c1de';
+    r'48eafc228ba8679edeb885cb68dafe6413b8ed63';
 
 abstract class _$DataModeController extends $AsyncNotifier<DataModeState> {
   FutureOr<DataModeState> build();

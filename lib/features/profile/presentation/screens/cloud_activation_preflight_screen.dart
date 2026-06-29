@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:kopim/core/config/app_runtime.dart';
+import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_decision_controller.dart';
 import 'package:kopim/core/config/app_capabilities.dart';
-import 'package:kopim/core/config/app_runtime.dart';
+import 'package:kopim/features/app_shell/presentation/widgets/main_navigation_shell.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_preflight_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
 import 'package:kopim/features/profile/presentation/screens/cloud_access_status_screen.dart';
@@ -12,26 +14,74 @@ import 'package:kopim/features/profile/presentation/screens/cloud_activation_cho
 import 'package:kopim/features/profile/presentation/screens/cloud_sync_intro_screen.dart';
 import 'package:kopim/features/profile/presentation/screens/sign_in_screen.dart';
 
-class CloudActivationPreflightScreen extends ConsumerWidget {
-  const CloudActivationPreflightScreen({super.key});
+class CloudActivationPreflightScreen extends ConsumerStatefulWidget {
+  const CloudActivationPreflightScreen({
+    super.key,
+    this.autoAdvance = false,
+    this.fallbackToHome = false,
+  });
 
   static const String routeName = '/cloud-activation-preflight';
+  static String buildRouteLocation({
+    bool autoAdvance = false,
+    bool fallbackToHome = false,
+  }) {
+    final Uri uri = Uri(
+      path: routeName,
+      queryParameters: <String, String>{
+        if (autoAdvance) 'autoAdvance': 'true',
+        if (fallbackToHome) 'fallbackToHome': 'true',
+      },
+    );
+    return uri.toString();
+  }
+
+  final bool autoAdvance;
+  final bool fallbackToHome;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CloudActivationPreflightScreen> createState() =>
+      _CloudActivationPreflightScreenState();
+}
+
+class _CloudActivationPreflightScreenState
+    extends ConsumerState<CloudActivationPreflightScreen> {
+  bool _autoAdvanceHandled = false;
+  bool _autoAdvanceScheduled = false;
+
+  @override
+  Widget build(BuildContext context) {
+    ref.listen<CloudActivationPreflightState>(
+      cloudActivationPreflightProvider,
+      (_, CloudActivationPreflightState next) {
+        _scheduleAutoAdvance(next);
+      },
+    );
+
     final ThemeData theme = Theme.of(context);
     final AppCapabilities capabilities = ref.watch(appCapabilitiesProvider);
     final CloudActivationPreflightState state = ref.watch(
       cloudActivationPreflightProvider,
     );
+    _scheduleAutoAdvance(state);
+    final AsyncValue<dynamic> authState = ref.watch(authControllerProvider);
     final DataModeState? dataModeState = ref
         .watch(dataModeControllerProvider)
         .asData
         ?.value;
     final bool hasExpiredAccess =
         dataModeState?.entitlementState == CloudEntitlementState.expired;
+    final bool showTransitionLoading =
+        widget.autoAdvance &&
+        _isWaitingForPostLoginState(
+          preflightState: state,
+          authState: authState,
+        );
+    final CloudActivationPreflightStatus effectiveStatus = showTransitionLoading
+        ? CloudActivationPreflightStatus.unknown
+        : state.status;
 
-    final _PreflightContent content = switch (state.status) {
+    final _PreflightContent content = switch (effectiveStatus) {
       CloudActivationPreflightStatus.cloudUnavailableInBuild =>
         const _PreflightContent(
           icon: Icons.cloud_off_outlined,
@@ -138,7 +188,7 @@ class CloudActivationPreflightScreen extends ConsumerWidget {
                     style: theme.textTheme.bodyLarge,
                     textAlign: TextAlign.center,
                   ),
-                  if (state.status ==
+                  if (effectiveStatus ==
                       CloudActivationPreflightStatus.unknown) ...<Widget>[
                     const SizedBox(height: 24),
                     const Center(child: CircularProgressIndicator()),
@@ -229,6 +279,67 @@ class CloudActivationPreflightScreen extends ConsumerWidget {
       return;
     }
     context.go('/');
+  }
+
+  bool _isWaitingForPostLoginState({
+    required CloudActivationPreflightState preflightState,
+    required AsyncValue<dynamic> authState,
+  }) {
+    if (preflightState.status == CloudActivationPreflightStatus.unknown) {
+      return true;
+    }
+    if (preflightState.status != CloudActivationPreflightStatus.signedOut) {
+      return false;
+    }
+    if (authState.isLoading) {
+      return true;
+    }
+    return authState.asData?.value != null;
+  }
+
+  void _maybeAutoAdvance(CloudActivationPreflightState state) {
+    if (!widget.autoAdvance || _autoAdvanceHandled || !mounted) {
+      return;
+    }
+
+    final AppCapabilities capabilities = ref.read(appCapabilitiesProvider);
+    switch (state.status) {
+      case CloudActivationPreflightStatus.blockedByLocalOnlyData:
+      case CloudActivationPreflightStatus.readyForNextStep:
+        _autoAdvanceHandled = true;
+        context.go(CloudActivationChoiceScreen.routeName);
+        return;
+      case CloudActivationPreflightStatus.entitlementRequired:
+        if (!capabilities.canActivatePromoOrLicenseInApp) {
+          _autoAdvanceHandled = true;
+          context.go(CloudAccessStatusScreen.routeName);
+        }
+        return;
+      case CloudActivationPreflightStatus.alreadyCloudEnabled:
+      case CloudActivationPreflightStatus.cloudUnavailableInBuild:
+        if (widget.fallbackToHome) {
+          _autoAdvanceHandled = true;
+          context.go(MainNavigationShell.routeName);
+        }
+        return;
+      case CloudActivationPreflightStatus.signedOut:
+      case CloudActivationPreflightStatus.unknown:
+        return;
+    }
+  }
+
+  void _scheduleAutoAdvance(CloudActivationPreflightState state) {
+    if (!widget.autoAdvance || _autoAdvanceHandled || _autoAdvanceScheduled) {
+      return;
+    }
+    _autoAdvanceScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _autoAdvanceScheduled = false;
+      if (!mounted) {
+        return;
+      }
+      _maybeAutoAdvance(state);
+    });
   }
 }
 

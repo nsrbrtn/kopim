@@ -8,11 +8,7 @@ import 'package:kopim/core/config/app_runtime.dart';
 import 'package:kopim/core/config/app_capabilities.dart';
 import 'package:kopim/core/di/injectors.dart';
 import 'package:kopim/core/widgets/kopim_text_field.dart';
-import 'package:kopim/features/profile/presentation/controllers/cloud_activation_decision_controller.dart';
-import 'package:kopim/features/profile/presentation/controllers/cloud_activation_preflight_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/data_mode_controller.dart';
-import 'package:kopim/features/profile/presentation/screens/cloud_access_status_screen.dart';
-import 'package:kopim/features/profile/presentation/screens/cloud_activation_choice_screen.dart';
 import 'package:kopim/features/profile/presentation/controllers/sign_in_form_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/sign_up_form_controller.dart';
 import 'package:kopim/features/app_shell/presentation/widgets/main_navigation_shell.dart';
@@ -85,7 +81,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   late final FocusNode _signUpDisplayNameFocusNode;
   ProviderSubscription<SignInFormState>? _signInFormSubscription;
   ProviderSubscription<SignUpFormState>? _signUpFormSubscription;
-  bool _resumeCloudActivationScheduled = false;
+  bool _postAuthNavigationScheduled = false;
+  bool _postAuthNavigationHandled = false;
 
   bool _canStartInSignUpMode() {
     return ref.read(appCapabilitiesProvider).canRegisterInApp;
@@ -157,20 +154,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           }
           if (next.errorMessage == null) {
             _passwordController.clear();
-            if (widget.resumeCloudActivation) {
-              _scheduleResumeCloudActivationAfterSignIn();
-            } else {
-              final GoRouter? router = GoRouter.maybeOf(context);
-              if (router != null) {
-                if (router.canPop()) {
-                  router.pop();
-                } else {
-                  router.go(MainNavigationShell.routeName);
-                }
-              } else if (Navigator.canPop(context)) {
-                Navigator.pop(context);
-              }
-            }
+            _schedulePostAuthNavigation();
           }
         }
         if (!mounted) {
@@ -194,20 +178,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           if (next.errorMessage == null) {
             _signUpPasswordController.clear();
             _signUpConfirmPasswordController.clear();
-            if (widget.resumeCloudActivation) {
-              _scheduleResumeCloudActivationAfterSignIn();
-            } else {
-              final GoRouter? router = GoRouter.maybeOf(context);
-              if (router != null) {
-                if (router.canPop()) {
-                  router.pop();
-                } else {
-                  router.go(MainNavigationShell.routeName);
-                }
-              } else if (Navigator.canPop(context)) {
-                Navigator.pop(context);
-              }
-            }
+            _schedulePostAuthNavigation();
           }
         }
         if (!mounted) {
@@ -769,10 +740,12 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   }
 
   Future<void> _onSubmit(SignInFormController controller) {
+    _resetPostAuthNavigation();
     return controller.submit();
   }
 
   Future<void> _onSignUpSubmit(SignUpFormController controller) {
+    _resetPostAuthNavigation();
     return controller.submit();
   }
 
@@ -783,49 +756,66 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
         .activateEntitlementKey(key);
   }
 
-  Future<void> _resumeCloudActivationAfterSignIn() async {
-    _resumeCloudActivationScheduled = false;
-    try {
-      await ref.read(dataModeControllerProvider.notifier).refreshEntitlement();
-    } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Не удалось сразу обновить доступ к облаку: $error'),
-          ),
-        );
-      }
-    }
-    if (!mounted) {
-      return;
-    }
-    final CloudActivationPreflightState preflightState = ref.read(
-      cloudActivationPreflightProvider,
-    );
-    if (canOpenCloudActivationChoiceScreen(preflightState.status)) {
-      context.go(CloudActivationChoiceScreen.routeName);
-      return;
-    }
-    if (preflightState.status ==
-        CloudActivationPreflightStatus.entitlementRequired) {
-      context.go(CloudAccessStatusScreen.routeName);
-      return;
-    }
-    context.go(CloudActivationPreflightScreen.routeName);
+  void _resetPostAuthNavigation() {
+    _postAuthNavigationScheduled = false;
+    _postAuthNavigationHandled = false;
   }
 
-  void _scheduleResumeCloudActivationAfterSignIn() {
-    if (_resumeCloudActivationScheduled) {
+  void _schedulePostAuthNavigation() {
+    if (_postAuthNavigationScheduled || _postAuthNavigationHandled) {
       return;
     }
-    _resumeCloudActivationScheduled = true;
+    _postAuthNavigationScheduled = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) {
-        _resumeCloudActivationScheduled = false;
+      _postAuthNavigationScheduled = false;
+      if (!mounted || _postAuthNavigationHandled) {
         return;
       }
-      unawaited(_resumeCloudActivationAfterSignIn());
+      _postAuthNavigationHandled = true;
+      final AppCapabilities capabilities = ref.read(appCapabilitiesProvider);
+      final GoRouter? router = GoRouter.maybeOf(context);
+      if (widget.resumeCloudActivation) {
+        if (router != null) {
+          router.go(
+            CloudActivationPreflightScreen.buildRouteLocation(
+              autoAdvance: true,
+            ),
+          );
+          return;
+        }
+        _navigateAfterRegularSignIn();
+        return;
+      }
+      if (capabilities.canRunCloudSync) {
+        if (router != null) {
+          router.go(
+            CloudActivationPreflightScreen.buildRouteLocation(
+              autoAdvance: true,
+              fallbackToHome: true,
+            ),
+          );
+          return;
+        }
+        _navigateAfterRegularSignIn();
+        return;
+      }
+      _navigateAfterRegularSignIn();
     });
+  }
+
+  void _navigateAfterRegularSignIn() {
+    final GoRouter? router = GoRouter.maybeOf(context);
+    if (router != null) {
+      if (router.canPop()) {
+        router.pop();
+      } else {
+        router.go(MainNavigationShell.routeName);
+      }
+      return;
+    }
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
   }
 
   void _toggleMode({

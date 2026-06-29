@@ -35,9 +35,7 @@ class _SyncStatusIndicatorState extends ConsumerState<SyncStatusIndicator>
           data: (SyncStatus value) => value,
           orElse: () => SyncStatus.offline,
         );
-    final FeatureGate cloudSyncGate = ref.watch(
-      featureAccessProvider.select((FeatureAccess access) => access.cloudSync),
-    );
+    final FeatureGate cloudSyncGate = ref.watch(cloudSyncFeatureGateProvider);
     final ThemeData theme = Theme.of(context);
 
     if (status == SyncStatus.syncing) {

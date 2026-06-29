@@ -13,9 +13,12 @@ import 'package:kopim/features/profile/data/local_auth_repository.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/sign_in_request.dart';
 import 'package:kopim/features/profile/domain/entities/sign_up_request.dart';
+import 'package:kopim/features/profile/domain/entities/user_progress.dart';
 import 'package:kopim/features/profile/domain/failures/auth_failure.dart';
+import 'package:kopim/features/profile/domain/models/profile_command_result.dart';
 import 'package:kopim/features/profile/domain/repositories/auth_repository.dart';
 import 'package:kopim/features/profile/domain/repositories/user_account_cleanup_repository.dart';
+import 'package:kopim/features/profile/domain/usecases/recompute_user_progress_use_case.dart';
 import 'package:kopim/features/profile/presentation/controllers/auth_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_decision_controller.dart';
 import 'package:kopim/features/profile/presentation/controllers/cloud_activation_intent_controller.dart';
@@ -33,9 +36,15 @@ class _FakeDataModeController extends DataModeController {
   _FakeDataModeController(this._nextState);
 
   final DataModeState _nextState;
+  int refreshEntitlementCalls = 0;
 
   @override
   FutureOr<DataModeState> build() async => _nextState;
+
+  @override
+  Future<void> refreshEntitlement() async {
+    refreshEntitlementCalls += 1;
+  }
 
   @override
   Future<DataModeState> refreshForCurrentContext() async {
@@ -62,6 +71,22 @@ class FakeUserAccountCleanupRepository implements UserAccountCleanupRepository {
     if (handler != null) {
       await handler();
     }
+  }
+}
+
+class _NoOpRecomputeUserProgressUseCase extends Fake
+    implements RecomputeUserProgressUseCase {
+  @override
+  Future<ProfileCommandResult<UserProgress>> call() async {
+    return ProfileCommandResult<UserProgress>(
+      value: UserProgress(
+        totalTx: 0,
+        level: 1,
+        title: 'Start',
+        nextThreshold: 1,
+        updatedAt: DateTime.utc(2024, 1, 1),
+      ),
+    );
   }
 }
 
@@ -204,6 +229,8 @@ void main() {
   late MockConnectivity connectivity;
   late MockAuthSyncService authSyncService;
   late FakeUserAccountCleanupRepository cleanupRepository;
+  late _FakeDataModeController dataModeController;
+  late _NoOpRecomputeUserProgressUseCase recomputeUserProgressUseCase;
   late ProviderContainer container;
 
   setUpAll(() {
@@ -235,6 +262,7 @@ void main() {
     connectivity = MockConnectivity();
     authSyncService = MockAuthSyncService();
     cleanupRepository = FakeUserAccountCleanupRepository();
+    recomputeUserProgressUseCase = _NoOpRecomputeUserProgressUseCase();
 
     when(
       () => connectivity.checkConnectivity(),
@@ -250,6 +278,14 @@ void main() {
       ),
     ).thenAnswer((_) async {});
 
+    dataModeController = _FakeDataModeController(
+      const DataModeState(
+        dataMode: DataMode.cloudEnabled,
+        entitlementState: CloudEntitlementState.active,
+        migrationDecision: MigrationDecision.none,
+      ),
+    );
+
     container = ProviderContainer(
       overrides: <Override>[
         authRepositoryProvider.overrideWithValue(authRepository),
@@ -261,14 +297,9 @@ void main() {
         ),
         connectivityProvider.overrideWithValue(connectivity),
         authSyncServiceProvider.overrideWithValue(authSyncService),
-        dataModeControllerProvider.overrideWith(
-          () => _FakeDataModeController(
-            const DataModeState(
-              dataMode: DataMode.cloudEnabled,
-              entitlementState: CloudEntitlementState.active,
-              migrationDecision: MigrationDecision.none,
-            ),
-          ),
+        dataModeControllerProvider.overrideWith(() => dataModeController),
+        recomputeUserProgressUseCaseProvider.overrideWithValue(
+          recomputeUserProgressUseCase,
         ),
       ],
     );
@@ -510,6 +541,44 @@ void main() {
       );
       expect(state.hasError, isFalse);
       expect(state.value, equals(cloudUser));
+    },
+  );
+
+  test(
+    'explicit signIn runs login sync only once when authStateChanges emits the new user',
+    () async {
+      const AuthUser cloudUser = AuthUser(
+        uid: 'cloud-user-double-sync',
+        email: 'user@example.com',
+        isAnonymous: false,
+      );
+      authRepository.onSignIn = (SignInRequest request) async {
+        authRepository.initialUser = cloudUser;
+        authRepository._controller.add(cloudUser);
+        return cloudUser;
+      };
+      container.read(firebaseAvailabilityProvider.notifier).setAvailable();
+
+      final AuthController controller = container.read(
+        authControllerProvider.notifier,
+      );
+
+      await container.read(authControllerProvider.future);
+      await controller.signIn(
+        const SignInRequest.email(
+          email: 'user@example.com',
+          password: 'pass123',
+        ),
+      );
+
+      verify(
+        () => authSyncService.synchronizeOnLogin(
+          user: cloudUser,
+          previousUser: any(named: 'previousUser'),
+          migrationDecision: MigrationDecision.none,
+        ),
+      ).called(1);
+      expect(dataModeController.refreshEntitlementCalls, 1);
     },
   );
 

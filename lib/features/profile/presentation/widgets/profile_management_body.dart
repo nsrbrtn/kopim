@@ -42,7 +42,12 @@ class ProfileManagementBody extends ConsumerWidget {
         }
 
         final AppCapabilities capabilities = ref.watch(appCapabilitiesProvider);
-        final FeatureAccess featureAccess = ref.watch(featureAccessProvider);
+        final FeatureGate cloudSyncGate = ref.watch(
+          cloudSyncFeatureGateProvider,
+        );
+        final EntitlementAccessState entitlementState = ref.watch(
+          entitlementAccessStateProvider,
+        );
 
         final AsyncValue<Profile?> profileAsync = ref.watch(
           profileControllerProvider(user.uid),
@@ -65,7 +70,7 @@ class ProfileManagementBody extends ConsumerWidget {
         );
         final bool canManageOnlineSync =
             capabilities.canRunCloudSync &&
-            featureAccess.cloudSync.status == FeatureAccessStatus.enabled &&
+            cloudSyncGate.status == FeatureAccessStatus.enabled &&
             !user.isAnonymous;
         final bool effectiveOnlineSyncEnabled =
             canManageOnlineSync && isOnlineSyncEnabled;
@@ -129,8 +134,8 @@ class ProfileManagementBody extends ConsumerWidget {
                     _SecuritySection(
                       isOnlineSyncEnabled: effectiveOnlineSyncEnabled,
                       canManageOnlineSync: canManageOnlineSync,
-                      cloudSyncGate: featureAccess.cloudSync,
-                      entitlementState: featureAccess.entitlementState,
+                      cloudSyncGate: cloudSyncGate,
+                      entitlementState: entitlementState,
                       isCloudCapableBuild: capabilities.canRunCloudSync,
                       usesNeutralAccessCopy:
                           !capabilities.canActivatePromoOrLicenseInApp,

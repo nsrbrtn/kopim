@@ -16,7 +16,7 @@ import 'package:kopim/features/transactions/domain/entities/transaction.dart';
 
 class _FakeLoggerService extends LoggerService {
   @override
-  void logError(String message, [dynamic error]) {}
+  void logError(String message, [dynamic error, StackTrace? stackTrace]) {}
 
   @override
   void logInfo(String message) {}

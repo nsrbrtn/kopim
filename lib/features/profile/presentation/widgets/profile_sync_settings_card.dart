@@ -82,7 +82,7 @@ class _ProfileSyncSettingsCardState
     final ThemeData theme = Theme.of(context);
     final Color iconColor = theme.colorScheme.onSurfaceVariant;
     final AppCapabilities capabilities = ref.watch(appCapabilitiesProvider);
-    final FeatureAccess featureAccess = ref.watch(featureAccessProvider);
+    final FeatureGate cloudSyncGate = ref.watch(cloudSyncFeatureGateProvider);
 
     // В офлайн-сборке показываем простой информационный блок
     if (!capabilities.canRunCloudSync) {
@@ -146,7 +146,7 @@ class _ProfileSyncSettingsCardState
         );
       },
       data: (DataModeState dataModeState) {
-        switch (featureAccess.cloudSync.status) {
+        switch (cloudSyncGate.status) {
           case FeatureAccessStatus.requiresEntitlement:
             final bool hasExpiredAccess =
                 dataModeState.entitlementState == CloudEntitlementState.expired;

@@ -32,7 +32,7 @@ class _WebEntitlementGateScreenState
         return;
       }
 
-      final FeatureGate nextGate = ref.read(featureAccessProvider).webApp;
+      final FeatureGate nextGate = ref.read(webAppFeatureGateProvider);
       if (nextGate.status == FeatureAccessStatus.enabled) {
         context.go(MainNavigationShell.routeName);
       }
@@ -82,9 +82,11 @@ class _WebEntitlementGateScreenState
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final FeatureAccess access = ref.watch(featureAccessProvider);
+    final EntitlementAccessState entitlementState = ref.watch(
+      entitlementAccessStateProvider,
+    );
     final bool isExpired =
-        access.entitlementState == EntitlementAccessState.cloudExpired;
+        entitlementState == EntitlementAccessState.cloudExpired;
     final bool isBusy = _isRefreshing || _isSigningOut;
 
     final IconData icon = _isRefreshing

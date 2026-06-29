@@ -13,7 +13,9 @@ import '../models/navigation_tab_content.dart';
 
 final Provider<List<NavigationTabConfig>> mainNavigationTabsProvider =
     Provider<List<NavigationTabConfig>>((Ref ref) {
-      final FeatureAccess featureAccess = ref.watch(featureAccessProvider);
+      final FeatureGate aiAssistantGate = ref.watch(
+        aiAssistantFeatureGateProvider,
+      );
       final List<NavigationTabConfig> tabs = <NavigationTabConfig>[
         NavigationTabConfig(
           id: 'home',
@@ -49,7 +51,7 @@ final Provider<List<NavigationTabConfig>> mainNavigationTabsProvider =
         ),
       ];
 
-      if (featureAccess.aiAssistant.isEnabled) {
+      if (aiAssistantGate.isEnabled) {
         tabs.insert(
           2,
           NavigationTabConfig(

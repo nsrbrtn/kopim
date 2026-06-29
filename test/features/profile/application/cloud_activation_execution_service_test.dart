@@ -44,7 +44,7 @@ class _FakeLoggerService extends LoggerService {
   void logWarning(String message) {}
 
   @override
-  void logError(String message, [dynamic error]) {}
+  void logError(String message, [dynamic error, StackTrace? stackTrace]) {}
 }
 
 class _FakeCloudEntitlementRepository implements CloudEntitlementRepository {
@@ -92,7 +92,25 @@ class _FakeCloudActivationStateRepository
   }
 
   @override
+  @override
+  Future<void> saveInProgressScenario({
+    required String uid,
+    required String scenario,
+  }) async {
+    savedState = CloudActivationState(
+      uid: uid,
+      scenario: scenario,
+      activatedAt: DateTime.utc(2024, 1, 1),
+      localFingerprint: null,
+      remoteFingerprint: null,
+      version: 1,
+      activationCompleted: false,
+    );
+  }
+
+  @override
   Future<void> saveEnabledState({
+    bool activationCompleted = true,
     required String uid,
     required String scenario,
     required String? localFingerprint,
@@ -105,6 +123,7 @@ class _FakeCloudActivationStateRepository
       localFingerprint: localFingerprint,
       remoteFingerprint: remoteFingerprint,
       version: 1,
+      activationCompleted: activationCompleted,
     );
   }
 }

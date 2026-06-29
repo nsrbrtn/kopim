@@ -1898,12 +1898,14 @@ class _TopCategoriesHeaderFilters extends StatelessWidget {
                 selected: true,
                 onTap: onMonthTap,
               ),
-              const SizedBox(width: 8),
-              AnalyticsFilterChip(
-                label: strings.analyticsShowTransfersChip,
-                selected: isTransfersVisible,
-                onTap: onTransfersToggle,
-              ),
+              if (!isCategoryActive) ...<Widget>[
+                const SizedBox(width: 8),
+                AnalyticsFilterChip(
+                  label: strings.analyticsShowTransfersChip,
+                  selected: isTransfersVisible,
+                  onTap: onTransfersToggle,
+                ),
+              ],
             ],
           ),
         ),

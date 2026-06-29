@@ -5922,7 +5922,7 @@ final class SyncServiceProvider
   }
 }
 
-String _$syncServiceHash() => r'1260b99bd86cf252ead60814c375793f6690694e';
+String _$syncServiceHash() => r'55c225f40b31a6dc68b2941030ff30014d66594e';
 
 @ProviderFor(localProfileRepository)
 final localProfileRepositoryProvider = LocalProfileRepositoryProvider._();

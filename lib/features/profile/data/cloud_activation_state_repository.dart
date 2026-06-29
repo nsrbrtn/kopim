@@ -12,6 +12,11 @@ abstract class CloudActivationStateRepository {
     required String scenario,
     required String? localFingerprint,
     required String? remoteFingerprint,
+    bool activationCompleted = true,
+  });
+  Future<void> saveInProgressScenario({
+    required String uid,
+    required String scenario,
   });
   Future<void> clearStateForUid(String uid);
 }
@@ -57,6 +62,7 @@ class SharedPrefsCloudActivationStateRepository
     required String scenario,
     required String? localFingerprint,
     required String? remoteFingerprint,
+    bool activationCompleted = true,
   }) async {
     final SharedPreferences prefs = await _preferencesFuture;
     final CloudActivationState state = CloudActivationState(
@@ -66,6 +72,25 @@ class SharedPrefsCloudActivationStateRepository
       localFingerprint: localFingerprint,
       remoteFingerprint: remoteFingerprint,
       version: _stateVersion,
+      activationCompleted: activationCompleted,
+    );
+    await prefs.setString(_key(state.uid), jsonEncode(state.toJson()));
+  }
+
+  @override
+  Future<void> saveInProgressScenario({
+    required String uid,
+    required String scenario,
+  }) async {
+    final SharedPreferences prefs = await _preferencesFuture;
+    final CloudActivationState state = CloudActivationState(
+      uid: uid.trim(),
+      scenario: scenario,
+      activatedAt: DateTime.now().toUtc(),
+      localFingerprint: null,
+      remoteFingerprint: null,
+      version: _stateVersion,
+      activationCompleted: false,
     );
     await prefs.setString(_key(state.uid), jsonEncode(state.toJson()));
   }

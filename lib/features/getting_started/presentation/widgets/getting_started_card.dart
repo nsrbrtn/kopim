@@ -41,7 +41,12 @@ class GettingStartedCardHost extends ConsumerWidget {
             unawaited(
               ref
                   .read(gettingStartedPreferencesControllerProvider.notifier)
-                  .activate(),
+                  .activate()
+                  .catchError((Object error, StackTrace stackTrace) {
+                    debugPrint(
+                      'Failed to auto-activate getting started: $error',
+                    );
+                  }),
             );
           }
           final bool wasCompleted =

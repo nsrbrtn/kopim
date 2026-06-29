@@ -11,6 +11,7 @@ import 'package:kopim/features/profile/data/cloud_metadata_repository.dart';
 import 'package:kopim/features/profile/data/fresh_upload_finalization_repository.dart';
 import 'package:kopim/features/profile/domain/entities/auth_user.dart';
 import 'package:kopim/features/profile/domain/entities/cloud_metadata.dart';
+import 'package:kopim/features/profile/domain/entities/cloud_activation_state.dart';
 import 'package:kopim/features/profile/domain/entities/fresh_upload_finalization_marker.dart';
 import 'package:kopim/features/profile/domain/repositories/auth_repository.dart';
 
@@ -92,11 +93,20 @@ class DataModeController extends _$DataModeController {
         .watch(cloudAuthRepositoryProvider)
         .authStateChanges();
 
-    final StreamSubscription<AuthUser?> sub = authStream.listen((
-      AuthUser? user,
-    ) {
-      unawaited(_refreshStateForAuthChange(user));
-    });
+    final StreamSubscription<AuthUser?> sub = authStream.listen(
+      (AuthUser? user) {
+        unawaited(_refreshStateForAuthChange(user));
+      },
+      onError: (Object error, StackTrace stackTrace) {
+        ref
+            .read(loggerServiceProvider)
+            .logError(
+              'DataModeController: authStateChanges stream emitted an error',
+              error,
+              stackTrace,
+            );
+      },
+    );
     ref.onDispose(() => sub.cancel());
 
     final AuthUser? currentCloudUser = ref
@@ -116,7 +126,14 @@ class DataModeController extends _$DataModeController {
           .updateCurrentSyncState(
             currentCloudUser?.uid,
             initial.dataMode == DataMode.cloudEnabled,
-          ),
+          )
+          .catchError((Object error, StackTrace stackTrace) {
+            logger.logError(
+              'DataModeController: failed to update sync state on build',
+              error,
+              stackTrace,
+            );
+          }),
     );
     return initial;
   }
@@ -223,13 +240,24 @@ class DataModeController extends _$DataModeController {
   }
 
   Future<void> _refreshStateForAuthChange(AuthUser? cloudUser) async {
-    final CloudEntitlementState entitlement = await _currentEntitlementState();
-    ref
-        .read(loggerServiceProvider)
-        .logInfo(
-          'DataModeController: refreshed entitlement=${entitlement.name} for auth change cloudUser=${cloudUser?.uid ?? 'none'}.',
-        );
-    await _updateState(cloudUser, entitlement);
+    try {
+      final CloudEntitlementState entitlement =
+          await _currentEntitlementState();
+      ref
+          .read(loggerServiceProvider)
+          .logInfo(
+            'DataModeController: refreshed entitlement=${entitlement.name} for auth change cloudUser=${cloudUser?.uid ?? 'none'}.',
+          );
+      await _updateState(cloudUser, entitlement);
+    } catch (e, st) {
+      ref
+          .read(loggerServiceProvider)
+          .logError(
+            'DataModeController: failed to refresh state for auth change',
+            e,
+            st,
+          );
+    }
   }
 
   Future<DataModeState> refreshForCurrentContext() async {
@@ -300,8 +328,11 @@ class DataModeController extends _$DataModeController {
     final CloudActivationStateRepository activationStateRepository = ref.read(
       cloudActivationStateRepositoryProvider,
     );
-    final bool hasActivationFlag =
-        await activationStateRepository.getStateForUid(cloudUser.uid) != null;
+    final CloudActivationState? activationState =
+        await activationStateRepository.getStateForUid(cloudUser.uid);
+    final bool hasActivationFlag = activationState != null;
+    final bool activationCompleted =
+        activationState?.activationCompleted ?? false;
 
     // Fetch cloud data state from repository with offline cache fallback
     CloudMetadata? metadata;
@@ -390,6 +421,18 @@ class DataModeController extends _$DataModeController {
       );
     }
 
+    if (!activationCompleted) {
+      logger.logInfo(
+        'DataModeController: initial cloud pull is in progress for cloud user=${cloudUser.uid}.',
+      );
+      return DataModeState(
+        dataMode: DataMode.initialCloudPullInProgress,
+        entitlementState: entitlement,
+        migrationDecision: decisionOverride ?? MigrationDecision.none,
+        cloudDataState: cloudState,
+      );
+    }
+
     final bool hasBlockingLocalData = await ref
         .read(appDatabaseProvider)
         .hasAnyBlockingCloudDataForUid(cloudUser.uid);
@@ -429,7 +472,16 @@ class DataModeController extends _$DataModeController {
     unawaited(
       ref
           .read(appDatabaseProvider)
-          .updateCurrentSyncState(currentUid, syncActive),
+          .updateCurrentSyncState(currentUid, syncActive)
+          .catchError((Object error, StackTrace stackTrace) {
+            ref
+                .read(loggerServiceProvider)
+                .logError(
+                  'DataModeController: failed to update sync state',
+                  error,
+                  stackTrace,
+                );
+          }),
     );
   }
 

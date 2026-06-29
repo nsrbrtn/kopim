@@ -42,8 +42,7 @@ class _CloudAccessStatusScreenState
       }
 
       final FeatureAccessStatus nextStatus = ref
-          .read(featureAccessProvider)
-          .cloudSync
+          .read(cloudSyncFeatureGateProvider)
           .status;
       if (nextStatus != FeatureAccessStatus.requiresEntitlement) {
         context.go(CloudActivationPreflightScreen.routeName);

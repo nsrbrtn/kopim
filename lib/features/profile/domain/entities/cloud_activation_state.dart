@@ -6,6 +6,7 @@ class CloudActivationState {
     required this.localFingerprint,
     required this.remoteFingerprint,
     required this.version,
+    required this.activationCompleted,
   });
 
   final String uid;
@@ -14,6 +15,7 @@ class CloudActivationState {
   final String? localFingerprint;
   final String? remoteFingerprint;
   final int version;
+  final bool activationCompleted;
 
   Map<String, Object?> toJson() {
     return <String, Object?>{
@@ -23,6 +25,7 @@ class CloudActivationState {
       'localFingerprint': localFingerprint,
       'remoteFingerprint': remoteFingerprint,
       'version': version,
+      'activationCompleted': activationCompleted,
     };
   }
 
@@ -52,6 +55,7 @@ class CloudActivationState {
       localFingerprint: json['localFingerprint'] as String?,
       remoteFingerprint: json['remoteFingerprint'] as String?,
       version: version,
+      activationCompleted: json['activationCompleted'] as bool? ?? true,
     );
   }
 }

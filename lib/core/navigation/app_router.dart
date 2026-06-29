@@ -207,7 +207,14 @@ final Provider<GoRouter> appRouterProvider = Provider<GoRouter>((Ref ref) {
         path: CloudActivationPreflightScreen.routeName,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (BuildContext context, GoRouterState state) {
-          return const CloudActivationPreflightScreen();
+          final String? autoAdvanceParam =
+              state.uri.queryParameters['autoAdvance'];
+          final String? fallbackToHomeParam =
+              state.uri.queryParameters['fallbackToHome'];
+          return CloudActivationPreflightScreen(
+            autoAdvance: autoAdvanceParam == 'true',
+            fallbackToHome: fallbackToHomeParam == 'true',
+          );
         },
       ),
       GoRoute(
@@ -501,10 +508,10 @@ class _AppShell extends ConsumerWidget {
           data: (AuthUser? user) {
             if (user == null) return const _StartupPlaceholder();
             if (capabilities.requiresEntitlementBeforeWebApp) {
-              final FeatureAccess featureAccess = ref.watch(
-                featureAccessProvider,
+              final FeatureGate webAppGate = ref.watch(
+                webAppFeatureGateProvider,
               );
-              if (featureAccess.webApp.status != FeatureAccessStatus.enabled) {
+              if (webAppGate.status != FeatureAccessStatus.enabled) {
                 return const WebEntitlementGateScreen();
               }
             }

@@ -24,6 +24,7 @@ class AuthController extends _$AuthController {
   bool _initialSyncTriggered = false;
   bool _upcomingPaymentsWorkScheduled = false;
   bool _offlineMode = false;
+  bool _explicitCloudAuthInProgress = false;
 
   @override
   FutureOr<AuthUser?> build() async {
@@ -37,6 +38,14 @@ class AuthController extends _$AuthController {
         }
         state = AsyncValue<AuthUser?>.data(user);
         if (user != null && !user.isAnonymous && !_initialSyncTriggered) {
+          if (_explicitCloudAuthInProgress) {
+            ref
+                .read(loggerServiceProvider)
+                .logInfo(
+                  'AuthController: explicit cloud auth is in progress for ${user.uid}, skipping listener-triggered sync.',
+                );
+            return;
+          }
           _initialSyncTriggered = true;
           unawaited(_syncSilently(user));
         }
@@ -44,7 +53,11 @@ class AuthController extends _$AuthController {
       onError: (Object error, StackTrace stackTrace) {
         ref
             .read(loggerServiceProvider)
-            .logError('AuthStateChanges stream error', error);
+            .logError(
+              'authStateChanges stream emitted an error',
+              error,
+              stackTrace,
+            );
       },
     );
 
@@ -96,6 +109,7 @@ class AuthController extends _$AuthController {
 
   Future<void> signIn(SignInRequest request) async {
     _exitOfflineMode();
+    _explicitCloudAuthInProgress = true;
     final AuthUser? previousUser = state.value;
     state = const AsyncValue<AuthUser?>.loading();
     try {
@@ -110,6 +124,8 @@ class AuthController extends _$AuthController {
           .read(loggerServiceProvider)
           .logError('signIn failed: ${failure.message}', failure);
       rethrow;
+    } finally {
+      _explicitCloudAuthInProgress = false;
     }
   }
 
@@ -135,6 +151,7 @@ class AuthController extends _$AuthController {
 
   Future<void> signUp(SignUpRequest request) async {
     _exitOfflineMode();
+    _explicitCloudAuthInProgress = true;
     final AuthUser? previousUser = state.value;
     state = const AsyncValue<AuthUser?>.loading();
     try {
@@ -146,11 +163,14 @@ class AuthController extends _$AuthController {
     } on AuthFailure catch (failure, stackTrace) {
       state = AsyncValue<AuthUser?>.error(failure, stackTrace);
       rethrow;
+    } finally {
+      _explicitCloudAuthInProgress = false;
     }
   }
 
   Future<void> reauthenticate(SignInRequest request) async {
     _exitOfflineMode();
+    _explicitCloudAuthInProgress = true;
     final AuthUser? previousUser = state.value;
     state = const AsyncValue<AuthUser?>.loading();
     try {
@@ -162,6 +182,8 @@ class AuthController extends _$AuthController {
     } on AuthFailure catch (failure, stackTrace) {
       state = AsyncValue<AuthUser?>.error(failure, stackTrace);
       rethrow;
+    } finally {
+      _explicitCloudAuthInProgress = false;
     }
   }
 
@@ -330,6 +352,14 @@ class AuthController extends _$AuthController {
           .read(loggerServiceProvider)
           .logWarning(
             'Initial auth sync blocked for ${user.uid}: ${error.message}',
+          );
+    } catch (error, stackTrace) {
+      ref
+          .read(loggerServiceProvider)
+          .logError(
+            'Initial auth sync crashed with unexpected error',
+            error,
+            stackTrace,
           );
     }
   }

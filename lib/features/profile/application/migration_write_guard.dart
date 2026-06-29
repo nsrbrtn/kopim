@@ -95,7 +95,7 @@ abstract class MigrationWriteGuard {
 
   Future<void> activateFreeze({String? uid, String phase, bool uploadStarted});
 
-  Future<void> releaseFreeze();
+  Future<void> releaseFreeze({String? expectedPhase});
 
   Future<MigrationFreezeState?> currentState();
 
@@ -131,7 +131,7 @@ class NoopMigrationWriteGuard extends MigrationWriteGuard {
   Future<void> refreshState() async {}
 
   @override
-  Future<void> releaseFreeze() async {}
+  Future<void> releaseFreeze({String? expectedPhase}) async {}
 
   @override
   Future<T> runBackgroundMutation<T>({
@@ -229,7 +229,13 @@ class SharedPrefsMigrationWriteGuard extends MigrationWriteGuard {
   }
 
   @override
-  Future<void> releaseFreeze() async {
+  Future<void> releaseFreeze({String? expectedPhase}) async {
+    if (expectedPhase != null) {
+      final MigrationFreezeState? state = await currentState();
+      if (state != null && state.phase != expectedPhase) {
+        return; // Do not release if phase doesn't match
+      }
+    }
     await _stateRepository.clearState();
     _cachedState = null;
     _hydrated = true;

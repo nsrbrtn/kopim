@@ -49,6 +49,7 @@ import 'package:kopim/features/upcoming_payments/domain/entities/payment_reminde
 import 'package:kopim/features/upcoming_payments/domain/entities/upcoming_payment.dart';
 import 'package:kopim/core/services/sync_status.dart';
 import 'package:kopim/core/services/auth_sync_service.dart';
+import 'package:kopim/core/services/sync/sync_dispatch_guard.dart';
 
 abstract class SyncService {
   Future<void> initialize();
@@ -86,6 +87,7 @@ class FirebaseSyncService implements SyncService {
     required AuthSyncService authSyncService,
     required SyncOwnershipGuard syncOwnershipGuard,
     required SyncConflictDao syncConflictDao,
+    required SyncDispatchGuard syncDispatchGuard,
     Connectivity? connectivity,
     OutboxPayloadNormalizer payloadNormalizer = const OutboxPayloadNormalizer(),
   }) : _outboxDao = outboxDao,
@@ -111,6 +113,7 @@ class FirebaseSyncService implements SyncService {
        _authSyncService = authSyncService,
        _syncOwnershipGuard = syncOwnershipGuard,
        _syncConflictDao = syncConflictDao,
+       _syncDispatchGuard = syncDispatchGuard,
        _payloadNormalizer = payloadNormalizer;
 
   static const Duration _staleSendingRecoveryWindow = Duration(minutes: 5);
@@ -138,6 +141,7 @@ class FirebaseSyncService implements SyncService {
   final AuthSyncService _authSyncService;
   final SyncOwnershipGuard _syncOwnershipGuard;
   final SyncConflictDao _syncConflictDao;
+  final SyncDispatchGuard _syncDispatchGuard;
   final OutboxPayloadNormalizer _payloadNormalizer;
 
   StreamSubscription<List<db.OutboxEntryRow>>? _outboxSubscription;
@@ -191,6 +195,9 @@ class FirebaseSyncService implements SyncService {
     _isSyncing = true;
     _updateStatus();
     try {
+      if (_syncDispatchGuard.isPaused) {
+        return;
+      }
       if (await _outboxDao.isImportInProgress()) {
         return;
       }
@@ -206,6 +213,9 @@ class FirebaseSyncService implements SyncService {
       if (pendingEntries.isEmpty) return;
 
       for (final db.OutboxEntryRow entry in pendingEntries) {
+        if (_syncDispatchGuard.isPaused) {
+          return;
+        }
         await _syncEntry(user.uid, entry);
       }
 

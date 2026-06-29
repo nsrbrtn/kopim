@@ -137,7 +137,25 @@ class _FakeCloudActivationStateRepository
   }
 
   @override
+  @override
+  Future<void> saveInProgressScenario({
+    required String uid,
+    required String scenario,
+  }) async {
+    state = CloudActivationState(
+      uid: uid,
+      scenario: scenario,
+      activatedAt: DateTime.utc(2024, 1, 1),
+      localFingerprint: null,
+      remoteFingerprint: null,
+      version: 1,
+      activationCompleted: false,
+    );
+  }
+
+  @override
   Future<void> saveEnabledState({
+    bool activationCompleted = true,
     required String uid,
     required String scenario,
     required String? localFingerprint,
@@ -150,6 +168,7 @@ class _FakeCloudActivationStateRepository
       localFingerprint: localFingerprint,
       remoteFingerprint: remoteFingerprint,
       version: 1,
+      activationCompleted: activationCompleted,
     );
   }
 }
@@ -277,6 +296,7 @@ void main() {
                 localFingerprint: 'local:empty',
                 remoteFingerprint: 'remote:empty|uid:cloud-user-1',
                 version: 1,
+                activationCompleted: true,
               ),
             ),
           ),
@@ -347,6 +367,7 @@ void main() {
                 localFingerprint: 'local:cloudOwned-old-user',
                 remoteFingerprint: 'remote:empty|uid:cloud-user-new',
                 version: 1,
+                activationCompleted: true,
               ),
             ),
           ),
@@ -427,6 +448,7 @@ void main() {
                 localFingerprint: 'local:changed-during-expired',
                 remoteFingerprint: 'remote:active|uid:cloud-user-renewed',
                 version: 1,
+                activationCompleted: true,
               ),
             ),
           ),
@@ -486,6 +508,7 @@ void main() {
                 localFingerprint: 'local:unchanged-while-expired',
                 remoteFingerprint: 'remote:active|uid:cloud-user-renewed-clean',
                 version: 1,
+                activationCompleted: true,
               ),
             ),
           ),
@@ -591,6 +614,7 @@ void main() {
                 localFingerprint: 'local:empty',
                 remoteFingerprint: 'remote:empty|uid:cloud-user-3',
                 version: 1,
+                activationCompleted: true,
               ),
             ),
           ),
@@ -649,6 +673,7 @@ void main() {
                 localFingerprint: 'local:empty',
                 remoteFingerprint: 'remote:empty|uid:cloud-user-4',
                 version: 1,
+                activationCompleted: true,
               ),
             ),
           ),
@@ -710,6 +735,7 @@ void main() {
                 localFingerprint: 'local:empty',
                 remoteFingerprint: 'remote:empty|uid:cloud-user-5',
                 version: 1,
+                activationCompleted: true,
               ),
             ),
           ),
@@ -763,6 +789,7 @@ void main() {
                 localFingerprint: 'local',
                 remoteFingerprint: 'remote',
                 version: 1,
+                activationCompleted: true,
               ),
             ),
           ),
@@ -825,6 +852,7 @@ void main() {
                 localFingerprint: 'local',
                 remoteFingerprint: 'remote',
                 version: 1,
+                activationCompleted: true,
               ),
             ),
           ),
@@ -895,6 +923,7 @@ void main() {
                 localFingerprint: 'local:empty',
                 remoteFingerprint: 'remote:empty|uid:cloud-user-6',
                 version: 1,
+                activationCompleted: true,
               ),
             ),
           ),
@@ -948,6 +977,7 @@ void main() {
                 localFingerprint: 'local:empty',
                 remoteFingerprint: 'remote:empty|uid:cloud-user-7',
                 version: 1,
+                activationCompleted: true,
               ),
             ),
           ),
